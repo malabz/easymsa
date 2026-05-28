@@ -32,7 +32,7 @@ export function MSAColorLegend() {
   const { dictionary: d } = useLanguage();
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4">
+    <div className="border-t border-slate-200 pt-4">
       <h3 className="mb-3 text-sm font-semibold text-slate-900">
         {d.results.viewer.legend}
       </h3>

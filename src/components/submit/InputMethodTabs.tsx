@@ -19,7 +19,7 @@ export function InputMethodTabs({
   const { dictionary: d } = useLanguage();
 
   return (
-    <div className="grid gap-2 rounded-lg border border-slate-200 bg-slate-50 p-1 sm:grid-cols-3">
+    <div className="grid gap-2 rounded-lg border border-slate-200 bg-white/55 p-1 sm:grid-cols-3">
       {methods.map((method) => {
         const Icon = method.icon;
         const selected = value === method.value;
@@ -29,7 +29,7 @@ export function InputMethodTabs({
             className={cn(
               "flex h-11 items-center justify-center gap-2 rounded-md px-3 text-sm font-medium transition",
               selected
-                ? "bg-white text-cyan-800 shadow-sm"
+                ? "bg-teal-700 text-white shadow-sm"
                 : "text-slate-600 hover:bg-white/80 hover:text-slate-950"
             )}
             key={method.value}

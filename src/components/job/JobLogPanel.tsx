@@ -14,7 +14,7 @@ export function JobLogPanel({ logs }: { logs: string[] }) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
-          <TerminalSquare className="h-5 w-5 text-cyan-700" />
+          <TerminalSquare className="h-5 w-5 text-teal-700" />
           {d.job.logs}
         </CardTitle>
       </CardHeader>
@@ -22,7 +22,7 @@ export function JobLogPanel({ logs }: { logs: string[] }) {
         <div className="rounded-md bg-slate-950 p-4 font-mono text-xs leading-6 text-slate-100">
           {logs.map((log, index) => (
             <p key={`${log}-${index}`}>
-              <span className="text-cyan-300">{String(index + 1).padStart(2, "0")}</span>{" "}
+              <span className="text-teal-300">{String(index + 1).padStart(2, "0")}</span>{" "}
               {log}
             </p>
           ))}

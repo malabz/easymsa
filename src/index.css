@@ -18,9 +18,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  background:
-    radial-gradient(circle at top left, rgb(224 242 254 / 0.6), transparent 34rem),
-    linear-gradient(180deg, #f8fafc 0%, #eef6f8 48%, #f8fafc 100%);
+  background: linear-gradient(180deg, #f7faf9 0%, #eef5f3 46%, #f8fafc 100%);
   color: #0f172a;
 }
 
@@ -31,5 +29,5 @@ textarea {
 }
 
 ::selection {
-  background: rgb(14 165 233 / 0.2);
+  background: rgb(15 118 110 / 0.18);
 }

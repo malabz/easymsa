@@ -10,13 +10,6 @@ import type { InputMethod } from "../../lib/types/job";
 import { validateFasta } from "../../lib/utils/fasta";
 import { validateInputFile } from "../../lib/utils/fileValidation";
 import { Button } from "../common/Button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from "../common/Card";
 import { FileUploadCard } from "./FileUploadCard";
 import { InputMethodTabs } from "./InputMethodTabs";
 import { PasteSequenceInput } from "./PasteSequenceInput";
@@ -109,91 +102,85 @@ export function SubmitJobForm() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{d.submit.title}</CardTitle>
-        <CardDescription>{d.submit.subtitle}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-800" htmlFor="jobName">
-                {d.submit.jobName}
-              </label>
-              <input
-                className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100"
-                id="jobName"
-                placeholder={d.submit.jobNamePlaceholder}
-                {...register("jobName")}
-              />
-              {errors.jobName ? (
-                <p className="text-sm text-rose-700">{errors.jobName.message}</p>
-              ) : null}
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-800" htmlFor="email">
-                {d.submit.email}{" "}
-                <span className="font-normal text-slate-500">
-                  ({d.common.optional})
-                </span>
-              </label>
-              <input
-                className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100"
-                id="email"
-                placeholder={d.submit.emailPlaceholder}
-                type="email"
-                {...register("email")}
-              />
-              {errors.email ? (
-                <p className="text-sm text-rose-700">{errors.email.message}</p>
-              ) : null}
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <p className="text-sm font-medium text-slate-800">
-              {d.submit.inputMethod}
-            </p>
-            <InputMethodTabs value={inputMethod} onChange={handleMethodChange} />
-          </div>
-
-          {inputMethod === "paste" ? (
-            <PasteSequenceInput
-              onChange={setPastedSequence}
-              value={pastedSequence}
+    <section className="rounded-lg border border-slate-200/80 bg-white/55 p-5 sm:p-6">
+      <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-800" htmlFor="jobName">
+              {d.submit.jobName}
+            </label>
+            <input
+              className="h-10 w-full rounded-md border border-slate-300 bg-white/80 px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+              id="jobName"
+              placeholder={d.submit.jobNamePlaceholder}
+              {...register("jobName")}
             />
-          ) : null}
-
-          {inputMethod === "upload" ? (
-            <FileUploadCard file={file} onChange={setFile} />
-          ) : null}
-
-          {inputMethod === "demo" ? (
-            <div className="rounded-lg border border-cyan-200 bg-cyan-50 p-5">
-              <h3 className="text-base font-semibold text-cyan-950">
-                {d.submit.demoTitle}
-              </h3>
-              <p className="mt-2 text-sm leading-6 text-cyan-900">
-                {d.submit.demoDescription}
-              </p>
-            </div>
-          ) : null}
-
-          {formError ? (
-            <div className="rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
-              {formError}
-            </div>
-          ) : null}
-
-          <div className="flex justify-end">
-            <Button disabled={submitting} type="submit">
-              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              {submitting ? d.submit.submitting : d.common.submit}
-            </Button>
+            {errors.jobName ? (
+              <p className="text-sm text-rose-700">{errors.jobName.message}</p>
+            ) : null}
           </div>
-        </form>
-      </CardContent>
-    </Card>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-800" htmlFor="email">
+              {d.submit.email}{" "}
+              <span className="font-normal text-slate-500">
+                ({d.common.optional})
+              </span>
+            </label>
+            <input
+              className="h-10 w-full rounded-md border border-slate-300 bg-white/80 px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+              id="email"
+              placeholder={d.submit.emailPlaceholder}
+              type="email"
+              {...register("email")}
+            />
+            {errors.email ? (
+              <p className="text-sm text-rose-700">{errors.email.message}</p>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <p className="text-sm font-medium text-slate-800">
+            {d.submit.inputMethod}
+          </p>
+          <InputMethodTabs value={inputMethod} onChange={handleMethodChange} />
+        </div>
+
+        {inputMethod === "paste" ? (
+          <PasteSequenceInput
+            onChange={setPastedSequence}
+            value={pastedSequence}
+          />
+        ) : null}
+
+        {inputMethod === "upload" ? (
+          <FileUploadCard file={file} onChange={setFile} />
+        ) : null}
+
+        {inputMethod === "demo" ? (
+          <div className="rounded-lg border border-teal-200 bg-teal-50 p-5">
+            <h3 className="text-base font-semibold text-teal-950">
+              {d.submit.demoTitle}
+            </h3>
+            <p className="mt-2 text-sm leading-6 text-teal-900">
+              {d.submit.demoDescription}
+            </p>
+          </div>
+        ) : null}
+
+        {formError ? (
+          <div className="rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+            {formError}
+          </div>
+        ) : null}
+
+        <div className="flex justify-end">
+          <Button disabled={submitting} type="submit">
+            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            {submitting ? d.submit.submitting : d.common.submit}
+          </Button>
+        </div>
+      </form>
+    </section>
   );
 }

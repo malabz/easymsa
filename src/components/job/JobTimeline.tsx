@@ -39,7 +39,7 @@ export function JobTimeline({ status }: { status: JobStatus }) {
                   className={cn(
                     "mt-0.5 h-5 w-5 shrink-0",
                     complete && "text-emerald-700",
-                    current && "animate-spin text-cyan-700",
+                    current && "animate-spin text-teal-700",
                     !complete && !current && "text-slate-300"
                   )}
                 />

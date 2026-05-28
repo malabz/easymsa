@@ -19,7 +19,7 @@ export function ResultTabs({
   const { dictionary: d } = useLanguage();
 
   return (
-    <div className="grid gap-2 rounded-lg border border-slate-200 bg-slate-50 p-1 sm:inline-grid sm:grid-cols-2">
+    <div className="grid gap-2 rounded-lg border border-slate-200 bg-white/55 p-1 sm:inline-grid sm:grid-cols-2">
       {tabs.map((tab) => {
         const Icon = tab.icon;
         const selected = value === tab.value;
@@ -29,7 +29,7 @@ export function ResultTabs({
             className={cn(
               "flex h-10 items-center justify-center gap-2 rounded-md px-4 text-sm font-medium transition",
               selected
-                ? "bg-white text-cyan-800 shadow-sm"
+                ? "bg-teal-700 text-white shadow-sm"
                 : "text-slate-600 hover:bg-white/80 hover:text-slate-950"
             )}
             key={tab.value}

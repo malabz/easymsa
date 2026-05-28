@@ -1,10 +1,4 @@
 import { Activity, AlignJustify, Database, FileArchive, Percent } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle
-} from "../common/Card";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import type { ResultSummary } from "../../lib/types/result";
 import { formatPercent } from "../../lib/utils/format";
@@ -43,23 +37,19 @@ export function ResultOverview({ summary }: { summary: ResultSummary }) {
   ] as const;
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+    <div className="grid gap-5 border-y border-slate-200 py-5 sm:grid-cols-2 lg:grid-cols-5">
       {metrics.map((metric) => {
         const Icon = metricIcons[metric.key];
         return (
-          <Card key={metric.key}>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-sm font-medium text-slate-600">
-                <Icon className="h-4 w-4 text-cyan-700" />
-                {d.results.metrics[metric.key]}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <p className="text-2xl font-semibold text-slate-950">
-                {metric.value}
-              </p>
-            </CardContent>
-          </Card>
+          <div className="min-w-0" key={metric.key}>
+            <p className="flex items-center gap-2 text-sm font-medium text-slate-600">
+              <Icon className="h-4 w-4 text-teal-700" />
+              {d.results.metrics[metric.key]}
+            </p>
+            <p className="mt-2 text-2xl font-semibold text-slate-950">
+              {metric.value}
+            </p>
+          </div>
         );
       })}
     </div>

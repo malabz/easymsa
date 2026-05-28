@@ -11,13 +11,13 @@ const previewRows = [
 
 function AlignmentPreview() {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-soft">
-      <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3">
+    <div className="rounded-lg border border-slate-800 bg-slate-950 p-4 shadow-soft">
+      <div className="mb-4 flex items-center justify-between border-b border-slate-800 pb-3">
         <div>
-          <p className="text-xs font-semibold uppercase text-cyan-700">MSA preview</p>
-          <p className="text-sm text-slate-600">12 sequences · 80 sites</p>
+          <p className="text-xs font-semibold uppercase text-teal-300">MSA preview</p>
+          <p className="text-sm text-slate-400">12 sequences · 80 sites</p>
         </div>
-        <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+        <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-300">
           completed
         </span>
       </div>
@@ -25,10 +25,10 @@ function AlignmentPreview() {
         {previewRows.map(([id, sequence]) => (
           <div className="grid grid-cols-[5.5rem_1fr] gap-3" key={id}>
             <span className="truncate text-slate-500">{id}</span>
-            <span className="overflow-hidden whitespace-nowrap text-slate-800">
+            <span className="overflow-hidden whitespace-nowrap text-slate-200">
               {sequence.split(" ").map((base, index) => (
                 <span
-                  className="mr-1 inline-flex h-5 w-5 items-center justify-center rounded bg-slate-100"
+                  className="mr-1 inline-flex h-5 w-5 items-center justify-center rounded border border-slate-700 bg-slate-900"
                   key={`${id}-${index}`}
                 >
                   {base}
@@ -48,7 +48,7 @@ export function HeroSection() {
   return (
     <section className="grid gap-10 py-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:py-14">
       <div className="space-y-7">
-        <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-sm font-medium text-cyan-800">
+        <div className="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-sm font-medium text-teal-800">
           <FlaskConical className="h-4 w-4" />
           {d.home.visualTitle}
         </div>
@@ -73,7 +73,7 @@ export function HeroSection() {
             {d.common.tryDemo}
           </ButtonLink>
         </div>
-        <p className="max-w-2xl rounded-md border border-slate-200 bg-white/75 px-4 py-3 text-sm leading-6 text-slate-600">
+        <p className="max-w-2xl border-l-2 border-teal-600 pl-4 text-sm leading-6 text-slate-600">
           {d.home.demoNotice}
         </p>
       </div>

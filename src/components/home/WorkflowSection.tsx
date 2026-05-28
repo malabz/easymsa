@@ -13,19 +13,25 @@ export function WorkflowSection() {
           {d.home.workflowTitle}
         </h2>
       </div>
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-6 border-y border-slate-200 py-6 md:grid-cols-3">
         {d.home.workflow.map((item, index) => {
           const Icon = icons[index];
           return (
             <div
-              className="rounded-lg border border-slate-200 bg-white p-6 shadow-soft"
+              className="flex gap-4"
               key={item.title}
             >
-              <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-md bg-cyan-50 text-cyan-800">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-teal-50 text-teal-800">
                 <Icon className="h-5 w-5" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-950">{item.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">{item.text}</p>
+              <div>
+                <h3 className="text-lg font-semibold text-slate-950">
+                  {item.title}
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  {item.text}
+                </p>
+              </div>
             </div>
           );
         })}

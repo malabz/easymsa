@@ -45,7 +45,7 @@ export function JobStatusCard({ job }: { job: JobDetail }) {
           </div>
           <div className="h-3 overflow-hidden rounded-full bg-slate-100">
             <div
-              className="h-full rounded-full bg-cyan-700 transition-all duration-700"
+              className="h-full rounded-full bg-teal-700 transition-all duration-700"
               style={{ width: `${job.progress}%` }}
             />
           </div>
@@ -53,7 +53,7 @@ export function JobStatusCard({ job }: { job: JobDetail }) {
 
         <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
           <span className="inline-flex items-center gap-2">
-            <Clock3 className="h-4 w-4 text-cyan-700" />
+            <Clock3 className="h-4 w-4 text-teal-700" />
             {d.common.createdAt}: {formatDateTime(job.createdAt)}
           </span>
           {job.status === "completed" ? (

@@ -55,10 +55,10 @@ export function FileUploadCard({
     <div className="space-y-4">
       <div
         className={cn(
-          "rounded-lg border border-dashed bg-white p-6 text-center transition",
+          "rounded-lg border border-dashed bg-white/60 p-6 text-center transition",
           dragActive
-            ? "border-cyan-500 bg-cyan-50"
-            : "border-slate-300 hover:border-cyan-400"
+            ? "border-teal-500 bg-teal-50"
+            : "border-slate-300 hover:border-teal-400"
         )}
         onDragEnter={(event) => {
           event.preventDefault();
@@ -79,7 +79,7 @@ export function FileUploadCard({
           ref={inputRef}
           type="file"
         />
-        <UploadCloud className="mx-auto mb-3 h-9 w-9 text-cyan-700" />
+        <UploadCloud className="mx-auto mb-3 h-9 w-9 text-teal-700" />
         <h3 className="text-base font-semibold text-slate-950">
           {dragActive ? d.submit.uploadDrop : d.submit.uploadTitle}
         </h3>
@@ -97,9 +97,9 @@ export function FileUploadCard({
       </div>
 
       {file ? (
-        <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white/55 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-white text-cyan-700">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-white/80 text-teal-700">
               <FileArchive className="h-5 w-5" />
             </div>
             <div className="min-w-0">
