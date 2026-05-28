@@ -20,20 +20,24 @@ import type { MSAResult } from "../lib/types/msa";
 import type { ResultSummary } from "../lib/types/result";
 
 export function ResultsPage() {
-  const { jobId } = useParams();
+  const { jobId: routeJobId } = useParams<{ jobId: string }>();
   const { dictionary: d } = useLanguage();
   const [activeTab, setActiveTab] = useState<ResultTab>("overview");
   const [summary, setSummary] = useState<ResultSummary | null>(null);
   const [alignment, setAlignment] = useState<MSAResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const files = useMemo(() => getDownloadFiles(jobId ?? "demo-job"), [jobId]);
+  const files = useMemo(
+    () => getDownloadFiles(routeJobId ?? "demo-job"),
+    [routeJobId]
+  );
 
   useEffect(() => {
-    if (!jobId) {
+    if (!routeJobId) {
       setError("Missing job ID");
       return;
     }
 
+    const jobId = routeJobId;
     let mounted = true;
 
     async function load() {
@@ -60,7 +64,7 @@ export function ResultsPage() {
     return () => {
       mounted = false;
     };
-  }, [d.common.error, jobId]);
+  }, [d.common.error, routeJobId]);
 
   return (
     <PageContainer className="space-y-8">
@@ -68,7 +72,9 @@ export function ResultsPage() {
         <div className="max-w-3xl space-y-3">
           <h1 className="text-4xl font-semibold text-slate-950">{d.results.title}</h1>
           <p className="text-lg leading-8 text-slate-600">{d.results.subtitle}</p>
-          {jobId ? <p className="font-mono text-sm text-slate-500">{jobId}</p> : null}
+          {routeJobId ? (
+            <p className="font-mono text-sm text-slate-500">{routeJobId}</p>
+          ) : null}
         </div>
         <ResultTabs value={activeTab} onChange={setActiveTab} />
       </div>

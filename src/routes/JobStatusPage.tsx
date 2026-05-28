@@ -11,17 +11,18 @@ import { useLanguage } from "../lib/i18n/useLanguage";
 import type { JobDetail } from "../lib/types/job";
 
 export function JobStatusPage() {
-  const { jobId } = useParams();
+  const { jobId: routeJobId } = useParams<{ jobId: string }>();
   const { dictionary: d } = useLanguage();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!jobId) {
+    if (!routeJobId) {
       setError("Missing job ID");
       return;
     }
 
+    const jobId = routeJobId;
     let mounted = true;
 
     async function load() {
@@ -45,7 +46,7 @@ export function JobStatusPage() {
       mounted = false;
       window.clearInterval(interval);
     };
-  }, [d.common.error, jobId]);
+  }, [d.common.error, routeJobId]);
 
   return (
     <PageContainer className="space-y-8">
