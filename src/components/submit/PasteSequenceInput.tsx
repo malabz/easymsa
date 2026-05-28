@@ -1,0 +1,52 @@
+import { CheckCircle2, Info } from "lucide-react";
+import { useMemo } from "react";
+import { useLanguage } from "../../lib/i18n/useLanguage";
+import { validateFasta } from "../../lib/utils/fasta";
+
+export function PasteSequenceInput({
+  value,
+  onChange
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const { dictionary: d } = useLanguage();
+  const validation = useMemo(() => validateFasta(value), [value]);
+  const hasContent = value.trim().length > 0;
+
+  const statsText = d.submit.pasteStats
+    .replace("{chars}", validation.characterCount.toLocaleString())
+    .replace("{count}", validation.sequenceCount.toLocaleString());
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-4">
+        <label className="text-sm font-medium text-slate-800" htmlFor="pastedSequence">
+          {d.submit.pasteLabel}
+        </label>
+        <span className="text-xs text-slate-500">{statsText}</span>
+      </div>
+      <textarea
+        className="min-h-72 w-full resize-y rounded-lg border border-slate-300 bg-white px-4 py-3 font-mono text-sm leading-6 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100"
+        id="pastedSequence"
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={d.submit.pastePlaceholder}
+        spellCheck={false}
+        value={value}
+      />
+      <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm leading-6 text-slate-600">
+        {validation.valid ? (
+          <span className="flex items-center gap-2 text-emerald-700">
+            <CheckCircle2 className="h-4 w-4" />
+            {d.submit.pasteValid}
+          </span>
+        ) : (
+          <span className="flex items-start gap-2">
+            <Info className="mt-1 h-4 w-4 shrink-0 text-cyan-700" />
+            <span>{hasContent ? d.submit.pasteInvalid : d.submit.pasteHint}</span>
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
