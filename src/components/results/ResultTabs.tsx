@@ -1,12 +1,11 @@
-import { BarChart3, Download, Rows3 } from "lucide-react";
+import { BarChart3, Download } from "lucide-react";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import { cn } from "../../lib/utils/cn";
 
-export type ResultTab = "overview" | "alignment" | "downloads";
+export type ResultTab = "overview" | "downloads";
 
 const tabs: Array<{ value: ResultTab; icon: typeof BarChart3 }> = [
   { value: "overview", icon: BarChart3 },
-  { value: "alignment", icon: Rows3 },
   { value: "downloads", icon: Download }
 ];
 
@@ -20,7 +19,7 @@ export function ResultTabs({
   const { dictionary: d } = useLanguage();
 
   return (
-    <div className="grid gap-2 rounded-lg border border-slate-200 bg-slate-50 p-1 sm:inline-grid sm:grid-cols-3">
+    <div className="grid gap-2 rounded-lg border border-slate-200 bg-slate-50 p-1 sm:inline-grid sm:grid-cols-2">
       {tabs.map((tab) => {
         const Icon = tab.icon;
         const selected = value === tab.value;

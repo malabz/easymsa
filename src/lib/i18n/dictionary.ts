@@ -128,7 +128,7 @@ const zh = {
     title: "结果",
     subtitle: "查看任务概览、比对矩阵和 demo 输出文件。",
     tabs: {
-      overview: "结果概览",
+      overview: "概览与比对",
       alignment: "比对结果",
       downloads: "下载结果"
     },
@@ -343,7 +343,7 @@ const en: typeof zh = {
     title: "Results",
     subtitle: "Inspect the job overview, alignment matrix, and demo output files.",
     tabs: {
-      overview: "Overview",
+      overview: "Overview & Alignment",
       alignment: "Alignment",
       downloads: "Downloads"
     },
