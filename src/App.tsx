@@ -6,8 +6,10 @@ import { DocsPage } from "./routes/DocsPage";
 import { ExamplesPage } from "./routes/ExamplesPage";
 import { HomePage } from "./routes/HomePage";
 import { JobStatusPage } from "./routes/JobStatusPage";
+import { LookupPage } from "./routes/LookupPage";
 import { ResultsPage } from "./routes/ResultsPage";
 import { SubmitPage } from "./routes/SubmitPage";
+import { ViewerPage } from "./routes/ViewerPage";
 
 export function App() {
   return (
@@ -17,6 +19,8 @@ export function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/submit" element={<SubmitPage />} />
+          <Route path="/viewer" element={<ViewerPage />} />
+          <Route path="/lookup" element={<LookupPage />} />
           <Route path="/job/:jobId" element={<JobStatusPage />} />
           <Route path="/results/:jobId" element={<ResultsPage />} />
           <Route path="/examples" element={<ExamplesPage />} />
