@@ -10,10 +10,10 @@ import type { JobStatus } from "../../lib/types/job";
 import { cn } from "../../lib/utils/cn";
 
 const steps: JobStatus[] = [
-  "submitted",
-  "checking",
-  "running",
-  "preparing",
+  "queued",
+  "preprocessing",
+  "aligning",
+  "packaging",
   "completed"
 ];
 

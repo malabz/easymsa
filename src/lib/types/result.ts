@@ -3,9 +3,9 @@ export type ResultSummary = {
   metrics: {
     sequenceCount: number;
     alignmentLength: number;
-    averageIdentity: number;
-    gapPercentage: number;
-    outputSizeMB: number;
+    averageIdentity: number | null;
+    gapPercentage: number | null;
+    outputSizeMB: number | null;
   };
 };
 

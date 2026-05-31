@@ -19,6 +19,9 @@ type FormValues = {
   email: string;
 };
 
+const PUBLIC_JOB_NAME_MAX_LENGTH = 64;
+const PUBLIC_JOB_NAME_PATTERN = /^[\p{L}\p{N}_ .()（）-]+$/u;
+
 export function SubmitJobForm() {
   const { dictionary: d, locale } = useLanguage();
   const navigate = useNavigate();
@@ -31,7 +34,16 @@ export function SubmitJobForm() {
   const schema = useMemo(
     () =>
       z.object({
-        jobName: z.string().trim().min(1, d.submit.errors.jobName),
+        jobName: z
+          .string()
+          .trim()
+          .min(1, d.submit.errors.jobName)
+          .max(PUBLIC_JOB_NAME_MAX_LENGTH, d.submit.errors.jobNameLength)
+          .refine((value) => !value.includes(".."), d.submit.errors.jobNameUnsafe)
+          .refine(
+            (value) => PUBLIC_JOB_NAME_PATTERN.test(value),
+            d.submit.errors.jobNameUnsafe
+          ),
         email: z
           .string()
           .trim()
@@ -88,14 +100,19 @@ export function SubmitJobForm() {
         jobName: values.jobName.trim(),
         inputMethod,
         pastedSequence: inputMethod === "paste" ? pastedSequence : undefined,
+        file: inputMethod === "upload" ? file ?? undefined : undefined,
         fileName: inputMethod === "upload" ? file?.name : undefined,
         email: values.email.trim() || undefined,
         language: locale
       });
 
-      navigate(`/job/${response.jobId}`);
-    } catch {
-      setFormError(d.submit.errors.submitFailed);
+      navigate(`/job/${encodeURIComponent(response.jobId)}`);
+    } catch (submitError) {
+      setFormError(
+        submitError instanceof Error
+          ? submitError.message
+          : d.submit.errors.submitFailed
+      );
     } finally {
       setSubmitting(false);
     }

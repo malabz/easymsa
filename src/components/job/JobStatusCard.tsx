@@ -18,7 +18,7 @@ export function JobStatusCard({ job }: { job: JobDetail }) {
     <Card>
       <CardHeader>
         <CardTitle>{d.job.statusLabels[job.status]}</CardTitle>
-        <CardDescription>{job.currentStep}</CardDescription>
+        <CardDescription>{job.message ?? d.job.statusLabels[job.status]}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2">
@@ -33,10 +33,16 @@ export function JobStatusCard({ job }: { job: JobDetail }) {
               {d.job.jobName}
             </p>
             <p className="mt-1 text-sm font-medium text-slate-900">
-              {job.jobName}
+              {job.jobName ?? "-"}
             </p>
           </div>
         </div>
+
+        {job.failure || job.preprocess.errorMessage ? (
+          <div className="rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+            {job.failure?.message ?? job.preprocess.errorMessage}
+          </div>
+        ) : null}
 
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
@@ -54,10 +60,10 @@ export function JobStatusCard({ job }: { job: JobDetail }) {
         <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
           <span className="inline-flex items-center gap-2">
             <Clock3 className="h-4 w-4 text-teal-700" />
-            {d.common.createdAt}: {formatDateTime(job.createdAt)}
+            {d.common.createdAt}: {job.createdAt ? formatDateTime(job.createdAt) : "-"}
           </span>
           {job.status === "completed" ? (
-            <ButtonLink to={`/results/${job.jobId}`}>
+            <ButtonLink to={`/results/${encodeURIComponent(job.jobId)}`}>
               {d.common.viewResults}
               <ArrowRight className="h-4 w-4" />
             </ButtonLink>

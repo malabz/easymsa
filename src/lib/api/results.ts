@@ -1,8 +1,95 @@
-import { apiUrl, isMockMode } from "./client";
+import { apiUrl, isMockMode, missingTokenError, parseApiError } from "./client";
+import { getJobToken } from "./tokens";
 import { demoAlignment, demoSummary } from "../mock/demoAlignment";
 import type { MSAResult } from "../types/msa";
 import type { ResultFile, ResultSummary } from "../types/result";
 import { assetUrl } from "../utils/format";
+
+type ServerResultSummary = {
+  jobId: string;
+  summary: {
+    alignment?: {
+      sequenceCount?: number;
+      alignmentLength?: number;
+      gapPercentage?: number;
+      averageIdentity?: number;
+    };
+    outputSizeMB?: number;
+  };
+};
+
+type ServerAlignmentPreview = {
+  jobId: string;
+  truncated: boolean;
+  sequenceCount: number | null;
+  alignmentLength: number | null;
+  sequences: MSAResult["sequences"];
+  message?: string;
+};
+
+function requireToken(jobId: string) {
+  const token = getJobToken(jobId);
+
+  if (!token) {
+    throw missingTokenError(jobId);
+  }
+
+  return token;
+}
+
+function jobPathSegment(jobId: string) {
+  return encodeURIComponent(jobId);
+}
+
+function consensusFromSequences(sequences: MSAResult["sequences"], length: number | null) {
+  if (!sequences.length || !length) {
+    return "";
+  }
+
+  const consensus: string[] = [];
+
+  for (let index = 0; index < length; index += 1) {
+    const counts = new Map<string, number>();
+
+    for (const sequence of sequences) {
+      const base = sequence.sequence[index] ?? "-";
+      counts.set(base, (counts.get(base) ?? 0) + 1);
+    }
+
+    consensus.push(
+      Array.from(counts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "-"
+    );
+  }
+
+  return consensus.join("");
+}
+
+function adaptServerSummary(payload: ServerResultSummary): ResultSummary {
+  const alignment = payload.summary.alignment ?? {};
+
+  return {
+    jobId: payload.jobId,
+    metrics: {
+      sequenceCount: alignment.sequenceCount ?? 0,
+      alignmentLength: alignment.alignmentLength ?? 0,
+      averageIdentity: alignment.averageIdentity ?? null,
+      gapPercentage: alignment.gapPercentage ?? null,
+      outputSizeMB: payload.summary.outputSizeMB ?? null
+    }
+  };
+}
+
+function adaptServerAlignment(payload: ServerAlignmentPreview): MSAResult {
+  return {
+    jobId: payload.jobId,
+    truncated: payload.truncated,
+    message: payload.message,
+    sequenceCount: payload.sequenceCount,
+    alignmentLength: payload.alignmentLength,
+    sequences: payload.sequences,
+    consensus: consensusFromSequences(payload.sequences, payload.alignmentLength)
+  };
+}
 
 export async function getResultSummary(jobId: string): Promise<ResultSummary> {
   if (isMockMode()) {
@@ -18,13 +105,18 @@ export async function getResultSummary(jobId: string): Promise<ResultSummary> {
     return { ...demoSummary, jobId };
   }
 
-  const response = await fetch(apiUrl(`/jobs/${jobId}/results/summary`));
+  const token = requireToken(jobId);
+  const response = await fetch(
+    apiUrl(
+      `/jobs/${jobPathSegment(jobId)}/results/summary?token=${encodeURIComponent(token)}`
+    )
+  );
 
   if (!response.ok) {
-    throw new Error("Failed to load result summary");
+    throw await parseApiError(response, "Failed to load result summary");
   }
 
-  return response.json();
+  return adaptServerSummary(await response.json());
 }
 
 export async function getAlignmentResult(jobId: string): Promise<MSAResult> {
@@ -41,35 +133,34 @@ export async function getAlignmentResult(jobId: string): Promise<MSAResult> {
     return { ...demoAlignment, jobId };
   }
 
-  const response = await fetch(apiUrl(`/jobs/${jobId}/results`));
+  const token = requireToken(jobId);
+  const response = await fetch(
+    apiUrl(
+      `/jobs/${jobPathSegment(jobId)}/results/alignment?token=${encodeURIComponent(token)}`
+    )
+  );
 
   if (!response.ok) {
-    throw new Error("Failed to load alignment result");
+    throw await parseApiError(response, "Failed to load alignment result");
   }
 
-  return response.json();
+  return adaptServerAlignment(await response.json());
 }
 
 export function getDownloadFiles(jobId: string): ResultFile[] {
   if (!isMockMode()) {
+    const token = getJobToken(jobId);
+
     return [
       {
-        name: "alignment.fasta",
-        description: "Aligned sequences in FASTA format",
-        size: "remote",
-        href: apiUrl(`/jobs/${jobId}/results/alignment.fasta`)
-      },
-      {
-        name: "summary.json",
-        description: "Summary metrics in JSON format",
-        size: "remote",
-        href: apiUrl(`/jobs/${jobId}/results/summary.json`)
-      },
-      {
         name: "all_results.zip",
-        description: "Compressed result archive",
+        description: "Compressed result archive from the EasyMSA server",
         size: "remote",
-        href: apiUrl(`/jobs/${jobId}/results/all_results.zip`)
+        href: token
+          ? apiUrl(
+              `/jobs/${jobPathSegment(jobId)}/download?token=${encodeURIComponent(token)}`
+            )
+          : "#"
       }
     ];
   }

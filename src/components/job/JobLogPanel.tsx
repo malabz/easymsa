@@ -6,9 +6,29 @@ import {
   CardTitle
 } from "../common/Card";
 import { useLanguage } from "../../lib/i18n/useLanguage";
+import type { JobDetail } from "../../lib/types/job";
 
-export function JobLogPanel({ logs }: { logs: string[] }) {
+function buildEvents(job: JobDetail) {
+  const events = [
+    `Job ${job.jobId} is ${job.status}.`,
+    job.message,
+    job.preprocess.status
+      ? `Preprocess ${job.preprocess.status}${job.preprocess.mode ? ` (${job.preprocess.mode})` : ""}.`
+      : null,
+    job.algorithm.name ? `Algorithm: ${job.algorithm.name}.` : null,
+    job.failure ? `Failure ${job.failure.code}: ${job.failure.message}` : null,
+    job.preprocess.errorMessage
+      ? `Preprocess error: ${job.preprocess.errorMessage}`
+      : null,
+    job.expiresAt ? `Expires at ${new Date(job.expiresAt).toLocaleString()}.` : null
+  ];
+
+  return events.filter((event): event is string => Boolean(event));
+}
+
+export function JobLogPanel({ job }: { job: JobDetail }) {
   const { dictionary: d } = useLanguage();
+  const logs = buildEvents(job);
 
   return (
     <Card>

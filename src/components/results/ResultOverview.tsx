@@ -13,6 +13,10 @@ const metricIcons = {
 
 export function ResultOverview({ summary }: { summary: ResultSummary }) {
   const { dictionary: d } = useLanguage();
+  const optionalPercent = (value: number | null) =>
+    value === null ? "N/A" : formatPercent(value);
+  const optionalSize = (value: number | null) =>
+    value === null ? "N/A" : `${value.toFixed(2)} MB`;
   const metrics = [
     {
       key: "sequenceCount",
@@ -24,15 +28,15 @@ export function ResultOverview({ summary }: { summary: ResultSummary }) {
     },
     {
       key: "averageIdentity",
-      value: formatPercent(summary.metrics.averageIdentity)
+      value: optionalPercent(summary.metrics.averageIdentity)
     },
     {
       key: "gapPercentage",
-      value: formatPercent(summary.metrics.gapPercentage)
+      value: optionalPercent(summary.metrics.gapPercentage)
     },
     {
       key: "outputSizeMB",
-      value: `${summary.metrics.outputSizeMB.toFixed(2)} MB`
+      value: optionalSize(summary.metrics.outputSizeMB)
     }
   ] as const;
 

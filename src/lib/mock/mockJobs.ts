@@ -14,34 +14,34 @@ type StoredJob = {
 const STORAGE_KEY = "easymsa.mockJobs";
 
 const statusOrder: JobStatus[] = [
-  "submitted",
-  "checking",
-  "running",
-  "preparing",
+  "queued",
+  "preprocessing",
+  "aligning",
+  "packaging",
   "completed"
 ];
 
 const statusMeta: Record<
   JobStatus,
-  { progress: number; currentStep: string; logs: string[] }
+  { progress: number; message: string; logs: string[] }
 > = {
-  submitted: {
+  queued: {
     progress: 8,
-    currentStep: "Job submitted",
+    message: "Job submitted.",
     logs: ["Job request received.", "Waiting for input validation."]
   },
-  checking: {
+  preprocessing: {
     progress: 28,
-    currentStep: "Checking input",
+    message: "Preprocessing input FASTA.",
     logs: [
       "Job request received.",
       "Input file or pasted FASTA accepted.",
       "Validating sequence records."
     ]
   },
-  running: {
+  aligning: {
     progress: 64,
-    currentStep: "Running analysis",
+    message: "Running alignment.",
     logs: [
       "Job request received.",
       "Input validation completed.",
@@ -49,9 +49,9 @@ const statusMeta: Record<
       "Estimating alignment summary metrics."
     ]
   },
-  preparing: {
+  packaging: {
     progress: 86,
-    currentStep: "Preparing results",
+    message: "Packaging results.",
     logs: [
       "Job request received.",
       "Input validation completed.",
@@ -61,7 +61,7 @@ const statusMeta: Record<
   },
   completed: {
     progress: 100,
-    currentStep: "Completed",
+    message: "Job completed.",
     logs: [
       "Job request received.",
       "Input validation completed.",
@@ -71,7 +71,7 @@ const statusMeta: Record<
   },
   failed: {
     progress: 100,
-    currentStep: "Failed",
+    message: "Job failed.",
     logs: ["The job failed during mock execution."]
   }
 };
@@ -107,15 +107,15 @@ function getStatusFromElapsed(createdAt: string): JobStatus {
     return "completed";
   }
   if (elapsedSeconds >= 8) {
-    return "preparing";
+    return "packaging";
   }
   if (elapsedSeconds >= 4) {
-    return "running";
+    return "aligning";
   }
   if (elapsedSeconds >= 1.5) {
-    return "checking";
+    return "preprocessing";
   }
-  return "submitted";
+  return "queued";
 }
 
 function toJobDetail(job: StoredJob): JobDetail {
@@ -127,10 +127,30 @@ function toJobDetail(job: StoredJob): JobDetail {
     jobName: job.jobName,
     status,
     progress: meta.progress,
-    currentStep: meta.currentStep,
-    logs: meta.logs,
+    message: meta.message,
     createdAt: job.createdAt,
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
+    startedAt: status === "queued" ? null : job.createdAt,
+    completedAt: status === "completed" ? new Date().toISOString() : null,
+    expiresAt:
+      status === "completed"
+        ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+        : null,
+    downloadUrl: status === "completed" ? `/demo/all_results.zip` : null,
+    preprocess: {
+      status: status === "queued" ? null : status === "failed" ? "failed" : "completed",
+      mode: "audit",
+      strictness: "normal",
+      errorCode: null,
+      errorMessage: null
+    },
+    algorithm: {
+      name: "demo"
+    },
+    emailStatus: null,
+    emailError: null,
+    emailSentAt: null,
+    failure: null
   };
 }
 
@@ -153,7 +173,7 @@ export async function createMockJob(
 
   return {
     jobId,
-    status: "submitted",
+    status: "queued",
     createdAt
   };
 }

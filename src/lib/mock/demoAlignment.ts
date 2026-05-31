@@ -3,6 +3,7 @@ import type { ResultSummary } from "../types/result";
 
 export const demoAlignment: MSAResult = {
   jobId: "demo-job",
+  truncated: false,
   alignmentLength: 80,
   consensus:
     "ATGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTA",
@@ -74,7 +75,7 @@ export const demoSummary: ResultSummary = {
   jobId: "demo-job",
   metrics: {
     sequenceCount: demoAlignment.sequences.length,
-    alignmentLength: demoAlignment.alignmentLength,
+    alignmentLength: demoAlignment.alignmentLength ?? 0,
     averageIdentity: 93.8,
     gapPercentage: 3.2,
     outputSizeMB: 0.08

@@ -5,7 +5,10 @@ export type MSASequence = {
 
 export type MSAResult = {
   jobId: string;
+  truncated: boolean;
+  message?: string;
   sequences: MSASequence[];
   consensus: string;
-  alignmentLength: number;
+  alignmentLength: number | null;
+  sequenceCount?: number | null;
 };

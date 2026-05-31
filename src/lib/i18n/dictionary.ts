@@ -100,6 +100,9 @@ const zh = {
     submitting: "正在提交",
     errors: {
       jobName: "请输入任务名称。",
+      jobNameLength: "任务名称最多 64 个字符。",
+      jobNameUnsafe:
+        "任务名称只能包含中文、字母、数字、空格、下划线、连字符、点和括号，且不能包含连续两个点。",
       email: "请输入合法邮箱地址，或留空。",
       paste: "当前粘贴内容不是可提交的 FASTA。",
       upload: "请选择一个受支持的输入文件。",
@@ -116,10 +119,10 @@ const zh = {
     timeline: "任务时间线",
     logs: "运行日志",
     statusLabels: {
-      submitted: "已提交",
-      checking: "正在检查输入",
-      running: "正在运行分析",
-      preparing: "正在准备结果",
+      queued: "排队中",
+      preprocessing: "正在预处理",
+      aligning: "正在比对",
+      packaging: "正在打包结果",
       completed: "已完成",
       failed: "失败"
     }
@@ -146,11 +149,22 @@ const zh = {
       alignmentLength: "比对长度 {length}",
       consensus: "consensus",
       legend: "颜色图例",
-      noMatches: "没有匹配的序列。"
+      noMatches: "没有匹配的序列。",
+      zoomIn: "放大",
+      zoomOut: "缩小",
+      resetZoom: "重置缩放",
+      toggleDensity: "切换密度",
+      jumpTo: "跳转到比对位置",
+      jumpPlaceholder: "位置",
+      position: "位置",
+      density: {
+        comfortable: "舒适",
+        compact: "紧凑"
+      }
     },
     downloads: {
       title: "可下载文件",
-      description: "这些文件来自 public/demo，可在 GitHub Pages 静态环境中直接下载。"
+      description: "Mock 模式下载 public/demo 文件；真实模式下载后端生成的结果压缩包。"
     }
   },
   examples: {
@@ -199,7 +213,7 @@ const zh = {
       },
       {
         title: "Future backend integration",
-        body: "未来可通过 VITE_API_MODE=remote 和 VITE_API_BASE_URL 接入远程 API。"
+        body: "未来可通过 VITE_API_MODE=real 和 VITE_API_BASE_URL 接入远程 API。"
       }
     ]
   },
@@ -315,6 +329,9 @@ const en: typeof zh = {
     submitting: "Submitting",
     errors: {
       jobName: "Enter a job name.",
+      jobNameLength: "Job name must be at most 64 characters.",
+      jobNameUnsafe:
+        "Job name may contain letters, numbers, spaces, underscores, hyphens, dots, parentheses, and Chinese characters only; it must not contain two consecutive dots.",
       email: "Enter a valid email address, or leave it blank.",
       paste: "The pasted content is not a valid FASTA input.",
       upload: "Choose a supported input file.",
@@ -331,10 +348,10 @@ const en: typeof zh = {
     timeline: "Timeline",
     logs: "Run log",
     statusLabels: {
-      submitted: "Submitted",
-      checking: "Checking input",
-      running: "Running analysis",
-      preparing: "Preparing results",
+      queued: "Queued",
+      preprocessing: "Preprocessing",
+      aligning: "Aligning",
+      packaging: "Packaging results",
       completed: "Completed",
       failed: "Failed"
     }
@@ -361,11 +378,22 @@ const en: typeof zh = {
       alignmentLength: "Alignment length {length}",
       consensus: "consensus",
       legend: "Color legend",
-      noMatches: "No matching sequences."
+      noMatches: "No matching sequences.",
+      zoomIn: "Zoom in",
+      zoomOut: "Zoom out",
+      resetZoom: "Reset zoom",
+      toggleDensity: "Toggle density",
+      jumpTo: "Jump to alignment position",
+      jumpPlaceholder: "Position",
+      position: "Position",
+      density: {
+        comfortable: "Comfortable",
+        compact: "Compact"
+      }
     },
     downloads: {
       title: "Downloadable files",
-      description: "These files are served from public/demo and work in a static GitHub Pages build."
+      description: "Mock mode downloads public/demo files; real mode downloads the server result archive."
     }
   },
   examples: {
@@ -414,7 +442,7 @@ const en: typeof zh = {
       },
       {
         title: "Future backend integration",
-        body: "A remote API can later be enabled with VITE_API_MODE=remote and VITE_API_BASE_URL."
+        body: "A remote API can later be enabled with VITE_API_MODE=real and VITE_API_BASE_URL."
       }
     ]
   },

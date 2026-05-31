@@ -24,6 +24,7 @@ export function JobStatusPage() {
 
     const jobId = routeJobId;
     let mounted = true;
+    let interval: number | undefined;
 
     async function load() {
       try {
@@ -32,19 +33,36 @@ export function JobStatusPage() {
           setJob(detail);
           setError(null);
         }
+        if (
+          mounted &&
+          (detail.status === "completed" || detail.status === "failed") &&
+          interval
+        ) {
+          window.clearInterval(interval);
+        }
       } catch (loadError) {
         if (mounted) {
           setError(loadError instanceof Error ? loadError.message : d.common.error);
+        }
+        if (
+          loadError instanceof Error &&
+          "code" in loadError &&
+          loadError.code === "JOB_EXPIRED" &&
+          interval
+        ) {
+          window.clearInterval(interval);
         }
       }
     }
 
     load();
-    const interval = window.setInterval(load, 1400);
+    interval = window.setInterval(load, 3000);
 
     return () => {
       mounted = false;
-      window.clearInterval(interval);
+      if (interval) {
+        window.clearInterval(interval);
+      }
     };
   }, [d.common.error, routeJobId]);
 
@@ -62,7 +80,7 @@ export function JobStatusPage() {
         <div className="grid gap-5 lg:grid-cols-[1fr_22rem]">
           <div className="space-y-5">
             <JobStatusCard job={job} />
-            <JobLogPanel logs={job.logs} />
+            <JobLogPanel job={job} />
           </div>
           <JobTimeline status={job.status} />
         </div>
