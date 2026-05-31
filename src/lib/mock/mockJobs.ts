@@ -7,6 +7,7 @@ import type {
 type StoredJob = {
   jobId: string;
   jobName: string;
+  token: string;
   inputMethod: CreateJobRequest["inputMethod"];
   createdAt: string;
 };
@@ -100,6 +101,14 @@ function writeJobs(jobs: Record<string, StoredJob>) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs));
 }
 
+function mockToken() {
+  return `mock_${crypto.randomUUID?.() ?? Math.random().toString(36).slice(2)}`;
+}
+
+function statusUrl(jobId: string, token: string) {
+  return `/api/jobs/${encodeURIComponent(jobId)}?token=${encodeURIComponent(token)}`;
+}
+
 function getStatusFromElapsed(createdAt: string): JobStatus {
   const elapsedSeconds = (Date.now() - new Date(createdAt).getTime()) / 1000;
 
@@ -156,15 +165,25 @@ function toJobDetail(job: StoredJob): JobDetail {
 
 export async function createMockJob(
   request: CreateJobRequest
-): Promise<{ jobId: string; status: JobStatus; createdAt: string }> {
+): Promise<{
+  jobId: string;
+  status: JobStatus;
+  statusUrl: string;
+  downloadUrl: null;
+  token: string;
+  createdAt: string;
+}> {
   const createdAt = new Date().toISOString();
+  const token = mockToken();
   const jobId =
-    request.inputMethod === "demo" ? "demo-job" : `job-${Date.now().toString()}`;
+    request.inputMethod === "demo" ? request.jobName : request.jobName;
   const jobs = readJobs();
+  const storageKey = `${jobId}\n${token}`;
 
-  jobs[jobId] = {
+  jobs[storageKey] = {
     jobId,
     jobName: request.jobName,
+    token,
     inputMethod: request.inputMethod,
     createdAt
   };
@@ -174,34 +193,40 @@ export async function createMockJob(
   return {
     jobId,
     status: "queued",
+    statusUrl: statusUrl(jobId, token),
+    downloadUrl: null,
+    token,
     createdAt
   };
 }
 
-export async function getMockJobStatus(jobId: string): Promise<JobDetail> {
+export async function getMockJobStatus(jobId: string, token: string): Promise<JobDetail> {
   const jobs = readJobs();
+  const storageKey = `${jobId}\n${token}`;
 
-  if (!jobs[jobId] && jobId === "demo-job") {
-    jobs[jobId] = {
-      jobId: "demo-job",
+  if (!jobs[storageKey] && jobId === "demo-job") {
+    jobs[storageKey] = {
+      jobId,
       jobName: "Demo alignment",
+      token,
       inputMethod: "demo",
       createdAt: new Date(Date.now() - 13_000).toISOString()
     };
     writeJobs(jobs);
   }
 
-  if (!jobs[jobId]) {
-    jobs[jobId] = {
+  if (!jobs[storageKey]) {
+    jobs[storageKey] = {
       jobId,
       jobName: "Mock alignment job",
+      token,
       inputMethod: "demo",
       createdAt: new Date().toISOString()
     };
     writeJobs(jobs);
   }
 
-  return toJobDetail(jobs[jobId]);
+  return toJobDetail(jobs[storageKey]);
 }
 
 export function getJobStatusOrder() {

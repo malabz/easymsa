@@ -1,5 +1,4 @@
-import { apiUrl, isMockMode, missingTokenError, parseApiError } from "./client";
-import { getJobToken } from "./tokens";
+import { apiUrl, isMockMode, parseApiError } from "./client";
 import { demoAlignment, demoSummary } from "../mock/demoAlignment";
 import type { MSAResult } from "../types/msa";
 import type { ResultFile, ResultSummary } from "../types/result";
@@ -26,16 +25,6 @@ type ServerAlignmentPreview = {
   sequences: MSAResult["sequences"];
   message?: string;
 };
-
-function requireToken(jobId: string) {
-  const token = getJobToken(jobId);
-
-  if (!token) {
-    throw missingTokenError(jobId);
-  }
-
-  return token;
-}
 
 function jobPathSegment(jobId: string) {
   return encodeURIComponent(jobId);
@@ -91,7 +80,10 @@ function adaptServerAlignment(payload: ServerAlignmentPreview): MSAResult {
   };
 }
 
-export async function getResultSummary(jobId: string): Promise<ResultSummary> {
+export async function getResultSummary(
+  jobId: string,
+  token: string
+): Promise<ResultSummary> {
   if (isMockMode()) {
     try {
       const response = await fetch(assetUrl("demo/summary.json"));
@@ -105,7 +97,6 @@ export async function getResultSummary(jobId: string): Promise<ResultSummary> {
     return { ...demoSummary, jobId };
   }
 
-  const token = requireToken(jobId);
   const response = await fetch(
     apiUrl(
       `/jobs/${jobPathSegment(jobId)}/results/summary?token=${encodeURIComponent(token)}`
@@ -119,7 +110,10 @@ export async function getResultSummary(jobId: string): Promise<ResultSummary> {
   return adaptServerSummary(await response.json());
 }
 
-export async function getAlignmentResult(jobId: string): Promise<MSAResult> {
+export async function getAlignmentResult(
+  jobId: string,
+  token: string
+): Promise<MSAResult> {
   if (isMockMode()) {
     try {
       const response = await fetch(assetUrl("demo/alignment.json"));
@@ -133,7 +127,6 @@ export async function getAlignmentResult(jobId: string): Promise<MSAResult> {
     return { ...demoAlignment, jobId };
   }
 
-  const token = requireToken(jobId);
   const response = await fetch(
     apiUrl(
       `/jobs/${jobPathSegment(jobId)}/results/alignment?token=${encodeURIComponent(token)}`
@@ -147,20 +140,16 @@ export async function getAlignmentResult(jobId: string): Promise<MSAResult> {
   return adaptServerAlignment(await response.json());
 }
 
-export function getDownloadFiles(jobId: string): ResultFile[] {
+export function getDownloadFiles(jobId: string, token: string): ResultFile[] {
   if (!isMockMode()) {
-    const token = getJobToken(jobId);
-
     return [
       {
         name: "all_results.zip",
         description: "Compressed result archive from the EasyMSA server",
         size: "remote",
-        href: token
-          ? apiUrl(
-              `/jobs/${jobPathSegment(jobId)}/download?token=${encodeURIComponent(token)}`
-            )
-          : "#"
+        href: apiUrl(
+          `/jobs/${jobPathSegment(jobId)}/download?token=${encodeURIComponent(token)}`
+        )
       }
     ];
   }

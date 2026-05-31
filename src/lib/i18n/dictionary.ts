@@ -4,6 +4,8 @@ const zh = {
   nav: {
     home: "首页",
     submit: "提交任务",
+    viewer: "查看 MSA",
+    lookup: "查询任务",
     examples: "示例数据",
     docs: "使用文档",
     about: "关于"
@@ -21,7 +23,9 @@ const zh = {
     submit: "提交任务",
     optional: "可选",
     createdAt: "创建时间",
-    updatedAt: "更新时间"
+    updatedAt: "更新时间",
+    copied: "已复制",
+    copyFailed: "复制失败，请手动复制。"
   },
   footer: {
     tagline: "友好的多序列比对 Web Server 前端原型。",
@@ -118,6 +122,23 @@ const zh = {
     progress: "进度",
     timeline: "任务时间线",
     logs: "运行日志",
+    lookupLink: "前往任务恢复",
+    access: {
+      title: "任务凭证",
+      description:
+        "任务 ID 是你提交时填写的任务名称；访问 token 是查看任务状态和下载结果的访问密钥。请同时保存这两项，关闭页面后也可以恢复任务。",
+      jobIdLabel: "任务 ID",
+      jobIdHelp: "用于识别你提交的任务，允许和其他任务重名。",
+      tokenLabel: "访问 token",
+      tokenHelp: "用于证明你有权查看和下载这个任务的结果。",
+      restoreLinkLabel: "恢复链接",
+      restoreLinkHelp: "包含任务 ID 和 token，可直接打开等待页继续轮询。",
+      copyJobId: "复制任务 ID",
+      copyToken: "复制 token",
+      copyRestoreLink: "复制恢复链接",
+      copyJson: "复制任务凭证 JSON",
+      downloadJson: "下载任务凭证 JSON"
+    },
     statusLabels: {
       queued: "排队中",
       preprocessing: "正在预处理",
@@ -126,6 +147,41 @@ const zh = {
       completed: "已完成",
       failed: "失败"
     }
+  },
+  lookup: {
+    title: "恢复任务",
+    subtitle: "输入任务 ID 和访问 token，或上传任务凭证 JSON，继续查看任务状态和结果。",
+    manualTitle: "手动恢复",
+    manualDescription:
+      "提交任务后，等待页会显示任务 ID 和访问 token。如果关闭页面，可以在这里输入两者恢复轮询。",
+    jobId: "任务 ID",
+    token: "访问 token",
+    restore: "恢复任务",
+    uploadTitle: "上传任务凭证 JSON",
+    uploadDescription:
+      "上传之前下载的 easymsa 任务凭证 JSON，可自动恢复对应任务。",
+    chooseJson: "选择 JSON",
+    missingFields: "请同时提供任务 ID 和访问 token。",
+    invalidJson: "这不是有效的 easymsa 任务凭证 JSON。",
+    readJsonFailed: "无法读取该 JSON 文件。"
+  },
+  viewerPage: {
+    title: "MSA 查看器",
+    subtitle: "上传或粘贴 FASTA，在本地查看序列矩阵。",
+    input: "输入",
+    uploadFasta: "上传 FASTA",
+    pasteFasta: "粘贴 FASTA",
+    pastePlaceholder: ">seq1\nATGCTAGC\n>seq2\nATG-TAGC",
+    viewPasted: "查看粘贴内容",
+    matrix: "矩阵",
+    source: "来源",
+    sequences: "序列数量",
+    longestLength: "最长长度",
+    lengthStatus: "长度状态",
+    equalLength: "等长序列输入",
+    rawSequenceView: "原始序列查看，未执行比对。",
+    empty: "上传或粘贴 FASTA 后打开矩阵查看器。",
+    readError: "无法读取该 FASTA 文件。"
   },
   results: {
     title: "结果",
@@ -233,6 +289,8 @@ const en: typeof zh = {
   nav: {
     home: "Home",
     submit: "Submit",
+    viewer: "Viewer",
+    lookup: "Lookup",
     examples: "Examples",
     docs: "Docs",
     about: "About"
@@ -250,7 +308,9 @@ const en: typeof zh = {
     submit: "Submit Job",
     optional: "Optional",
     createdAt: "Created",
-    updatedAt: "Updated"
+    updatedAt: "Updated",
+    copied: "Copied",
+    copyFailed: "Copy failed. Please copy manually."
   },
   footer: {
     tagline: "A friendly frontend prototype for an MSA web server.",
@@ -347,6 +407,23 @@ const en: typeof zh = {
     progress: "Progress",
     timeline: "Timeline",
     logs: "Run log",
+    lookupLink: "Go to task lookup",
+    access: {
+      title: "Job access",
+      description:
+        "The job ID is the name you submitted. The access token is the key for viewing status and downloading results. Save both so you can restore this job after closing the page.",
+      jobIdLabel: "Job ID",
+      jobIdHelp: "Identifies your submitted job. Multiple jobs can share the same ID.",
+      tokenLabel: "Access token",
+      tokenHelp: "Proves you can view and download this job's results.",
+      restoreLinkLabel: "Restore link",
+      restoreLinkHelp: "Includes the job ID and token, so it can reopen this waiting page.",
+      copyJobId: "Copy Job ID",
+      copyToken: "Copy token",
+      copyRestoreLink: "Copy restore link",
+      copyJson: "Copy job access JSON",
+      downloadJson: "Download job access JSON"
+    },
     statusLabels: {
       queued: "Queued",
       preprocessing: "Preprocessing",
@@ -355,6 +432,41 @@ const en: typeof zh = {
       completed: "Completed",
       failed: "Failed"
     }
+  },
+  lookup: {
+    title: "Restore Job",
+    subtitle: "Enter the job ID and access token, or upload a job access JSON, to continue checking status and results.",
+    manualTitle: "Manual restore",
+    manualDescription:
+      "After submitting a job, the waiting page shows the job ID and access token. If you close the page, enter both here to resume polling.",
+    jobId: "Job ID",
+    token: "Access token",
+    restore: "Restore Job",
+    uploadTitle: "Upload job access JSON",
+    uploadDescription:
+      "Upload the easymsa job access JSON you downloaded earlier to restore the matching job automatically.",
+    chooseJson: "Choose JSON",
+    missingFields: "Please provide both job ID and access token.",
+    invalidJson: "This is not a valid easymsa job access JSON file.",
+    readJsonFailed: "Could not read this JSON file."
+  },
+  viewerPage: {
+    title: "MSA Viewer",
+    subtitle: "Upload or paste FASTA and inspect the sequence matrix locally.",
+    input: "Input",
+    uploadFasta: "Upload FASTA",
+    pasteFasta: "Paste FASTA",
+    pastePlaceholder: ">seq1\nATGCTAGC\n>seq2\nATG-TAGC",
+    viewPasted: "View Pasted FASTA",
+    matrix: "Matrix",
+    source: "Source",
+    sequences: "Sequences",
+    longestLength: "Longest length",
+    lengthStatus: "Length status",
+    equalLength: "Equal-length sequence input",
+    rawSequenceView: "Raw sequence view; no alignment was performed.",
+    empty: "Upload or paste FASTA to open the matrix viewer.",
+    readError: "Could not read this FASTA file."
   },
   results: {
     title: "Results",

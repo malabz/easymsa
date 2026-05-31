@@ -9,6 +9,8 @@ import { LanguageToggle } from "./LanguageToggle";
 const navItems = [
   { to: "/", key: "home" },
   { to: "/submit", key: "submit" },
+  { to: "/viewer", key: "viewer" },
+  { to: "/lookup", key: "lookup" },
   { to: "/examples", key: "examples" },
   { to: "/docs", key: "docs" },
   { to: "/about", key: "about" }

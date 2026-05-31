@@ -69,13 +69,13 @@ export async function parseApiError(response: Response, fallback: string) {
 export function missingTokenError(jobId: string) {
   return new EasyMsaApiError({
     code: "MISSING_TOKEN",
-    message: `Missing access token for ${jobId}. Please submit the job again from this browser.`
+    message: `Missing access token for ${jobId}. Open the lookup page and enter the job ID with its token, or upload the access JSON.`
   });
 }
 
 export function humanizeApiError(code: string, fallback: string) {
   const messages: Record<string, string> = {
-    INVALID_TOKEN: "Invalid or missing access token. Please submit the job again from this browser.",
+    INVALID_TOKEN: "Invalid or missing access token.",
     JOB_NOT_FOUND: "Job not found.",
     JOB_EXPIRED: "This job has expired or was deleted.",
     JOB_NOT_COMPLETED: "The job is not completed yet.",

@@ -15,11 +15,14 @@ type ViewSettings = {
   fontSize: number;
   labelWidth: number;
   markerEvery: number;
+  showCharacters: boolean;
+  cellGap: number;
 };
 
-const MIN_ZOOM = 0.7;
-const MAX_ZOOM = 1.8;
-const ZOOM_STEP = 0.1;
+const DETAIL_ZOOM_THRESHOLD = 0.7;
+const MIN_ZOOM = 0.15;
+const MAX_ZOOM = 2.5;
+const ZOOM_STEP = 0.15;
 
 function clampZoom(value: number) {
   return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Number(value.toFixed(2))));
@@ -27,34 +30,63 @@ function clampZoom(value: number) {
 
 function getViewSettings(zoomLevel: number, density: Density): ViewSettings {
   const compact = density === "compact";
+  const showCharacters = zoomLevel >= DETAIL_ZOOM_THRESHOLD;
   const baseCellWidth = compact ? 14 : 20;
   const baseCellHeight = compact ? 20 : 24;
   const rowPadding = compact ? 10 : 14;
+  const globalCellSize = Math.max(3, Math.round(12 * zoomLevel));
 
   return {
-    cellWidth: Math.round(baseCellWidth * zoomLevel),
-    cellHeight: Math.round(baseCellHeight * zoomLevel),
-    rowHeight: Math.round(baseCellHeight * zoomLevel + rowPadding),
+    cellWidth: showCharacters
+      ? Math.round(baseCellWidth * zoomLevel)
+      : globalCellSize,
+    cellHeight: showCharacters
+      ? Math.round(baseCellHeight * zoomLevel)
+      : globalCellSize,
+    rowHeight: showCharacters
+      ? Math.round(baseCellHeight * zoomLevel + rowPadding)
+      : Math.max(6, globalCellSize + 2),
     fontSize: Math.max(9, Math.round((compact ? 10 : 11) * zoomLevel)),
-    labelWidth: Math.round((compact ? 160 : 192) * Math.min(zoomLevel, 1.2)),
-    markerEvery: zoomLevel < 0.95 ? 20 : 10
+    labelWidth: Math.round((compact ? 160 : 192) * Math.min(Math.max(zoomLevel, 0.8), 1.2)),
+    markerEvery: zoomLevel < 0.35 ? 100 : zoomLevel < 0.7 ? 50 : zoomLevel < 0.95 ? 20 : 10,
+    showCharacters,
+    cellGap: showCharacters ? 2 : 0
   };
+}
+
+function cellClass(base: string, showCharacters: boolean) {
+  if (!base) {
+    return "bg-transparent text-transparent border-transparent";
+  }
+
+  return cn(
+    baseClass(base),
+    showCharacters ? "" : "text-transparent"
+  );
 }
 
 function SequenceCells({
   sequence,
+  length,
   settings
 }: {
   sequence: string;
+  length: number;
   settings: ViewSettings;
 }) {
   return (
-    <div className="flex min-w-max gap-0.5">
-      {sequence.split("").map((base, index) => (
+    <div
+      className="flex min-w-max"
+      style={{ gap: settings.cellGap }}
+    >
+      {Array.from({ length }, (_, index) => {
+        const base = sequence[index] ?? "";
+        return (
         <span
           className={cn(
-            "inline-flex shrink-0 items-center justify-center rounded border font-mono font-semibold",
-            baseClass(base)
+            "inline-flex shrink-0 items-center justify-center font-mono font-semibold",
+            settings.showCharacters ? "rounded border" : "border-0",
+            cellClass(base, settings.showCharacters)
           )}
           key={`${base}-${index}`}
           style={{
@@ -63,9 +95,10 @@ function SequenceCells({
             fontSize: settings.fontSize
           }}
         >
-          {base}
+          {settings.showCharacters ? base : ""}
         </span>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -78,7 +111,7 @@ function CoordinateRuler({
   settings: ViewSettings;
 }) {
   return (
-    <div className="flex min-w-max gap-0.5">
+    <div className="flex min-w-max" style={{ gap: settings.cellGap }}>
       {Array.from({ length }, (_, index) => {
         const position = index + 1;
         const showMarker =
@@ -136,10 +169,14 @@ export function MSAViewer({ alignment }: { alignment: MSAResult }) {
 
   const lengthText = d.results.viewer.alignmentLength.replace(
     "{length}",
-    (alignment.alignmentLength ?? 0).toLocaleString()
+    (
+      alignment.alignmentLength ??
+      Math.max(0, ...alignment.sequences.map((sequence) => sequence.sequence.length))
+    ).toLocaleString()
   );
   const alignmentLength =
-    alignment.alignmentLength ?? alignment.sequences[0]?.sequence.length ?? 0;
+    alignment.alignmentLength ??
+    Math.max(0, ...alignment.sequences.map((sequence) => sequence.sequence.length));
   const canUseViewerControls = alignmentLength > 0 && alignment.sequences.length > 0;
 
   function changeZoom(delta: number) {
@@ -168,7 +205,7 @@ export function MSAViewer({ alignment }: { alignment: MSAResult }) {
 
     scrollRef.current.scrollLeft = Math.max(
       0,
-      (position - 1) * (viewSettings.cellWidth + 2)
+      (position - 1) * (viewSettings.cellWidth + viewSettings.cellGap)
     );
     setJumpPosition(String(position));
   }
@@ -321,6 +358,7 @@ export function MSAViewer({ alignment }: { alignment: MSAResult }) {
                   >
                     <SequenceCells
                       sequence={sequence.sequence}
+                      length={alignmentLength}
                       settings={viewSettings}
                     />
                   </div>
@@ -344,6 +382,7 @@ export function MSAViewer({ alignment }: { alignment: MSAResult }) {
                 >
                   <SequenceCells
                     sequence={alignment.consensus}
+                    length={alignmentLength}
                     settings={viewSettings}
                   />
                 </div>

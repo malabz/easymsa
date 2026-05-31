@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { createJob } from "../../lib/api/jobs";
+import { jobRoute } from "../../lib/api/tokens";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import type { InputMethod } from "../../lib/types/job";
 import { validateFasta } from "../../lib/utils/fasta";
@@ -106,7 +107,11 @@ export function SubmitJobForm() {
         language: locale
       });
 
-      navigate(`/job/${encodeURIComponent(response.jobId)}`);
+      navigate(
+        response.token
+          ? jobRoute(response.jobId, response.token)
+          : `/job/${encodeURIComponent(response.jobId)}`
+      );
     } catch (submitError) {
       setFormError(
         submitError instanceof Error

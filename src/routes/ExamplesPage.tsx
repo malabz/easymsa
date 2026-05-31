@@ -1,6 +1,7 @@
 import { ArrowRight, Download } from "lucide-react";
 import { ButtonLink, ExternalButtonLink } from "../components/common/Button";
 import { PageContainer } from "../components/layout/PageContainer";
+import { resultsRoute } from "../lib/api/tokens";
 import { useLanguage } from "../lib/i18n/useLanguage";
 import { assetUrl } from "../lib/utils/format";
 
@@ -31,7 +32,7 @@ export function ExamplesPage() {
             <Download className="h-4 w-4" />
             {d.examples.resultDownload}
           </ExternalButtonLink>
-          <ButtonLink to="/results/demo-job">
+          <ButtonLink to={resultsRoute("demo-job", "demo-token")}>
             {d.common.tryDemo}
             <ArrowRight className="h-4 w-4" />
           </ButtonLink>

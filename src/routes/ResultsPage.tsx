@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ErrorState } from "../components/common/ErrorState";
 import { LoadingState } from "../components/common/LoadingState";
 import { PageContainer } from "../components/layout/PageContainer";
@@ -15,36 +15,60 @@ import {
   getDownloadFiles,
   getResultSummary
 } from "../lib/api/results";
+import {
+  resolveJobAccess,
+  saveJobAccess,
+  type JobAccess
+} from "../lib/api/tokens";
 import { useLanguage } from "../lib/i18n/useLanguage";
 import type { MSAResult } from "../lib/types/msa";
 import type { ResultSummary } from "../lib/types/result";
 
 export function ResultsPage() {
   const { jobId: routeJobId } = useParams<{ jobId: string }>();
+  const [searchParams] = useSearchParams();
   const { dictionary: d } = useLanguage();
   const [activeTab, setActiveTab] = useState<ResultTab>("overview");
   const [summary, setSummary] = useState<ResultSummary | null>(null);
   const [alignment, setAlignment] = useState<MSAResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [access, setAccess] = useState<JobAccess | null>(null);
+  const queryToken = searchParams.get("token");
+  const jobId = routeJobId ? decodeURIComponent(routeJobId) : null;
   const files = useMemo(
-    () => getDownloadFiles(routeJobId ?? "demo-job"),
-    [routeJobId]
+    () => getDownloadFiles(jobId ?? "demo-job", access?.token ?? ""),
+    [access?.token, jobId]
   );
 
   useEffect(() => {
-    if (!routeJobId) {
+    if (!jobId) {
       setError("Missing job ID");
       return;
     }
 
-    const jobId = routeJobId;
+    const resolvedAccess = resolveJobAccess(jobId, queryToken);
+    if (!resolvedAccess) {
+      setAccess(null);
+      setSummary(null);
+      setAlignment(null);
+      setError(
+        "Missing access token for this job. Open the lookup page and enter the job ID with its token, or upload the access JSON."
+      );
+      return;
+    }
+
+    setAccess(resolvedAccess);
+    saveJobAccess(resolvedAccess);
+
+    const activeJobId = jobId;
+    const activeToken = resolvedAccess.token;
     let mounted = true;
 
     async function load() {
       try {
         const [nextSummary, nextAlignment] = await Promise.all([
-          getResultSummary(jobId),
-          getAlignmentResult(jobId)
+          getResultSummary(activeJobId, activeToken),
+          getAlignmentResult(activeJobId, activeToken)
         ]);
 
         if (mounted) {
@@ -64,7 +88,7 @@ export function ResultsPage() {
     return () => {
       mounted = false;
     };
-  }, [d.common.error, routeJobId]);
+  }, [d.common.error, jobId, queryToken]);
 
   return (
     <PageContainer className="space-y-8">
@@ -72,14 +96,21 @@ export function ResultsPage() {
         <div className="max-w-3xl space-y-3">
           <h1 className="text-4xl font-semibold text-slate-950">{d.results.title}</h1>
           <p className="text-lg leading-8 text-slate-600">{d.results.subtitle}</p>
-          {routeJobId ? (
-            <p className="font-mono text-sm text-slate-500">{routeJobId}</p>
+          {jobId ? (
+            <p className="font-mono text-sm text-slate-500">{jobId}</p>
           ) : null}
         </div>
         <ResultTabs value={activeTab} onChange={setActiveTab} />
       </div>
 
-      {error ? <ErrorState message={error} /> : null}
+      {error ? (
+        <div className="space-y-4">
+          <ErrorState message={error} />
+          <Link className="text-sm font-medium text-teal-800 underline" to="/lookup">
+            Go to task lookup
+          </Link>
+        </div>
+      ) : null}
       {(!summary || !alignment) && !error ? <LoadingState /> : null}
 
       {summary && alignment ? (

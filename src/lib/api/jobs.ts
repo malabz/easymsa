@@ -1,5 +1,5 @@
-import { apiUrl, isMockMode, missingTokenError, parseApiError } from "./client";
-import { getJobToken, saveJobToken } from "./tokens";
+import { apiUrl, isMockMode, parseApiError } from "./client";
+import { createJobAccess, saveJobAccess } from "./tokens";
 import { createMockJob, getMockJobStatus } from "../mock/mockJobs";
 import { demoInputFasta } from "../mock/demoInput";
 import type {
@@ -49,7 +49,16 @@ export async function createJob(
   request: CreateJobRequest
 ): Promise<CreateJobResponse> {
   if (isMockMode()) {
-    return createMockJob(request);
+    const payload = await createMockJob(request);
+    saveJobAccess(
+      createJobAccess({
+        jobId: payload.jobId,
+        token: payload.token,
+        statusUrl: payload.statusUrl,
+        createdAt: payload.createdAt
+      })
+    );
+    return payload;
   }
 
   const response = await fetch(apiUrl("/jobs"), {
@@ -64,21 +73,22 @@ export async function createJob(
   const payload = (await response.json()) as CreateJobResponse;
 
   if (payload.token) {
-    saveJobToken(payload.jobId, payload.token);
+    saveJobAccess(
+      createJobAccess({
+        jobId: payload.jobId,
+        token: payload.token,
+        statusUrl: payload.statusUrl,
+        createdAt: payload.createdAt
+      })
+    );
   }
 
   return payload;
 }
 
-export async function getJobStatus(jobId: string): Promise<JobDetail> {
+export async function getJobStatus(jobId: string, token: string): Promise<JobDetail> {
   if (isMockMode()) {
-    return getMockJobStatus(jobId);
-  }
-
-  const token = getJobToken(jobId);
-
-  if (!token) {
-    throw missingTokenError(jobId);
+    return getMockJobStatus(jobId, token);
   }
 
   const response = await fetch(

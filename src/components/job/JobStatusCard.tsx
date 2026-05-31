@@ -10,8 +10,9 @@ import {
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import type { JobDetail } from "../../lib/types/job";
 import { formatDateTime } from "../../lib/utils/format";
+import { resultsRoute } from "../../lib/api/tokens";
 
-export function JobStatusCard({ job }: { job: JobDetail }) {
+export function JobStatusCard({ job, token }: { job: JobDetail; token: string }) {
   const { dictionary: d } = useLanguage();
 
   return (
@@ -63,7 +64,7 @@ export function JobStatusCard({ job }: { job: JobDetail }) {
             {d.common.createdAt}: {job.createdAt ? formatDateTime(job.createdAt) : "-"}
           </span>
           {job.status === "completed" ? (
-            <ButtonLink to={`/results/${encodeURIComponent(job.jobId)}`}>
+            <ButtonLink to={resultsRoute(job.jobId, token)}>
               {d.common.viewResults}
               <ArrowRight className="h-4 w-4" />
             </ButtonLink>

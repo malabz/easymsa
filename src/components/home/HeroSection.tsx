@@ -1,4 +1,5 @@
 import { ArrowRight, FlaskConical, PlayCircle } from "lucide-react";
+import { resultsRoute } from "../../lib/api/tokens";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import { ButtonLink } from "../common/Button";
 
@@ -68,7 +69,11 @@ export function HeroSection() {
             {d.common.startAnalysis}
             <ArrowRight className="h-4 w-4" />
           </ButtonLink>
-          <ButtonLink size="lg" to="/results/demo-job" variant="outline">
+          <ButtonLink
+            size="lg"
+            to={resultsRoute("demo-job", "demo-token")}
+            variant="outline"
+          >
             <PlayCircle className="h-4 w-4" />
             {d.common.tryDemo}
           </ButtonLink>
