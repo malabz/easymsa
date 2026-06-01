@@ -6,7 +6,11 @@ import { PageContainer } from "../components/layout/PageContainer";
 import { MSAViewer } from "../components/results/MSAViewer";
 import { useLanguage } from "../lib/i18n/useLanguage";
 import type { MSAResult, MSASequence } from "../lib/types/msa";
-import { parseFasta } from "../lib/utils/fasta";
+import {
+  estimateFastaSequenceCount,
+  MAX_FASTA_CHARACTERS,
+  parseFasta
+} from "../lib/utils/fasta";
 
 function consensusFromSequences(sequences: MSASequence[], length: number) {
   const consensus: string[] = [];
@@ -50,9 +54,18 @@ export function ViewerPage() {
   const { dictionary: d } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [pastedFasta, setPastedFasta] = useState("");
-  const [sourceName, setSourceName] = useState("Uploaded FASTA");
+  const [sourceName, setSourceName] = useState(d.viewerPage.uploadedSource);
   const [alignment, setAlignment] = useState<MSAResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const pastedCharacterCount = pastedFasta.length;
+  const pastedSequenceCount = useMemo(
+    () => estimateFastaSequenceCount(pastedFasta),
+    [pastedFasta]
+  );
+  const pastedTooLarge = pastedCharacterCount > MAX_FASTA_CHARACTERS;
+  const pasteStatsText = d.viewerPage.pasteStats
+    .replace("{chars}", pastedCharacterCount.toLocaleString())
+    .replace("{count}", pastedSequenceCount.toLocaleString());
 
   const sequenceLengths = useMemo(
     () => alignment?.sequences.map((sequence) => sequence.sequence.length) ?? [],
@@ -98,7 +111,7 @@ export function ViewerPage() {
   }
 
   function handlePasteLoad() {
-    loadFasta(pastedFasta, "Pasted FASTA");
+    loadFasta(pastedFasta, d.viewerPage.pastedSource);
   }
 
   return (
@@ -142,8 +155,21 @@ export function ViewerPage() {
                   placeholder={d.viewerPage.pastePlaceholder}
                   value={pastedFasta}
                 />
+                <div className="rounded border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span>{pasteStatsText}</span>
+                    <span className={pastedTooLarge ? "font-medium text-rose-700" : "text-slate-500"}>
+                      {d.viewerPage.characterLimit.replace(
+                        "{limit}",
+                        MAX_FASTA_CHARACTERS.toLocaleString()
+                      )}
+                    </span>
+                  </div>
+                  <p className="mt-1">{d.viewerPage.inputHint}</p>
+                </div>
                 <Button
                   className="w-full"
+                  disabled={!pastedFasta.trim() || pastedTooLarge}
                   onClick={handlePasteLoad}
                   type="button"
                 >

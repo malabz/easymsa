@@ -12,13 +12,13 @@ const previewRows = [
 
 function AlignmentPreview() {
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-950 p-4 shadow-soft">
-      <div className="mb-4 flex items-center justify-between border-b border-slate-800 pb-3">
+    <div className="border-y border-slate-200 bg-white/60 py-4">
+      <div className="mb-4 flex items-center justify-between border-b border-slate-200 pb-3">
         <div>
-          <p className="text-xs font-semibold uppercase text-teal-300">MSA preview</p>
-          <p className="text-sm text-slate-400">12 sequences · 80 sites</p>
+          <p className="text-xs font-semibold uppercase text-slate-500">MSA preview</p>
+          <p className="text-sm text-slate-600">12 sequences · 80 sites</p>
         </div>
-        <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-300">
+        <span className="rounded border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-800">
           completed
         </span>
       </div>
@@ -26,10 +26,10 @@ function AlignmentPreview() {
         {previewRows.map(([id, sequence]) => (
           <div className="grid grid-cols-[5.5rem_1fr] gap-3" key={id}>
             <span className="truncate text-slate-500">{id}</span>
-            <span className="overflow-hidden whitespace-nowrap text-slate-200">
+            <span className="overflow-hidden whitespace-nowrap text-slate-700">
               {sequence.split(" ").map((base, index) => (
                 <span
-                  className="mr-1 inline-flex h-5 w-5 items-center justify-center rounded border border-slate-700 bg-slate-900"
+                  className="mr-1 inline-flex h-5 w-5 items-center justify-center border border-slate-200 bg-slate-50"
                   key={`${id}-${index}`}
                 >
                   {base}
@@ -47,14 +47,14 @@ export function HeroSection() {
   const { dictionary: d } = useLanguage();
 
   return (
-    <section className="grid gap-10 py-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:py-14">
-      <div className="space-y-7">
-        <div className="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-sm font-medium text-teal-800">
+    <section className="grid gap-10 border-b border-slate-200 pb-10 lg:grid-cols-[1fr_1fr] lg:items-center lg:pb-12">
+      <div className="space-y-6">
+        <div className="inline-flex items-center gap-2 border-l-2 border-teal-700 pl-3 text-sm font-medium text-teal-800">
           <FlaskConical className="h-4 w-4" />
           {d.home.visualTitle}
         </div>
         <div className="space-y-4">
-          <h1 className="max-w-3xl text-4xl font-semibold leading-tight text-slate-950 sm:text-5xl lg:text-6xl">
+          <h1 className="max-w-3xl text-3xl font-semibold leading-tight text-slate-950 sm:text-4xl lg:text-5xl">
             {d.home.title}
           </h1>
           <p className="max-w-2xl text-lg leading-8 text-slate-600">
@@ -78,7 +78,7 @@ export function HeroSection() {
             {d.common.tryDemo}
           </ButtonLink>
         </div>
-        <p className="max-w-2xl border-l-2 border-teal-600 pl-4 text-sm leading-6 text-slate-600">
+        <p className="max-w-2xl border-l border-slate-300 pl-4 text-sm leading-6 text-slate-600">
           {d.home.demoNotice}
         </p>
       </div>

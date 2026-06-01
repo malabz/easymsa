@@ -26,12 +26,36 @@ export type ApiFailure = {
   details: Record<string, unknown> | null;
 };
 
+export type CountMap = Record<string, number>;
+
+export type PreprocessSummaryCounts = {
+  raw_sequence_count?: number;
+  raw_total_bases?: number;
+  clean_sequence_count?: number;
+  clean_total_bases?: number;
+  removed_sequence_count?: number;
+  collapsed_duplicate_count?: number;
+};
+
+export type PreprocessDedupSummary = {
+  enabled?: boolean;
+  duplicate_groups?: number;
+  collapsed_count?: number;
+};
+
 export type PreprocessStatus = {
   status: string | null;
   mode: string | null;
   strictness: string | null;
   errorCode: string | null;
   errorMessage: string | null;
+  summaryCounts: PreprocessSummaryCounts | null;
+  qcCounts: CountMap | null;
+  warningCounts: CountMap | null;
+  removalCounts: CountMap | null;
+  cleaningCounts: CountMap | null;
+  dedupSummary: PreprocessDedupSummary | null;
+  summaryUnavailable: boolean;
 };
 
 export type AlgorithmStatus = {

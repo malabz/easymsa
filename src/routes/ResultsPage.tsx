@@ -116,10 +116,10 @@ export function ResultsPage() {
       {summary && alignment ? (
         <>
           {activeTab === "overview" ? (
-            <div className="space-y-6">
-              <ResultOverview summary={summary} />
-              <MSAViewer alignment={alignment} />
-            </div>
+            <ResultOverview summary={summary} />
+          ) : null}
+          {activeTab === "alignment" ? (
+            <MSAViewer alignment={alignment} />
           ) : null}
           {activeTab === "downloads" ? <DownloadPanel files={files} /> : null}
         </>

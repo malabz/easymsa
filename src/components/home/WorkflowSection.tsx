@@ -7,13 +7,13 @@ export function WorkflowSection() {
   const { dictionary: d } = useLanguage();
 
   return (
-    <section className="py-8">
+    <section className="py-7">
       <div className="mb-6 flex items-end justify-between gap-4">
         <h2 className="text-2xl font-semibold text-slate-950">
           {d.home.workflowTitle}
         </h2>
       </div>
-      <div className="grid gap-6 border-y border-slate-200 py-6 md:grid-cols-3">
+      <div className="grid gap-5 border-y border-slate-200 py-5 md:grid-cols-3">
         {d.home.workflow.map((item, index) => {
           const Icon = icons[index];
           return (
@@ -21,7 +21,7 @@ export function WorkflowSection() {
               className="flex gap-4"
               key={item.title}
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-teal-50 text-teal-800">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded border border-teal-100 bg-teal-50 text-teal-800">
                 <Icon className="h-5 w-5" />
               </div>
               <div>

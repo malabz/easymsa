@@ -151,7 +151,30 @@ function toJobDetail(job: StoredJob): JobDetail {
       mode: "audit",
       strictness: "normal",
       errorCode: null,
-      errorMessage: null
+      errorMessage: null,
+      summaryCounts:
+        status === "queued"
+          ? null
+          : {
+              raw_sequence_count: 3,
+              raw_total_bases: 71,
+              clean_sequence_count: 3,
+              clean_total_bases: 71,
+              removed_sequence_count: 0,
+              collapsed_duplicate_count: 0
+            },
+      qcCounts: status === "queued" ? null : { low_complexity: 3 },
+      warningCounts:
+        status === "queued"
+          ? null
+          : { low_complexity: 3, reference_unavailable: 1 },
+      removalCounts: status === "queued" ? null : {},
+      cleaningCounts: status === "queued" ? null : {},
+      dedupSummary:
+        status === "queued"
+          ? null
+          : { enabled: false, duplicate_groups: 0, collapsed_count: 0 },
+      summaryUnavailable: false
     },
     algorithm: {
       name: "demo"
