@@ -14,7 +14,7 @@ import {
   ZoomIn,
   ZoomOut
 } from "lucide-react";
-import { type KeyboardEvent, useMemo, useRef, useState } from "react";
+import { type KeyboardEvent, type ReactNode, useMemo, useRef, useState } from "react";
 import { EmptyState } from "../common/EmptyState";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import type { MSAResult } from "../../lib/types/msa";
@@ -70,6 +70,25 @@ type RangeStats = {
   variableColumns: number;
   consensusSegment: string;
 };
+
+function ToolGroup({
+  title,
+  children,
+  className
+}: {
+  title: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={cn("space-y-2", className)}>
+      <h3 className="text-xs font-semibold uppercase text-slate-500">
+        {title}
+      </h3>
+      <div className="flex flex-wrap items-center gap-2">{children}</div>
+    </section>
+  );
+}
 
 const DETAIL_ZOOM_THRESHOLD = 0.7;
 const MIN_ZOOM = 0.15;
@@ -774,232 +793,252 @@ export function MSAViewer({ alignment }: { alignment: MSAResult }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 border-y border-slate-200 py-4 xl:flex-row xl:items-center xl:justify-between">
-        <div className="relative w-full lg:max-w-sm">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input
-            aria-label={d.results.viewer.search}
-            className="h-10 w-full rounded-md border border-slate-300 bg-white/80 pl-9 pr-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder={d.results.viewer.searchPlaceholder}
-            value={search}
-          />
-        </div>
-        <div className="relative w-full lg:max-w-sm">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input
-            aria-label={d.results.viewer.motifSearch}
-            className="h-10 w-full rounded-md border border-slate-300 bg-white/80 pl-9 pr-3 font-mono text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
-            onChange={(event) => setMotifQuery(event.target.value)}
-            placeholder={d.results.viewer.motifPlaceholder}
-            value={motifQuery}
-          />
-        </div>
-        <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
+      <div className="border-y border-slate-200 py-4">
+        <div className="grid gap-4 xl:grid-cols-[minmax(22rem,1.35fr)_minmax(14rem,0.9fr)_minmax(14rem,0.95fr)_minmax(14rem,0.95fr)_minmax(14rem,1fr)]">
+          <ToolGroup title={d.results.viewer.toolGroups.search} className="xl:col-span-1">
+            <div className="relative min-w-60 flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                aria-label={d.results.viewer.search}
+                className="h-10 w-full rounded-md border border-slate-300 bg-white/80 pl-9 pr-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder={d.results.viewer.searchPlaceholder}
+                value={search}
+              />
+            </div>
+            <div className="relative min-w-60 flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                aria-label={d.results.viewer.motifSearch}
+                className="h-10 w-full rounded-md border border-slate-300 bg-white/80 pl-9 pr-3 font-mono text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                onChange={(event) => setMotifQuery(event.target.value)}
+                placeholder={d.results.viewer.motifPlaceholder}
+                value={motifQuery}
+              />
+            </div>
+            <button
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white/70 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-950 disabled:opacity-40"
+              disabled={motifMatches.length === 0}
+              onClick={jumpToFirstMotifMatch}
+              title={d.results.viewer.firstMotifMatch}
+              type="button"
+            >
+              <LocateFixed className="h-4 w-4" />
+              {d.results.viewer.firstMotifMatch}
+            </button>
+            {normalizedMotif(motifQuery) ? (
+              <span className="rounded-md bg-white/70 px-3 py-2 text-sm text-slate-600">
+                {d.results.viewer.motifMatchCount.replace(
+                  "{count}",
+                  motifMatches.length.toLocaleString()
+                )}
+              </span>
+            ) : null}
+          </ToolGroup>
+
           {canUseViewerControls ? (
             <>
-              <div className="inline-flex h-10 overflow-hidden rounded-md border border-slate-200 bg-white/70">
+              <ToolGroup title={d.results.viewer.toolGroups.view}>
+                <div className="inline-flex h-10 overflow-hidden rounded-md border border-slate-200 bg-white/70">
+                  <button
+                    aria-label={d.results.viewer.zoomOut}
+                    className="inline-flex w-10 items-center justify-center text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 disabled:opacity-40"
+                    disabled={zoomLevel <= MIN_ZOOM}
+                    onClick={() => changeZoom(-ZOOM_STEP)}
+                    title={d.results.viewer.zoomOut}
+                    type="button"
+                  >
+                    <ZoomOut className="h-4 w-4" />
+                  </button>
+                  <button
+                    aria-label={d.results.viewer.resetZoom}
+                    className="inline-flex min-w-16 items-center justify-center gap-1 border-x border-slate-200 px-3 font-mono text-xs text-slate-700 transition hover:bg-slate-100 hover:text-slate-950"
+                    onClick={resetZoom}
+                    title={d.results.viewer.resetZoom}
+                    type="button"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    {zoomLevel.toFixed(1)}x
+                  </button>
+                  <button
+                    aria-label={d.results.viewer.zoomIn}
+                    className="inline-flex w-10 items-center justify-center text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 disabled:opacity-40"
+                    disabled={zoomLevel >= MAX_ZOOM}
+                    onClick={() => changeZoom(ZOOM_STEP)}
+                    title={d.results.viewer.zoomIn}
+                    type="button"
+                  >
+                    <ZoomIn className="h-4 w-4" />
+                  </button>
+                </div>
                 <button
-                  aria-label={d.results.viewer.zoomOut}
-                  className="inline-flex w-10 items-center justify-center text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 disabled:opacity-40"
-                  disabled={zoomLevel <= MIN_ZOOM}
-                  onClick={() => changeZoom(-ZOOM_STEP)}
-                  title={d.results.viewer.zoomOut}
+                  aria-label={d.results.viewer.toggleDensity}
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white/70 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-950"
+                  onClick={toggleDensity}
+                  title={d.results.viewer.toggleDensity}
                   type="button"
                 >
-                  <ZoomOut className="h-4 w-4" />
+                  <Columns3 className="h-4 w-4" />
+                  {d.results.viewer.density[density]}
                 </button>
-                <button
-                  aria-label={d.results.viewer.resetZoom}
-                  className="inline-flex min-w-16 items-center justify-center gap-1 border-x border-slate-200 px-3 font-mono text-xs text-slate-700 transition hover:bg-slate-100 hover:text-slate-950"
-                  onClick={resetZoom}
-                  title={d.results.viewer.resetZoom}
-                  type="button"
-                >
-                  <RotateCcw className="h-3.5 w-3.5" />
-                  {zoomLevel.toFixed(1)}x
-                </button>
-                <button
-                  aria-label={d.results.viewer.zoomIn}
-                  className="inline-flex w-10 items-center justify-center text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 disabled:opacity-40"
-                  disabled={zoomLevel >= MAX_ZOOM}
-                  onClick={() => changeZoom(ZOOM_STEP)}
-                  title={d.results.viewer.zoomIn}
-                  type="button"
-                >
-                  <ZoomIn className="h-4 w-4" />
-                </button>
-              </div>
-              <button
-                aria-label={d.results.viewer.toggleDensity}
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white/70 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-950"
-                onClick={toggleDensity}
-                title={d.results.viewer.toggleDensity}
-                type="button"
-              >
-                <Columns3 className="h-4 w-4" />
-                {d.results.viewer.density[density]}
-              </button>
-              <div className="inline-flex h-10 items-center overflow-hidden rounded-md border border-slate-200 bg-white/70">
-                <span className="inline-flex h-full items-center border-r border-slate-200 px-3 text-slate-500">
-                  <ArrowDownAZ className="h-4 w-4" />
+                <div className="inline-flex h-10 items-center overflow-hidden rounded-md border border-slate-200 bg-white/70">
+                  <span className="inline-flex h-full items-center border-r border-slate-200 px-3 text-slate-500">
+                    <Palette className="h-4 w-4" />
+                  </span>
+                  <select
+                    aria-label={d.results.viewer.colorScheme}
+                    className="h-full bg-transparent px-3 text-sm font-medium text-slate-700 outline-none"
+                    onChange={(event) => setColorScheme(event.target.value as MSAColorScheme)}
+                    value={colorScheme}
+                  >
+                    <option value="nucleotide">
+                      {d.results.viewer.colorSchemes.nucleotide}
+                    </option>
+                    <option value="purinePyrimidine">
+                      {d.results.viewer.colorSchemes.purinePyrimidine}
+                    </option>
+                    <option value="conservation">
+                      {d.results.viewer.colorSchemes.conservation}
+                    </option>
+                  </select>
+                </div>
+                <span className="rounded-md bg-white/70 px-3 py-2 text-sm text-slate-600">
+                  {viewSettings.showCharacters
+                    ? d.results.viewer.detailMode
+                    : d.results.viewer.overviewMode}
                 </span>
-                <select
-                  aria-label={d.results.viewer.sortBy}
-                  className="h-full bg-transparent px-3 text-sm font-medium text-slate-700 outline-none"
-                  onChange={(event) => setSortMode(event.target.value as SortMode)}
-                  value={sortMode}
-                >
-                  <option value="original">{d.results.viewer.sort.original}</option>
-                  <option value="name">{d.results.viewer.sort.name}</option>
-                  <option value="length">{d.results.viewer.sort.length}</option>
-                </select>
-              </div>
-              <div className="inline-flex h-10 items-center overflow-hidden rounded-md border border-slate-200 bg-white/70">
-                <span className="inline-flex h-full items-center border-r border-slate-200 px-3 text-slate-500">
-                  <Palette className="h-4 w-4" />
+                <span className="rounded-md bg-white/70 px-3 py-2 text-sm text-slate-600">
+                  {lengthText}
                 </span>
-                <select
-                  aria-label={d.results.viewer.colorScheme}
-                  className="h-full bg-transparent px-3 text-sm font-medium text-slate-700 outline-none"
-                  onChange={(event) => setColorScheme(event.target.value as MSAColorScheme)}
-                  value={colorScheme}
-                >
-                  <option value="nucleotide">
-                    {d.results.viewer.colorSchemes.nucleotide}
-                  </option>
-                  <option value="purinePyrimidine">
-                    {d.results.viewer.colorSchemes.purinePyrimidine}
-                  </option>
-                  <option value="conservation">
-                    {d.results.viewer.colorSchemes.conservation}
-                  </option>
-                </select>
-              </div>
-              <div className="inline-flex h-10 items-center overflow-hidden rounded-md border border-slate-200 bg-white/70">
-                <span className="inline-flex h-full items-center border-r border-slate-200 px-3 text-slate-500">
-                  <ListFilter className="h-4 w-4" />
+              </ToolGroup>
+
+              <ToolGroup title={d.results.viewer.toolGroups.columns}>
+                <div className="inline-flex h-10 items-center overflow-hidden rounded-md border border-slate-200 bg-white/70">
+                  <span className="inline-flex h-full items-center border-r border-slate-200 px-3 text-slate-500">
+                    <ListFilter className="h-4 w-4" />
+                  </span>
+                  <select
+                    aria-label={d.results.viewer.columnFilter}
+                    className="h-full bg-transparent px-3 text-sm font-medium text-slate-700 outline-none"
+                    onChange={(event) => setColumnFilter(event.target.value as ColumnFilter)}
+                    value={columnFilter}
+                  >
+                    <option value="all">{d.results.viewer.columnFilters.all}</option>
+                    <option value="variable">{d.results.viewer.columnFilters.variable}</option>
+                    <option value="conserved">{d.results.viewer.columnFilters.conserved}</option>
+                    <option value="lowGap">{d.results.viewer.columnFilters.lowGap}</option>
+                  </select>
+                </div>
+                <div className="inline-flex h-10 overflow-hidden rounded-md border border-slate-200 bg-white/70">
+                  <input
+                    aria-label={d.results.viewer.jumpTo}
+                    className="w-24 bg-transparent px-3 text-sm text-slate-900 outline-none placeholder:text-slate-400"
+                    inputMode="numeric"
+                    min={1}
+                    max={alignmentLength}
+                    onChange={(event) => setJumpPosition(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        jumpToPosition();
+                      }
+                    }}
+                    placeholder={d.results.viewer.jumpPlaceholder}
+                    type="number"
+                    value={jumpPosition}
+                  />
+                  <button
+                    aria-label={d.results.viewer.jumpTo}
+                    className="inline-flex w-10 items-center justify-center border-l border-slate-200 text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
+                    onClick={jumpToPosition}
+                    title={d.results.viewer.jumpTo}
+                    type="button"
+                  >
+                    <LocateFixed className="h-4 w-4" />
+                  </button>
+                </div>
+                <span className="rounded-md bg-white/70 px-3 py-2 text-sm text-slate-600">
+                  {visibleColumnText}
                 </span>
-                <select
-                  aria-label={d.results.viewer.columnFilter}
-                  className="h-full bg-transparent px-3 text-sm font-medium text-slate-700 outline-none"
-                  onChange={(event) => setColumnFilter(event.target.value as ColumnFilter)}
-                  value={columnFilter}
-                >
-                  <option value="all">{d.results.viewer.columnFilters.all}</option>
-                  <option value="variable">{d.results.viewer.columnFilters.variable}</option>
-                  <option value="conserved">{d.results.viewer.columnFilters.conserved}</option>
-                  <option value="lowGap">{d.results.viewer.columnFilters.lowGap}</option>
-                </select>
-              </div>
-              <button
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white/70 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-950 disabled:opacity-40"
-                disabled={hiddenCount === 0}
-                onClick={showAllSequences}
-                title={d.results.viewer.showAll}
-                type="button"
-              >
-                <Eye className="h-4 w-4" />
-                {d.results.viewer.showAll}
-              </button>
-              <button
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white/70 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-950 disabled:opacity-40"
-                disabled={displayedSequences.length === 0 || visiblePositions.length === 0}
-                onClick={exportVisibleFasta}
-                title={d.results.viewer.exportVisible}
-                type="button"
-              >
-                <Download className="h-4 w-4" />
-                {d.results.viewer.exportVisible}
-              </button>
-              <button
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white/70 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-950 disabled:opacity-40"
-                disabled={!selectedRange || displayedSequences.length === 0}
-                onClick={exportSelectedRangeFasta}
-                title={d.results.viewer.exportSelectedRange}
-                type="button"
-              >
-                <Download className="h-4 w-4" />
-                {d.results.viewer.exportSelectedRange}
-              </button>
-              <button
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white/70 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-950 disabled:opacity-40"
-                disabled={!selectedRangeStats}
-                onClick={exportConsensusRangeFasta}
-                title={d.results.viewer.exportConsensusRange}
-                type="button"
-              >
-                <Download className="h-4 w-4" />
-                {d.results.viewer.exportConsensusRange}
-              </button>
-              <button
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white/70 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-950 disabled:opacity-40"
-                disabled={motifMatches.length === 0}
-                onClick={jumpToFirstMotifMatch}
-                title={d.results.viewer.firstMotifMatch}
-                type="button"
-              >
-                <LocateFixed className="h-4 w-4" />
-                {d.results.viewer.firstMotifMatch}
-              </button>
-              <div className="inline-flex h-10 overflow-hidden rounded-md border border-slate-200 bg-white/70">
-                <input
-                  aria-label={d.results.viewer.jumpTo}
-                  className="w-24 bg-transparent px-3 text-sm text-slate-900 outline-none placeholder:text-slate-400"
-                  inputMode="numeric"
-                  min={1}
-                  max={alignmentLength}
-                  onChange={(event) => setJumpPosition(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      jumpToPosition();
-                    }
-                  }}
-                  placeholder={d.results.viewer.jumpPlaceholder}
-                  type="number"
-                  value={jumpPosition}
-                />
+                {selectedRange ? (
+                  <span className="rounded-md bg-white/70 px-3 py-2 text-sm text-slate-600">
+                    {d.results.viewer.selectedRange.replace("{range}", selectedRangeText)}
+                  </span>
+                ) : null}
+              </ToolGroup>
+
+              <ToolGroup title={d.results.viewer.toolGroups.sequences}>
+                <div className="inline-flex h-10 items-center overflow-hidden rounded-md border border-slate-200 bg-white/70">
+                  <span className="inline-flex h-full items-center border-r border-slate-200 px-3 text-slate-500">
+                    <ArrowDownAZ className="h-4 w-4" />
+                  </span>
+                  <select
+                    aria-label={d.results.viewer.sortBy}
+                    className="h-full bg-transparent px-3 text-sm font-medium text-slate-700 outline-none"
+                    onChange={(event) => setSortMode(event.target.value as SortMode)}
+                    value={sortMode}
+                  >
+                    <option value="original">{d.results.viewer.sort.original}</option>
+                    <option value="name">{d.results.viewer.sort.name}</option>
+                    <option value="length">{d.results.viewer.sort.length}</option>
+                  </select>
+                </div>
                 <button
-                  aria-label={d.results.viewer.jumpTo}
-                  className="inline-flex w-10 items-center justify-center border-l border-slate-200 text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
-                  onClick={jumpToPosition}
-                  title={d.results.viewer.jumpTo}
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white/70 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-950 disabled:opacity-40"
+                  disabled={hiddenCount === 0}
+                  onClick={showAllSequences}
+                  title={d.results.viewer.showAll}
                   type="button"
                 >
-                  <LocateFixed className="h-4 w-4" />
+                  <Eye className="h-4 w-4" />
+                  {d.results.viewer.showAll}
                 </button>
-              </div>
+                <span className="rounded-md bg-white/70 px-3 py-2 text-sm text-slate-600">
+                  {countText}
+                </span>
+                {hiddenCount > 0 ? (
+                  <span className="rounded-md bg-white/70 px-3 py-2 text-sm text-slate-600">
+                    {d.results.viewer.hiddenCount.replace(
+                      "{count}",
+                      hiddenCount.toLocaleString()
+                    )}
+                  </span>
+                ) : null}
+              </ToolGroup>
+
+              <ToolGroup title={d.results.viewer.toolGroups.export}>
+                <button
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white/70 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-950 disabled:opacity-40"
+                  disabled={displayedSequences.length === 0 || visiblePositions.length === 0}
+                  onClick={exportVisibleFasta}
+                  title={d.results.viewer.exportVisible}
+                  type="button"
+                >
+                  <Download className="h-4 w-4" />
+                  {d.results.viewer.exportVisible}
+                </button>
+                <button
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white/70 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-950 disabled:opacity-40"
+                  disabled={!selectedRange || displayedSequences.length === 0}
+                  onClick={exportSelectedRangeFasta}
+                  title={d.results.viewer.exportSelectedRange}
+                  type="button"
+                >
+                  <Download className="h-4 w-4" />
+                  {d.results.viewer.exportSelectedRange}
+                </button>
+                <button
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white/70 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-950 disabled:opacity-40"
+                  disabled={!selectedRangeStats}
+                  onClick={exportConsensusRangeFasta}
+                  title={d.results.viewer.exportConsensusRange}
+                  type="button"
+                >
+                  <Download className="h-4 w-4" />
+                  {d.results.viewer.exportConsensusRange}
+                </button>
+              </ToolGroup>
             </>
           ) : null}
-          <span className="rounded-md bg-white/70 px-3 py-2">{countText}</span>
-          <span className="rounded-md bg-white/70 px-3 py-2">{visibleColumnText}</span>
-          {hiddenCount > 0 ? (
-            <span className="rounded-md bg-white/70 px-3 py-2">
-              {d.results.viewer.hiddenCount.replace(
-                "{count}",
-                hiddenCount.toLocaleString()
-              )}
-            </span>
-          ) : null}
-          {normalizedMotif(motifQuery) ? (
-            <span className="rounded-md bg-white/70 px-3 py-2">
-              {d.results.viewer.motifMatchCount.replace(
-                "{count}",
-                motifMatches.length.toLocaleString()
-              )}
-            </span>
-          ) : null}
-          {selectedRange ? (
-            <span className="rounded-md bg-white/70 px-3 py-2">
-              {d.results.viewer.selectedRange.replace("{range}", selectedRangeText)}
-            </span>
-          ) : null}
-          <span className="rounded-md bg-white/70 px-3 py-2">{lengthText}</span>
-          <span className="rounded-md bg-white/70 px-3 py-2">
-            {viewSettings.showCharacters
-              ? d.results.viewer.detailMode
-              : d.results.viewer.overviewMode}
-          </span>
         </div>
       </div>
 

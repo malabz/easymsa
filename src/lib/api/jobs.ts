@@ -20,7 +20,13 @@ export type CreateJobResponse = {
 function toFormData(request: CreateJobRequest) {
   const formData = new FormData();
   formData.set("job_name", request.jobName);
-  formData.set("algorithm", "demo");
+  formData.set(
+    "algorithm",
+    request.inputMethod === "demo" ? "demo" : request.algorithm ?? "mafft"
+  );
+  if (request.algorithmParams) {
+    formData.set("algorithm_params", JSON.stringify(request.algorithmParams));
+  }
 
   if (request.email) {
     formData.set("email", request.email);

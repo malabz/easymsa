@@ -9,6 +9,7 @@ type StoredJob = {
   jobName: string;
   token: string;
   inputMethod: CreateJobRequest["inputMethod"];
+  algorithm: NonNullable<CreateJobRequest["algorithm"]>;
   createdAt: string;
 };
 
@@ -177,7 +178,7 @@ function toJobDetail(job: StoredJob): JobDetail {
       summaryUnavailable: false
     },
     algorithm: {
-      name: "demo"
+      name: job.algorithm ?? (job.inputMethod === "demo" ? "demo" : "mafft")
     },
     emailStatus: null,
     emailError: null,
@@ -208,6 +209,8 @@ export async function createMockJob(
     jobName: request.jobName,
     token,
     inputMethod: request.inputMethod,
+    algorithm:
+      request.inputMethod === "demo" ? "demo" : request.algorithm ?? "mafft",
     createdAt
   };
 
@@ -233,6 +236,7 @@ export async function getMockJobStatus(jobId: string, token: string): Promise<Jo
       jobName: "Demo alignment",
       token,
       inputMethod: "demo",
+      algorithm: "demo",
       createdAt: new Date(Date.now() - 13_000).toISOString()
     };
     writeJobs(jobs);
@@ -244,6 +248,7 @@ export async function getMockJobStatus(jobId: string, token: string): Promise<Jo
       jobName: "Mock alignment job",
       token,
       inputMethod: "demo",
+      algorithm: "demo",
       createdAt: new Date().toISOString()
     };
     writeJobs(jobs);

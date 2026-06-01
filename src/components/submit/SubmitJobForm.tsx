@@ -7,7 +7,7 @@ import { z } from "zod";
 import { createJob } from "../../lib/api/jobs";
 import { jobRoute } from "../../lib/api/tokens";
 import { useLanguage } from "../../lib/i18n/useLanguage";
-import type { InputMethod } from "../../lib/types/job";
+import type { AlignmentAlgorithm, InputMethod } from "../../lib/types/job";
 import { validateFasta } from "../../lib/utils/fasta";
 import { validateInputFile } from "../../lib/utils/fileValidation";
 import { Button } from "../common/Button";
@@ -27,6 +27,7 @@ export function SubmitJobForm() {
   const { dictionary: d, locale } = useLanguage();
   const navigate = useNavigate();
   const [inputMethod, setInputMethod] = useState<InputMethod>("paste");
+  const [algorithm, setAlgorithm] = useState<AlignmentAlgorithm>("mafft");
   const [pastedSequence, setPastedSequence] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -77,6 +78,11 @@ export function SubmitJobForm() {
     if (method === "demo" && !getValues("jobName").trim()) {
       setValue("jobName", "Demo alignment", { shouldValidate: true });
     }
+    if (method === "demo") {
+      setAlgorithm("demo");
+    } else if (algorithm === "demo") {
+      setAlgorithm("mafft");
+    }
   }
 
   async function onSubmit(values: FormValues) {
@@ -104,7 +110,8 @@ export function SubmitJobForm() {
         file: inputMethod === "upload" ? file ?? undefined : undefined,
         fileName: inputMethod === "upload" ? file?.name : undefined,
         email: values.email.trim() || undefined,
-        language: locale
+        language: locale,
+        algorithm: inputMethod === "demo" ? "demo" : algorithm
       });
 
       navigate(
@@ -166,6 +173,29 @@ export function SubmitJobForm() {
             {d.submit.inputMethod}
           </p>
           <InputMethodTabs value={inputMethod} onChange={handleMethodChange} />
+        </div>
+
+        <div className="grid gap-2 border-y border-slate-100 py-4 sm:grid-cols-[12rem_1fr] sm:items-center">
+          <label className="text-sm font-medium text-slate-800" htmlFor="alignmentAlgorithm">
+            {d.submit.algorithm}
+          </label>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <select
+              className="h-10 max-w-xs rounded-md border border-slate-300 bg-white/80 px-3 text-sm font-medium text-slate-900 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+              disabled={inputMethod === "demo"}
+              id="alignmentAlgorithm"
+              onChange={(event) => setAlgorithm(event.target.value as AlignmentAlgorithm)}
+              value={inputMethod === "demo" ? "demo" : algorithm}
+            >
+              <option value="mafft">{d.submit.algorithms.mafft}</option>
+              <option value="demo">{d.submit.algorithms.demo}</option>
+            </select>
+            <p className="text-xs leading-5 text-slate-500">
+              {inputMethod === "demo"
+                ? d.submit.algorithmDemoHint
+                : d.submit.algorithmHint}
+            </p>
+          </div>
         </div>
 
         {inputMethod === "paste" ? (

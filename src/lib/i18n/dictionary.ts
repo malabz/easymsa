@@ -79,6 +79,13 @@ const zh = {
     email: "通知邮箱",
     emailPlaceholder: "name@example.com",
     inputMethod: "输入方式",
+    algorithm: "比对方法",
+    algorithmHint: "真实任务默认使用 MAFFT，后端会按资源配置限制线程数。",
+    algorithmDemoHint: "示例任务使用浏览器端 demo 数据，不调用后端 MAFFT。",
+    algorithms: {
+      mafft: "MAFFT",
+      demo: "Demo"
+    },
     methods: {
       paste: "粘贴 FASTA",
       upload: "上传文件",
@@ -217,6 +224,7 @@ const zh = {
     source: "来源",
     uploadedSource: "上传的 FASTA",
     pastedSource: "粘贴的 FASTA",
+    newFasta: "打开其他 FASTA",
     sequences: "序列数量",
     longestLength: "最长长度",
     lengthStatus: "长度状态",
@@ -257,6 +265,13 @@ const zh = {
       zoomOut: "缩小",
       resetZoom: "重置缩放",
       toggleDensity: "切换密度",
+      toolGroups: {
+        search: "搜索",
+        view: "视图",
+        columns: "列",
+        sequences: "序列",
+        export: "导出"
+      },
       sortBy: "排序方式",
       colorScheme: "配色方案",
       columnFilter: "列过滤",
@@ -339,7 +354,7 @@ const zh = {
     sections: [
       {
         title: "About easymsa",
-        body: "easymsa 是一个多序列比对 Web Server 前端原型，当前不执行真实算法计算。"
+        body: "easymsa 前端连接后端时可提交真实 MAFFT 任务；mock/demo 模式用于静态演示。"
       },
       {
         title: "Input format",
@@ -466,6 +481,13 @@ const en: typeof zh = {
     email: "Notification email",
     emailPlaceholder: "name@example.com",
     inputMethod: "Input method",
+    algorithm: "Alignment method",
+    algorithmHint: "Real jobs use MAFFT by default; server resource limits control thread count.",
+    algorithmDemoHint: "Demo jobs use browser-side sample data and do not call backend MAFFT.",
+    algorithms: {
+      mafft: "MAFFT",
+      demo: "Demo"
+    },
     methods: {
       paste: "Paste FASTA",
       upload: "Upload File",
@@ -604,6 +626,7 @@ const en: typeof zh = {
     source: "Source",
     uploadedSource: "Uploaded FASTA",
     pastedSource: "Pasted FASTA",
+    newFasta: "New FASTA",
     sequences: "Sequences",
     longestLength: "Longest length",
     lengthStatus: "Length status",
@@ -644,6 +667,13 @@ const en: typeof zh = {
       zoomOut: "Zoom out",
       resetZoom: "Reset zoom",
       toggleDensity: "Toggle density",
+      toolGroups: {
+        search: "Search",
+        view: "View",
+        columns: "Columns",
+        sequences: "Sequences",
+        export: "Export"
+      },
       sortBy: "Sort by",
       colorScheme: "Color scheme",
       columnFilter: "Column filter",
@@ -726,7 +756,7 @@ const en: typeof zh = {
     sections: [
       {
         title: "About easymsa",
-        body: "easymsa is a frontend prototype for a multiple sequence alignment web server. It does not run real algorithms yet."
+        body: "easymsa can submit real MAFFT jobs when connected to the backend; mock/demo mode is used for static previews."
       },
       {
         title: "Input format",
