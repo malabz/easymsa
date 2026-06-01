@@ -2,6 +2,7 @@ import type { Locale } from "../i18n/dictionary";
 
 export type InputMethod = "paste" | "upload";
 export type AlignmentAlgorithm = "mafft" | "halign";
+export type PreprocessMode = "audit" | "filter";
 
 export type CreateJobRequest = {
   jobName: string;
@@ -13,6 +14,7 @@ export type CreateJobRequest = {
   language: Locale;
   algorithm?: AlignmentAlgorithm;
   algorithmParams?: Record<string, unknown>;
+  preprocessMode?: PreprocessMode;
 };
 
 export type JobStatus =

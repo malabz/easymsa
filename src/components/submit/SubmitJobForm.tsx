@@ -7,7 +7,11 @@ import { z } from "zod";
 import { createJob } from "../../lib/api/jobs";
 import { jobRoute } from "../../lib/api/tokens";
 import { useLanguage } from "../../lib/i18n/useLanguage";
-import type { AlignmentAlgorithm, InputMethod } from "../../lib/types/job";
+import type {
+  AlignmentAlgorithm,
+  InputMethod,
+  PreprocessMode
+} from "../../lib/types/job";
 import { validateFasta } from "../../lib/utils/fasta";
 import { validateInputFile } from "../../lib/utils/fileValidation";
 import { Button } from "../common/Button";
@@ -28,6 +32,7 @@ export function SubmitJobForm() {
   const navigate = useNavigate();
   const [inputMethod, setInputMethod] = useState<InputMethod>("paste");
   const [algorithm, setAlgorithm] = useState<AlignmentAlgorithm>("mafft");
+  const [preprocessMode, setPreprocessMode] = useState<PreprocessMode>("audit");
   const [pastedSequence, setPastedSequence] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -100,7 +105,8 @@ export function SubmitJobForm() {
         fileName: inputMethod === "upload" ? file?.name : undefined,
         email: values.email.trim() || undefined,
         language: locale,
-        algorithm
+        algorithm,
+        preprocessMode
       });
 
       navigate(
@@ -180,6 +186,46 @@ export function SubmitJobForm() {
             <p className="text-xs leading-5 text-slate-500">
               {d.submit.algorithmHint}
             </p>
+          </div>
+        </div>
+
+        <div className="grid gap-3 border-b border-slate-100 pb-4 sm:grid-cols-[12rem_1fr]">
+          <p
+            className="text-sm font-medium text-slate-800 sm:pt-2.5"
+            id="preprocessModeLabel"
+          >
+            {d.submit.preprocessMode}
+          </p>
+          <div
+            aria-labelledby="preprocessModeLabel"
+            className="grid gap-2 sm:grid-cols-2"
+            role="radiogroup"
+          >
+            {(["audit", "filter"] as const).map((mode) => {
+              const selected = preprocessMode === mode;
+
+              return (
+                <button
+                  aria-checked={selected}
+                  className={`rounded-md border px-3 py-2 text-left text-sm transition ${
+                    selected
+                      ? "border-teal-600 bg-teal-50 text-slate-950 ring-1 ring-teal-100"
+                      : "border-slate-200 bg-white/80 text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                  }`}
+                  key={mode}
+                  onClick={() => setPreprocessMode(mode)}
+                  role="radio"
+                  type="button"
+                >
+                  <span className="block font-medium">
+                    {d.submit.preprocessModes[mode]}
+                  </span>
+                  <span className="mt-1 block text-xs leading-5 text-slate-500">
+                    {d.submit.preprocessModeDescriptions[mode]}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 

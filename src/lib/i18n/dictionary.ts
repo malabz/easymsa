@@ -77,6 +77,15 @@ const zh = {
     algorithms: {
       mafft: "MAFFT"
     },
+    preprocessMode: "预处理模式",
+    preprocessModes: {
+      audit: "检查模式",
+      filter: "过滤模式"
+    },
+    preprocessModeDescriptions: {
+      audit: "只检测和报告可能有问题的序列，不会删除输入序列。",
+      filter: "删除预处理判定有问题的序列，再进入后续比对。"
+    },
     methods: {
       paste: "粘贴 FASTA",
       upload: "上传文件"
@@ -453,6 +462,15 @@ const en: typeof zh = {
     algorithmHint: "Real jobs use MAFFT by default; server resource limits control thread count.",
     algorithms: {
       mafft: "MAFFT"
+    },
+    preprocessMode: "Preprocess mode",
+    preprocessModes: {
+      audit: "Audit",
+      filter: "Filter"
+    },
+    preprocessModeDescriptions: {
+      audit: "Detect and report potentially problematic sequences without removing them.",
+      filter: "Remove sequences flagged during preprocessing before alignment."
     },
     methods: {
       paste: "Paste FASTA",
