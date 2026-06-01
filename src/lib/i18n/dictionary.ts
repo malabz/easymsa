@@ -6,14 +6,12 @@ const zh = {
     submit: "提交任务",
     viewer: "查看 MSA",
     lookup: "查询任务",
-    examples: "示例数据",
     docs: "使用文档",
     about: "关于"
   },
   common: {
     appName: "easymsa",
     startAnalysis: "开始分析",
-    tryDemo: "查看示例",
     viewResults: "查看结果",
     download: "下载",
     loading: "正在加载",
@@ -29,24 +27,23 @@ const zh = {
   },
   footer: {
     tagline: "友好的多序列比对 Web Server 前端原型。",
-    note: "当前版本使用前端 mock 数据，后续可对接真实计算服务。"
+    note: "前端提交任务到 EasyMSA 后端，并使用任务凭证恢复状态和结果。"
   },
   home: {
     title: "easymsa：友好的多序列比对可视化工具",
     subtitle:
       "上传或粘贴 FASTA 序列，提交任务，查看比对结果并下载结果文件。",
     intro:
-      "easymsa 面向小规模多序列比对结果浏览，提供清晰的提交流程、模拟任务状态和可读的 MSA 可视化界面。",
-    demoNotice: "当前为前端 demo，所有任务与结果均由浏览器端 mock 数据模拟。",
+      "easymsa 面向小规模多序列比对结果浏览，提供清晰的提交流程、任务状态追踪和可读的 MSA 可视化界面。",
     workflowTitle: "三步完成分析",
     workflow: [
       {
         title: "提交",
-        text: "粘贴 FASTA、上传文件，或使用内置示例数据。"
+        text: "粘贴 FASTA 或上传文件，创建真实后端任务。"
       },
       {
         title: "运行",
-        text: "查看任务检查、分析和结果准备的模拟进度。"
+        text: "查看输入预处理、比对运行和结果准备进度。"
       },
       {
         title: "查看",
@@ -62,10 +59,6 @@ const zh = {
       {
         title: "上传文件",
         text: "支持 FASTA 与压缩文件，适合更大的输入数据。"
-      },
-      {
-        title: "使用示例",
-        text: "无需准备数据，直接体验结果页面和 MSA viewer。"
       }
     ],
     visualTitle: "小规模 MSA 可视化",
@@ -73,7 +66,7 @@ const zh = {
   },
   submit: {
     title: "提交任务",
-    subtitle: "选择输入方式，提供任务名称，即可创建一个模拟 MSA 任务。",
+    subtitle: "选择输入方式，提供任务名称，即可创建一个 MSA 任务。",
     jobName: "任务名称",
     jobNamePlaceholder: "例如：Kinase family alignment",
     email: "通知邮箱",
@@ -81,15 +74,12 @@ const zh = {
     inputMethod: "输入方式",
     algorithm: "比对方法",
     algorithmHint: "真实任务默认使用 MAFFT，后端会按资源配置限制线程数。",
-    algorithmDemoHint: "示例任务使用浏览器端 demo 数据，不调用后端 MAFFT。",
     algorithms: {
-      mafft: "MAFFT",
-      demo: "Demo"
+      mafft: "MAFFT"
     },
     methods: {
       paste: "粘贴 FASTA",
-      upload: "上传文件",
-      demo: "使用示例"
+      upload: "上传文件"
     },
     pasteLabel: "FASTA 序列",
     pastePlaceholder:
@@ -105,9 +95,6 @@ const zh = {
     uploadDrop: "将文件拖到此处",
     uploadValid: "文件可以提交。",
     uploadEmpty: "尚未选择文件。",
-    demoTitle: "使用内置示例数据",
-    demoDescription:
-      "示例任务会使用一组小规模 DNA alignment，方便快速查看结果页面。",
     submitting: "正在提交",
     errors: {
       jobName: "请输入任务名称。",
@@ -122,7 +109,7 @@ const zh = {
   },
   job: {
     title: "任务状态",
-    subtitle: "浏览器端 mock API 会模拟任务检查、运行和结果准备。",
+    subtitle: "查看后端任务的排队、预处理、比对和打包进度。",
     jobId: "任务 ID",
     jobName: "任务名称",
     currentStep: "当前步骤",
@@ -235,7 +222,7 @@ const zh = {
   },
   results: {
     title: "结果",
-    subtitle: "查看任务概览、比对矩阵和 demo 输出文件。",
+    subtitle: "查看任务概览、比对矩阵和输出文件。",
     tabs: {
       overview: "概览与比对",
       alignment: "比对结果",
@@ -337,24 +324,16 @@ const zh = {
     },
     downloads: {
       title: "可下载文件",
-      description: "Mock 模式下载 public/demo 文件；真实模式下载后端生成的结果压缩包。"
+      description: "下载后端生成的结果压缩包。"
     }
-  },
-  examples: {
-    title: "示例数据",
-    subtitle: "使用内置 demo 体验提交、状态和结果浏览流程。",
-    description:
-      "Demo 数据包含一组小规模 DNA 序列和对应 alignment 结果，适合验证 MSA viewer 的滚动、搜索和着色能力。",
-    inputDownload: "下载 demo 输入 FASTA",
-    resultDownload: "下载 demo alignment"
   },
   docs: {
     title: "使用文档",
-    subtitle: "当前版本聚焦前端提交与小规模结果展示。",
+    subtitle: "提交 FASTA、恢复任务并查看比对结果。",
     sections: [
       {
         title: "About easymsa",
-        body: "easymsa 前端连接后端时可提交真实 MAFFT 任务；mock/demo 模式用于静态演示。"
+        body: "easymsa 前端连接后端，提交 MAFFT 任务并展示比对结果。"
       },
       {
         title: "Input format",
@@ -374,7 +353,7 @@ const zh = {
       },
       {
         title: "View job status",
-        body: "任务状态页面会模拟输入检查、分析运行和结果准备过程。"
+        body: "任务状态页面展示输入检查、预处理、比对运行和结果准备过程。"
       },
       {
         title: "Interpret alignment results",
@@ -383,19 +362,15 @@ const zh = {
       {
         title: "Download results",
         body: "Downloads 标签提供 alignment FASTA、summary JSON 和结果压缩包下载。"
-      },
-      {
-        title: "Future backend integration",
-        body: "未来可通过 VITE_API_MODE=real 和 VITE_API_BASE_URL 接入远程 API。"
       }
     ]
   },
   about: {
     title: "关于 easymsa",
-    subtitle: "一个面向 GitHub Pages 的静态 MSA Web Server 前端原型。",
+    subtitle: "一个面向 DNA/RNA 多序列比对的 Web 工具。",
     project:
-      "本项目当前用于验证任务提交、状态展示和小规模多序列比对可视化体验。",
-    version: "当前版本：前端 demo / mock API。",
+      "本项目用于提交真实后端比对任务、恢复任务状态并查看小规模多序列比对结果。",
+    version: "当前版本：MAFFT 后端任务 + MSA viewer。",
     citation: "Citation：待补充。",
     contact: "Contact：待补充。",
     repository: "GitHub repository：https://github.com/malabz/easymsa"
@@ -408,14 +383,12 @@ const en: typeof zh = {
     submit: "Submit",
     viewer: "Viewer",
     lookup: "Lookup",
-    examples: "Examples",
     docs: "Docs",
     about: "About"
   },
   common: {
     appName: "easymsa",
     startAnalysis: "Start Analysis",
-    tryDemo: "Try Demo",
     viewResults: "View Results",
     download: "Download",
     loading: "Loading",
@@ -431,24 +404,23 @@ const en: typeof zh = {
   },
   footer: {
     tagline: "A friendly frontend prototype for an MSA web server.",
-    note: "This version uses browser-side mock data and can later connect to a real compute service."
+    note: "The frontend submits jobs to the EasyMSA backend and restores status and results with job access credentials."
   },
   home: {
     title: "easymsa: A Friendly MSA Visualization Tool",
     subtitle:
       "Upload or paste FASTA sequences, submit a job, view alignment results, and download output files.",
     intro:
-      "easymsa focuses on small-scale multiple sequence alignment browsing, with a clear submission flow, simulated job status, and readable MSA visualization.",
-    demoNotice: "This is a frontend demo. Jobs and results are simulated in the browser.",
+      "easymsa focuses on small-scale multiple sequence alignment browsing, with a clear submission flow, job status tracking, and readable MSA visualization.",
     workflowTitle: "Analyze in three steps",
     workflow: [
       {
         title: "Submit",
-        text: "Paste FASTA, upload a file, or use the built-in demo dataset."
+        text: "Paste FASTA or upload a file to create a real backend job."
       },
       {
         title: "Run",
-        text: "Follow simulated input checking, analysis, and result preparation."
+        text: "Follow preprocessing, alignment, and result preparation progress."
       },
       {
         title: "View",
@@ -464,10 +436,6 @@ const en: typeof zh = {
       {
         title: "Upload file",
         text: "Supports FASTA and compressed files for larger inputs."
-      },
-      {
-        title: "Use demo",
-        text: "Try the results page and MSA viewer without preparing data."
       }
     ],
     visualTitle: "Small-scale MSA visualization",
@@ -475,7 +443,7 @@ const en: typeof zh = {
   },
   submit: {
     title: "Submit Job",
-    subtitle: "Choose an input method, name the job, and create a simulated MSA task.",
+    subtitle: "Choose an input method, name the job, and create an MSA task.",
     jobName: "Job name",
     jobNamePlaceholder: "For example: Kinase family alignment",
     email: "Notification email",
@@ -483,15 +451,12 @@ const en: typeof zh = {
     inputMethod: "Input method",
     algorithm: "Alignment method",
     algorithmHint: "Real jobs use MAFFT by default; server resource limits control thread count.",
-    algorithmDemoHint: "Demo jobs use browser-side sample data and do not call backend MAFFT.",
     algorithms: {
-      mafft: "MAFFT",
-      demo: "Demo"
+      mafft: "MAFFT"
     },
     methods: {
       paste: "Paste FASTA",
-      upload: "Upload File",
-      demo: "Use Demo"
+      upload: "Upload File"
     },
     pasteLabel: "FASTA sequences",
     pastePlaceholder:
@@ -507,9 +472,6 @@ const en: typeof zh = {
     uploadDrop: "Drop the file here",
     uploadValid: "The file is ready to submit.",
     uploadEmpty: "No file selected.",
-    demoTitle: "Use built-in demo data",
-    demoDescription:
-      "The demo job uses a small DNA alignment so you can quickly inspect the results page.",
     submitting: "Submitting",
     errors: {
       jobName: "Enter a job name.",
@@ -524,7 +486,7 @@ const en: typeof zh = {
   },
   job: {
     title: "Job Status",
-    subtitle: "The browser-side mock API simulates checking, running, and preparing results.",
+    subtitle: "Track backend queueing, preprocessing, alignment, and packaging progress.",
     jobId: "Job ID",
     jobName: "Job name",
     currentStep: "Current step",
@@ -637,7 +599,7 @@ const en: typeof zh = {
   },
   results: {
     title: "Results",
-    subtitle: "Inspect the job overview, alignment matrix, and demo output files.",
+    subtitle: "Inspect the job overview, alignment matrix, and output files.",
     tabs: {
       overview: "Overview & Alignment",
       alignment: "Alignment",
@@ -739,24 +701,16 @@ const en: typeof zh = {
     },
     downloads: {
       title: "Downloadable files",
-      description: "Mock mode downloads public/demo files; real mode downloads the server result archive."
+      description: "Download the result archive generated by the server."
     }
-  },
-  examples: {
-    title: "Examples",
-    subtitle: "Use the built-in demo to try submission, status, and result browsing.",
-    description:
-      "The demo dataset contains a small DNA sequence set and a matching alignment result for validating scrolling, search, and coloring in the MSA viewer.",
-    inputDownload: "Download demo input FASTA",
-    resultDownload: "Download demo alignment"
   },
   docs: {
     title: "Documentation",
-    subtitle: "This version focuses on frontend submission and small-scale result display.",
+    subtitle: "Submit FASTA, restore jobs, and inspect alignment results.",
     sections: [
       {
         title: "About easymsa",
-        body: "easymsa can submit real MAFFT jobs when connected to the backend; mock/demo mode is used for static previews."
+        body: "easymsa connects to the backend, submits MAFFT jobs, and displays alignment results."
       },
       {
         title: "Input format",
@@ -776,7 +730,7 @@ const en: typeof zh = {
       },
       {
         title: "View job status",
-        body: "The status page simulates input checking, analysis, and result preparation."
+        body: "The status page shows input checking, preprocessing, alignment, and result preparation."
       },
       {
         title: "Interpret alignment results",
@@ -785,19 +739,15 @@ const en: typeof zh = {
       {
         title: "Download results",
         body: "The Downloads tab provides alignment FASTA, summary JSON, and a compressed result bundle."
-      },
-      {
-        title: "Future backend integration",
-        body: "A remote API can later be enabled with VITE_API_MODE=real and VITE_API_BASE_URL."
       }
     ]
   },
   about: {
     title: "About easymsa",
-    subtitle: "A static MSA web server frontend prototype for GitHub Pages.",
+    subtitle: "A web tool for DNA/RNA multiple sequence alignment.",
     project:
-      "This project currently validates job submission, status display, and small-scale multiple sequence alignment visualization.",
-    version: "Current version: frontend demo / mock API.",
+      "This project submits real backend alignment jobs, restores job status, and visualizes small-scale MSA results.",
+    version: "Current version: MAFFT backend jobs + MSA viewer.",
     citation: "Citation: to be added.",
     contact: "Contact: to be added.",
     repository: "GitHub repository: https://github.com/malabz/easymsa"

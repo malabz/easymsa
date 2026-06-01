@@ -1,7 +1,7 @@
 import type { Locale } from "../i18n/dictionary";
 
-export type InputMethod = "paste" | "upload" | "demo";
-export type AlignmentAlgorithm = "mafft" | "demo" | "halign";
+export type InputMethod = "paste" | "upload";
+export type AlignmentAlgorithm = "mafft" | "halign";
 
 export type CreateJobRequest = {
   jobName: string;

@@ -1,7 +1,5 @@
-import { apiUrl, isMockMode, parseApiError } from "./client";
+import { apiUrl, parseApiError } from "./client";
 import { createJobAccess, saveJobAccess } from "./tokens";
-import { createMockJob, getMockJobStatus } from "../mock/mockJobs";
-import { demoInputFasta } from "../mock/demoInput";
 import type {
   CreateJobRequest,
   JobDetail,
@@ -20,10 +18,7 @@ export type CreateJobResponse = {
 function toFormData(request: CreateJobRequest) {
   const formData = new FormData();
   formData.set("job_name", request.jobName);
-  formData.set(
-    "algorithm",
-    request.inputMethod === "demo" ? "demo" : request.algorithm ?? "mafft"
-  );
+  formData.set("algorithm", request.algorithm ?? "mafft");
   if (request.algorithmParams) {
     formData.set("algorithm_params", JSON.stringify(request.algorithmParams));
   }
@@ -37,12 +32,7 @@ function toFormData(request: CreateJobRequest) {
     return formData;
   }
 
-  formData.set(
-    "pasted_sequence",
-    request.inputMethod === "demo"
-      ? demoInputFasta
-      : request.pastedSequence ?? ""
-  );
+  formData.set("pasted_sequence", request.pastedSequence ?? "");
 
   return formData;
 }
@@ -54,19 +44,6 @@ function jobPathSegment(jobId: string) {
 export async function createJob(
   request: CreateJobRequest
 ): Promise<CreateJobResponse> {
-  if (isMockMode()) {
-    const payload = await createMockJob(request);
-    saveJobAccess(
-      createJobAccess({
-        jobId: payload.jobId,
-        token: payload.token,
-        statusUrl: payload.statusUrl,
-        createdAt: payload.createdAt
-      })
-    );
-    return payload;
-  }
-
   const response = await fetch(apiUrl("/jobs"), {
     method: "POST",
     body: toFormData(request)
@@ -93,10 +70,6 @@ export async function createJob(
 }
 
 export async function getJobStatus(jobId: string, token: string): Promise<JobDetail> {
-  if (isMockMode()) {
-    return getMockJobStatus(jobId, token);
-  }
-
   const response = await fetch(
     apiUrl(`/jobs/${jobPathSegment(jobId)}?token=${encodeURIComponent(token)}`)
   );

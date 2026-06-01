@@ -60,9 +60,7 @@ export function SubmitJobForm() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
-    getValues,
-    setValue
+    formState: { errors }
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -74,15 +72,6 @@ export function SubmitJobForm() {
   function handleMethodChange(method: InputMethod) {
     setInputMethod(method);
     setFormError(null);
-
-    if (method === "demo" && !getValues("jobName").trim()) {
-      setValue("jobName", "Demo alignment", { shouldValidate: true });
-    }
-    if (method === "demo") {
-      setAlgorithm("demo");
-    } else if (algorithm === "demo") {
-      setAlgorithm("mafft");
-    }
   }
 
   async function onSubmit(values: FormValues) {
@@ -111,7 +100,7 @@ export function SubmitJobForm() {
         fileName: inputMethod === "upload" ? file?.name : undefined,
         email: values.email.trim() || undefined,
         language: locale,
-        algorithm: inputMethod === "demo" ? "demo" : algorithm
+        algorithm
       });
 
       navigate(
@@ -182,18 +171,14 @@ export function SubmitJobForm() {
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <select
               className="h-10 max-w-xs rounded-md border border-slate-300 bg-white/80 px-3 text-sm font-medium text-slate-900 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
-              disabled={inputMethod === "demo"}
               id="alignmentAlgorithm"
               onChange={(event) => setAlgorithm(event.target.value as AlignmentAlgorithm)}
-              value={inputMethod === "demo" ? "demo" : algorithm}
+              value={algorithm}
             >
               <option value="mafft">{d.submit.algorithms.mafft}</option>
-              <option value="demo">{d.submit.algorithms.demo}</option>
             </select>
             <p className="text-xs leading-5 text-slate-500">
-              {inputMethod === "demo"
-                ? d.submit.algorithmDemoHint
-                : d.submit.algorithmHint}
+              {d.submit.algorithmHint}
             </p>
           </div>
         </div>
@@ -207,17 +192,6 @@ export function SubmitJobForm() {
 
         {inputMethod === "upload" ? (
           <FileUploadCard file={file} onChange={setFile} />
-        ) : null}
-
-        {inputMethod === "demo" ? (
-          <div className="rounded-lg border border-teal-200 bg-teal-50 p-5">
-            <h3 className="text-base font-semibold text-teal-950">
-              {d.submit.demoTitle}
-            </h3>
-            <p className="mt-2 text-sm leading-6 text-teal-900">
-              {d.submit.demoDescription}
-            </p>
-          </div>
         ) : null}
 
         {formError ? (

@@ -1,7 +1,5 @@
-export const API_MODE = import.meta.env.VITE_API_MODE || "mock";
 export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ||
-  (API_MODE === "real" ? "http://localhost:8000/api" : "");
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
 
 export type ApiErrorBody = {
   code: string;
@@ -31,10 +29,6 @@ export class EasyMsaApiError extends Error {
     this.status = status;
     this.details = details;
   }
-}
-
-export function isMockMode() {
-  return API_MODE === "mock";
 }
 
 export function apiUrl(path: string) {

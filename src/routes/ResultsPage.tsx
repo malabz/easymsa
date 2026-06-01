@@ -36,7 +36,7 @@ export function ResultsPage() {
   const queryToken = searchParams.get("token");
   const jobId = routeJobId ? decodeURIComponent(routeJobId) : null;
   const files = useMemo(
-    () => getDownloadFiles(jobId ?? "demo-job", access?.token ?? ""),
+    () => (jobId && access ? getDownloadFiles(jobId, access.token) : []),
     [access?.token, jobId]
   );
 

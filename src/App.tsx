@@ -3,7 +3,6 @@ import { Footer } from "./components/layout/Footer";
 import { Header } from "./components/layout/Header";
 import { AboutPage } from "./routes/AboutPage";
 import { DocsPage } from "./routes/DocsPage";
-import { ExamplesPage } from "./routes/ExamplesPage";
 import { HomePage } from "./routes/HomePage";
 import { JobStatusPage } from "./routes/JobStatusPage";
 import { LookupPage } from "./routes/LookupPage";
@@ -23,7 +22,6 @@ export function App() {
           <Route path="/lookup" element={<LookupPage />} />
           <Route path="/job/:jobId" element={<JobStatusPage />} />
           <Route path="/results/:jobId" element={<ResultsPage />} />
-          <Route path="/examples" element={<ExamplesPage />} />
           <Route path="/docs" element={<DocsPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

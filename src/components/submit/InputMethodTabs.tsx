@@ -1,12 +1,11 @@
-import { Database, FileUp, TextCursorInput } from "lucide-react";
+import { FileUp, TextCursorInput } from "lucide-react";
 import type { InputMethod } from "../../lib/types/job";
 import { cn } from "../../lib/utils/cn";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 
 const methods: Array<{ value: InputMethod; icon: typeof TextCursorInput }> = [
   { value: "paste", icon: TextCursorInput },
-  { value: "upload", icon: FileUp },
-  { value: "demo", icon: Database }
+  { value: "upload", icon: FileUp }
 ];
 
 export function InputMethodTabs({
@@ -19,7 +18,7 @@ export function InputMethodTabs({
   const { dictionary: d } = useLanguage();
 
   return (
-    <div className="grid gap-2 rounded-lg border border-slate-200 bg-white/55 p-1 sm:grid-cols-3">
+    <div className="grid gap-2 rounded-lg border border-slate-200 bg-white/55 p-1 sm:grid-cols-2">
       {methods.map((method) => {
         const Icon = method.icon;
         const selected = value === method.value;

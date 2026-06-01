@@ -11,7 +11,6 @@ const navItems = [
   { to: "/submit", key: "submit" },
   { to: "/viewer", key: "viewer" },
   { to: "/lookup", key: "lookup" },
-  { to: "/examples", key: "examples" },
   { to: "/docs", key: "docs" },
   { to: "/about", key: "about" }
 ] as const;

@@ -1,8 +1,6 @@
-import { apiUrl, isMockMode, parseApiError } from "./client";
-import { demoAlignment, demoSummary } from "../mock/demoAlignment";
+import { apiUrl, parseApiError } from "./client";
 import type { MSAResult } from "../types/msa";
 import type { ResultFile, ResultSummary } from "../types/result";
-import { assetUrl } from "../utils/format";
 
 type ServerResultSummary = {
   jobId: string;
@@ -84,19 +82,6 @@ export async function getResultSummary(
   jobId: string,
   token: string
 ): Promise<ResultSummary> {
-  if (isMockMode()) {
-    try {
-      const response = await fetch(assetUrl("demo/summary.json"));
-      if (response.ok) {
-        return response.json();
-      }
-    } catch {
-      return { ...demoSummary, jobId };
-    }
-
-    return { ...demoSummary, jobId };
-  }
-
   const response = await fetch(
     apiUrl(
       `/jobs/${jobPathSegment(jobId)}/results/summary?token=${encodeURIComponent(token)}`
@@ -114,19 +99,6 @@ export async function getAlignmentResult(
   jobId: string,
   token: string
 ): Promise<MSAResult> {
-  if (isMockMode()) {
-    try {
-      const response = await fetch(assetUrl("demo/alignment.json"));
-      if (response.ok) {
-        return response.json();
-      }
-    } catch {
-      return { ...demoAlignment, jobId };
-    }
-
-    return { ...demoAlignment, jobId };
-  }
-
   const response = await fetch(
     apiUrl(
       `/jobs/${jobPathSegment(jobId)}/results/alignment?token=${encodeURIComponent(token)}`
@@ -141,37 +113,14 @@ export async function getAlignmentResult(
 }
 
 export function getDownloadFiles(jobId: string, token: string): ResultFile[] {
-  if (!isMockMode()) {
-    return [
-      {
-        name: "all_results.zip",
-        description: "Compressed result archive from the EasyMSA server",
-        size: "remote",
-        href: apiUrl(
-          `/jobs/${jobPathSegment(jobId)}/download?token=${encodeURIComponent(token)}`
-        )
-      }
-    ];
-  }
-
   return [
     {
-      name: "alignment.fasta",
-      description: "Aligned sequences in FASTA format",
-      size: "6 KB",
-      href: assetUrl("demo/alignment.fasta")
-    },
-    {
-      name: "summary.json",
-      description: "Summary metrics in JSON format",
-      size: "1 KB",
-      href: assetUrl("demo/summary.json")
-    },
-    {
       name: "all_results.zip",
-      description: "Compressed demo result archive",
-      size: "8 KB",
-      href: assetUrl("demo/all_results.zip")
+      description: "Compressed result archive from the EasyMSA server",
+      size: "remote",
+      href: apiUrl(
+        `/jobs/${jobPathSegment(jobId)}/download?token=${encodeURIComponent(token)}`
+      )
     }
   ];
 }
