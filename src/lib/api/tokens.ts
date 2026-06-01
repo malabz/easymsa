@@ -178,6 +178,15 @@ export function resultsRoute(jobId: string, token: string) {
   return `/results/${encodeURIComponent(jobId)}?token=${encodeURIComponent(token)}`;
 }
 
+export function hashRouterUrl(route: string) {
+  if (typeof window === "undefined") {
+    return route;
+  }
+
+  const normalizedRoute = route.startsWith("/") ? route : `/${route}`;
+  return `${window.location.origin}${window.location.pathname}${window.location.search}#${normalizedRoute}`;
+}
+
 export function downloadableAccessJson(access: JobAccess) {
   return JSON.stringify(normalizeAccess(access), null, 2);
 }

@@ -12,6 +12,7 @@ import { getJobStatus } from "../lib/api/jobs";
 import {
   accessDownloadFilename,
   downloadableAccessJson,
+  hashRouterUrl,
   jobRoute,
   resolveJobAccess,
   saveJobAccess,
@@ -40,10 +41,7 @@ export function JobStatusPage() {
     [access]
   );
   const restorePath = access ? jobRoute(access.jobId, access.token) : "";
-  const restoreLink =
-    typeof window !== "undefined" && restorePath
-      ? `${window.location.origin}${restorePath}`
-      : restorePath;
+  const restoreLink = restorePath ? hashRouterUrl(restorePath) : "";
 
   async function copyAccessText(target: CopyTarget, text: string) {
     try {
