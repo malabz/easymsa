@@ -31,7 +31,7 @@ export function SubmitJobForm() {
   const { dictionary: d, locale } = useLanguage();
   const navigate = useNavigate();
   const [inputMethod, setInputMethod] = useState<InputMethod>("paste");
-  const [algorithm, setAlgorithm] = useState<AlignmentAlgorithm>("mafft");
+  const [algorithm, setAlgorithm] = useState<AlignmentAlgorithm>("auto");
   const [preprocessMode, setPreprocessMode] = useState<PreprocessMode>("audit");
   const [pastedSequence, setPastedSequence] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -181,6 +181,8 @@ export function SubmitJobForm() {
               onChange={(event) => setAlgorithm(event.target.value as AlignmentAlgorithm)}
               value={algorithm}
             >
+              <option value="auto">{d.submit.algorithms.auto}</option>
+              <option value="minipoa">{d.submit.algorithms.minipoa}</option>
               <option value="mafft">{d.submit.algorithms.mafft}</option>
             </select>
             <p className="text-xs leading-5 text-slate-500">

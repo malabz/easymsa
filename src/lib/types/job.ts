@@ -1,7 +1,7 @@
 import type { Locale } from "../i18n/dictionary";
 
 export type InputMethod = "paste" | "upload";
-export type AlignmentAlgorithm = "mafft" | "halign";
+export type AlignmentAlgorithm = "auto" | "minipoa" | "mafft";
 export type PreprocessMode = "audit" | "filter";
 
 export type CreateJobRequest = {

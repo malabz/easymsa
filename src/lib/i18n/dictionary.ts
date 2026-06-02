@@ -73,8 +73,10 @@ const zh = {
     emailPlaceholder: "name@example.com",
     inputMethod: "输入方式",
     algorithm: "比对方法",
-    algorithmHint: "真实任务默认使用 MAFFT，后端会按资源配置限制线程数。",
+    algorithmHint: "默认使用自动模式，目前会选择 minipoa；也可以手动切换 minipoa 或 MAFFT。",
     algorithms: {
+      auto: "自动选择",
+      minipoa: "minipoa",
       mafft: "MAFFT"
     },
     preprocessMode: "预处理模式",
@@ -342,7 +344,7 @@ const zh = {
     sections: [
       {
         title: "About easymsa",
-        body: "easymsa 前端连接后端，提交 MAFFT 任务并展示比对结果。"
+        body: "easymsa 前端连接后端，自动选择或手动提交 minipoa / MAFFT 任务并展示比对结果。"
       },
       {
         title: "Input format",
@@ -379,7 +381,7 @@ const zh = {
     subtitle: "一个面向 DNA/RNA 多序列比对的 Web 工具。",
     project:
       "本项目用于提交真实后端比对任务、恢复任务状态并查看小规模多序列比对结果。",
-    version: "当前版本：MAFFT 后端任务 + MSA viewer。",
+    version: "当前版本：自动模式（当前 minipoa）+ minipoa/MAFFT 后端任务 + MSA viewer。",
     citation: "Citation：待补充。",
     contact: "Contact：待补充。",
     repository: "GitHub repository：https://github.com/malabz/easymsa"
@@ -459,8 +461,10 @@ const en: typeof zh = {
     emailPlaceholder: "name@example.com",
     inputMethod: "Input method",
     algorithm: "Alignment method",
-    algorithmHint: "Real jobs use MAFFT by default; server resource limits control thread count.",
+    algorithmHint: "Auto is the default and currently selects minipoa; minipoa and MAFFT can also be selected manually.",
     algorithms: {
+      auto: "Auto",
+      minipoa: "minipoa",
       mafft: "MAFFT"
     },
     preprocessMode: "Preprocess mode",
@@ -728,7 +732,7 @@ const en: typeof zh = {
     sections: [
       {
         title: "About easymsa",
-        body: "easymsa connects to the backend, submits MAFFT jobs, and displays alignment results."
+        body: "easymsa connects to the backend, submits automatically selected or manual minipoa / MAFFT jobs, and displays alignment results."
       },
       {
         title: "Input format",
@@ -765,7 +769,7 @@ const en: typeof zh = {
     subtitle: "A web tool for DNA/RNA multiple sequence alignment.",
     project:
       "This project submits real backend alignment jobs, restores job status, and visualizes small-scale MSA results.",
-    version: "Current version: MAFFT backend jobs + MSA viewer.",
+    version: "Current version: Auto mode (currently minipoa) + minipoa/MAFFT backend jobs + MSA viewer.",
     citation: "Citation: to be added.",
     contact: "Contact: to be added.",
     repository: "GitHub repository: https://github.com/malabz/easymsa"

@@ -18,7 +18,7 @@ export type CreateJobResponse = {
 function toFormData(request: CreateJobRequest) {
   const formData = new FormData();
   formData.set("job_name", request.jobName);
-  formData.set("algorithm", request.algorithm ?? "mafft");
+  formData.set("algorithm", request.algorithm ?? "auto");
   formData.set("preprocess_mode", request.preprocessMode ?? "audit");
   if (request.algorithmParams) {
     formData.set("algorithm_params", JSON.stringify(request.algorithmParams));
