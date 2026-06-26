@@ -1,74 +1,20 @@
 import { useLanguage } from "../../lib/i18n/useLanguage";
+import {
+  baseClass,
+  msaCellColorClass,
+  msaCellColorStyle,
+  type ConservationColorContext,
+  type MSAColorScheme
+} from "../../features/msa-export/exportColors";
 import { cn } from "../../lib/utils/cn";
 
-export type MSAColorScheme = "nucleotide" | "purinePyrimidine" | "conservation";
-
-type ConservationColorContext = {
-  dominantBase?: string;
-  conservation?: number;
+export {
+  baseClass,
+  msaCellColorClass,
+  msaCellColorStyle,
+  type ConservationColorContext,
+  type MSAColorScheme
 };
-
-export function baseClass(base: string) {
-  switch (base.toUpperCase()) {
-    case "A":
-      return "bg-emerald-100 text-emerald-900 border-emerald-200";
-    case "T":
-    case "U":
-      return "bg-rose-100 text-rose-900 border-rose-200";
-    case "G":
-      return "bg-amber-100 text-amber-900 border-amber-200";
-    case "C":
-      return "bg-sky-100 text-sky-900 border-sky-200";
-    case "-":
-      return "bg-zinc-100 text-zinc-500 border-zinc-200";
-    default:
-      return "bg-slate-100 text-slate-800 border-slate-200";
-  }
-}
-
-export function msaCellColorClass(
-  base: string,
-  scheme: MSAColorScheme,
-  conservation?: ConservationColorContext
-) {
-  const normalizedBase = base.toUpperCase();
-  if (!base) {
-    return "bg-transparent text-transparent border-transparent";
-  }
-
-  if (scheme === "purinePyrimidine") {
-    if (normalizedBase === "A" || normalizedBase === "G") {
-      return "bg-indigo-100 text-indigo-900 border-indigo-200";
-    }
-    if (normalizedBase === "C" || normalizedBase === "T" || normalizedBase === "U") {
-      return "bg-cyan-100 text-cyan-900 border-cyan-200";
-    }
-    if (normalizedBase === "-") {
-      return "bg-zinc-100 text-zinc-500 border-zinc-200";
-    }
-    return "bg-slate-100 text-slate-800 border-slate-200";
-  }
-
-  if (scheme === "conservation") {
-    if (normalizedBase === "-") {
-      return "bg-zinc-100 text-zinc-500 border-zinc-200";
-    }
-
-    const dominantBase = conservation?.dominantBase?.toUpperCase();
-    const conservationScore = conservation?.conservation ?? 0;
-    if (dominantBase && normalizedBase === dominantBase) {
-      return conservationScore >= 0.8
-        ? "bg-teal-200 text-teal-950 border-teal-300"
-        : "bg-teal-100 text-teal-900 border-teal-200";
-    }
-    if (dominantBase) {
-      return "bg-rose-100 text-rose-900 border-rose-200";
-    }
-    return "bg-slate-100 text-slate-800 border-slate-200";
-  }
-
-  return baseClass(base);
-}
 
 function legendItems(
   scheme: MSAColorScheme,

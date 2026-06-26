@@ -38,6 +38,8 @@ The app uses hash routes, for example:
 ```bash
 npm run build
 npm run preview
+
+VITE_API_MODE=real VITE_API_BASE_URL=http://localhost:8000/api npm run dev
 ```
 
 The production build is written to `dist/`.

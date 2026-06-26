@@ -159,7 +159,11 @@ export function SubmitJobForm() {
             />
             {errors.email ? (
               <p className="text-sm text-rose-700">{errors.email.message}</p>
-            ) : null}
+            ) : (
+              <p className="text-xs leading-5 text-slate-500">
+                {d.submit.emailHint}
+              </p>
+            )}
           </div>
         </div>
 

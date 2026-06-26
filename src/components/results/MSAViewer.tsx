@@ -4,6 +4,7 @@ import {
   Download,
   Eye,
   EyeOff,
+  ImageDown,
   ListFilter,
   LocateFixed,
   MousePointer2,
@@ -16,6 +17,8 @@ import {
 } from "lucide-react";
 import { type KeyboardEvent, type ReactNode, useMemo, useRef, useState } from "react";
 import { EmptyState } from "../common/EmptyState";
+import { ExportDialog } from "../../features/msa-export/ExportDialog";
+import { useMsaExport } from "../../features/msa-export/useMsaExport";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import type { MSAResult } from "../../lib/types/msa";
 import { cn } from "../../lib/utils/cn";
@@ -567,6 +570,29 @@ export function MSAViewer({ alignment }: { alignment: MSAResult }) {
     }
     return map;
   }, [motifMatches]);
+  const imageExport = useMsaExport(alignment, getExportViewerState);
+
+  function getExportViewerState() {
+    const viewport = scrollRef.current
+      ? {
+          scrollLeft: scrollRef.current.scrollLeft,
+          scrollTop: scrollRef.current.scrollTop,
+          clientWidth: scrollRef.current.clientWidth,
+          clientHeight: scrollRef.current.clientHeight
+        }
+      : null;
+
+    return {
+      sequences: displayedSequences,
+      visiblePositions,
+      conservationColumns,
+      colorScheme,
+      selectedRange,
+      viewSettings,
+      viewport,
+      alignmentLength
+    };
+  }
 
   function hideSequence(sequenceId: string) {
     setHiddenSequenceIds((current) => {
@@ -1009,6 +1035,16 @@ export function MSAViewer({ alignment }: { alignment: MSAResult }) {
                 <button
                   className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white/70 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-950 disabled:opacity-40"
                   disabled={displayedSequences.length === 0 || visiblePositions.length === 0}
+                  onClick={imageExport.openDialog}
+                  title={d.results.viewer.imageExport.button}
+                  type="button"
+                >
+                  <ImageDown className="h-4 w-4" />
+                  {d.results.viewer.imageExport.button}
+                </button>
+                <button
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white/70 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-950 disabled:opacity-40"
+                  disabled={displayedSequences.length === 0 || visiblePositions.length === 0}
                   onClick={exportVisibleFasta}
                   title={d.results.viewer.exportVisible}
                   type="button"
@@ -1288,6 +1324,17 @@ export function MSAViewer({ alignment }: { alignment: MSAResult }) {
         </div>
       )}
 
+      <ExportDialog
+        error={imageExport.error}
+        hasSelection={imageExport.hasSelection}
+        isExporting={imageExport.isExporting}
+        isOpen={imageExport.isOpen}
+        layout={imageExport.layout}
+        onClose={imageExport.closeDialog}
+        onExport={imageExport.runExport}
+        onUpdate={imageExport.updateOptions}
+        options={imageExport.options}
+      />
       <MSAColorLegend scheme={colorScheme} />
     </div>
   );

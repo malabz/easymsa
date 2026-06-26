@@ -71,6 +71,7 @@ const zh = {
     jobNamePlaceholder: "例如：Kinase family alignment",
     email: "通知邮箱",
     emailPlaceholder: "name@example.com",
+    emailHint: "填写后，任务完成或失败时会发送包含任务访问链接的邮件。",
     inputMethod: "输入方式",
     algorithm: "比对方法",
     algorithmHint: "默认使用自动模式，目前会选择 minipoa；也可以手动切换 minipoa 或 MAFFT。",
@@ -128,6 +129,16 @@ const zh = {
     timeline: "任务时间线",
     logs: "运行日志",
     lookupLink: "前往任务恢复",
+    email: {
+      title: "邮件通知",
+      error: "发送错误",
+      statuses: {
+        pending: "等待任务结束后发送",
+        sent: "已发送",
+        failed: "发送失败",
+        skipped: "未发送"
+      }
+    },
     access: {
       title: "任务凭证",
       description:
@@ -279,6 +290,53 @@ const zh = {
       exportVisible: "导出可见 FASTA",
       exportSelectedRange: "导出选中区间",
       exportConsensusRange: "导出区间 consensus",
+      imageExport: {
+        button: "导出图片",
+        title: "导出 MSA 图片",
+        description: "根据当前查看器状态导出 SVG 或 PNG，不截图页面。",
+        format: "格式",
+        svg: "SVG",
+        png: "PNG",
+        region: "范围",
+        regions: {
+          visible: "当前视窗",
+          full: "全部可见数据",
+          selection: "选中区间"
+        },
+        layoutMode: "布局",
+        layoutModes: {
+          singleLine: "单行",
+          wrapped: "换行"
+        },
+        wrapColumns: "每行列数",
+        include: "包含内容",
+        sequenceNames: "序列名称",
+        coordinates: "坐标",
+        conservation: "保守性轨道",
+        consensus: "consensus",
+        legend: "颜色图例",
+        annotations: "注释/feature",
+        annotationsUnavailable: "暂无数据",
+        output: "输出",
+        filename: "文件名",
+        scale: "PNG 缩放",
+        background: "背景",
+        transparentBackground: "透明背景",
+        estimate: "预估",
+        sizeEstimate: "{rows} 行 · {columns} 列 · {width}×{height} px",
+        blockEstimate: "{count} 个区块",
+        pngEstimate: "PNG {width}×{height} px · {mp} MP",
+        noSelectionHint: "先在矩阵中选择列区间，才能导出选中区间。",
+        export: "导出",
+        exporting: "导出中",
+        cancel: "取消",
+        errors: {
+          noData: "当前没有可导出的矩阵数据。",
+          selectionRequired: "请先选择一个列区间。",
+          limitExceeded: "PNG 尺寸超过安全上限。",
+          failed: "导出失败，请调整范围或格式后重试。"
+        }
+      },
       hiddenCount: "已隐藏 {count} 条",
       visibleColumns: "显示 {shown} / {total} 列",
       selectedRange: "区间 {range}",
@@ -459,6 +517,7 @@ const en: typeof zh = {
     jobNamePlaceholder: "For example: Kinase family alignment",
     email: "Notification email",
     emailPlaceholder: "name@example.com",
+    emailHint: "If provided, EasyMSA will email a job access link when the task completes or fails.",
     inputMethod: "Input method",
     algorithm: "Alignment method",
     algorithmHint: "Auto is the default and currently selects minipoa; minipoa and MAFFT can also be selected manually.",
@@ -516,6 +575,16 @@ const en: typeof zh = {
     timeline: "Timeline",
     logs: "Run log",
     lookupLink: "Go to task lookup",
+    email: {
+      title: "Email notification",
+      error: "Send error",
+      statuses: {
+        pending: "Waiting for job completion",
+        sent: "Sent",
+        failed: "Failed to send",
+        skipped: "Not sent"
+      }
+    },
     access: {
       title: "Job access",
       description:
@@ -667,6 +736,53 @@ const en: typeof zh = {
       exportVisible: "Export visible FASTA",
       exportSelectedRange: "Export selected range",
       exportConsensusRange: "Export range consensus",
+      imageExport: {
+        button: "Export image",
+        title: "Export MSA image",
+        description: "Render SVG or PNG from the current viewer state without taking a page screenshot.",
+        format: "Format",
+        svg: "SVG",
+        png: "PNG",
+        region: "Region",
+        regions: {
+          visible: "Visible viewport",
+          full: "All visible data",
+          selection: "Selected region"
+        },
+        layoutMode: "Layout",
+        layoutModes: {
+          singleLine: "Single line",
+          wrapped: "Wrapped"
+        },
+        wrapColumns: "Columns per line",
+        include: "Include",
+        sequenceNames: "Sequence names",
+        coordinates: "Coordinates",
+        conservation: "Conservation track",
+        consensus: "Consensus",
+        legend: "Color legend",
+        annotations: "Annotations/features",
+        annotationsUnavailable: "No data",
+        output: "Output",
+        filename: "Filename",
+        scale: "PNG scale",
+        background: "Background",
+        transparentBackground: "Transparent background",
+        estimate: "Estimate",
+        sizeEstimate: "{rows} rows · {columns} columns · {width}×{height} px",
+        blockEstimate: "{count} blocks",
+        pngEstimate: "PNG {width}×{height} px · {mp} MP",
+        noSelectionHint: "Select a column range in the matrix before exporting the selected region.",
+        export: "Export",
+        exporting: "Exporting",
+        cancel: "Cancel",
+        errors: {
+          noData: "There is no exportable matrix data.",
+          selectionRequired: "Select a column range first.",
+          limitExceeded: "PNG dimensions exceed the safety limit.",
+          failed: "Export failed. Adjust the region or format and try again."
+        }
+      },
       hiddenCount: "{count} hidden",
       visibleColumns: "Showing {shown} / {total} columns",
       selectedRange: "Range {range}",

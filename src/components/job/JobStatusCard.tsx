@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowRight, CheckCircle2, Clock3 } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle2, Clock3, Mail } from "lucide-react";
 import { ButtonLink } from "../common/Button";
 import {
   Card,
@@ -78,6 +78,10 @@ export function JobStatusCard({ job, token }: { job: JobDetail; token: string })
     Boolean(preprocess.summaryCounts) ||
     preprocess.summaryUnavailable;
   const hasAnyIssue = hasCounts(issueCounts);
+  const emailStatusLabels = d.job.email.statuses as Record<string, string>;
+  const emailStatus = job.emailStatus
+    ? emailStatusLabels[job.emailStatus] ?? job.emailStatus
+    : null;
 
   return (
     <Card>
@@ -106,6 +110,22 @@ export function JobStatusCard({ job, token }: { job: JobDetail; token: string })
         {job.failure || job.preprocess.errorMessage ? (
           <div className="rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
             {job.failure?.message ?? job.preprocess.errorMessage}
+          </div>
+        ) : null}
+
+        {emailStatus ? (
+          <div className="flex flex-col gap-1 rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 sm:flex-row sm:items-center sm:justify-between">
+            <span className="inline-flex items-center gap-2">
+              <Mail className="h-4 w-4 text-teal-700" />
+              <span>
+                {d.job.email.title}: {emailStatus}
+              </span>
+            </span>
+            {job.emailError ? (
+              <span className="text-xs text-rose-700">
+                {d.job.email.error}: {job.emailError}
+              </span>
+            ) : null}
           </div>
         ) : null}
 
