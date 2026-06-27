@@ -78,16 +78,18 @@ export function readJobAccessRecords(): JobAccess[] {
   }
 
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "[]");
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+
+    if (stored === null) {
+      return readLegacyAccessRecords();
+    }
+
+    const parsed = JSON.parse(stored);
     const current = Array.isArray(parsed)
       ? parsed.filter(isJobAccess).map(normalizeAccess)
       : [];
 
-    if (current.length > 0) {
-      return current;
-    }
-
-    return readLegacyAccessRecords();
+    return current;
   } catch {
     return readLegacyAccessRecords();
   }
@@ -136,6 +138,14 @@ export function saveJobAccess(access: JobAccess) {
   }
 
   writeJobAccessRecords(records.slice(0, 50));
+}
+
+export function deleteJobAccess(jobId: string, token: string) {
+  const nextRecords = readJobAccessRecords().filter(
+    (record) => !(record.jobId === jobId && record.token === token)
+  );
+
+  writeJobAccessRecords(nextRecords);
 }
 
 export function findJobAccessByToken(jobId: string, token: string) {

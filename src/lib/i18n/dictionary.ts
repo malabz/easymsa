@@ -219,6 +219,15 @@ const zh = {
   lookup: {
     title: "恢复任务",
     subtitle: "输入任务 ID 和访问 token，或上传任务凭证 JSON，继续查看任务状态和结果。",
+    cachedTitle: "已缓存任务",
+    cachedDescription:
+      "这些任务凭证只保存在当前浏览器。删除缓存不会影响服务器任务。",
+    cachedEmpty:
+      "暂无缓存任务。你仍可以手动输入任务 ID 和 token，或上传任务凭证 JSON。",
+    cachedRestore: "恢复",
+    cachedDelete: "删除缓存",
+    cachedCreatedAt: "创建时间",
+    cachedToken: "token 标识",
     manualTitle: "手动恢复",
     manualDescription:
       "提交任务后，等待页会显示任务 ID 和访问 token。如果关闭页面，可以在这里输入两者恢复轮询。",
@@ -680,6 +689,15 @@ const en: typeof zh = {
   lookup: {
     title: "Restore Job",
     subtitle: "Enter the job ID and access token, or upload a job access JSON, to continue checking status and results.",
+    cachedTitle: "Cached jobs",
+    cachedDescription:
+      "These job credentials are stored only in this browser. Deleting a cache entry does not affect the server job.",
+    cachedEmpty:
+      "No cached jobs yet. You can still enter a job ID and token manually, or upload a job access JSON.",
+    cachedRestore: "Restore",
+    cachedDelete: "Delete cache",
+    cachedCreatedAt: "Created",
+    cachedToken: "Token",
     manualTitle: "Manual restore",
     manualDescription:
       "After submitting a job, the waiting page shows the job ID and access token. If you close the page, enter both here to resume polling.",

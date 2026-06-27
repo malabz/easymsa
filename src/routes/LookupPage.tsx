@@ -1,14 +1,40 @@
-import { Upload } from "lucide-react";
+import { Trash2, Upload } from "lucide-react";
 import { type ChangeEvent, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/common/Button";
 import { PageContainer } from "../components/layout/PageContainer";
 import {
+  deleteJobAccess,
+  type JobAccess,
   jobRoute,
+  readJobAccessRecords,
   saveJobAccess,
   validateJobAccess
 } from "../lib/api/tokens";
 import { useLanguage } from "../lib/i18n/useLanguage";
+
+function sortCachedAccess(records: JobAccess[]) {
+  return [...records]
+    .sort(
+      (left, right) =>
+        new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime()
+    )
+    .slice(0, 50);
+}
+
+function formatCreatedAt(createdAt: string) {
+  const date = new Date(createdAt);
+
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
+  return date.toLocaleString();
+}
+
+function shortToken(token: string) {
+  return token.length <= 12 ? token : `...${token.slice(-8)}`;
+}
 
 export function LookupPage() {
   const { dictionary: d } = useLanguage();
@@ -17,6 +43,13 @@ export function LookupPage() {
   const [jobId, setJobId] = useState("");
   const [token, setToken] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [cachedAccess, setCachedAccess] = useState<JobAccess[]>(() =>
+    sortCachedAccess(readJobAccessRecords())
+  );
+
+  function refreshCachedAccess() {
+    setCachedAccess(sortCachedAccess(readJobAccessRecords()));
+  }
 
   function restore(nextJobId: string, nextToken: string) {
     const trimmedJobId = nextJobId.trim();
@@ -27,7 +60,14 @@ export function LookupPage() {
       return;
     }
 
+    setError(null);
     navigate(jobRoute(trimmedJobId, trimmedToken));
+  }
+
+  function removeCachedAccess(access: JobAccess) {
+    deleteJobAccess(access.jobId, access.token);
+    setError(null);
+    refreshCachedAccess();
   }
 
   async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
@@ -48,6 +88,8 @@ export function LookupPage() {
       }
 
       saveJobAccess(access);
+      refreshCachedAccess();
+      setError(null);
       navigate(jobRoute(access.jobId, access.token));
     } catch {
       setError(d.lookup.readJsonFailed);
@@ -132,6 +174,77 @@ export function LookupPage() {
           {error}
         </div>
       ) : null}
+
+      <section className="rounded-lg border border-slate-200/80 bg-white/70 p-6">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-slate-950">
+              {d.lookup.cachedTitle}
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              {d.lookup.cachedDescription}
+            </p>
+          </div>
+          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+            {cachedAccess.length}/50
+          </span>
+        </div>
+
+        {cachedAccess.length > 0 ? (
+          <div className="mt-5 overflow-hidden rounded-lg border border-slate-200">
+            <div className="divide-y divide-slate-200">
+              {cachedAccess.map((access) => (
+                <div
+                  className="grid gap-4 bg-white/80 p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center"
+                  key={`${access.jobId}:${access.token}`}
+                >
+                  <div className="min-w-0 space-y-2">
+                    <div className="truncate font-medium text-slate-950">
+                      {access.jobId}
+                    </div>
+                    <dl className="grid gap-2 text-xs text-slate-600 sm:grid-cols-2">
+                      <div>
+                        <dt className="font-medium text-slate-500">
+                          {d.lookup.cachedCreatedAt}
+                        </dt>
+                        <dd>{formatCreatedAt(access.createdAt)}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium text-slate-500">
+                          {d.lookup.cachedToken}
+                        </dt>
+                        <dd className="font-mono">{shortToken(access.token)}</dd>
+                      </div>
+                    </dl>
+                  </div>
+                  <div className="flex flex-wrap gap-2 md:justify-end">
+                    <Button
+                      onClick={() => restore(access.jobId, access.token)}
+                      size="sm"
+                      type="button"
+                    >
+                      {d.lookup.cachedRestore}
+                    </Button>
+                    <Button
+                      onClick={() => removeCachedAccess(access)}
+                      size="sm"
+                      type="button"
+                      variant="outline"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      {d.lookup.cachedDelete}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="mt-5 rounded-md border border-dashed border-slate-300 bg-slate-50/70 px-4 py-5 text-sm text-slate-600">
+            {d.lookup.cachedEmpty}
+          </div>
+        )}
+      </section>
     </PageContainer>
   );
 }
