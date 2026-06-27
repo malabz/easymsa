@@ -1,6 +1,8 @@
 # easymsa
 
-easymsa is a static frontend prototype for a friendly multiple sequence alignment web server. It supports mock job submission, simulated job status, bilingual UI, small-scale MSA visualization, and demo result downloads.
+easymsa is the static frontend for a friendly multiple sequence alignment web
+server. It submits real jobs to the EasyMSA backend, restores jobs with access
+tokens, supports bilingual UI, and visualizes MSA results.
 
 ## Tech Stack
 
@@ -21,14 +23,27 @@ npm install
 npm run dev
 ```
 
+Use `.env.local` for the backend API during local development:
+
+```env
+VITE_API_BASE_URL=http://localhost:8000/api
+```
+
+or run with an inline override:
+
+```bash
+VITE_API_MODE=real VITE_API_BASE_URL=http://localhost:8000/api npm run dev
+```
+
 The app uses hash routes, for example:
 
 ```text
 /#/
 /#/submit
-/#/job/demo-job
-/#/results/demo-job
-/#/examples
+/#/viewer
+/#/lookup
+/#/job/<jobId>?token=<token>
+/#/results/<jobId>?token=<token>
 /#/docs
 /#/about
 ```
@@ -38,8 +53,6 @@ The app uses hash routes, for example:
 ```bash
 npm run build
 npm run preview
-
-VITE_API_MODE=real VITE_API_BASE_URL=http://localhost:8000/api npm run dev
 ```
 
 The production build is written to `dist/`.
@@ -64,45 +77,43 @@ If the project is later moved to a user or organization site repository such as 
 base: "/"
 ```
 
-The deployment workflow is in `.github/workflows/deploy.yml` and builds the static site with Node 20 before deploying `dist/` to GitHub Pages.
+The deployment workflow is in `.github/workflows/deploy.yml` and builds the
+static site with Node 20 before deploying `dist/` to GitHub Pages. The GitHub
+Pages build uses:
 
-## Mock API Mode
-
-The current version does not require a backend. Jobs, status progression, results, and downloads are simulated in the browser.
-
-Use `.env.example` as the default configuration:
-
-```env
-VITE_API_MODE=mock
-VITE_API_BASE_URL=
+```yaml
+VITE_API_MODE: real
+VITE_API_BASE_URL: https://api.easymsa.cn/api
 ```
 
-## Future Backend API Mode
-
-The API layer is isolated under `src/lib/api/` so it can later call a remote service:
+Because GitHub Pages is served over HTTPS, the backend API must also use HTTPS.
+The backend server should allow this frontend origin in CORS:
 
 ```env
-VITE_API_MODE=remote
-VITE_API_BASE_URL=https://api.example.com
+CORS_ALLOW_ORIGINS=https://malabz.github.io,http://localhost:5173,http://127.0.0.1:5173
 ```
 
-Expected future endpoints:
+## Backend API
+
+The frontend expects the backend API at:
 
 ```text
-POST /jobs
-GET /jobs/:jobId
-GET /jobs/:jobId/results
-GET /jobs/:jobId/results/summary
+POST https://api.easymsa.cn/api/jobs
+GET https://api.easymsa.cn/api/jobs/:jobId?token=...
+GET https://api.easymsa.cn/api/jobs/:jobId/results/summary?token=...
+GET https://api.easymsa.cn/api/jobs/:jobId/results/alignment?token=...
 ```
 
-## Demo Data
+## Email Notifications
 
-Static demo assets live in `public/demo/`:
+The submit form sends any valid notification email address to the backend. To
+send to arbitrary user inboxes, the backend Resend configuration must use a
+verified sending domain, for example:
 
-- `input_sequences.fasta`
-- `alignment.json`
-- `alignment.fasta`
-- `summary.json`
-- `all_results.zip`
+```env
+EMAIL_NOTIFICATIONS_ENABLED=true
+RESEND_FROM_EMAIL="EasyMSA <noreply@mail.easymsa.cn>"
+```
 
-These files are served directly by Vite and GitHub Pages.
+`onboarding@resend.dev` is only suitable for Resend test mail and may deliver
+only to the Resend account owner's email.
