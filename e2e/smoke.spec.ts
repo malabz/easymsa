@@ -84,3 +84,39 @@ test("uses reference analysis, motif navigation, and hybrid MSA rendering", asyn
   await expect(page.locator("[data-msa-status='true']"))
     .toHaveAttribute("data-msa-selected-position", "3");
 });
+
+test("uses documentation search, deep links, and product entry routes", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("easymsa.locale", "en");
+  });
+  await page.goto("./#/docs?section=msa-viewer");
+
+  await expect(page.getByRole("heading", { level: 1, name: "Documentation" })).toBeVisible();
+  await expect(page.locator("[data-docs-desktop-toc='true']")).toBeVisible();
+  await expect(page).toHaveURL(/#\/docs\?section=msa-viewer$/);
+
+  await page.getByRole("searchbox", { name: "Search documentation" }).fill("IUPAC motif");
+  await page.getByRole("button", { name: /Navigation, zoom, and search/ }).click();
+  await expect(page).toHaveURL(/section=msa-viewer/);
+  await expect(page.locator("#docs-article-navigate-search")).toBeInViewport();
+
+  await expect(page.getByRole("link", { name: /Submit a task/ })).toHaveAttribute("href", "#/submit");
+  await expect(page.getByRole("link", { name: /Open local viewer/ })).toHaveAttribute("href", "#/viewer");
+  await expect(page.getByRole("link", { name: /Restore a task/ })).toHaveAttribute("href", "#/lookup");
+});
+
+test("uses the collapsible documentation contents on mobile", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.addInitScript(() => {
+    window.localStorage.setItem("easymsa.locale", "en");
+  });
+  await page.goto("./#/docs");
+
+  await expect(page.locator("[data-docs-desktop-toc='true']")).toBeHidden();
+  const mobileContents = page.locator("details[data-docs-mobile-toc='true']");
+  await expect(mobileContents).toBeVisible();
+  await mobileContents.locator("summary").click();
+  await mobileContents.getByRole("button", { name: /MSA Viewer/ }).click();
+  await expect(page).toHaveURL(/#\/docs\?section=msa-viewer$/);
+  await expect(mobileContents).not.toHaveAttribute("open", "");
+});

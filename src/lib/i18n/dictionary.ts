@@ -592,42 +592,38 @@ const zh = {
     }
   },
   docs: {
+    eyebrow: "面向科研用户的 EasyMSA 指南",
     title: "使用文档",
-    subtitle: "提交 FASTA、恢复任务并查看比对结果。",
-    sections: [
-      {
-        title: "About easymsa",
-        body: "easymsa 前端连接后端，自动选择或手动提交 minipoa / MAFFT 任务并展示比对结果。"
+    subtitle: "从 FASTA 输入、预处理和任务恢复，到科研结果解读、reference 差异分析与导出。",
+    searchLabel: "搜索使用文档",
+    searchPlaceholder: "搜索 FASTA、reference、entropy、导出……",
+    searchHint: "搜索章节标题、正文、功能名称和常见问题。按 Ctrl/⌘ + K 可随时聚焦。",
+    clearSearch: "清除文档搜索",
+    searchResultsTitle: "搜索结果",
+    searchResultsCount: "找到 {count} 项",
+    noSearchResults: "没有找到匹配内容",
+    noSearchResultsHint: "尝试更短的关键词，或使用 FASTA、token、reference、motif 等功能名称。",
+    quickActionsTitle: "快捷入口",
+    quickActions: {
+      submit: {
+        title: "提交任务",
+        description: "创建新的多序列比对"
       },
-      {
-        title: "Input format",
-        body: "粘贴输入应使用 FASTA 格式，每条序列包含以 > 开头的 header 和至少一行序列内容。"
+      viewer: {
+        title: "打开查看器",
+        description: "在本地浏览 FASTA"
       },
-      {
-        title: "Paste FASTA input",
-        body: "小规模数据可以直接粘贴，页面会实时估计字符数与序列数量。"
-      },
-      {
-        title: "File upload",
-        body: "支持 FASTA、FASTA 的 gz/xz/bz2 压缩文件，以及 zip/tar/tar.gz/tar.xz/tar.bz2 压缩包；压缩包内可包含多个 FASTA，建议上限 100 MB。"
-      },
-      {
-        title: "Submit a job",
-        body: "只需要填写任务名称和输入数据；当前版本不暴露复杂 MSA 参数。"
-      },
-      {
-        title: "View job status",
-        body: "任务状态页面展示输入检查、预处理、比对运行和结果准备过程。"
-      },
-      {
-        title: "Interpret alignment results",
-        body: "结果页面展示序列数量、比对长度、一致性、gap 比例和可滚动 alignment。"
-      },
-      {
-        title: "Download results",
-        body: "Downloads 标签提供 alignment FASTA、summary JSON 和结果压缩包下载。"
+      lookup: {
+        title: "恢复任务",
+        description: "使用 ID 和 token 继续"
       }
-    ]
+    },
+    tocTitle: "文档目录",
+    tocLabel: "文档章节导航",
+    mobileToc: "展开文档目录",
+    copyCode: "复制示例",
+    copiedCode: "已复制",
+    copyFailed: "复制失败"
   },
   about: {
     title: "关于 easymsa",
@@ -1233,42 +1229,38 @@ const en: typeof zh = {
     }
   },
   docs: {
+    eyebrow: "EasyMSA guide for research users",
     title: "Documentation",
-    subtitle: "Submit FASTA, restore jobs, and inspect alignment results.",
-    sections: [
-      {
-        title: "About easymsa",
-        body: "easymsa connects to the backend, submits automatically selected or manual minipoa / MAFFT jobs, and displays alignment results."
+    subtitle: "From FASTA input, preprocessing, and task recovery to scientific interpretation, reference differences, and export.",
+    searchLabel: "Search documentation",
+    searchPlaceholder: "Search FASTA, reference, entropy, export…",
+    searchHint: "Search section titles, content, feature names, and FAQs. Press Ctrl/⌘ + K to focus from anywhere.",
+    clearSearch: "Clear documentation search",
+    searchResultsTitle: "Search results",
+    searchResultsCount: "{count} results",
+    noSearchResults: "No matching documentation",
+    noSearchResultsHint: "Try a shorter query or feature names such as FASTA, token, reference, or motif.",
+    quickActionsTitle: "Quick actions",
+    quickActions: {
+      submit: {
+        title: "Submit a task",
+        description: "Create a new alignment"
       },
-      {
-        title: "Input format",
-        body: "Pasted input should use FASTA format, with each sequence containing a header line beginning with > and at least one sequence line."
+      viewer: {
+        title: "Open local viewer",
+        description: "Inspect FASTA in your browser"
       },
-      {
-        title: "Paste FASTA input",
-        body: "Small datasets can be pasted directly. The page estimates character count and sequence count in real time."
-      },
-      {
-        title: "File upload",
-        body: "Supported inputs include FASTA files, gz/xz/bz2-compressed FASTA files, and zip/tar/tar.gz/tar.xz/tar.bz2 archives containing one or more FASTA files, with a suggested maximum of 100 MB."
-      },
-      {
-        title: "Submit a job",
-        body: "Only a job name and input data are required. This frontend intentionally avoids complex MSA parameters."
-      },
-      {
-        title: "View job status",
-        body: "The status page shows input checking, preprocessing, alignment, and result preparation."
-      },
-      {
-        title: "Interpret alignment results",
-        body: "The results page shows sequence count, alignment length, identity, gap percentage, and a scrollable alignment."
-      },
-      {
-        title: "Download results",
-        body: "The Downloads tab provides alignment FASTA, summary JSON, and a compressed result bundle."
+      lookup: {
+        title: "Restore a task",
+        description: "Continue with an ID and token"
       }
-    ]
+    },
+    tocTitle: "On this page",
+    tocLabel: "Documentation sections",
+    mobileToc: "Open documentation contents",
+    copyCode: "Copy example",
+    copiedCode: "Copied",
+    copyFailed: "Copy failed"
   },
   about: {
     title: "About easymsa",
