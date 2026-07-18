@@ -226,7 +226,11 @@ export function MsaViewerToolbar({
         </Button>
 
         <details className="group basis-full">
-          <summary className="mt-1 inline-flex cursor-pointer list-none items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-950">
+          <summary
+            aria-label={t.advanced}
+            className="mt-1 inline-flex cursor-pointer list-none items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-950"
+            data-msa-advanced-toggle="true"
+          >
             <SlidersHorizontal className="h-4 w-4" />
             {t.advanced}
             <span className="text-xs font-normal text-slate-400">

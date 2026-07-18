@@ -31,7 +31,7 @@ test("uses reference analysis, motif navigation, and hybrid MSA rendering", asyn
   await referenceButton.click();
   await expect(referenceButton).toHaveAttribute("aria-pressed", "true");
 
-  await page.getByText("Advanced view and export", { exact: true }).click();
+  await page.locator("[data-msa-advanced-toggle='true']").click();
   await page.getByLabel("Difference view").check();
   await expect(page.getByText("reference", { exact: true }).first()).toBeVisible();
 
