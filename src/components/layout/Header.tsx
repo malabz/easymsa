@@ -20,7 +20,10 @@ export function Header() {
   const [open, setOpen] = useState(false);
 
   const nav = (
-    <nav className="flex flex-col gap-1 md:flex-row md:items-center md:gap-0.5">
+    <nav
+      aria-label={d.common.primaryNavigation}
+      className="flex flex-col gap-1 md:flex-row md:items-center md:gap-0.5"
+    >
       {navItems.map((item) => (
         <NavLink
           className={({ isActive }) =>
@@ -43,11 +46,11 @@ export function Header() {
   );
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <NavLink className="flex items-center gap-3" to="/">
-          <span className="flex h-8 w-8 items-center justify-center rounded bg-slate-950 font-mono text-xs font-bold text-white">
-            em
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-teal-600 to-slate-900 font-mono text-xs font-bold text-white shadow-sm">
+            MSA
           </span>
           <span className="text-base font-semibold tracking-tight text-slate-950">easymsa</span>
         </NavLink>
@@ -61,7 +64,7 @@ export function Header() {
           <LanguageToggle />
           <Button
             aria-expanded={open}
-            aria-label="Toggle navigation"
+            aria-label={open ? d.common.closeNavigation : d.common.openNavigation}
             className="h-9 w-9 px-0"
             onClick={() => setOpen((value) => !value)}
             size="sm"

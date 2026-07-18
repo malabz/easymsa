@@ -18,16 +18,38 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  background: #f8fafc;
+  background:
+    radial-gradient(circle at 12% -8%, rgb(204 251 241 / 0.55), transparent 28rem),
+    #f8fafc;
   color: #0f172a;
 }
 
 button,
 input,
+select,
 textarea {
   font: inherit;
 }
 
 ::selection {
   background: rgb(15 118 110 / 0.18);
+}
+
+:focus-visible {
+  scroll-margin: 6rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -23,18 +23,37 @@ const zh = {
     createdAt: "创建时间",
     updatedAt: "更新时间",
     copied: "已复制",
-    copyFailed: "复制失败，请手动复制。"
+    copyFailed: "复制失败，请手动复制。",
+    retry: "重试",
+    loadingPage: "正在加载页面",
+    skipToContent: "跳到主要内容",
+    primaryNavigation: "主要导航",
+    openNavigation: "打开导航",
+    closeNavigation: "关闭导航",
+    toggleLanguage: "切换语言",
+    appErrorTitle: "页面出现问题",
+    appErrorDescription: "该页面暂时无法正常显示。你可以重试，或通过导航前往其他页面。",
+    checkingService: "正在检查服务状态",
+    serviceReady: "分析服务可用",
+    serviceReadyDescription: "预处理与自动比对工具均可用，可以提交新任务。",
+    serviceDegraded: "分析服务受限",
+    serviceDegradedDescription: "部分后端工具暂不可用，请稍后再试或选择可用算法。",
+    serviceOffline: "无法连接分析服务",
+    serviceOfflineDescription: "当前无法访问后端，浏览本地 MSA 不受影响。",
+    queueJobs: "队列 {count} 个任务"
   },
   footer: {
-    tagline: "友好的多序列比对 Web Server 前端原型。",
+    tagline: "友好的多序列比对 Web 工作台。",
     note: "前端提交任务到 EasyMSA 后端，并使用任务凭证恢复状态和结果。"
   },
   home: {
+    eyebrow: "面向 DNA / RNA 的在线比对工作台",
     title: "easymsa：友好的多序列比对可视化工具",
     subtitle:
       "上传或粘贴 FASTA 序列，提交任务，查看比对结果并下载结果文件。",
     intro:
       "easymsa 面向小规模多序列比对结果浏览，提供清晰的提交流程、任务状态追踪和可读的 MSA 可视化界面。",
+    restoreJob: "恢复已有任务",
     workflowTitle: "三步完成分析",
     workflow: [
       {
@@ -59,6 +78,10 @@ const zh = {
       {
         title: "上传文件",
         text: "支持 FASTA 与压缩文件，适合更大的输入数据。"
+      },
+      {
+        title: "安全恢复",
+        text: "凭任务 ID 和访问 token 在当前浏览器中恢复状态与下载结果。"
       }
     ],
     visualTitle: "小规模 MSA 可视化",
@@ -73,6 +96,10 @@ const zh = {
     emailPlaceholder: "name@example.com",
     emailHint: "可填写任意有效邮箱；任务完成或失败时会发送包含任务访问链接的邮件。",
     inputMethod: "输入方式",
+    advancedSettings: "高级设置",
+    loadExample: "载入示例",
+    exampleJobName: "血红蛋白示例",
+    selectedAlgorithmUnavailable: "当前选择的比对算法不可用，请在高级设置中改选可用算法。",
     algorithm: "比对方法",
     algorithmHint: "默认使用自动模式，目前会选择 minipoa；也可以手动切换 minipoa 或 MAFFT。",
     algorithms: {
@@ -102,7 +129,7 @@ const zh = {
     pasteHint: "建议不超过 200,000 个字符；更大的数据请使用文件上传。",
     uploadTitle: "选择或拖拽文件",
     uploadDescription:
-      "支持 FASTA 文件或压缩文件。小规模数据可以直接粘贴，大规模数据建议上传压缩文件。",
+      "支持 FASTA 文件、FASTA 的 gz/xz/bz2 压缩文件，以及 zip/tar/tar.gz/tar.xz/tar.bz2 压缩包；压缩包内可包含多个 FASTA。",
     uploadBrowse: "选择文件",
     uploadDrop: "将文件拖到此处",
     uploadValid: "文件可以提交。",
@@ -129,6 +156,11 @@ const zh = {
     timeline: "任务时间线",
     logs: "运行日志",
     lookupLink: "前往任务恢复",
+    missingJobId: "缺少任务 ID。",
+    missingAccess: "缺少此任务的访问 token。请前往任务恢复页输入任务 ID 与 token，或上传任务凭证 JSON。",
+    loadingStatus: "正在读取任务状态",
+    polling: "状态会每 3 秒自动更新",
+    updating: "正在更新任务状态",
     logEntries: {
       jobStatus: "任务 {jobId} 当前状态：{status}。",
       preprocess: "预处理：{status}{mode}。",
@@ -166,6 +198,8 @@ const zh = {
       restoreLinkHelp: "包含任务 ID 和 token，可直接打开等待页继续轮询。",
       copyJobId: "复制任务 ID",
       copyToken: "复制 token",
+      showToken: "显示敏感信息",
+      hideToken: "隐藏敏感信息",
       copyRestoreLink: "复制恢复链接",
       copyJson: "复制任务凭证 JSON",
       downloadJson: "下载任务凭证 JSON"
@@ -264,13 +298,22 @@ const zh = {
     equalLength: "等长序列输入",
     rawSequenceView: "原始序列查看，未执行比对。",
     empty: "上传或粘贴 FASTA 后打开矩阵查看器。",
-    readError: "无法读取该 FASTA 文件。"
+    readError: "无法读取该 FASTA 文件。",
+    fileTooLarge: "文件过大。请使用不超过 {limit} 字节的 FASTA 文件。"
   },
   results: {
     title: "结果",
     subtitle: "查看任务概览、比对矩阵和输出文件。",
+    missingJobId: "缺少任务 ID。",
+    missingAccess: "缺少此任务的访问 token。请前往任务恢复页输入凭证。",
+    lookupLink: "前往任务恢复",
+    loading: {
+      overview: "正在读取结果概览",
+      alignment: "正在读取比对预览",
+      viewer: "正在载入 MSA 查看器"
+    },
     tabs: {
-      overview: "概览与比对",
+      overview: "概览",
       alignment: "比对结果",
       downloads: "下载结果"
     },
@@ -294,6 +337,7 @@ const zh = {
       legend: "颜色图例",
       noMatches: "没有匹配的序列。",
       noColumns: "当前列过滤没有匹配的列。",
+      calculating: "正在后台计算大规模比对的保守性统计",
       zoomIn: "放大",
       zoomOut: "缩小",
       resetZoom: "重置缩放",
@@ -438,7 +482,7 @@ const zh = {
       },
       {
         title: "File upload",
-        body: "支持 .fasta、.fa、.fna、.zip、.gz、.tar.gz 和 .tgz 文件，建议上限 100 MB。"
+        body: "支持 FASTA、FASTA 的 gz/xz/bz2 压缩文件，以及 zip/tar/tar.gz/tar.xz/tar.bz2 压缩包；压缩包内可包含多个 FASTA，建议上限 100 MB。"
       },
       {
         title: "Submit a job",
@@ -464,8 +508,8 @@ const zh = {
     project:
       "本项目用于提交真实后端比对任务、恢复任务状态并查看小规模多序列比对结果。",
     version: "当前版本：自动模式（当前 minipoa）+ minipoa/MAFFT 后端任务 + MSA viewer。",
-    citation: "Citation：待补充。",
-    contact: "Contact：待补充。",
+    citation: "引用：发表使用结果时，请根据任务实际使用的算法引用 minipoa 或 MAFFT 的论文与软件。",
+    contact: "联系：问题与建议请通过 GitHub Issues 提交。",
     repository: "GitHub repository：https://github.com/malabz/easymsa"
   }
 };
@@ -493,18 +537,37 @@ const en: typeof zh = {
     createdAt: "Created",
     updatedAt: "Updated",
     copied: "Copied",
-    copyFailed: "Copy failed. Please copy manually."
+    copyFailed: "Copy failed. Please copy manually.",
+    retry: "Retry",
+    loadingPage: "Loading page",
+    skipToContent: "Skip to main content",
+    primaryNavigation: "Primary navigation",
+    openNavigation: "Open navigation",
+    closeNavigation: "Close navigation",
+    toggleLanguage: "Switch language",
+    appErrorTitle: "Something went wrong",
+    appErrorDescription: "This page could not be displayed. Retry or use the navigation to open another page.",
+    checkingService: "Checking service availability",
+    serviceReady: "Analysis service ready",
+    serviceReadyDescription: "Preprocessing and automatic alignment tools are available for new jobs.",
+    serviceDegraded: "Analysis service limited",
+    serviceDegradedDescription: "Some backend tools are unavailable. Try again later or choose an available algorithm.",
+    serviceOffline: "Analysis service unreachable",
+    serviceOfflineDescription: "The backend cannot be reached. Local MSA viewing remains available.",
+    queueJobs: "{count} jobs queued"
   },
   footer: {
-    tagline: "A friendly frontend prototype for an MSA web server.",
+    tagline: "A friendly web workspace for multiple sequence alignment.",
     note: "The frontend submits jobs to the EasyMSA backend and restores status and results with job access credentials."
   },
   home: {
+    eyebrow: "Online alignment workspace for DNA / RNA",
     title: "easymsa: A Friendly MSA Visualization Tool",
     subtitle:
       "Upload or paste FASTA sequences, submit a job, view alignment results, and download output files.",
     intro:
       "easymsa focuses on small-scale multiple sequence alignment browsing, with a clear submission flow, job status tracking, and readable MSA visualization.",
+    restoreJob: "Restore Existing Job",
     workflowTitle: "Analyze in three steps",
     workflow: [
       {
@@ -529,6 +592,10 @@ const en: typeof zh = {
       {
         title: "Upload file",
         text: "Supports FASTA and compressed files for larger inputs."
+      },
+      {
+        title: "Secure restore",
+        text: "Use a job ID and access token to restore status and downloads in this browser."
       }
     ],
     visualTitle: "Small-scale MSA visualization",
@@ -543,6 +610,10 @@ const en: typeof zh = {
     emailPlaceholder: "name@example.com",
     emailHint: "Use any valid email address; EasyMSA will email a job access link when the task completes or fails.",
     inputMethod: "Input method",
+    advancedSettings: "Advanced settings",
+    loadExample: "Load example",
+    exampleJobName: "Hemoglobin example",
+    selectedAlgorithmUnavailable: "The selected alignment algorithm is unavailable. Choose an available algorithm in advanced settings.",
     algorithm: "Alignment method",
     algorithmHint: "Auto is the default and currently selects minipoa; minipoa and MAFFT can also be selected manually.",
     algorithms: {
@@ -572,7 +643,7 @@ const en: typeof zh = {
     pasteHint: "Suggested maximum is 200,000 characters; use file upload for larger datasets.",
     uploadTitle: "Choose or drop a file",
     uploadDescription:
-      "FASTA and compressed files are supported. Paste input is suitable for small datasets; compressed upload is recommended for larger datasets.",
+      "Supports FASTA files, gz/xz/bz2-compressed FASTA files, and zip/tar/tar.gz/tar.xz/tar.bz2 archives containing one or more FASTA files.",
     uploadBrowse: "Choose file",
     uploadDrop: "Drop the file here",
     uploadValid: "The file is ready to submit.",
@@ -599,6 +670,11 @@ const en: typeof zh = {
     timeline: "Timeline",
     logs: "Run log",
     lookupLink: "Go to task lookup",
+    missingJobId: "Missing job ID.",
+    missingAccess: "The access token is missing. Enter the job ID and token on the lookup page, or upload the job access JSON.",
+    loadingStatus: "Loading job status",
+    polling: "Status refreshes automatically every 3 seconds",
+    updating: "Updating job status",
     logEntries: {
       jobStatus: "Job {jobId} is {status}.",
       preprocess: "Preprocess {status}{mode}.",
@@ -636,6 +712,8 @@ const en: typeof zh = {
       restoreLinkHelp: "Includes the job ID and token, so it can reopen this waiting page.",
       copyJobId: "Copy Job ID",
       copyToken: "Copy token",
+      showToken: "Show sensitive data",
+      hideToken: "Hide sensitive data",
       copyRestoreLink: "Copy restore link",
       copyJson: "Copy job access JSON",
       downloadJson: "Download job access JSON"
@@ -734,13 +812,22 @@ const en: typeof zh = {
     equalLength: "Equal-length sequence input",
     rawSequenceView: "Raw sequence view; no alignment was performed.",
     empty: "Upload or paste FASTA to open the matrix viewer.",
-    readError: "Could not read this FASTA file."
+    readError: "Could not read this FASTA file.",
+    fileTooLarge: "The file is too large. Use a FASTA file no larger than {limit} bytes."
   },
   results: {
     title: "Results",
     subtitle: "Inspect the job overview, alignment matrix, and output files.",
+    missingJobId: "Missing job ID.",
+    missingAccess: "The access token is missing. Enter the credentials on the lookup page.",
+    lookupLink: "Go to task lookup",
+    loading: {
+      overview: "Loading result overview",
+      alignment: "Loading alignment preview",
+      viewer: "Loading MSA viewer"
+    },
     tabs: {
-      overview: "Overview & Alignment",
+      overview: "Overview",
       alignment: "Alignment",
       downloads: "Downloads"
     },
@@ -764,6 +851,7 @@ const en: typeof zh = {
       legend: "Color legend",
       noMatches: "No matching sequences.",
       noColumns: "No columns match the current column filter.",
+      calculating: "Calculating conservation statistics in the background",
       zoomIn: "Zoom in",
       zoomOut: "Zoom out",
       resetZoom: "Reset zoom",
@@ -908,7 +996,7 @@ const en: typeof zh = {
       },
       {
         title: "File upload",
-        body: "Supported files include .fasta, .fa, .fna, .zip, .gz, .tar.gz, and .tgz, with a suggested maximum of 100 MB."
+        body: "Supported inputs include FASTA files, gz/xz/bz2-compressed FASTA files, and zip/tar/tar.gz/tar.xz/tar.bz2 archives containing one or more FASTA files, with a suggested maximum of 100 MB."
       },
       {
         title: "Submit a job",
@@ -934,8 +1022,8 @@ const en: typeof zh = {
     project:
       "This project submits real backend alignment jobs, restores job status, and visualizes small-scale MSA results.",
     version: "Current version: Auto mode (currently minipoa) + minipoa/MAFFT backend jobs + MSA viewer.",
-    citation: "Citation: to be added.",
-    contact: "Contact: to be added.",
+    citation: "Citation: when publishing results, cite the paper and software for the algorithm actually used, minipoa or MAFFT.",
+    contact: "Contact: submit questions and suggestions through GitHub Issues.",
     repository: "GitHub repository: https://github.com/malabz/easymsa"
   }
 };

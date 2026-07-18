@@ -1,4 +1,4 @@
-import { Copy, Download } from "lucide-react";
+import { Copy, Download, Eye, EyeOff, Loader2, RefreshCw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Button } from "../components/common/Button";
@@ -8,7 +8,6 @@ import { JobLogPanel } from "../components/job/JobLogPanel";
 import { JobStatusCard } from "../components/job/JobStatusCard";
 import { JobTimeline } from "../components/job/JobTimeline";
 import { PageContainer } from "../components/layout/PageContainer";
-import { getJobStatus } from "../lib/api/jobs";
 import {
   accessDownloadFilename,
   downloadableAccessJson,
@@ -19,7 +18,7 @@ import {
   type JobAccess
 } from "../lib/api/tokens";
 import { useLanguage } from "../lib/i18n/useLanguage";
-import type { JobDetail } from "../lib/types/job";
+import { useJobStatus } from "../lib/query/useJobStatus";
 import { copyText } from "../lib/utils/clipboard";
 
 type CopyTarget = "jobId" | "token" | "restoreLink" | "json";
@@ -28,13 +27,14 @@ export function JobStatusPage() {
   const { jobId: routeJobId } = useParams<{ jobId: string }>();
   const [searchParams] = useSearchParams();
   const { dictionary: d } = useLanguage();
-  const [job, setJob] = useState<JobDetail | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [access, setAccess] = useState<JobAccess | null>(null);
+  const [showSensitiveAccess, setShowSensitiveAccess] = useState(false);
   const [copyTarget, setCopyTarget] = useState<CopyTarget | null>(null);
   const [copyError, setCopyError] = useState<string | null>(null);
   const queryToken = searchParams.get("token");
   const jobId = routeJobId ? decodeURIComponent(routeJobId) : null;
+  const jobQuery = useJobStatus(jobId ?? undefined, access?.token);
+  const job = jobQuery.data;
 
   const accessJson = useMemo(
     () => (access ? downloadableAccessJson(access) : ""),
@@ -42,6 +42,12 @@ export function JobStatusPage() {
   );
   const restorePath = access ? jobRoute(access.jobId, access.token) : "";
   const restoreLink = restorePath ? hashRouterUrl(restorePath) : "";
+  const maskedToken = access
+    ? `${"•".repeat(Math.min(Math.max(access.token.length - 4, 8), 24))}${access.token.slice(-4)}`
+    : "";
+  const maskedRestoreLink = access
+    ? restoreLink.replace(encodeURIComponent(access.token), maskedToken)
+    : "";
 
   async function copyAccessText(target: CopyTarget, text: string) {
     try {
@@ -73,84 +79,56 @@ export function JobStatusPage() {
 
   useEffect(() => {
     if (!jobId) {
-      setError("Missing job ID");
+      setAccess(null);
       return;
     }
 
     const resolvedAccess = resolveJobAccess(jobId, queryToken);
-    if (!resolvedAccess) {
-      setAccess(null);
-      setJob(null);
-      setError(
-        "Missing access token for this job. Open the lookup page and enter the job ID with its token, or upload the access JSON."
-      );
-      return;
-    }
-
     setAccess(resolvedAccess);
-    saveJobAccess(resolvedAccess);
-
-    const activeJobId = jobId;
-    const activeToken = resolvedAccess.token;
-    let mounted = true;
-    let interval: number | undefined;
-
-    async function load() {
-      try {
-        const detail = await getJobStatus(activeJobId, activeToken);
-        if (mounted) {
-          setJob(detail);
-          setError(null);
-        }
-        if (
-          mounted &&
-          (detail.status === "completed" || detail.status === "failed") &&
-          interval
-        ) {
-          window.clearInterval(interval);
-        }
-      } catch (loadError) {
-        if (mounted) {
-          setError(loadError instanceof Error ? loadError.message : d.common.error);
-        }
-        if (
-          loadError instanceof Error &&
-          "code" in loadError &&
-          loadError.code === "JOB_EXPIRED" &&
-          interval
-        ) {
-          window.clearInterval(interval);
-        }
-      }
+    if (resolvedAccess) {
+      saveJobAccess(resolvedAccess);
     }
+  }, [jobId, queryToken]);
 
-    load();
-    interval = window.setInterval(load, 3000);
-
-    return () => {
-      mounted = false;
-      if (interval) {
-        window.clearInterval(interval);
-      }
-    };
-  }, [d.common.error, jobId, queryToken]);
+  const missingAccess = Boolean(jobId && !access);
+  const error = !jobId
+    ? d.job.missingJobId
+    : missingAccess
+      ? d.job.missingAccess
+      : jobQuery.error instanceof Error
+        ? jobQuery.error.message
+        : null;
 
   return (
     <PageContainer className="space-y-8">
       <div className="max-w-3xl space-y-3">
         <h1 className="text-4xl font-semibold text-slate-950">{d.job.title}</h1>
         <p className="text-lg leading-8 text-slate-600">{d.job.subtitle}</p>
+        {job && job.status !== "completed" && job.status !== "failed" ? (
+          <p className="flex items-center gap-2 text-sm text-slate-500" aria-live="polite">
+            {jobQuery.isFetching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+            {jobQuery.isFetching ? d.job.updating : d.job.polling}
+          </p>
+        ) : null}
       </div>
 
       {error ? (
         <div className="space-y-4">
           <ErrorState message={error} />
-          <Link className="text-sm font-medium text-teal-800 underline" to="/lookup">
-            {d.job.lookupLink}
-          </Link>
+          <div className="flex flex-wrap items-center gap-3">
+            {!missingAccess && jobId ? (
+              <Button onClick={() => jobQuery.refetch()} size="sm" variant="outline">
+                <RefreshCw className="h-4 w-4" />
+                {d.common.retry}
+              </Button>
+            ) : null}
+            <Link className="text-sm font-medium text-teal-800 underline" to="/lookup">
+              {d.job.lookupLink}
+            </Link>
+          </div>
         </div>
       ) : null}
-      {!job && !error ? <LoadingState /> : null}
+      {!job && !error ? <LoadingState label={d.job.loadingStatus} /> : null}
 
       {job ? (
         <div className="grid gap-5 lg:grid-cols-[1fr_22rem]">
@@ -206,21 +184,33 @@ export function JobStatusPage() {
                             {d.job.access.tokenLabel}
                           </p>
                           <p className="mt-1 break-all font-mono text-sm text-slate-900">
-                            {access.token}
+                            {showSensitiveAccess ? access.token : maskedToken}
                           </p>
                           <p className="mt-2 text-xs leading-5 text-slate-500">
                             {d.job.access.tokenHelp}
                           </p>
                         </div>
-                        <Button
-                          onClick={() => copyAccessText("token", access.token)}
-                          size="sm"
-                          type="button"
-                          variant="outline"
-                        >
-                          <Copy className="h-4 w-4" />
-                          {copyTarget === "token" ? d.common.copied : d.job.access.copyToken}
-                        </Button>
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            aria-pressed={showSensitiveAccess}
+                            onClick={() => setShowSensitiveAccess((value) => !value)}
+                            size="sm"
+                            type="button"
+                            variant="ghost"
+                          >
+                            {showSensitiveAccess ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            {showSensitiveAccess ? d.job.access.hideToken : d.job.access.showToken}
+                          </Button>
+                          <Button
+                            onClick={() => copyAccessText("token", access.token)}
+                            size="sm"
+                            type="button"
+                            variant="outline"
+                          >
+                            <Copy className="h-4 w-4" />
+                            {copyTarget === "token" ? d.common.copied : d.job.access.copyToken}
+                          </Button>
+                        </div>
                       </div>
                     </div>
 
@@ -231,7 +221,7 @@ export function JobStatusPage() {
                             {d.job.access.restoreLinkLabel}
                           </p>
                           <p className="mt-1 break-all font-mono text-sm text-slate-900">
-                            {restoreLink}
+                            {showSensitiveAccess ? restoreLink : maskedRestoreLink}
                           </p>
                           <p className="mt-2 text-xs leading-5 text-slate-500">
                             {d.job.access.restoreLinkHelp}

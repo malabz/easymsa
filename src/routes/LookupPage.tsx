@@ -119,6 +119,7 @@ export function LookupPage() {
                 {d.lookup.jobId}
               </label>
               <input
+                autoComplete="off"
                 className="h-10 w-full rounded-md border border-slate-300 bg-white/80 px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
                 id="jobId"
                 onChange={(event) => setJobId(event.target.value)}
@@ -130,10 +131,12 @@ export function LookupPage() {
                 {d.lookup.token}
               </label>
               <input
+                autoComplete="off"
                 className="h-10 w-full rounded-md border border-slate-300 bg-white/80 px-3 font-mono text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
                 id="token"
                 onChange={(event) => setToken(event.target.value)}
                 value={token}
+                type="password"
               />
             </div>
             <Button onClick={() => restore(jobId, token)} type="button">
@@ -170,7 +173,7 @@ export function LookupPage() {
       </div>
 
       {error ? (
-        <div className="rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+        <div className="rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800" role="alert">
           {error}
         </div>
       ) : null}

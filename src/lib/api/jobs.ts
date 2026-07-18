@@ -71,9 +71,14 @@ export async function createJob(
   return payload;
 }
 
-export async function getJobStatus(jobId: string, token: string): Promise<JobDetail> {
+export async function getJobStatus(
+  jobId: string,
+  token: string,
+  signal?: AbortSignal
+): Promise<JobDetail> {
   const response = await fetch(
-    apiUrl(`/jobs/${jobPathSegment(jobId)}?token=${encodeURIComponent(token)}`)
+    apiUrl(`/jobs/${jobPathSegment(jobId)}?token=${encodeURIComponent(token)}`),
+    { signal }
   );
 
   if (!response.ok) {

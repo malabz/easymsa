@@ -3,11 +3,11 @@ import { useLanguage } from "../../lib/i18n/useLanguage";
 import { Button } from "../common/Button";
 
 export function LanguageToggle() {
-  const { locale, toggleLocale } = useLanguage();
+  const { dictionary: d, locale, toggleLocale } = useLanguage();
 
   return (
     <Button
-      aria-label="Toggle language"
+      aria-label={d.common.toggleLanguage}
       className="h-9 px-3"
       onClick={toggleLocale}
       size="sm"

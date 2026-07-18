@@ -2,8 +2,6 @@ import { useMemo, useState } from "react";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import type { MSAResult } from "../../lib/types/msa";
 import { calculateExportLayout } from "./exportLayout";
-import { renderMsaExportToPngBlob } from "./exportCanvasRenderer";
-import { renderMsaExportToSvg } from "./exportSvgRenderer";
 import { downloadBlob, withFileExtension } from "./downloadBlob";
 import type {
   MsaExportLabels,
@@ -133,9 +131,11 @@ export function useMsaExport(
       const extension = options.format === "svg" ? "svg" : "png";
       const filename = withFileExtension(options.filename, extension);
       if (options.format === "svg") {
+        const { renderMsaExportToSvg } = await import("./exportSvgRenderer");
         const svg = renderMsaExportToSvg(layout, labels);
         downloadBlob(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }), filename);
       } else {
+        const { renderMsaExportToPngBlob } = await import("./exportCanvasRenderer");
         const blob = await renderMsaExportToPngBlob(layout, labels);
         downloadBlob(blob, filename);
       }

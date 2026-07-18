@@ -18,13 +18,19 @@ export function InputMethodTabs({
   const { dictionary: d } = useLanguage();
 
   return (
-    <div className="grid gap-2 rounded-lg border border-slate-200 bg-white/55 p-1 sm:grid-cols-2">
+    <div
+      aria-label={d.submit.inputMethod}
+      className="grid gap-2 rounded-lg border border-slate-200 bg-white/55 p-1 sm:grid-cols-2"
+      role="tablist"
+    >
       {methods.map((method) => {
         const Icon = method.icon;
         const selected = value === method.value;
 
         return (
           <button
+            aria-controls={`input-panel-${method.value}`}
+            aria-selected={selected}
             className={cn(
               "flex h-11 items-center justify-center gap-2 rounded-md px-3 text-sm font-medium transition",
               selected
@@ -32,8 +38,10 @@ export function InputMethodTabs({
                 : "text-slate-600 hover:bg-white/80 hover:text-slate-950"
             )}
             key={method.value}
+            id={`input-tab-${method.value}`}
             onClick={() => onChange(method.value)}
             type="button"
+            role="tab"
           >
             <Icon className="h-4 w-4" />
             {d.submit.methods[method.value]}

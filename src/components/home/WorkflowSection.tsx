@@ -7,21 +7,21 @@ export function WorkflowSection() {
   const { dictionary: d } = useLanguage();
 
   return (
-    <section className="py-7">
+    <section className="py-12">
       <div className="mb-6 flex items-end justify-between gap-4">
         <h2 className="text-2xl font-semibold text-slate-950">
           {d.home.workflowTitle}
         </h2>
       </div>
-      <div className="grid gap-5 border-y border-slate-200 py-5 md:grid-cols-3">
+      <div className="grid gap-5 md:grid-cols-3">
         {d.home.workflow.map((item, index) => {
           const Icon = icons[index];
           return (
             <div
-              className="flex gap-4"
+              className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-teal-200 hover:shadow-soft"
               key={item.title}
             >
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded border border-teal-100 bg-teal-50 text-teal-800">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-teal-100 bg-teal-50 text-teal-800 transition group-hover:bg-teal-100">
                 <Icon className="h-5 w-5" />
               </div>
               <div>

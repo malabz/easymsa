@@ -101,6 +101,17 @@ export function ViewerPage() {
       return;
     }
 
+    if (file.size > MAX_FASTA_CHARACTERS) {
+      setError(
+        d.viewerPage.fileTooLarge.replace(
+          "{limit}",
+          MAX_FASTA_CHARACTERS.toLocaleString()
+        )
+      );
+      setAlignment(null);
+      return;
+    }
+
     try {
       loadFasta(await file.text(), file.name);
     } catch {
@@ -239,7 +250,7 @@ export function ViewerPage() {
       {inputPanel}
 
       {error ? (
-        <div className="mx-auto max-w-3xl rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+        <div className="mx-auto max-w-3xl rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800" role="alert">
           {error}
         </div>
       ) : null}

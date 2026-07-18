@@ -28,7 +28,11 @@ function getInitialLocale(): Locale {
   }
 
   const saved = window.localStorage.getItem(STORAGE_KEY);
-  return saved === "zh" || saved === "en" ? saved : "en";
+  if (saved === "zh" || saved === "en") {
+    return saved;
+  }
+
+  return window.navigator.language.toLowerCase().startsWith("zh") ? "zh" : "en";
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {

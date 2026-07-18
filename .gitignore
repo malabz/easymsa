@@ -5,6 +5,9 @@ dist
 .DS_Store
 *.log
 coverage
+playwright-report
+test-results
 *.tsbuildinfo
 CODEX_TASK_easymsa.md
 .env.example
+AI_PROJECT_SUMMARY.md

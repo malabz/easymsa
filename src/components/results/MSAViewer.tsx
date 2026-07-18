@@ -6,6 +6,7 @@ import {
   EyeOff,
   ImageDown,
   ListFilter,
+  Loader2,
   LocateFixed,
   MousePointer2,
   Palette,
@@ -15,11 +16,14 @@ import {
   ZoomIn,
   ZoomOut
 } from "lucide-react";
+import { useVirtualizer, type VirtualItem } from "@tanstack/react-virtual";
 import { type KeyboardEvent, type ReactNode, useMemo, useRef, useState } from "react";
 import { EmptyState } from "../common/EmptyState";
 import { ExportDialog } from "../../features/msa-export/ExportDialog";
 import { useMsaExport } from "../../features/msa-export/useMsaExport";
 import { useLanguage } from "../../lib/i18n/useLanguage";
+import type { ConservationColumn } from "../../lib/msa/conservation";
+import { useConservationColumns } from "../../lib/msa/useConservationColumns";
 import type { MSAResult } from "../../lib/types/msa";
 import { cn } from "../../lib/utils/cn";
 import {
@@ -51,13 +55,6 @@ type CellSelection = {
 type ColumnRange = {
   start: number;
   end: number;
-};
-
-type ConservationColumn = {
-  position: number;
-  conservation: number;
-  gapFraction: number;
-  dominantBase: string;
 };
 
 type MotifMatch = {
@@ -177,6 +174,8 @@ function SequenceCells({
   sequence,
   sequenceId,
   positions,
+  virtualColumns,
+  totalWidth,
   settings,
   colorScheme,
   conservationColumns,
@@ -188,6 +187,8 @@ function SequenceCells({
   sequence: string;
   sequenceId: string;
   positions: number[];
+  virtualColumns: VirtualItem[];
+  totalWidth: number;
   settings: ViewSettings;
   colorScheme: MSAColorScheme;
   conservationColumns: ConservationColumn[];
@@ -198,10 +199,14 @@ function SequenceCells({
 }) {
   return (
     <div
-      className="flex min-w-max"
-      style={{ gap: settings.cellGap }}
+      className="relative shrink-0"
+      style={{ height: settings.cellHeight, width: totalWidth }}
     >
-      {positions.map((position) => {
+      {virtualColumns.map((virtualColumn) => {
+        const position = positions[virtualColumn.index];
+        if (!position) {
+          return null;
+        }
         const base = sequence[position - 1] ?? "";
         const selectedRow = selection?.sequenceId === sequenceId;
         const selectedColumn = selection?.position === position;
@@ -215,7 +220,7 @@ function SequenceCells({
         <button
           aria-label={`${sequenceId} position ${position} ${base || "empty"}`}
           className={cn(
-            "inline-flex shrink-0 items-center justify-center font-mono font-semibold outline-none transition",
+            "absolute left-0 top-0 inline-flex items-center justify-center font-mono font-semibold outline-none transition",
             settings.showCharacters ? "rounded border" : "border-0",
             cellClass(
               base,
@@ -240,7 +245,8 @@ function SequenceCells({
           style={{
             height: settings.cellHeight,
             width: settings.cellWidth,
-            fontSize: settings.fontSize
+            fontSize: settings.fontSize,
+            transform: `translateX(${virtualColumn.start}px)`
           }}
         >
           {settings.showCharacters ? base : ""}
@@ -253,18 +259,26 @@ function SequenceCells({
 
 function CoordinateRuler({
   positions,
+  virtualColumns,
+  totalWidth,
   alignmentLength,
   settings,
   selectedRange
 }: {
   positions: number[];
+  virtualColumns: VirtualItem[];
+  totalWidth: number;
   alignmentLength: number;
   settings: ViewSettings;
   selectedRange: ColumnRange | null;
 }) {
   return (
-    <div className="flex min-w-max" style={{ gap: settings.cellGap }}>
-      {positions.map((position) => {
+    <div className="relative shrink-0" style={{ height: settings.cellHeight, width: totalWidth }}>
+      {virtualColumns.map((virtualColumn) => {
+        const position = positions[virtualColumn.index];
+        if (!position) {
+          return null;
+        }
         const showMarker =
           position === 1 ||
           position === alignmentLength ||
@@ -276,7 +290,7 @@ function CoordinateRuler({
         return (
           <span
             className={cn(
-              "inline-flex shrink-0 items-center justify-center border-b border-slate-200 font-mono text-[10px]",
+              "absolute left-0 top-0 inline-flex items-center justify-center border-b border-slate-200 font-mono text-[10px]",
               inSelectedRange ? "bg-teal-50" : "",
               showMarker ? "text-slate-700" : "text-transparent"
             )}
@@ -284,7 +298,8 @@ function CoordinateRuler({
             style={{
               height: settings.cellHeight,
               width: settings.cellWidth,
-              fontSize: Math.max(9, settings.fontSize - 2)
+              fontSize: Math.max(9, settings.fontSize - 2),
+              transform: `translateX(${virtualColumn.start}px)`
             }}
           >
             {showMarker ? position : "."}
@@ -297,20 +312,28 @@ function CoordinateRuler({
 
 function ConservationTrack({
   columns,
+  virtualColumns,
+  totalWidth,
   settings,
   selection,
   selectedRange,
   onSelect
 }: {
   columns: ConservationColumn[];
+  virtualColumns: VirtualItem[];
+  totalWidth: number;
   settings: ViewSettings;
   selection: CellSelection | null;
   selectedRange: ColumnRange | null;
   onSelect: (selection: CellSelection, extendRange?: boolean) => void;
 }) {
   return (
-    <div className="flex min-w-max" style={{ gap: settings.cellGap }}>
-      {columns.map((column) => {
+    <div className="relative shrink-0" style={{ height: settings.cellHeight, width: totalWidth }}>
+      {virtualColumns.map((virtualColumn) => {
+        const column = columns[virtualColumn.index];
+        if (!column) {
+          return null;
+        }
         const selected = selection?.position === column.position;
         const inSelectedRange = selectedRange
           ? column.position >= selectedRange.start && column.position <= selectedRange.end
@@ -322,7 +345,7 @@ function ConservationTrack({
           <button
             aria-label={`conservation position ${column.position}`}
             className={cn(
-              "flex shrink-0 items-end justify-center border-b border-slate-200 outline-none transition hover:bg-slate-100",
+              "absolute left-0 top-0 flex items-end justify-center border-b border-slate-200 outline-none transition hover:bg-slate-100",
               selected
                 ? "bg-teal-50 ring-1 ring-teal-400"
                 : inSelectedRange
@@ -341,7 +364,8 @@ function ConservationTrack({
             type="button"
             style={{
               height: settings.cellHeight,
-              width: settings.cellWidth
+              width: settings.cellWidth,
+              transform: `translateX(${virtualColumn.start}px)`
             }}
           >
             <span
@@ -421,38 +445,14 @@ export function MSAViewer({ alignment }: { alignment: MSAResult }) {
     alignment.alignmentLength ??
     Math.max(0, ...alignment.sequences.map((sequence) => sequence.sequence.length));
   const canUseViewerControls = alignmentLength > 0 && alignment.sequences.length > 0;
-  const conservationColumns = useMemo<ConservationColumn[]>(() => {
-    return Array.from({ length: alignmentLength }, (_, index) => {
-      const counts = new Map<string, number>();
-      let observed = 0;
-      let gaps = 0;
-
-      for (const sequence of alignment.sequences) {
-        const base = sequence.sequence[index] ?? "";
-        if (!base) {
-          gaps += 1;
-          continue;
-        }
-        if (base === "-") {
-          gaps += 1;
-        }
-        if (base && base !== "-") {
-          observed += 1;
-          counts.set(base, (counts.get(base) ?? 0) + 1);
-        }
-      }
-
-      const [dominantBase = "", dominantCount = 0] =
-        Array.from(counts.entries()).sort((a, b) => b[1] - a[1])[0] ?? [];
-
-      return {
-        position: index + 1,
-        conservation: observed > 0 ? dominantCount / observed : 0,
-        gapFraction: alignment.sequences.length > 0 ? gaps / alignment.sequences.length : 0,
-        dominantBase
-      };
-    });
-  }, [alignment.sequences, alignmentLength]);
+  const {
+    columns: conservationColumns,
+    isCalculating: isCalculatingConservation
+  } = useConservationColumns(
+    alignment.jobId,
+    alignment.sequences,
+    alignmentLength
+  );
   const visiblePositions = useMemo(() => {
     return conservationColumns
       .filter((column) => {
@@ -473,6 +473,24 @@ export function MSAViewer({ alignment }: { alignment: MSAResult }) {
     () => visiblePositions.map((position) => conservationColumns[position - 1]).filter(Boolean),
     [conservationColumns, visiblePositions]
   );
+  const columnPitch = viewSettings.cellWidth + viewSettings.cellGap;
+  const columnVirtualizer = useVirtualizer({
+    count: visiblePositions.length,
+    estimateSize: () => columnPitch,
+    getScrollElement: () => scrollRef.current,
+    horizontal: true,
+    overscan: Math.ceil((viewSettings.labelWidth + 24) / columnPitch) + 8
+  });
+  const rowVirtualizer = useVirtualizer({
+    count: displayedSequences.length,
+    estimateSize: () => viewSettings.rowHeight,
+    getScrollElement: () => scrollRef.current,
+    overscan: 10
+  });
+  const virtualColumns = columnVirtualizer.getVirtualItems();
+  const virtualRows = rowVirtualizer.getVirtualItems();
+  const columnContentWidth = columnVirtualizer.getTotalSize();
+  const matrixWidth = viewSettings.labelWidth + 24 + columnContentWidth;
   const visibleColumnText = d.results.viewer.visibleColumns
     .replace("{shown}", visiblePositions.length.toLocaleString())
     .replace("{total}", alignmentLength.toLocaleString());
@@ -800,10 +818,7 @@ export function MSAViewer({ alignment }: { alignment: MSAResult }) {
 
     const visibleIndex = visiblePositions.findIndex((visiblePosition) => visiblePosition >= position);
     const columnIndex = visibleIndex >= 0 ? visibleIndex : Math.max(0, visiblePositions.length - 1);
-    scrollRef.current.scrollLeft = Math.max(
-      0,
-      columnIndex * (viewSettings.cellWidth + viewSettings.cellGap)
-    );
+    columnVirtualizer.scrollToIndex(columnIndex, { align: "center" });
   }
 
   if (alignment.truncated) {
@@ -1078,7 +1093,15 @@ export function MSAViewer({ alignment }: { alignment: MSAResult }) {
         </div>
       </div>
 
-      {displayedSequences.length === 0 ? (
+      {isCalculatingConservation ? (
+        <div
+          className="flex min-h-56 items-center justify-center rounded-lg border border-slate-200 bg-white/75 text-sm text-slate-600"
+          role="status"
+        >
+          <Loader2 className="mr-2 h-4 w-4 animate-spin text-teal-700" />
+          {d.results.viewer.calculating}
+        </div>
+      ) : displayedSequences.length === 0 ? (
         <EmptyState message={d.results.viewer.noMatches} />
       ) : visiblePositions.length === 0 ? (
         <EmptyState message={d.results.viewer.noColumns} />
@@ -1091,9 +1114,9 @@ export function MSAViewer({ alignment }: { alignment: MSAResult }) {
             ref={scrollRef}
             tabIndex={0}
           >
-            <div className="min-w-max">
+            <div style={{ minWidth: "100%", width: matrixWidth }}>
               <div
-                className="grid border-b border-slate-200 bg-slate-50/90"
+                className="sticky top-0 z-30 grid border-b border-slate-200 bg-slate-50/95"
                 style={{
                   gridTemplateColumns: `${viewSettings.labelWidth}px 1fr`
                 }}
@@ -1107,6 +1130,8 @@ export function MSAViewer({ alignment }: { alignment: MSAResult }) {
                 <div className="flex items-center px-3">
                   <CoordinateRuler
                     positions={visiblePositions}
+                    totalWidth={columnContentWidth}
+                    virtualColumns={virtualColumns}
                     alignmentLength={alignmentLength}
                     settings={viewSettings}
                     selectedRange={selectedRange}
@@ -1114,9 +1139,10 @@ export function MSAViewer({ alignment }: { alignment: MSAResult }) {
                 </div>
               </div>
               <div
-                className="grid border-b border-slate-200 bg-white"
+                className="sticky z-20 grid border-b border-slate-200 bg-white"
                 style={{
-                  gridTemplateColumns: `${viewSettings.labelWidth}px 1fr`
+                  gridTemplateColumns: `${viewSettings.labelWidth}px 1fr`,
+                  top: viewSettings.rowHeight
                 }}
               >
                 <div
@@ -1131,6 +1157,8 @@ export function MSAViewer({ alignment }: { alignment: MSAResult }) {
                 >
                   <ConservationTrack
                     columns={visibleConservationColumns}
+                    totalWidth={columnContentWidth}
+                    virtualColumns={virtualColumns}
                     settings={viewSettings}
                     selection={selection}
                     selectedRange={selectedRange}
@@ -1138,51 +1166,67 @@ export function MSAViewer({ alignment }: { alignment: MSAResult }) {
                   />
                 </div>
               </div>
-              {displayedSequences.map((sequence) => (
-                <div
-                  key={sequence.id}
-                  className="grid border-b border-slate-100 last:border-b-0"
-                  style={{
-                    gridTemplateColumns: `${viewSettings.labelWidth}px 1fr`
-                  }}
-                >
-                  <div
-                    className={cn(
-                      "sticky left-0 z-10 flex items-center justify-between gap-2 border-r border-slate-200 px-3 font-mono text-xs font-medium text-slate-700",
-                      selection?.sequenceId === sequence.id ? "bg-teal-50 text-teal-950" : "bg-white"
-                    )}
-                    style={{ height: viewSettings.rowHeight }}
-                  >
-                    <span className="truncate">{sequence.id}</span>
-                    <button
-                      aria-label={`${d.results.viewer.hideSequence} ${sequence.id}`}
-                      className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded text-slate-400 transition hover:bg-slate-100 hover:text-slate-900"
-                      onClick={() => hideSequence(sequence.id)}
-                      title={d.results.viewer.hideSequence}
-                      type="button"
+              <div
+                className="relative"
+                style={{ height: rowVirtualizer.getTotalSize(), width: matrixWidth }}
+              >
+                {virtualRows.map((virtualRow) => {
+                  const sequence = displayedSequences[virtualRow.index];
+                  if (!sequence) {
+                    return null;
+                  }
+
+                  return (
+                    <div
+                      className="absolute left-0 top-0 grid border-b border-slate-100"
+                      data-index={virtualRow.index}
+                      key={sequence.id}
+                      ref={rowVirtualizer.measureElement}
+                      style={{
+                        gridTemplateColumns: `${viewSettings.labelWidth}px 1fr`,
+                        height: viewSettings.rowHeight,
+                        transform: `translateY(${virtualRow.start}px)`,
+                        width: matrixWidth
+                      }}
                     >
-                      <EyeOff className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                  <div
-                    className="flex items-center px-3"
-                    style={{ height: viewSettings.rowHeight }}
-                  >
-                    <SequenceCells
-                      sequence={sequence.sequence}
-                      sequenceId={sequence.id}
-                      positions={visiblePositions}
-                      settings={viewSettings}
-                      colorScheme={colorScheme}
-                      conservationColumns={conservationColumns}
-                      selection={selection}
-                      selectedRange={selectedRange}
-                      motifPositions={motifPositionMap.get(sequence.id)}
-                      onSelect={handleSelect}
-                    />
-                  </div>
-                </div>
-              ))}
+                      <div
+                        className={cn(
+                          "sticky left-0 z-10 flex items-center justify-between gap-2 border-r border-slate-200 px-3 font-mono text-xs font-medium text-slate-700",
+                          selection?.sequenceId === sequence.id ? "bg-teal-50 text-teal-950" : "bg-white"
+                        )}
+                        style={{ height: viewSettings.rowHeight }}
+                      >
+                        <span className="truncate">{sequence.id}</span>
+                        <button
+                          aria-label={`${d.results.viewer.hideSequence} ${sequence.id}`}
+                          className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded text-slate-400 transition hover:bg-slate-100 hover:text-slate-900"
+                          onClick={() => hideSequence(sequence.id)}
+                          title={d.results.viewer.hideSequence}
+                          type="button"
+                        >
+                          <EyeOff className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                      <div className="flex items-center px-3" style={{ height: viewSettings.rowHeight }}>
+                        <SequenceCells
+                          sequence={sequence.sequence}
+                          sequenceId={sequence.id}
+                          positions={visiblePositions}
+                          totalWidth={columnContentWidth}
+                          virtualColumns={virtualColumns}
+                          settings={viewSettings}
+                          colorScheme={colorScheme}
+                          conservationColumns={conservationColumns}
+                          selection={selection}
+                          selectedRange={selectedRange}
+                          motifPositions={motifPositionMap.get(sequence.id)}
+                          onSelect={handleSelect}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
               <div
                 className="grid border-t border-slate-300 bg-teal-50/70"
                 style={{
@@ -1203,6 +1247,8 @@ export function MSAViewer({ alignment }: { alignment: MSAResult }) {
                     sequence={alignment.consensus}
                     sequenceId={d.results.viewer.consensus}
                     positions={visiblePositions}
+                    totalWidth={columnContentWidth}
+                    virtualColumns={virtualColumns}
                     settings={viewSettings}
                     colorScheme={colorScheme}
                     conservationColumns={conservationColumns}

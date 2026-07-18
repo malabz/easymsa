@@ -80,12 +80,14 @@ function adaptServerAlignment(payload: ServerAlignmentPreview): MSAResult {
 
 export async function getResultSummary(
   jobId: string,
-  token: string
+  token: string,
+  signal?: AbortSignal
 ): Promise<ResultSummary> {
   const response = await fetch(
     apiUrl(
       `/jobs/${jobPathSegment(jobId)}/results/summary?token=${encodeURIComponent(token)}`
-    )
+    ),
+    { signal }
   );
 
   if (!response.ok) {
@@ -97,12 +99,14 @@ export async function getResultSummary(
 
 export async function getAlignmentResult(
   jobId: string,
-  token: string
+  token: string,
+  signal?: AbortSignal
 ): Promise<MSAResult> {
   const response = await fetch(
     apiUrl(
       `/jobs/${jobPathSegment(jobId)}/results/alignment?token=${encodeURIComponent(token)}`
-    )
+    ),
+    { signal }
   );
 
   if (!response.ok) {
@@ -120,6 +124,22 @@ export function getDownloadFiles(jobId: string, token: string): ResultFile[] {
       size: "remote",
       href: apiUrl(
         `/jobs/${jobPathSegment(jobId)}/download?token=${encodeURIComponent(token)}`
+      )
+    },
+    {
+      name: "alignment.fasta.gz",
+      description: "Gzip-compressed alignment FASTA",
+      size: "remote",
+      href: apiUrl(
+        `/jobs/${jobPathSegment(jobId)}/download/alignment/gz?token=${encodeURIComponent(token)}`
+      )
+    },
+    {
+      name: "alignment.fasta.gz.xz",
+      description: "Gzip alignment FASTA additionally compressed with xz",
+      size: "remote",
+      href: apiUrl(
+        `/jobs/${jobPathSegment(jobId)}/download/alignment/gz.xz?token=${encodeURIComponent(token)}`
       )
     }
   ];

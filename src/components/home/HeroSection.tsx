@@ -1,6 +1,7 @@
-import { ArrowRight, FlaskConical } from "lucide-react";
+import { ArrowRight, Dna, FlaskConical, Search } from "lucide-react";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import { ButtonLink } from "../common/Button";
+import { ServiceStatus } from "../common/ServiceStatus";
 
 const previewRows = [
   ["seq_001", "A T G C T A G C T A G C"],
@@ -10,18 +11,21 @@ const previewRows = [
 ];
 
 function AlignmentPreview() {
+  const { dictionary: d } = useLanguage();
+
   return (
-    <div className="border-y border-slate-200 bg-white/60 py-4">
+    <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 shadow-soft sm:p-6">
+      <div className="absolute right-0 top-0 h-28 w-28 rounded-full bg-teal-100/60 blur-3xl" />
       <div className="mb-4 flex items-center justify-between border-b border-slate-200 pb-3">
         <div>
-          <p className="text-xs font-semibold uppercase text-slate-500">MSA preview</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">MSA preview</p>
           <p className="text-sm text-slate-600">12 sequences · 80 sites</p>
         </div>
         <span className="rounded border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-800">
-          completed
+          {d.job.statusLabels.completed}
         </span>
       </div>
-      <div className="space-y-2 font-mono text-xs">
+      <div className="overflow-hidden space-y-2 font-mono text-xs">
         {previewRows.map(([id, sequence]) => (
           <div className="grid grid-cols-[5.5rem_1fr] gap-3" key={id}>
             <span className="truncate text-slate-500">{id}</span>
@@ -46,14 +50,15 @@ export function HeroSection() {
   const { dictionary: d } = useLanguage();
 
   return (
-    <section className="grid gap-10 border-b border-slate-200 pb-10 lg:grid-cols-[1fr_1fr] lg:items-center lg:pb-12">
-      <div className="space-y-6">
-        <div className="inline-flex items-center gap-2 border-l-2 border-teal-700 pl-3 text-sm font-medium text-teal-800">
+    <section className="relative grid gap-10 overflow-hidden rounded-[2rem] border border-slate-200 bg-gradient-to-br from-white via-white to-teal-50/70 px-6 py-10 shadow-sm sm:px-10 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:px-12 lg:py-14">
+      <Dna className="pointer-events-none absolute -left-10 -top-16 h-56 w-56 rotate-12 text-teal-100/50" strokeWidth={0.8} />
+      <div className="relative space-y-6">
+        <div className="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-3 py-1.5 text-sm font-semibold text-teal-800">
           <FlaskConical className="h-4 w-4" />
-          {d.home.visualTitle}
+          {d.home.eyebrow}
         </div>
         <div className="space-y-4">
-          <h1 className="max-w-3xl text-3xl font-semibold leading-tight text-slate-950 sm:text-4xl lg:text-5xl">
+          <h1 className="max-w-3xl text-4xl font-semibold leading-[1.08] tracking-tight text-slate-950 sm:text-5xl lg:text-[3.4rem]">
             {d.home.title}
           </h1>
           <p className="max-w-2xl text-lg leading-8 text-slate-600">
@@ -68,11 +73,16 @@ export function HeroSection() {
             {d.common.startAnalysis}
             <ArrowRight className="h-4 w-4" />
           </ButtonLink>
+          <ButtonLink size="lg" to="/lookup" variant="outline">
+            <Search className="h-4 w-4" />
+            {d.home.restoreJob}
+          </ButtonLink>
         </div>
+        <ServiceStatus compact />
       </div>
-      <div className="space-y-4">
+      <div className="relative space-y-4">
         <AlignmentPreview />
-        <p className="text-sm leading-6 text-slate-600">{d.home.visualCaption}</p>
+        <p className="px-2 text-sm leading-6 text-slate-600">{d.home.visualCaption}</p>
       </div>
     </section>
   );
