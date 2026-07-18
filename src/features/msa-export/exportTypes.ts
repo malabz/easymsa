@@ -7,6 +7,7 @@ import type {
 export type ExportFormat = "svg" | "png";
 export type ExportRegion = "visible" | "full" | "selection";
 export type ExportLayoutMode = "single-line" | "wrapped";
+export type MsaExportTrackId = "conservation" | "gap" | "coverage" | "entropy";
 
 export type MsaExportOptions = {
   format: ExportFormat;
@@ -53,6 +54,11 @@ export type MsaExportConservationColumn = ConservationColorContext & {
   position: number;
   gapFraction: number;
   dominantBase: string;
+  coverage?: number;
+  entropy?: number;
+  variation?: number;
+  consensusBase?: string;
+  ambiguityConsensus?: string;
 };
 
 export type MsaExportViewerState = {
@@ -64,10 +70,16 @@ export type MsaExportViewerState = {
   viewSettings: MsaExportViewSettings;
   viewport: MsaExportViewport | null;
   alignmentLength: number;
+  activeTracks?: MsaExportTrackId[];
+  consensusMode?: "majority" | "iupac";
+  coordinateMode?: "alignment" | "reference";
+  differenceMode?: boolean;
+  referenceSequenceId?: string | null;
 };
 
 export type MsaExportColumn = {
   position: number;
+  referencePosition?: number | null;
   conservation?: MsaExportConservationColumn;
 };
 
@@ -106,6 +118,10 @@ export type MsaExportLayout = {
   canvasMegapixels: number;
   exceedsCanvasLimit: boolean;
   limitReason: string | null;
+  activeTracks: MsaExportTrackId[];
+  coordinateMode: "alignment" | "reference";
+  differenceMode: boolean;
+  referenceSequence: MSASequence | null;
 };
 
 export type MsaExportLabels = {
@@ -116,4 +132,12 @@ export type MsaExportLabels = {
   dominant: string;
   variant: string;
   gapEmpty: string;
+  referencePosition: string;
+  tracks: Record<MsaExportTrackId, string>;
+  differences: {
+    match: string;
+    mismatch: string;
+    insertion: string;
+    deletion: string;
+  };
 };

@@ -1,9 +1,12 @@
 import { legendColorStyles, msaCellColorStyle } from "./exportColors";
+import { classifyDifference } from "../msa-viewer/analysis";
+import { differenceColorStyle } from "../msa-viewer/differenceColors";
 import type {
   MsaExportBlock,
   MsaExportColumn,
   MsaExportLabels,
-  MsaExportLayout
+  MsaExportLayout,
+  MsaExportTrackId
 } from "./exportTypes";
 
 const TEXT_COLOR = "#0f172a";
@@ -76,11 +79,14 @@ function renderCell(
   layout: MsaExportLayout,
   column: MsaExportColumn,
   base: string,
+  referenceBase: string,
   x: number,
   y: number
 ) {
   const color = base
-    ? msaCellColorStyle(base, layout.colorScheme, column.conservation)
+    ? layout.differenceMode && layout.referenceSequence
+      ? differenceColorStyle(classifyDifference(base, referenceBase))
+      : msaCellColorStyle(base, layout.colorScheme, column.conservation)
     : {
         background: EMPTY_CELL_BACKGROUND,
         text: "transparent",
@@ -109,22 +115,35 @@ function renderCoordinateRow(
   labels: MsaExportLabels,
   y: number
 ) {
-  const alignmentLength =
-    layout.alignment.alignmentLength ??
-    Math.max(0, ...layout.columns.map((column) => column.position));
-  const parts = [renderLabel(layout, labels.position, block.x, y, layout.rowHeight)];
+  const coordinateLength = layout.coordinateMode === "reference"
+    ? Math.max(0, ...layout.columns.map((column) => column.referencePosition ?? 0))
+    : layout.alignment.alignmentLength ??
+      Math.max(0, ...layout.columns.map((column) => column.position));
+  const parts = [
+    renderLabel(
+      layout,
+      layout.coordinateMode === "reference" ? labels.referencePosition : labels.position,
+      block.x,
+      y,
+      layout.rowHeight
+    )
+  ];
 
   block.columns.forEach((column, index) => {
     const x = block.cellAreaX + index * layout.cellPitch;
     parts.push(rect(x, y, layout.cellWidth, layout.cellHeight, LABEL_BACKGROUND));
-    const showMarker =
-      column.position === 1 ||
-      column.position === alignmentLength ||
-      column.position % layout.markerEvery === 0;
+    const coordinate = layout.coordinateMode === "reference"
+      ? column.referencePosition ?? null
+      : column.position;
+    const showMarker = coordinate !== null && (
+      coordinate === 1 ||
+      coordinate === coordinateLength ||
+      coordinate % layout.markerEvery === 0
+    );
 
     if (showMarker) {
       parts.push(
-        text(String(column.position), x + layout.cellWidth / 2, y + layout.cellHeight / 2, {
+        text(String(coordinate), x + layout.cellWidth / 2, y + layout.cellHeight / 2, {
           fill: MUTED_TEXT_COLOR,
           size: Math.max(8, layout.fontSize - 2),
           anchor: "middle"
@@ -136,22 +155,43 @@ function renderCoordinateRow(
   return parts.join("");
 }
 
-function renderConservationRow(
+function trackValue(column: MsaExportColumn, track: MsaExportTrackId) {
+  const stats = column.conservation;
+  if (track === "gap") {
+    return stats?.gapFraction ?? 0;
+  }
+  if (track === "coverage") {
+    return stats?.coverage ?? 1 - (stats?.gapFraction ?? 0);
+  }
+  if (track === "entropy") {
+    return stats?.entropy ?? 0;
+  }
+  return stats?.conservation ?? 0;
+}
+
+const TRACK_COLORS: Record<MsaExportTrackId, string> = {
+  conservation: "#0f766e",
+  gap: "#f43f5e",
+  coverage: "#0284c7",
+  entropy: "#7c3aed"
+};
+
+function renderTrackRow(
   layout: MsaExportLayout,
   block: MsaExportBlock,
   labels: MsaExportLabels,
+  track: MsaExportTrackId,
   y: number
 ) {
   const parts = [
-    renderLabel(layout, labels.conservation, block.x, y, layout.rowHeight, "#ffffff")
+    renderLabel(layout, labels.tracks[track], block.x, y, layout.rowHeight, "#ffffff")
   ];
 
   block.columns.forEach((column, index) => {
     const x = block.cellAreaX + index * layout.cellPitch;
-    const conservation = column.conservation?.conservation ?? 0;
-    const gapFraction = column.conservation?.gapFraction ?? 0;
-    const barHeight = Math.max(2, Math.round(layout.cellHeight * conservation));
-    const opacity = 0.18 + conservation * 0.72;
+    const value = trackValue(column, track);
+    const barHeight = Math.max(2, Math.round(layout.cellHeight * value));
+    const opacity = 0.18 + value * 0.72;
     parts.push(rect(x, y, layout.cellWidth, layout.cellHeight, "#ffffff"));
     parts.push(
       rect(
@@ -159,7 +199,7 @@ function renderConservationRow(
         y + layout.cellHeight - barHeight,
         layout.cellWidth,
         barHeight,
-        gapFraction > 0.5 ? "#94a3b8" : "#0f766e",
+        TRACK_COLORS[track],
         "none",
         opacity
       )
@@ -184,7 +224,16 @@ function renderSequenceRow(
 
   block.columns.forEach((column, index) => {
     const x = block.cellAreaX + index * layout.cellPitch;
-    parts.push(renderCell(layout, column, sequence[column.position - 1] ?? "", x, y));
+    parts.push(
+      renderCell(
+        layout,
+        column,
+        sequence[column.position - 1] ?? "",
+        layout.referenceSequence?.sequence[column.position - 1] ?? "",
+        x,
+        y
+      )
+    );
   });
 
   return parts.join("");
@@ -204,12 +253,25 @@ function renderBlock(
   }
 
   if (layout.options.includeConservation) {
-    parts.push(renderConservationRow(layout, block, labels, y));
-    y += layout.rowHeight;
+    for (const track of layout.activeTracks) {
+      parts.push(renderTrackRow(layout, block, labels, track, y));
+      y += layout.rowHeight;
+    }
   }
 
   for (const row of layout.rows) {
-    parts.push(renderSequenceRow(layout, block, row.id, row.sequence, y));
+    const isReference = row.id === layout.referenceSequence?.id;
+    parts.push(
+      renderSequenceRow(
+        layout,
+        block,
+        row.id,
+        row.sequence,
+        y,
+        isReference ? "#fffbeb" : "#ffffff",
+        isReference ? "#92400e" : TEXT_COLOR
+      )
+    );
     y += layout.rowHeight;
   }
 
@@ -237,7 +299,14 @@ function renderLegend(layout: MsaExportLayout, labels: MsaExportLabels) {
     return "";
   }
 
-  const items = legendColorStyles(layout.colorScheme, labels);
+  const items = layout.differenceMode
+    ? [
+        { label: labels.differences.match, style: differenceColorStyle("match") },
+        { label: labels.differences.mismatch, style: differenceColorStyle("mismatch") },
+        { label: labels.differences.insertion, style: differenceColorStyle("insertion") },
+        { label: labels.differences.deletion, style: differenceColorStyle("deletion") }
+      ]
+    : legendColorStyles(layout.colorScheme, labels);
   let x = layout.padding;
   const y = layout.height - layout.padding - 30;
   const parts = [

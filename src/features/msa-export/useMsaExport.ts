@@ -69,7 +69,10 @@ export function useMsaExport(
       legend: d.results.viewer.legend,
       dominant: d.results.viewer.legendLabels.dominant,
       variant: d.results.viewer.legendLabels.variant,
-      gapEmpty: d.results.viewer.legendLabels.gapEmpty
+      gapEmpty: d.results.viewer.legendLabels.gapEmpty,
+      referencePosition: d.results.viewer.stageTwo.referencePosition,
+      tracks: d.results.viewer.stageTwo.tracks,
+      differences: d.results.viewer.stageTwo.differences
     }),
     [d]
   );

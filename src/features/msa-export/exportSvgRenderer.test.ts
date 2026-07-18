@@ -65,7 +65,20 @@ const labels: MsaExportLabels = {
   legend: "Legend",
   dominant: "Dominant",
   variant: "Variant",
-  gapEmpty: "Gap"
+  gapEmpty: "Gap",
+  referencePosition: "Reference coordinate",
+  tracks: {
+    conservation: "Conservation",
+    gap: "Gap fraction",
+    coverage: "Coverage",
+    entropy: "Shannon entropy"
+  },
+  differences: {
+    match: "Match",
+    mismatch: "Substitution",
+    insertion: "Insertion",
+    deletion: "Deletion"
+  }
 };
 
 describe("renderMsaExportToSvg", () => {
@@ -79,5 +92,25 @@ describe("renderMsaExportToSvg", () => {
     expect(svg).toContain("<text");
     expect(svg).toContain("seq&lt;1&gt;");
     expect(svg).toContain("Legend");
+  });
+
+  it("exports active tracks, reference coordinates, and difference colors", () => {
+    const layout = calculateExportLayout(
+      alignment,
+      {
+        ...state,
+        activeTracks: ["gap", "entropy"],
+        coordinateMode: "reference",
+        differenceMode: true,
+        referenceSequenceId: "seq<1>"
+      },
+      options
+    );
+    const svg = renderMsaExportToSvg(layout, labels);
+
+    expect(svg).toContain("Gap fraction");
+    expect(svg).toContain("Shannon entropy");
+    expect(svg).toContain("Reference coordinate");
+    expect(svg).toContain("#ffedd5");
   });
 });

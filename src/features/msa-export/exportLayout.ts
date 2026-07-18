@@ -4,6 +4,7 @@ import type {
   MsaExportColumn,
   MsaExportLayout,
   MsaExportOptions,
+  MsaExportTrackId,
   MsaExportViewerState,
   MsaExportViewport
 } from "./exportTypes";
@@ -45,13 +46,14 @@ function visibleColumnSlice(
 function visibleRowSlice(
   sequences: MSASequence[],
   viewport: MsaExportViewport | null,
-  rowHeight: number
+  rowHeight: number,
+  trackCount: number
 ) {
   if (!viewport || sequences.length <= DEFAULT_VISIBLE_ROW_COUNT) {
     return sequences.slice(0, DEFAULT_VISIBLE_ROW_COUNT);
   }
 
-  const headerHeight = rowHeight * 2;
+  const headerHeight = rowHeight * (1 + trackCount);
   const matrixScrollTop = Math.max(0, viewport.scrollTop - headerHeight);
   const startIndex = clamp(Math.floor(matrixScrollTop / rowHeight), 0, sequences.length - 1);
   const rowCount = Math.ceil(Math.max(1, viewport.clientHeight - headerHeight) / rowHeight) + 3;
@@ -91,10 +93,11 @@ function resolveColumns(
 function resolveRows(
   state: MsaExportViewerState,
   options: MsaExportOptions,
-  rowHeight: number
+  rowHeight: number,
+  trackCount: number
 ) {
   if (options.region === "visible") {
-    return visibleRowSlice(state.sequences, state.viewport, rowHeight);
+    return visibleRowSlice(state.sequences, state.viewport, rowHeight, trackCount);
   }
 
   return state.sequences;
@@ -102,18 +105,36 @@ function resolveRows(
 
 function toColumns(
   positions: number[],
-  state: MsaExportViewerState
+  state: MsaExportViewerState,
+  referenceSequence: MSASequence | null
 ): MsaExportColumn[] {
+  let referencePosition = 0;
+  const referenceCoordinates = referenceSequence
+    ? Array.from({ length: state.alignmentLength }, (_, index) => {
+        const base = referenceSequence.sequence[index] ?? "";
+        if (base && base !== "-") {
+          referencePosition += 1;
+          return referencePosition;
+        }
+        return null;
+      })
+    : [];
   return positions.map((position) => ({
     position,
+    referencePosition: referenceCoordinates[position - 1],
     conservation: state.conservationColumns[position - 1]
   }));
 }
 
-function blockHeight(rows: MSASequence[], options: MsaExportOptions, rowHeight: number) {
+function blockHeight(
+  rows: MSASequence[],
+  options: MsaExportOptions,
+  rowHeight: number,
+  trackCount: number
+) {
   return (
     (options.includeCoordinates ? rowHeight : 0) +
-    (options.includeConservation ? rowHeight : 0) +
+    (options.includeConservation ? rowHeight * trackCount : 0) +
     rows.length * rowHeight +
     (options.includeConsensus ? rowHeight + 4 : 0)
   );
@@ -146,17 +167,44 @@ export function calculateExportLayout(
   const labelWidth = options.includeSequenceNames
     ? clamp(state.viewSettings.labelWidth, MIN_LABEL_WIDTH, MAX_LABEL_WIDTH)
     : 0;
-  const rows = resolveRows(state, options, rowHeight);
+  const validTracks = new Set<MsaExportTrackId>([
+    "conservation",
+    "gap",
+    "coverage",
+    "entropy"
+  ]);
+  const activeTracks = Array.from(
+    new Set(
+      (state.activeTracks ?? ["conservation"]).filter(
+        (track): track is MsaExportTrackId => validTracks.has(track)
+      )
+    )
+  );
+  const referenceSequence =
+    alignment.sequences.find(
+      (sequence) => sequence.id === state.referenceSequenceId
+    ) ?? null;
+  const coordinateMode =
+    state.coordinateMode === "reference" && referenceSequence
+      ? "reference"
+      : "alignment";
+  const rows = resolveRows(state, options, rowHeight, activeTracks.length);
   const columns = toColumns(
     resolveColumns(state, options, labelWidth, cellPitch),
-    state
+    state,
+    referenceSequence
   );
   const columnsPerBlock =
     options.layoutMode === "wrapped"
       ? clamp(Math.floor(options.wrapColumnCount || 120), 1, Math.max(1, columns.length))
       : Math.max(1, columns.length);
   const blocks: MsaExportBlock[] = [];
-  const blockRowHeight = blockHeight(rows, options, rowHeight);
+  const blockRowHeight = blockHeight(
+    rows,
+    options,
+    rowHeight,
+    activeTracks.length
+  );
   let y = DEFAULT_PADDING;
   let width = DEFAULT_PADDING * 2 + labelWidth + cellWidth;
 
@@ -232,6 +280,10 @@ export function calculateExportLayout(
     canvasPixels,
     canvasMegapixels,
     exceedsCanvasLimit,
-    limitReason
+    limitReason,
+    activeTracks,
+    coordinateMode,
+    differenceMode: Boolean(state.differenceMode && referenceSequence),
+    referenceSequence
   };
 }

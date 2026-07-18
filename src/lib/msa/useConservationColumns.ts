@@ -1,72 +1,24 @@
-import { useEffect, useMemo, useState } from "react";
-import {
-  calculateConservationColumns,
-  type ConservationColumn
-} from "./conservation";
-
-const WORKER_CELL_THRESHOLD = 250_000;
+import { useMemo } from "react";
+import { useMsaAnalysis } from "../../features/msa-viewer/useMsaAnalysis";
 
 export function useConservationColumns(
   jobId: string,
   sequences: Array<{ sequence: string }>,
   alignmentLength: number
 ) {
-  const shouldUseWorker = sequences.length * alignmentLength > WORKER_CELL_THRESHOLD;
-  const synchronousColumns = useMemo(
-    () =>
-      shouldUseWorker
-        ? null
-        : calculateConservationColumns(sequences, alignmentLength),
-    [alignmentLength, sequences, shouldUseWorker]
+  void jobId;
+  const normalizedSequences = useMemo(
+    () => sequences.map((sequence, index) => ({ id: String(index), ...sequence })),
+    [sequences]
   );
-  const [workerResult, setWorkerResult] = useState<{
-    jobId: string;
-    sequences: Array<{ sequence: string }>;
-    alignmentLength: number;
-    columns: ConservationColumn[];
-  } | null>(null);
-
-  useEffect(() => {
-    if (!shouldUseWorker) {
-      return;
-    }
-
-    if (typeof Worker === "undefined") {
-      const timeout = window.setTimeout(() => {
-        setWorkerResult({
-          jobId,
-          sequences,
-          alignmentLength,
-          columns: calculateConservationColumns(sequences, alignmentLength)
-        });
-      }, 0);
-      return () => window.clearTimeout(timeout);
-    }
-
-    const worker = new Worker(
-      new URL("../../workers/conservation.worker.ts", import.meta.url),
-      { type: "module" }
-    );
-    worker.onmessage = (event: MessageEvent<ConservationColumn[]>) => {
-      setWorkerResult({ jobId, sequences, alignmentLength, columns: event.data });
-      worker.terminate();
-    };
-    worker.postMessage({ sequences, alignmentLength });
-
-    return () => worker.terminate();
-  }, [alignmentLength, jobId, sequences, shouldUseWorker]);
-
-  const hasCurrentWorkerResult =
-    workerResult?.jobId === jobId &&
-    workerResult?.sequences === sequences &&
-    workerResult?.alignmentLength === alignmentLength;
-
-  const columns = synchronousColumns ?? (
-    hasCurrentWorkerResult ? workerResult.columns : []
+  const analysis = useMsaAnalysis(
+    normalizedSequences,
+    alignmentLength,
+    ""
   );
 
   return {
-    columns,
-    isCalculating: shouldUseWorker && !hasCurrentWorkerResult
+    columns: analysis.columns,
+    isCalculating: analysis.isCalculating
   };
 }

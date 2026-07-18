@@ -1,9 +1,12 @@
 import { legendColorStyles, msaCellColorStyle } from "./exportColors";
+import { classifyDifference } from "../msa-viewer/analysis";
+import { differenceColorStyle } from "../msa-viewer/differenceColors";
 import type {
   MsaExportBlock,
   MsaExportColumn,
   MsaExportLabels,
-  MsaExportLayout
+  MsaExportLayout,
+  MsaExportTrackId
 } from "./exportTypes";
 
 const TEXT_COLOR = "#0f172a";
@@ -71,11 +74,14 @@ function drawCell(
   layout: MsaExportLayout,
   column: MsaExportColumn,
   base: string,
+  referenceBase: string,
   x: number,
   y: number
 ) {
   const color = base
-    ? msaCellColorStyle(base, layout.colorScheme, column.conservation)
+    ? layout.differenceMode && layout.referenceSequence
+      ? differenceColorStyle(classifyDifference(base, referenceBase))
+      : msaCellColorStyle(base, layout.colorScheme, column.conservation)
     : {
         background: EMPTY_CELL_BACKGROUND,
         text: "transparent",
@@ -107,21 +113,33 @@ function drawCoordinateRow(
   labels: MsaExportLabels,
   y: number
 ) {
-  const alignmentLength =
-    layout.alignment.alignmentLength ??
-    Math.max(0, ...layout.columns.map((column) => column.position));
-  drawLabel(ctx, layout, labels.position, block.x, y, layout.rowHeight);
+  const coordinateLength = layout.coordinateMode === "reference"
+    ? Math.max(0, ...layout.columns.map((column) => column.referencePosition ?? 0))
+    : layout.alignment.alignmentLength ??
+      Math.max(0, ...layout.columns.map((column) => column.position));
+  drawLabel(
+    ctx,
+    layout,
+    layout.coordinateMode === "reference" ? labels.referencePosition : labels.position,
+    block.x,
+    y,
+    layout.rowHeight
+  );
   block.columns.forEach((column, index) => {
     const x = block.cellAreaX + index * layout.cellPitch;
     ctx.fillStyle = LABEL_BACKGROUND;
     ctx.fillRect(x, y, layout.cellWidth, layout.cellHeight);
-    const showMarker =
-      column.position === 1 ||
-      column.position === alignmentLength ||
-      column.position % layout.markerEvery === 0;
+    const coordinate = layout.coordinateMode === "reference"
+      ? column.referencePosition ?? null
+      : column.position;
+    const showMarker = coordinate !== null && (
+      coordinate === 1 ||
+      coordinate === coordinateLength ||
+      coordinate % layout.markerEvery === 0
+    );
 
     if (showMarker) {
-      drawText(ctx, String(column.position), x + layout.cellWidth / 2, y + layout.cellHeight / 2, {
+      drawText(ctx, String(coordinate), x + layout.cellWidth / 2, y + layout.cellHeight / 2, {
         color: MUTED_TEXT_COLOR,
         fontSize: Math.max(8, layout.fontSize - 2),
         align: "center"
@@ -130,25 +148,46 @@ function drawCoordinateRow(
   });
 }
 
-function drawConservationRow(
+function trackValue(column: MsaExportColumn, track: MsaExportTrackId) {
+  const stats = column.conservation;
+  if (track === "gap") {
+    return stats?.gapFraction ?? 0;
+  }
+  if (track === "coverage") {
+    return stats?.coverage ?? 1 - (stats?.gapFraction ?? 0);
+  }
+  if (track === "entropy") {
+    return stats?.entropy ?? 0;
+  }
+  return stats?.conservation ?? 0;
+}
+
+const TRACK_COLORS: Record<MsaExportTrackId, string> = {
+  conservation: "#0f766e",
+  gap: "#f43f5e",
+  coverage: "#0284c7",
+  entropy: "#7c3aed"
+};
+
+function drawTrackRow(
   ctx: CanvasRenderingContext2D,
   layout: MsaExportLayout,
   block: MsaExportBlock,
   labels: MsaExportLabels,
+  track: MsaExportTrackId,
   y: number
 ) {
-  drawLabel(ctx, layout, labels.conservation, block.x, y, layout.rowHeight, "#ffffff");
+  drawLabel(ctx, layout, labels.tracks[track], block.x, y, layout.rowHeight, "#ffffff");
   block.columns.forEach((column, index) => {
     const x = block.cellAreaX + index * layout.cellPitch;
-    const conservation = column.conservation?.conservation ?? 0;
-    const gapFraction = column.conservation?.gapFraction ?? 0;
-    const barHeight = Math.max(2, Math.round(layout.cellHeight * conservation));
-    const opacity = 0.18 + conservation * 0.72;
+    const value = trackValue(column, track);
+    const barHeight = Math.max(2, Math.round(layout.cellHeight * value));
+    const opacity = 0.18 + value * 0.72;
 
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(x, y, layout.cellWidth, layout.cellHeight);
     ctx.globalAlpha = opacity;
-    ctx.fillStyle = gapFraction > 0.5 ? "#94a3b8" : "#0f766e";
+    ctx.fillStyle = TRACK_COLORS[track];
     ctx.fillRect(
       x,
       y + layout.cellHeight - barHeight,
@@ -172,7 +211,15 @@ function drawSequenceRow(
   drawLabel(ctx, layout, sequenceId, block.x, y, layout.rowHeight, labelBackground, labelColor);
   block.columns.forEach((column, index) => {
     const x = block.cellAreaX + index * layout.cellPitch;
-    drawCell(ctx, layout, column, sequence[column.position - 1] ?? "", x, y);
+    drawCell(
+      ctx,
+      layout,
+      column,
+      sequence[column.position - 1] ?? "",
+      layout.referenceSequence?.sequence[column.position - 1] ?? "",
+      x,
+      y
+    );
   });
 }
 
@@ -190,12 +237,24 @@ function drawBlock(
   }
 
   if (layout.options.includeConservation) {
-    drawConservationRow(ctx, layout, block, labels, y);
-    y += layout.rowHeight;
+    for (const track of layout.activeTracks) {
+      drawTrackRow(ctx, layout, block, labels, track, y);
+      y += layout.rowHeight;
+    }
   }
 
   for (const row of layout.rows) {
-    drawSequenceRow(ctx, layout, block, row.id, row.sequence, y);
+    const isReference = row.id === layout.referenceSequence?.id;
+    drawSequenceRow(
+      ctx,
+      layout,
+      block,
+      row.id,
+      row.sequence,
+      y,
+      isReference ? "#fffbeb" : "#ffffff",
+      isReference ? "#92400e" : TEXT_COLOR
+    );
     y += layout.rowHeight;
   }
 
@@ -220,7 +279,14 @@ function drawLegend(ctx: CanvasRenderingContext2D, layout: MsaExportLayout, labe
     return;
   }
 
-  const items = legendColorStyles(layout.colorScheme, labels);
+  const items = layout.differenceMode
+    ? [
+        { label: labels.differences.match, style: differenceColorStyle("match") },
+        { label: labels.differences.mismatch, style: differenceColorStyle("mismatch") },
+        { label: labels.differences.insertion, style: differenceColorStyle("insertion") },
+        { label: labels.differences.deletion, style: differenceColorStyle("deletion") }
+      ]
+    : legendColorStyles(layout.colorScheme, labels);
   let x = layout.padding;
   const y = layout.height - layout.padding - 30;
   drawText(ctx, labels.legend, x, y + 12, {
