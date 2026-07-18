@@ -46,10 +46,12 @@ test("uses reference analysis, motif navigation, and hybrid MSA rendering", asyn
   await page.mouse.down();
   await page.mouse.move(endBounds.x + endBounds.width / 2, endBounds.y + endBounds.height / 2, { steps: 4 });
   await page.mouse.up();
-  await expect(page.getByText("Range 2-4", { exact: true }).first()).toBeVisible();
+  await expect(page.locator("[data-msa-status='true']"))
+    .toHaveAttribute("data-msa-selected-range", "2-4");
 
   await page.getByLabel("Search DNA/RNA motif").fill("AYC");
-  await expect(page.getByText(/Match 1 \/ 1/)).toBeVisible();
+  await expect(page.locator("[data-msa-motif-status='true']"))
+    .toHaveAttribute("data-msa-motif-total", "1");
   await page.getByRole("button", { name: "Next match" }).click();
 
   const navigator = page.getByRole("application", { name: "Alignment overview navigator" });
@@ -79,5 +81,6 @@ test("uses reference analysis, motif navigation, and hybrid MSA rendering", asyn
   await startCell.click();
   await startCell.focus();
   await page.keyboard.press("ArrowRight");
-  await expect(page.getByText(/Selected position:/)).toContainText("3");
+  await expect(page.locator("[data-msa-status='true']"))
+    .toHaveAttribute("data-msa-selected-position", "3");
 });

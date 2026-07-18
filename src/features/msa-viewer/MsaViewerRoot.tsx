@@ -736,7 +736,12 @@ export function MsaViewerRoot({ alignment }: { alignment: MSAResult }) {
               stats={analysis.columns}
               visiblePositions={visiblePositions}
             />
-            <div className="flex min-h-10 flex-wrap items-center justify-between gap-2 border-t border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+            <div
+              className="flex min-h-10 flex-wrap items-center justify-between gap-2 border-t border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600"
+              data-msa-selected-position={state.selection?.position ?? ""}
+              data-msa-selected-range={rangeText}
+              data-msa-status="true"
+            >
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                 {state.selection ? (
                   <span>

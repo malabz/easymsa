@@ -27,6 +27,27 @@ import type {
   MsaViewSettings
 } from "./types";
 
+export function domPointerColumnPosition({
+  clientX,
+  containerLeft,
+  pitch,
+  visiblePositions
+}: {
+  clientX: number;
+  containerLeft: number;
+  pitch: number;
+  visiblePositions: number[];
+}) {
+  if (!visiblePositions.length || pitch <= 0) {
+    return null;
+  }
+  const index = Math.min(
+    visiblePositions.length - 1,
+    Math.max(0, Math.floor((clientX - containerLeft) / pitch))
+  );
+  return visiblePositions[index] ?? null;
+}
+
 function SequenceCells({
   colorScheme,
   columns,
@@ -110,23 +131,47 @@ function SequenceCells({
               }
               onSelect({ sequenceId: sequence.id, position }, event.shiftKey);
             }}
-            onPointerDown={() => {
+            onPointerDown={(event) => {
               dragMovedRef.current = false;
               dragAnchorRef.current = { sequenceId: sequence.id, position };
+              event.currentTarget.setPointerCapture(event.pointerId);
             }}
-            onPointerEnter={(event: ReactPointerEvent<HTMLButtonElement>) => {
+            onPointerMove={(event: ReactPointerEvent<HTMLButtonElement>) => {
               const anchor = dragAnchorRef.current;
-              if (!anchor || event.buttons !== 1) {
+              if (
+                !anchor ||
+                event.buttons !== 1 ||
+                !event.currentTarget.hasPointerCapture(event.pointerId)
+              ) {
                 return;
               }
-              if (anchor.position !== position) {
+              const container = event.currentTarget.parentElement;
+              if (!container) {
+                return;
+              }
+              const currentPosition = domPointerColumnPosition({
+                clientX: event.clientX,
+                containerLeft: container.getBoundingClientRect().left,
+                pitch: settings.cellWidth + settings.cellGap,
+                visiblePositions: positions
+              });
+              if (currentPosition === null || anchor.position === currentPosition) {
+                return;
+              }
+              if (anchor.position !== currentPosition) {
                 dragMovedRef.current = true;
               }
               onRangeSelect(
                 sequence.id,
-                Math.min(anchor.position, position),
-                Math.max(anchor.position, position)
+                Math.min(anchor.position, currentPosition),
+                Math.max(anchor.position, currentPosition)
               );
+            }}
+            onPointerUp={(event) => {
+              dragAnchorRef.current = null;
+              if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+                event.currentTarget.releasePointerCapture(event.pointerId);
+              }
             }}
             style={{
               fontSize: settings.fontSize,

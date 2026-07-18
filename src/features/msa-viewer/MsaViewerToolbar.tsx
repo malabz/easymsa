@@ -169,7 +169,13 @@ export function MsaViewerToolbar({
           >
             <ChevronRight className="h-4 w-4" />
           </CompactIconButton>
-          <span className="min-w-24 text-center text-xs text-slate-500" aria-live="polite">
+          <span
+            aria-live="polite"
+            className="min-w-24 text-center text-xs text-slate-500"
+            data-msa-motif-current={motifMatchCount ? state.activeMotifIndex + 1 : 0}
+            data-msa-motif-status="true"
+            data-msa-motif-total={motifMatchCount}
+          >
             {isSearchingMotif ? t.searchingMotif : motifResult}
           </span>
           <select
