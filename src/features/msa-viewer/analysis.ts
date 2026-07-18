@@ -1,10 +1,12 @@
 import type { MSASequence } from "../../lib/types/msa";
 import type {
+  AlignmentOverviewBase,
   ColumnRange,
   ColumnStats,
   DifferenceKind,
   MotifMatch,
   MotifSearchResult,
+  MsaAnalysisResult,
   RangeStats,
   ReferenceCoordinateMap
 } from "./types";
@@ -57,16 +59,55 @@ function iupacForBases(bases: string[]) {
   return code;
 }
 
-export function calculateColumnStats(
+const OVERVIEW_BASES: AlignmentOverviewBase[] = [
+  "A",
+  "C",
+  "G",
+  "T",
+  "U",
+  "N",
+  "other",
+  "gap"
+];
+
+function overviewBase(base: string): AlignmentOverviewBase {
+  const normalized = base.toUpperCase();
+  if (!normalized || normalized === "-") {
+    return "gap";
+  }
+  if (
+    normalized === "A" ||
+    normalized === "C" ||
+    normalized === "G" ||
+    normalized === "T" ||
+    normalized === "U" ||
+    normalized === "N"
+  ) {
+    return normalized;
+  }
+  return "other";
+}
+
+export function calculateMsaAnalysis(
   sequences: Array<{ sequence: string }>,
   alignmentLength: number
-): ColumnStats[] {
-  return Array.from({ length: alignmentLength }, (_, index) => {
+): MsaAnalysisResult {
+  const baseCounts = Object.fromEntries(
+    OVERVIEW_BASES.map((base) => [base, 0])
+  ) as Record<AlignmentOverviewBase, number>;
+  let conservationTotal = 0;
+  let coverageTotal = 0;
+  let entropyTotal = 0;
+  let variableColumns = 0;
+  let highGapColumns = 0;
+
+  const columns = Array.from({ length: alignmentLength }, (_, index) => {
     const counts = new Map<string, number>();
     let observed = 0;
 
     for (const sequence of sequences) {
       const base = (sequence.sequence[index] ?? "").toUpperCase();
+      baseCounts[overviewBase(base)] += 1;
       if (!base || base === "-") {
         continue;
       }
@@ -90,19 +131,62 @@ export function calculateColumnStats(
     }, 0);
     const coverage = sequences.length > 0 ? observed / sequences.length : 0;
     const conservation = observed > 0 ? dominantCount / observed : 0;
+    const gapFraction = 1 - coverage;
+    const entropy = Math.min(1, entropyBits / 2);
+    const variation = observed > 0 ? 1 - conservation : 0;
+
+    conservationTotal += conservation;
+    coverageTotal += coverage;
+    entropyTotal += entropy;
+    if (variation > 0) {
+      variableColumns += 1;
+    }
+    if (gapFraction >= 0.5) {
+      highGapColumns += 1;
+    }
 
     return {
       position: index + 1,
       conservation,
-      gapFraction: 1 - coverage,
+      gapFraction,
       coverage,
-      entropy: Math.min(1, entropyBits / 2),
-      variation: observed > 0 ? 1 - conservation : 0,
+      entropy,
+      variation,
       dominantBase: ranked[0]?.[0] ?? "",
       consensusBase: ranked[0]?.[0] ?? "",
       ambiguityConsensus: iupacForBases(tiedBases)
     };
   });
+
+  const canonicalBaseCount =
+    baseCounts.A + baseCounts.C + baseCounts.G + baseCounts.T + baseCounts.U;
+  const divisor = alignmentLength > 0 ? alignmentLength : 1;
+
+  return {
+    columns,
+    overview: {
+      baseCounts,
+      totalCells: sequences.length * alignmentLength,
+      observedResidues: sequences.length * alignmentLength - baseCounts.gap,
+      gcFraction:
+        canonicalBaseCount > 0
+          ? (baseCounts.G + baseCounts.C) / canonicalBaseCount
+          : null,
+      averageConservation:
+        alignmentLength > 0 ? conservationTotal / divisor : 0,
+      averageCoverage: alignmentLength > 0 ? coverageTotal / divisor : 0,
+      averageEntropy: alignmentLength > 0 ? entropyTotal / divisor : 0,
+      variableColumns,
+      highGapColumns
+    }
+  };
+}
+
+export function calculateColumnStats(
+  sequences: Array<{ sequence: string }>,
+  alignmentLength: number
+): ColumnStats[] {
+  return calculateMsaAnalysis(sequences, alignmentLength).columns;
 }
 
 export function buildReferenceCoordinateMap(

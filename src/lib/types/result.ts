@@ -1,12 +1,19 @@
 export type ResultSummary = {
   jobId: string;
   metrics: {
-    sequenceCount: number;
-    alignmentLength: number;
+    sequenceCount: number | null;
+    alignmentLength: number | null;
     averageIdentity: number | null;
     gapPercentage: number | null;
-    outputSizeMB: number | null;
   };
+  preprocess: {
+    mode: string | null;
+    strictness: string | null;
+    rawSequenceCount: number | null;
+    cleanSequenceCount: number | null;
+    removedSequenceCount: number | null;
+  };
+  outputFiles: string[];
 };
 
 export type ResultFile = {

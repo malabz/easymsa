@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import type { MSASequence } from "../../lib/types/msa";
 import {
-  calculateColumnStats,
+  calculateMsaAnalysis,
   normalizedIupacMotif,
   searchIupacMotifMatches
 } from "./analysis";
-import type { ColumnStats, MotifMatch } from "./types";
+import type {
+  AlignmentOverviewStats,
+  ColumnStats,
+  MotifMatch
+} from "./types";
 import type {
   MsaAnalysisWorkerRequest,
   MsaAnalysisWorkerResponse
@@ -13,7 +17,11 @@ import type {
 
 const analysisCache = new WeakMap<
   MSASequence[],
-  { alignmentLength: number; columns: ColumnStats[] }
+  {
+    alignmentLength: number;
+    columns: ColumnStats[];
+    overview: AlignmentOverviewStats;
+  }
 >();
 let nextGeneration = 1;
 
@@ -26,6 +34,9 @@ export function useMsaAnalysis(
   const initialColumns =
     cached?.alignmentLength === alignmentLength ? cached.columns : [];
   const [columns, setColumns] = useState<ColumnStats[]>(initialColumns);
+  const [overview, setOverview] = useState<AlignmentOverviewStats | null>(
+    cached?.alignmentLength === alignmentLength ? cached.overview : null
+  );
   const [motifMatches, setMotifMatches] = useState<MotifMatch[]>([]);
   const [motifMatchCount, setMotifMatchCount] = useState(0);
   const [motifMatchesTruncated, setMotifMatchesTruncated] = useState(false);
@@ -49,9 +60,11 @@ export function useMsaAnalysis(
     const cachedResult = analysisCache.get(sequences);
     if (cachedResult?.alignmentLength === alignmentLength) {
       setColumns(cachedResult.columns);
+      setOverview(cachedResult.overview);
       setIsCalculating(false);
     } else {
       setColumns([]);
+      setOverview(null);
       setIsCalculating(true);
     }
 
@@ -61,9 +74,10 @@ export function useMsaAnalysis(
       }
       const timeout = window.setTimeout(() => {
         try {
-          const nextColumns = calculateColumnStats(sequences, alignmentLength);
-          analysisCache.set(sequences, { alignmentLength, columns: nextColumns });
-          setColumns(nextColumns);
+          const result = calculateMsaAnalysis(sequences, alignmentLength);
+          analysisCache.set(sequences, { alignmentLength, ...result });
+          setColumns(result.columns);
+          setOverview(result.overview);
           setIsCalculating(false);
         } catch (analysisError) {
           setError(
@@ -90,9 +104,11 @@ export function useMsaAnalysis(
       if (response.type === "analysisReady") {
         analysisCache.set(sequences, {
           alignmentLength,
-          columns: response.columns
+          columns: response.columns,
+          overview: response.overview
         });
         setColumns(response.columns);
+        setOverview(response.overview);
         setIsCalculating(false);
       } else if (response.type === "analysisInitialized") {
         setIsCalculating(false);
@@ -172,6 +188,7 @@ export function useMsaAnalysis(
 
   return {
     columns,
+    overview,
     error,
     isCalculating,
     isSearchingMotif,

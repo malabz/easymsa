@@ -43,6 +43,33 @@ export type ColumnStats = {
   ambiguityConsensus: string;
 };
 
+export type AlignmentOverviewBase =
+  | "A"
+  | "C"
+  | "G"
+  | "T"
+  | "U"
+  | "N"
+  | "other"
+  | "gap";
+
+export type AlignmentOverviewStats = {
+  baseCounts: Record<AlignmentOverviewBase, number>;
+  totalCells: number;
+  observedResidues: number;
+  gcFraction: number | null;
+  averageConservation: number;
+  averageCoverage: number;
+  averageEntropy: number;
+  variableColumns: number;
+  highGapColumns: number;
+};
+
+export type MsaAnalysisResult = {
+  columns: ColumnStats[];
+  overview: AlignmentOverviewStats;
+};
+
 export type ReferenceCoordinateMap = {
   alignmentToReference: Array<number | null>;
   referenceToAlignment: number[];

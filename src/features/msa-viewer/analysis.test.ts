@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildReferenceCoordinateMap,
   calculateColumnStats,
+  calculateMsaAnalysis,
   calculateRangeStats,
   classifyDifference,
   findIupacMotifMatches,
@@ -9,6 +10,41 @@ import {
 } from "./analysis";
 
 describe("MSA viewer analysis", () => {
+  it("aggregates DNA/RNA composition and overview quality in one pass", () => {
+    const analysis = calculateMsaAnalysis(
+      [{ sequence: "ACGU-NR" }, { sequence: "AC-T--?" }],
+      7
+    );
+
+    expect(analysis.columns).toHaveLength(7);
+    expect(analysis.overview.baseCounts).toEqual({
+      A: 2,
+      C: 2,
+      G: 1,
+      T: 1,
+      U: 1,
+      N: 1,
+      other: 2,
+      gap: 4
+    });
+    expect(analysis.overview.gcFraction).toBeCloseTo(3 / 7);
+    expect(analysis.overview.observedResidues).toBe(10);
+    expect(analysis.overview.variableColumns).toBe(2);
+    expect(analysis.overview.highGapColumns).toBe(3);
+  });
+
+  it("keeps GC unavailable for an all-gap alignment", () => {
+    const overview = calculateMsaAnalysis(
+      [{ sequence: "--" }, { sequence: "--" }],
+      2
+    ).overview;
+
+    expect(overview.gcFraction).toBeNull();
+    expect(overview.averageCoverage).toBe(0);
+    expect(overview.variableColumns).toBe(0);
+    expect(overview.highGapColumns).toBe(2);
+  });
+
   it("uses deterministic and IUPAC consensus for ties", () => {
     const columns = calculateColumnStats(
       [{ sequence: "A" }, { sequence: "G" }, { sequence: "-" }],

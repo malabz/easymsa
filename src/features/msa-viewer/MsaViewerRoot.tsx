@@ -33,6 +33,7 @@ import { useViewerState } from "./useViewerState";
 const DETAIL_ZOOM_THRESHOLD = 0.7;
 const MIN_ZOOM = 0.25;
 const MAX_ZOOM = 2.5;
+const EMPTY_SEQUENCES: MSASequence[] = [];
 
 function clampZoom(value: number) {
   return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Number(value.toFixed(2))));
@@ -136,9 +137,10 @@ export function MsaViewerRoot({ alignment }: { alignment: MSAResult }) {
     () => getMsaViewSettings(state.zoomLevel, state.density),
     [state.density, state.zoomLevel]
   );
+  const canAnalyze = !alignment.truncated && alignment.sequences.length > 0;
   const analysis = useMsaAnalysis(
-    alignment.sequences,
-    alignmentLength,
+    canAnalyze ? alignment.sequences : EMPTY_SEQUENCES,
+    canAnalyze ? alignmentLength : 0,
     state.motifQuery
   );
   const reference = useMemo(

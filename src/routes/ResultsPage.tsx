@@ -109,7 +109,18 @@ export function ResultsPage() {
           <LoadingState label={d.results.loading.overview} />
         ) : null}
         {activeTab === "overview" && summaryQuery.data ? (
-          <ResultOverview summary={summaryQuery.data} />
+          <ResultOverview
+            alignment={alignmentQuery.data}
+            alignmentError={
+              alignmentQuery.error instanceof Error
+                ? alignmentQuery.error.message
+                : null
+            }
+            alignmentPending={alignmentQuery.isPending}
+            onOpenAlignment={() => setActiveTab("alignment")}
+            onOpenDownloads={() => setActiveTab("downloads")}
+            summary={summaryQuery.data}
+          />
         ) : null}
       </section>
       <section

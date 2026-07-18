@@ -2,16 +2,23 @@ import { apiUrl, parseApiError } from "./client";
 import type { MSAResult } from "../types/msa";
 import type { ResultFile, ResultSummary } from "../types/result";
 
-type ServerResultSummary = {
+export type ServerResultSummary = {
   jobId: string;
   summary: {
-    alignment?: {
-      sequenceCount?: number;
-      alignmentLength?: number;
-      gapPercentage?: number;
-      averageIdentity?: number;
+    preprocess?: {
+      mode?: string | null;
+      strictness?: string | null;
+      rawSequenceCount?: number | null;
+      cleanSequenceCount?: number | null;
+      removedSequenceCount?: number | null;
     };
-    outputSizeMB?: number;
+    alignment?: {
+      sequenceCount?: number | null;
+      alignmentLength?: number | null;
+      gapPercentage?: number | null;
+      averageIdentity?: number | null;
+    };
+    outputFiles?: unknown;
   };
 };
 
@@ -51,18 +58,35 @@ function consensusFromSequences(sequences: MSAResult["sequences"], length: numbe
   return consensus.join("");
 }
 
-function adaptServerSummary(payload: ServerResultSummary): ResultSummary {
+function optionalNumber(value: number | null | undefined) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+export function adaptServerSummary(payload: ServerResultSummary): ResultSummary {
   const alignment = payload.summary.alignment ?? {};
+  const preprocess = payload.summary.preprocess ?? {};
 
   return {
     jobId: payload.jobId,
     metrics: {
-      sequenceCount: alignment.sequenceCount ?? 0,
-      alignmentLength: alignment.alignmentLength ?? 0,
-      averageIdentity: alignment.averageIdentity ?? null,
-      gapPercentage: alignment.gapPercentage ?? null,
-      outputSizeMB: payload.summary.outputSizeMB ?? null
-    }
+      sequenceCount: optionalNumber(alignment.sequenceCount),
+      alignmentLength: optionalNumber(alignment.alignmentLength),
+      averageIdentity: optionalNumber(alignment.averageIdentity),
+      gapPercentage: optionalNumber(alignment.gapPercentage)
+    },
+    preprocess: {
+      mode: typeof preprocess.mode === "string" ? preprocess.mode : null,
+      strictness:
+        typeof preprocess.strictness === "string" ? preprocess.strictness : null,
+      rawSequenceCount: optionalNumber(preprocess.rawSequenceCount),
+      cleanSequenceCount: optionalNumber(preprocess.cleanSequenceCount),
+      removedSequenceCount: optionalNumber(preprocess.removedSequenceCount)
+    },
+    outputFiles: Array.isArray(payload.summary.outputFiles)
+      ? payload.summary.outputFiles.filter(
+          (file): file is string => typeof file === "string"
+        )
+      : []
   };
 }
 

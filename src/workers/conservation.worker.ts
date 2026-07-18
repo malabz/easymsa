@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 
 import {
-  calculateColumnStats,
+  calculateMsaAnalysis,
   searchIupacMotifMatches
 } from "../features/msa-viewer/analysis";
 import type {
@@ -30,10 +30,12 @@ self.onmessage = (event: MessageEvent<MsaAnalysisWorkerRequest>) => {
         self.postMessage(response);
         return;
       }
+      const analysis = calculateMsaAnalysis(sequences, request.alignmentLength);
       const response: MsaAnalysisWorkerResponse = {
         type: "analysisReady",
         generation,
-        columns: calculateColumnStats(sequences, request.alignmentLength)
+        columns: analysis.columns,
+        overview: analysis.overview
       };
       self.postMessage(response);
       return;

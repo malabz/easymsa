@@ -1,5 +1,9 @@
 import type { MSASequence } from "../../lib/types/msa";
-import type { ColumnStats, MotifMatch } from "./types";
+import type {
+  AlignmentOverviewStats,
+  ColumnStats,
+  MotifMatch
+} from "./types";
 
 export type MsaAnalysisWorkerRequest =
   | {
@@ -21,6 +25,7 @@ export type MsaAnalysisWorkerResponse =
       type: "analysisReady";
       generation: number;
       columns: ColumnStats[];
+      overview: AlignmentOverviewStats;
     }
   | {
       type: "analysisInitialized";

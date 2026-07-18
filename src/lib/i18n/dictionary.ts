@@ -322,7 +322,77 @@ const zh = {
       alignmentLength: "比对长度",
       averageIdentity: "平均一致性",
       gapPercentage: "缺口比例",
-      outputSizeMB: "结果文件大小"
+      averageConservation: "平均保守性",
+      averageEntropy: "平均 Shannon entropy",
+      variableColumns: "变异列数",
+      averageCoverage: "平均覆盖率",
+      gcContent: "GC 比例",
+      highGapColumns: "高缺口列数"
+    },
+    overview: {
+      completed: "分析完成",
+      title: "比对结果科研概览",
+      description: "{sequences} 条序列已比对至 {columns} 个位置。这里汇总预处理、比对质量和结果产物。",
+      unavailable: "未提供",
+      actions: {
+        openAlignment: "查看比对矩阵",
+        openDownloads: "下载结果"
+      },
+      summary: {
+        title: "结果摘要",
+        description: "服务端结果与完整可视化预览的核心质量指标。"
+      },
+      preprocess: {
+        title: "预处理概况",
+        description: "查看输入序列经过质量控制后的留存情况与运行配置。",
+        raw: "原始序列",
+        retained: "保留序列",
+        removed: "移除序列",
+        retentionRate: "序列留存率",
+        mode: "模式",
+        strictness: "严格度",
+        unavailable: "该任务没有提供完整的预处理计数，已保留可用的配置数据。",
+        values: {
+          audit: "审计",
+          filter: "过滤",
+          strict: "严格",
+          normal: "标准",
+          lenient: "宽松"
+        }
+      },
+      science: {
+        title: "科研分析",
+        description: "基于完整可视化比对在 Worker 中计算，不使用抽样数据。",
+        calculating: "正在后台计算比对质量统计",
+        failed: "比对预览无法加载，因此暂时不能计算科研统计；预处理和输出产物信息仍然有效。",
+        truncated: "该比对超过当前预览上限。为避免用抽样数据产生误导，本页不推断保守性、entropy 或碱基组成。",
+        empty: "当前没有可用于计算科研统计的比对序列。",
+        qualityProfile: "全长质量轨道",
+        qualityChartLabel: "比对全长保守性、缺口比例和 Shannon entropy 质量轨道",
+        qualityChartSummary: "该图汇总全部 {columns} 个比对位置的保守性、缺口比例和 Shannon entropy。",
+        baseComposition: "碱基与缺口组成",
+        compositionNote: "组成比例以全部比对单元格为分母；GC 比例仅以 A、C、G、T、U 为分母。",
+        bases: {
+          A: "A",
+          C: "C",
+          G: "G",
+          T: "T",
+          U: "U",
+          N: "N",
+          other: "其他模糊字符",
+          gap: "Gap"
+        }
+      },
+      outputs: {
+        title: "输出产物",
+        description: "服务端已生成 {count} 个结果文件，可前往下载页获取归档和比对文件。",
+        empty: "服务端没有返回具体的输出文件清单。",
+        groups: {
+          preprocess: "预处理产物",
+          alignment: "比对产物",
+          logs: "运行日志"
+        }
+      }
     },
     viewer: {
       search: "搜索序列 ID",
@@ -893,7 +963,77 @@ const en: typeof zh = {
       alignmentLength: "Alignment length",
       averageIdentity: "Average identity",
       gapPercentage: "Gap percentage",
-      outputSizeMB: "Output size"
+      averageConservation: "Average conservation",
+      averageEntropy: "Average Shannon entropy",
+      variableColumns: "Variable columns",
+      averageCoverage: "Average coverage",
+      gcContent: "GC content",
+      highGapColumns: "High-gap columns"
+    },
+    overview: {
+      completed: "Analysis complete",
+      title: "Scientific alignment overview",
+      description: "{sequences} sequences were aligned across {columns} positions. This dashboard summarizes preprocessing, alignment quality, and result artifacts.",
+      unavailable: "Not provided",
+      actions: {
+        openAlignment: "Open alignment matrix",
+        openDownloads: "Download results"
+      },
+      summary: {
+        title: "Result summary",
+        description: "Core quality metrics from the server result and the complete visual preview."
+      },
+      preprocess: {
+        title: "Preprocessing overview",
+        description: "Review sequence retention after quality control and the run configuration.",
+        raw: "Raw sequences",
+        retained: "Retained",
+        removed: "Removed",
+        retentionRate: "Sequence retention",
+        mode: "Mode",
+        strictness: "Strictness",
+        unavailable: "Complete preprocessing counts were not provided for this task; available configuration is still shown.",
+        values: {
+          audit: "Audit",
+          filter: "Filter",
+          strict: "Strict",
+          normal: "Normal",
+          lenient: "Lenient"
+        }
+      },
+      science: {
+        title: "Scientific analysis",
+        description: "Calculated in a Worker from the complete visualized alignment without sampling.",
+        calculating: "Calculating alignment quality statistics in the background",
+        failed: "The alignment preview could not be loaded, so scientific statistics are unavailable. Preprocessing and output artifact details remain valid.",
+        truncated: "This alignment exceeds the current preview limits. To avoid misleading sampled results, conservation, entropy, and base composition are not inferred.",
+        empty: "No alignment sequences are available for scientific statistics.",
+        qualityProfile: "Full-length quality tracks",
+        qualityChartLabel: "Full-length conservation, gap fraction, and Shannon entropy tracks",
+        qualityChartSummary: "This chart summarizes conservation, gap fraction, and Shannon entropy across all {columns} alignment positions.",
+        baseComposition: "Base and gap composition",
+        compositionNote: "Composition uses all alignment cells as the denominator; GC content uses only A, C, G, T, and U.",
+        bases: {
+          A: "A",
+          C: "C",
+          G: "G",
+          T: "T",
+          U: "U",
+          N: "N",
+          other: "Other ambiguity",
+          gap: "Gap"
+        }
+      },
+      outputs: {
+        title: "Output artifacts",
+        description: "The server generated {count} result files. Open Downloads for the archive and alignment files.",
+        empty: "The server did not return a detailed output file list.",
+        groups: {
+          preprocess: "Preprocessing",
+          alignment: "Alignment outputs",
+          logs: "Run logs"
+        }
+      }
     },
     viewer: {
       search: "Search sequence ID",
