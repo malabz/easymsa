@@ -50,9 +50,9 @@ describe("AlgorithmPicker", () => {
     expect(screen.getAllByRole("radio")).toHaveLength(6);
     expect(screen.getByRole("radio", { name: /Auto \(adaptive\)/ })).toBeChecked();
     expect(screen.getByText("Recommended · Adaptive")).toBeInTheDocument();
-    expect(screen.getByRole("radio", { name: /HAlign4/ })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /^HAlign4/ })).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: /FMAlign2 \+ MAFFT/ })).toBeInTheDocument();
-    expect(screen.getByRole("radio", { name: /FMAlign2 \+ HAlign3/ })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /FMAlign2 \+ HAlign4/ })).toBeInTheDocument();
   });
 
   it("shows data-fit guidance and updates it when the method changes", () => {
@@ -60,7 +60,7 @@ describe("AlgorithmPicker", () => {
 
     expect(screen.getByText(/fits the adaptive training domain/i)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("radio", { name: /HAlign4/ }));
+    fireEvent.click(screen.getByRole("radio", { name: /^HAlign4/ }));
     expect(screen.getByText(/Ultra-large, globally similar DNA\/RNA/i)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("radio", { name: /FMAlign2 \+ MAFFT/ }));
@@ -73,7 +73,7 @@ describe("AlgorithmPicker", () => {
       value: "minipoa"
     });
 
-    const halign3 = screen.getByRole("radio", { name: /HAlign4/ });
+    const halign3 = screen.getByRole("radio", { name: /^HAlign4/ });
     expect(halign3).toBeDisabled();
 
     fireEvent.click(screen.getByRole("radio", { name: /^MAFFT/ }));
