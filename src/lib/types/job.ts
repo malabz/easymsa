@@ -1,7 +1,13 @@
 import type { Locale } from "../i18n/dictionary";
 
 export type InputMethod = "paste" | "upload";
-export type AlignmentAlgorithm = "auto" | "minipoa" | "mafft";
+export type AlignmentAlgorithm =
+  | "auto"
+  | "minipoa"
+  | "mafft"
+  | "halign3"
+  | "fmalign2_mafft"
+  | "fmalign2_halign3";
 export type MafftMode = "auto" | "fast" | "localpair" | "globalpair";
 export type PreprocessMode = "audit" | "filter";
 

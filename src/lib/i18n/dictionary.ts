@@ -111,11 +111,33 @@ const zh = {
     exampleJobName: "血红蛋白示例",
     selectedAlgorithmUnavailable: "当前选择的比对算法不可用，请在高级设置中改选可用算法。",
     algorithm: "比对方法",
-    algorithmHint: "默认使用自动模式，目前会选择 minipoa；也可以手动切换 minipoa 或 MAFFT。",
+    algorithmHint:
+      "自动模式由后端根据序列数量、长度与相似性特征，在 minipoa、MAFFT、HAlign3 与 FMAlign2 之间选择；也可以直接指定方法。",
+    adaptiveBadge: "推荐 · 自适应",
     algorithms: {
-      auto: "自动选择",
+      auto: "自动选择（自适应）",
       minipoa: "minipoa",
-      mafft: "MAFFT"
+      mafft: "MAFFT",
+      halign3: "HAlign3",
+      fmalign2_mafft: "FMAlign2 + MAFFT",
+      fmalign2_halign3: "FMAlign2 + HAlign3"
+    },
+    algorithmDescriptions: {
+      auto: "后端根据输入特征自动选择合适的方法，并在完成后显示实际使用的工具。",
+      minipoa: "快速部分有序比对，适合较大的近缘序列集。",
+      mafft: "经典多序列比对，提供多种模式与迭代参数。",
+      halign3: "面向大体量 DNA/RNA 的高速比对，内存占用较高。",
+      fmalign2_mafft: "FMAlign2 框架内置 MAFFT 后端，两步式加速比对。",
+      fmalign2_halign3: "FMAlign2 框架内置 HAlign3 后端，适合大体量数据。"
+    },
+    dataFitLabel: "适用数据",
+    algorithmDataFit: {
+      auto: "DNA/RNA；适用于约 50–10,000 条序列、长度中位数约 495–10,000 的训练域，超出时回退 minipoa。",
+      minipoa: "中等规模、序列相似度较高的数据集，速度快。",
+      mafft: "数百至数千条中等长度序列的通用场景。",
+      halign3: "超大规模且整体相似的 DNA/RNA，内存占用高。",
+      fmalign2_mafft: "大体量数据的加速管线，内置 MAFFT 后端。",
+      fmalign2_halign3: "超大规模且高相似数据的加速管线，内置 HAlign3 后端。"
     },
     algorithmParameters: {
       title: "算法参数",
@@ -194,6 +216,7 @@ const zh = {
     subtitle: "查看后端任务的排队、预处理、比对和打包进度。",
     jobId: "任务 ID",
     jobName: "任务名称",
+    algorithmLabel: "比对方法",
     currentStep: "当前步骤",
     progress: "进度",
     timeline: "任务时间线",
@@ -792,11 +815,33 @@ const en: typeof zh = {
     exampleJobName: "Hemoglobin example",
     selectedAlgorithmUnavailable: "The selected alignment algorithm is unavailable. Choose an available algorithm in advanced settings.",
     algorithm: "Alignment method",
-    algorithmHint: "Auto is the default and currently selects minipoa; minipoa and MAFFT can also be selected manually.",
+    algorithmHint:
+      "Auto lets the backend choose among minipoa, MAFFT, HAlign3, and FMAlign2 based on sequence count, length, and similarity; you can also pick a method directly.",
+    adaptiveBadge: "Recommended · Adaptive",
     algorithms: {
-      auto: "Auto",
+      auto: "Auto (adaptive)",
       minipoa: "minipoa",
-      mafft: "MAFFT"
+      mafft: "MAFFT",
+      halign3: "HAlign3",
+      fmalign2_mafft: "FMAlign2 + MAFFT",
+      fmalign2_halign3: "FMAlign2 + HAlign3"
+    },
+    algorithmDescriptions: {
+      auto: "The backend selects a suitable method from input features and shows the actual tool after completion.",
+      minipoa: "Fast partial-order alignment for larger, closely related sequence sets.",
+      mafft: "Classic multiple sequence alignment with multiple modes and iteration parameters.",
+      halign3: "High-speed alignment for large DNA/RNA datasets; higher memory usage.",
+      fmalign2_mafft: "FMAlign2 framework with a built-in MAFFT backend.",
+      fmalign2_halign3: "FMAlign2 framework with a built-in HAlign3 backend for large datasets."
+    },
+    dataFitLabel: "Data fit",
+    algorithmDataFit: {
+      auto: "DNA/RNA; fits the adaptive training domain of roughly 50–10,000 sequences with median length about 495–10,000, falling back to minipoa outside it.",
+      minipoa: "Medium-sized datasets with closely related sequences; fast.",
+      mafft: "General-purpose use with hundreds to thousands of medium-length sequences.",
+      halign3: "Ultra-large, globally similar DNA/RNA sets; high memory usage.",
+      fmalign2_mafft: "Accelerated pipeline for large datasets with a built-in MAFFT backend.",
+      fmalign2_halign3: "Accelerated pipeline for ultra-large, high-similarity data with a built-in HAlign3 backend."
     },
     algorithmParameters: {
       title: "Algorithm parameters",
@@ -875,6 +920,7 @@ const en: typeof zh = {
     subtitle: "Track backend queueing, preprocessing, alignment, and packaging progress.",
     jobId: "Job ID",
     jobName: "Job name",
+    algorithmLabel: "Alignment method",
     currentStep: "Current step",
     progress: "Progress",
     timeline: "Timeline",

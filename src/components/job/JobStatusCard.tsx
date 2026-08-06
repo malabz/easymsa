@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle
 } from "../common/Card";
+import { displayAlgorithmLabel } from "../../lib/algorithmNames";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import type { JobDetail } from "../../lib/types/job";
 import { formatDateTime } from "../../lib/utils/format";
@@ -105,6 +106,21 @@ export function JobStatusCard({ job, token }: { job: JobDetail; token: string })
               {job.jobName ?? "-"}
             </p>
           </div>
+          {job.algorithm.name ? (
+            <div>
+              <p className="text-xs font-medium uppercase text-slate-500">
+                {d.job.algorithmLabel}
+              </p>
+              <p className="mt-1 text-sm font-medium text-slate-900">
+                {displayAlgorithmLabel(
+                  job.algorithm.name,
+                  job.algorithm.resolvedName,
+                  d.common.algorithmNames,
+                  d.common.algorithmAutoResolved
+                )}
+              </p>
+            </div>
+          ) : null}
         </div>
 
         {job.failure || job.preprocess.errorMessage ? (

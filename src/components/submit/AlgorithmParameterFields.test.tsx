@@ -73,4 +73,16 @@ describe("AlgorithmParameterFields", () => {
     expect(screen.queryByRole("combobox", { name: "MAFFT mode" })).not.toBeInTheDocument();
     expect(screen.queryByRole("spinbutton", { name: "Maximum iterations" })).not.toBeInTheDocument();
   });
+
+  it.each(["halign3", "fmalign2_mafft", "fmalign2_halign3"] as const)(
+    "shows only the thread parameter for %s",
+    (algorithm) => {
+      render(<Harness algorithm={algorithm} />);
+
+      expect(screen.getByRole("spinbutton", { name: "Threads" })).toBeInTheDocument();
+      expect(screen.queryByRole("combobox", { name: "MAFFT mode" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("spinbutton", { name: "Maximum iterations" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("checkbox", { name: /Reorder aligned sequences/ })).not.toBeInTheDocument();
+    }
+  );
 });

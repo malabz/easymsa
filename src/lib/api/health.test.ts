@@ -20,6 +20,28 @@ describe("deriveServiceHealth", () => {
     expect(health.maxThreadPerJob).toBe(8);
   });
 
+  it("passes through availability for all exposed methods", () => {
+    const health = deriveServiceHealth(
+      { status: "ok" },
+      {
+        easymsaPrep: { available: true },
+        algorithms: {
+          auto: true,
+          minipoa: true,
+          mafft: true,
+          halign3: false,
+          fmalign2_mafft: true,
+          fmalign2_halign3: false
+        }
+      },
+      {}
+    );
+
+    expect(health.algorithms.halign3).toBe(false);
+    expect(health.algorithms.fmalign2_mafft).toBe(true);
+    expect(health.algorithms.fmalign2_halign3).toBe(false);
+  });
+
   it("marks missing preprocessing support as degraded", () => {
     const health = deriveServiceHealth(
       { status: "ok" },

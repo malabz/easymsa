@@ -27,6 +27,23 @@ describe("toFormData", () => {
     });
   });
 
+  it("serializes new explicit methods with thread params", () => {
+    const formData = toFormData({
+      jobName: "halign3-test",
+      inputMethod: "paste",
+      pastedSequence: ">a\nACGT\n>b\nACGA",
+      language: "en",
+      algorithm: "halign3",
+      algorithmParams: { thread: 2 },
+      preprocessMode: "audit"
+    });
+
+    expect(formData.get("algorithm")).toBe("halign3");
+    expect(JSON.parse(String(formData.get("algorithm_params")))).toEqual({
+      thread: 2
+    });
+  });
+
   it("omits algorithm_params when all server defaults are used", () => {
     const formData = toFormData({
       jobName: "default-test",

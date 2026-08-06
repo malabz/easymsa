@@ -25,6 +25,7 @@ import { validateInputFile } from "../../lib/utils/fileValidation";
 import { Button } from "../common/Button";
 import { ServiceStatus } from "../common/ServiceStatus";
 import { AlgorithmParameterFields } from "./AlgorithmParameterFields";
+import { AlgorithmPicker } from "./AlgorithmPicker";
 import { FileUploadCard } from "./FileUploadCard";
 import { InputMethodTabs } from "./InputMethodTabs";
 import { PasteSequenceInput } from "./PasteSequenceInput";
@@ -240,25 +241,21 @@ export function SubmitJobForm() {
             <ChevronDown className="h-4 w-4 transition group-open:rotate-180" />
           </summary>
           <div className="space-y-5 border-t border-slate-200 p-4">
-            <div className="grid gap-2 sm:grid-cols-[12rem_1fr] sm:items-center">
-              <label className="text-sm font-medium text-slate-800" htmlFor="alignmentAlgorithm">
+            <div className="grid gap-2 sm:grid-cols-[12rem_1fr] sm:items-start">
+              <p className="text-sm font-medium text-slate-800 sm:pt-2.5" id="alignmentAlgorithmLabel">
                 {d.submit.algorithm}
-              </label>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <select
-                  className="h-10 max-w-xs rounded-md border border-slate-300 bg-white px-3 text-sm font-medium text-slate-900 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
-                  id="alignmentAlgorithm"
-                  onChange={(event) => {
-                    setAlgorithm(event.target.value as AlignmentAlgorithm);
+              </p>
+              <div className="space-y-2">
+                <AlgorithmPicker
+                  isDisabled={algorithmUnavailable}
+                  labelledBy="alignmentAlgorithmLabel"
+                  onChange={(value) => {
+                    setAlgorithm(value);
                     setAlgorithmParameterError(null);
                     setFormError(null);
                   }}
                   value={algorithm}
-                >
-                  <option disabled={algorithmUnavailable("auto")} value="auto">{d.submit.algorithms.auto}</option>
-                  <option disabled={algorithmUnavailable("minipoa")} value="minipoa">{d.submit.algorithms.minipoa}</option>
-                  <option disabled={algorithmUnavailable("mafft")} value="mafft">{d.submit.algorithms.mafft}</option>
-                </select>
+                />
                 <p className="text-xs leading-5 text-slate-500">{d.submit.algorithmHint}</p>
               </div>
             </div>
