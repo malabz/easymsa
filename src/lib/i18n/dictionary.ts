@@ -40,7 +40,17 @@ const zh = {
     serviceDegradedDescription: "部分后端工具暂不可用，请稍后再试或选择可用算法。",
     serviceOffline: "无法连接分析服务",
     serviceOfflineDescription: "当前无法访问后端，浏览本地 MSA 不受影响。",
-    queueJobs: "队列 {count} 个任务"
+    queueJobs: "队列 {count} 个任务",
+    algorithmNames: {
+      auto: "自动选择",
+      minipoa: "minipoa",
+      mafft: "MAFFT",
+      mafft_fast: "MAFFT 快速",
+      halign3: "HAlign3",
+      fmalign2_mafft: "FMAlign2 + MAFFT",
+      fmalign2_halign3: "FMAlign2 + HAlign3"
+    },
+    algorithmAutoResolved: "自动选择（实际：{value}）"
   },
   footer: {
     tagline: "友好的多序列比对 Web 工作台。",
