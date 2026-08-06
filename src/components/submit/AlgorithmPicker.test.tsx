@@ -76,7 +76,7 @@ describe("AlgorithmPicker", () => {
     const halign3 = screen.getByRole("radio", { name: /HAlign4/ });
     expect(halign3).toBeDisabled();
 
-    fireEvent.click(screen.getByRole("radio", { name: /MAFFT/ }));
+    fireEvent.click(screen.getByRole("radio", { name: /^MAFFT/ }));
     expect(onChange).toHaveBeenCalledWith("mafft");
   });
 });
