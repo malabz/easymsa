@@ -2,7 +2,15 @@ import type { Locale } from "../i18n/dictionary";
 
 export type InputMethod = "paste" | "upload";
 export type AlignmentAlgorithm = "auto" | "minipoa" | "mafft";
+export type MafftMode = "auto" | "fast" | "localpair" | "globalpair";
 export type PreprocessMode = "audit" | "filter";
+
+export type AlgorithmParameters = {
+  thread?: number;
+  mode?: MafftMode;
+  maxiterate?: number;
+  reorder?: boolean;
+};
 
 export type CreateJobRequest = {
   jobName: string;
@@ -13,7 +21,7 @@ export type CreateJobRequest = {
   email?: string;
   language: Locale;
   algorithm?: AlignmentAlgorithm;
-  algorithmParams?: Record<string, unknown>;
+  algorithmParams?: AlgorithmParameters;
   preprocessMode?: PreprocessMode;
 };
 
@@ -65,6 +73,7 @@ export type PreprocessStatus = {
 
 export type AlgorithmStatus = {
   name: string | null;
+  resolvedName?: string | null;
 };
 
 export type JobDetail = {

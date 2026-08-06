@@ -1,5 +1,9 @@
 export type ResultSummary = {
   jobId: string;
+  algorithm?: {
+    name: string | null;
+    resolvedName?: string | null;
+  };
   metrics: {
     sequenceCount: number | null;
     alignmentLength: number | null;

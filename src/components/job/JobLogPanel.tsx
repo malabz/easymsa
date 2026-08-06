@@ -5,6 +5,7 @@ import {
   CardHeader,
   CardTitle
 } from "../common/Card";
+import { displayAlgorithmLabel } from "../../lib/algorithmNames";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import type { ApiFailure, JobDetail } from "../../lib/types/job";
 
@@ -109,7 +110,12 @@ function addFailureDetailEvents(
   }
 }
 
-function buildEvents(job: JobDetail, labels: LogLabels) {
+function buildEvents(
+  job: JobDetail,
+  labels: LogLabels,
+  algorithmLabels: Record<string, string>,
+  algorithmAutoResolvedTemplate: string
+) {
   const events: LogEntry[] = [
     {
       text: fillTemplate(labels.jobStatus, {
@@ -134,7 +140,14 @@ function buildEvents(job: JobDetail, labels: LogLabels) {
 
   if (job.algorithm.name) {
     events.push({
-      text: fillTemplate(labels.algorithm, { value: job.algorithm.name })
+      text: fillTemplate(labels.algorithm, {
+        value: displayAlgorithmLabel(
+          job.algorithm.name,
+          job.algorithm.resolvedName,
+          algorithmLabels,
+          algorithmAutoResolvedTemplate
+        )
+      })
     });
   }
 
@@ -169,7 +182,12 @@ function buildEvents(job: JobDetail, labels: LogLabels) {
 
 export function JobLogPanel({ job }: { job: JobDetail }) {
   const { dictionary: d } = useLanguage();
-  const logs = buildEvents(job, d.job.logEntries);
+  const logs = buildEvents(
+    job,
+    d.job.logEntries,
+    d.common.algorithmNames,
+    d.common.algorithmAutoResolved
+  );
 
   return (
     <Card>

@@ -21,6 +21,7 @@ import type {
   AlignmentOverviewBase,
   AlignmentOverviewStats
 } from "../../features/msa-viewer/types";
+import { displayAlgorithmLabel } from "../../lib/algorithmNames";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import type { MSAResult, MSASequence } from "../../lib/types/msa";
 import type { ResultSummary } from "../../lib/types/result";
@@ -371,6 +372,17 @@ export function ResultOverview({
         </div>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
           {metrics.map((metric) => <MetricCard {...metric} key={metric.key} />)}
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700">
+            {t.summary.algorithm}:{" "}
+            {displayAlgorithmLabel(
+              summary.algorithm?.name ?? null,
+              summary.algorithm?.resolvedName ?? null,
+              d.common.algorithmNames,
+              d.common.algorithmAutoResolved
+            )}
+          </span>
         </div>
       </section>
 
