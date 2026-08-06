@@ -107,6 +107,38 @@ const zh = {
       minipoa: "minipoa",
       mafft: "MAFFT"
     },
+    algorithmParameters: {
+      title: "算法参数",
+      hint: "参数仅应用于当前任务。留空时由服务器按资源情况选择推荐值。",
+      reset: "恢复服务器默认值",
+      serverDefault: "服务器默认",
+      thread: "线程数",
+      threadHint: "请输入大于等于 1 的整数；留空时由服务器自动分配。",
+      threadHintWithMax: "可填写 1–{max}；留空时由服务器自动分配。",
+      mafftMode: "MAFFT 运行模式",
+      mafftModes: {
+        auto: "自动（--auto）",
+        fast: "快速模式",
+        localpair: "局部配对（--localpair）",
+        globalpair: "全局配对（--globalpair）"
+      },
+      mafftModeDescriptions: {
+        auto: "由 MAFFT 根据输入规模自动选择策略。",
+        fast: "不启用高精度配对策略，适合更快的初步分析。",
+        localpair: "使用局部配对信息，适合包含局部同源区域的序列。",
+        globalpair: "使用全局配对信息，适合长度接近且整体同源的序列。"
+      },
+      maxiterate: "最大迭代次数",
+      maxiterateHint: "允许 0–1000；增加迭代可能提高精度，也会增加运行时间。",
+      reorder: "按比对结果重新排序",
+      reorderHint: "允许 MAFFT 改变输出序列顺序；关闭时尽量保留输入顺序。",
+      errors: {
+        threadInteger: "线程数必须是整数。",
+        threadRange: "线程数超出服务器允许范围。",
+        maxiterateInteger: "最大迭代次数必须是整数。",
+        maxiterateRange: "最大迭代次数必须在 0–1000 之间。"
+      }
+    },
     preprocessMode: "预处理模式",
     preprocessModes: {
       audit: "检查模式",
@@ -143,6 +175,7 @@ const zh = {
       email: "请输入合法邮箱地址，或留空。",
       paste: "当前粘贴内容不是可提交的 FASTA。",
       upload: "请选择一个受支持的输入文件。",
+      algorithmParams: "请检查高级设置中的算法参数。",
       submitFailed: "提交失败，请稍后再试。"
     }
   },
@@ -340,7 +373,8 @@ const zh = {
       },
       summary: {
         title: "结果摘要",
-        description: "服务端结果与完整可视化预览的核心质量指标。"
+        description: "服务端结果与完整可视化预览的核心质量指标。",
+        algorithm: "比对方法"
       },
       preprocess: {
         title: "预处理概况",
@@ -677,7 +711,17 @@ const en: typeof zh = {
     serviceDegradedDescription: "Some backend tools are unavailable. Try again later or choose an available algorithm.",
     serviceOffline: "Analysis service unreachable",
     serviceOfflineDescription: "The backend cannot be reached. Local MSA viewing remains available.",
-    queueJobs: "{count} jobs queued"
+    queueJobs: "{count} jobs queued",
+    algorithmNames: {
+      auto: "Auto",
+      minipoa: "minipoa",
+      mafft: "MAFFT",
+      mafft_fast: "MAFFT fast",
+      halign3: "HAlign3",
+      fmalign2_mafft: "FMAlign2 + MAFFT",
+      fmalign2_halign3: "FMAlign2 + HAlign3"
+    },
+    algorithmAutoResolved: "Auto (actual: {value})"
   },
   footer: {
     tagline: "A friendly web workspace for multiple sequence alignment.",
@@ -744,6 +788,38 @@ const en: typeof zh = {
       minipoa: "minipoa",
       mafft: "MAFFT"
     },
+    algorithmParameters: {
+      title: "Algorithm parameters",
+      hint: "Parameters apply to this job only. Leave a field blank to let the server choose its recommended value for available resources.",
+      reset: "Restore server defaults",
+      serverDefault: "Server default",
+      thread: "Threads",
+      threadHint: "Enter an integer of 1 or greater, or leave blank for automatic server allocation.",
+      threadHintWithMax: "Enter 1–{max}, or leave blank for automatic server allocation.",
+      mafftMode: "MAFFT mode",
+      mafftModes: {
+        auto: "Automatic (--auto)",
+        fast: "Fast",
+        localpair: "Local pair (--localpair)",
+        globalpair: "Global pair (--globalpair)"
+      },
+      mafftModeDescriptions: {
+        auto: "Let MAFFT select a strategy based on the input size.",
+        fast: "Skip high-accuracy pairwise strategies for a faster initial analysis.",
+        localpair: "Use local pairwise information for sequences with local homology.",
+        globalpair: "Use global pairwise information for similar-length, globally homologous sequences."
+      },
+      maxiterate: "Maximum iterations",
+      maxiterateHint: "Allowed range: 0–1000. More iterations can improve accuracy but increase runtime.",
+      reorder: "Reorder aligned sequences",
+      reorderHint: "Allow MAFFT to change output sequence order; leave off to preserve input order where possible.",
+      errors: {
+        threadInteger: "Threads must be an integer.",
+        threadRange: "Threads exceed the range allowed by the server.",
+        maxiterateInteger: "Maximum iterations must be an integer.",
+        maxiterateRange: "Maximum iterations must be between 0 and 1000."
+      }
+    },
     preprocessMode: "Preprocess mode",
     preprocessModes: {
       audit: "Audit",
@@ -780,6 +856,7 @@ const en: typeof zh = {
       email: "Enter a valid email address, or leave it blank.",
       paste: "The pasted content is not a valid FASTA input.",
       upload: "Choose a supported input file.",
+      algorithmParams: "Check the algorithm parameters in advanced settings.",
       submitFailed: "Submission failed. Please try again later."
     }
   },
@@ -977,7 +1054,8 @@ const en: typeof zh = {
       },
       summary: {
         title: "Result summary",
-        description: "Core quality metrics from the server result and the complete visual preview."
+        description: "Core quality metrics from the server result and the complete visual preview.",
+        algorithm: "Alignment method"
       },
       preprocess: {
         title: "Preprocessing overview",

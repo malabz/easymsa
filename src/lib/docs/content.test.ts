@@ -30,6 +30,10 @@ describe("documentation content", () => {
       expect(text).toMatch(/reference/i);
       expect(text).toMatch(/SVG/);
       expect(text).toMatch(/PNG/);
+      expect(text).toMatch(/algorithm_params/);
+      expect(text).toMatch(/maxiterate/);
+      expect(text).toMatch(/localpair/);
+      expect(text).toMatch(/reorder/);
     }
   });
 

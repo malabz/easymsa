@@ -132,7 +132,7 @@ const zh: DocsSection[] = [
     id: "submit-preprocess",
     title: "提交与预处理",
     summary: "配置任务名称、通知、比对算法和预处理行为。",
-    keywords: ["算法", "minipoa", "MAFFT", "auto", "audit", "filter", "邮件"],
+    keywords: ["算法", "minipoa", "MAFFT", "auto", "thread", "maxiterate", "reorder", "audit", "filter", "邮件"],
     articles: [
       {
         id: "job-settings",
@@ -150,7 +150,15 @@ const zh: DocsSection[] = [
             ["Auto", "让当前服务配置选择可用的默认算法。"],
             ["minipoa", "EasyMSA 当前快速工作流的默认实现。"],
             ["MAFFT", "需要明确使用 MAFFT 或与既有 MAFFT 流程保持一致时。"]
-          ] }
+          ] },
+          { type: "paragraph", text: "高级设置中的算法参数只影响当前任务。所有输入都会在前端检查，并由后端再次验证；恢复服务器默认值会停止发送自定义 algorithm_params。" },
+          { type: "table", headers: ["参数", "适用算法", "含义与范围"], rows: [
+            ["thread", "Auto、minipoa、MAFFT", "线程数；留空由服务器自动分配，上限以当前服务器资源配置为准。"],
+            ["mode", "MAFFT", "auto、fast、localpair 或 globalpair；根据速度与局部/全局同源假设选择。"],
+            ["maxiterate", "MAFFT", "最大迭代次数，允许 0–1000；较大的值通常需要更多运行时间。"],
+            ["reorder", "MAFFT", "允许 MAFFT 根据比对结果重新排列输出序列。"]
+          ] },
+          { type: "callout", tone: "info", title: "记录可复现参数", body: "自定义参数可能改变运行时间、输出顺序和比对结果。用于科研分析时，请在实验记录中保存算法名称及参数值。" }
         ]
       },
       {
@@ -443,7 +451,7 @@ const en: DocsSection[] = [
     id: "submit-preprocess",
     title: "Submission and preprocessing",
     summary: "Configure the task name, notification, alignment algorithm, and preprocessing behavior.",
-    keywords: ["algorithm", "minipoa", "MAFFT", "auto", "audit", "filter", "email"],
+    keywords: ["algorithm", "minipoa", "MAFFT", "auto", "thread", "maxiterate", "reorder", "audit", "filter", "email"],
     articles: [
       {
         id: "job-settings",
@@ -461,7 +469,15 @@ const en: DocsSection[] = [
             ["Auto", "Let the current service configuration select its available default."],
             ["minipoa", "The current default implementation for EasyMSA's fast workflow."],
             ["MAFFT", "Use when MAFFT is explicitly required or consistency with an existing MAFFT workflow matters."]
-          ] }
+          ] },
+          { type: "paragraph", text: "Algorithm parameters in advanced settings apply to the current task only. Inputs are checked in the browser and validated again by the backend; restoring server defaults stops sending custom algorithm_params." },
+          { type: "table", headers: ["Parameter", "Algorithms", "Meaning and range"], rows: [
+            ["thread", "Auto, minipoa, MAFFT", "Thread count. Leave blank for server allocation; the upper bound follows the current server resource configuration."],
+            ["mode", "MAFFT", "auto, fast, localpair, or globalpair, selected according to speed and local/global homology assumptions."],
+            ["maxiterate", "MAFFT", "Maximum iteration count from 0 to 1000; larger values usually require more runtime."],
+            ["reorder", "MAFFT", "Allow MAFFT to reorder output sequences based on the alignment result."]
+          ] },
+          { type: "callout", tone: "info", title: "Record parameters for reproducibility", body: "Custom parameters can change runtime, output order, and the alignment itself. For research use, record the algorithm name and parameter values with the experiment." }
         ]
       },
       {
