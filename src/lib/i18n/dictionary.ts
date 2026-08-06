@@ -46,7 +46,7 @@ const zh = {
       minipoa: "minipoa",
       mafft: "MAFFT",
       mafft_fast: "MAFFT 快速",
-      halign3: "HAlign3",
+      halign3: "HAlign4",
       fmalign2_mafft: "FMAlign2 + MAFFT",
       fmalign2_halign3: "FMAlign2 + HAlign3"
     },
@@ -112,13 +112,13 @@ const zh = {
     selectedAlgorithmUnavailable: "当前选择的比对算法不可用，请在高级设置中改选可用算法。",
     algorithm: "比对方法",
     algorithmHint:
-      "自动模式由后端根据序列数量、长度与相似性特征，在 minipoa、MAFFT、HAlign3 与 FMAlign2 之间选择；也可以直接指定方法。",
+      "自动模式由后端根据序列数量、长度与相似性特征，在 minipoa、MAFFT、HAlign4 与 FMAlign2 之间选择；也可以直接指定方法。",
     adaptiveBadge: "推荐 · 自适应",
     algorithms: {
       auto: "自动选择（自适应）",
       minipoa: "minipoa",
       mafft: "MAFFT",
-      halign3: "HAlign3",
+      halign3: "HAlign4",
       fmalign2_mafft: "FMAlign2 + MAFFT",
       fmalign2_halign3: "FMAlign2 + HAlign3"
     },
@@ -126,7 +126,7 @@ const zh = {
       auto: "后端根据输入特征自动选择合适的方法，并在完成后显示实际使用的工具。",
       minipoa: "快速部分有序比对，适合较大的近缘序列集。",
       mafft: "经典多序列比对，提供多种模式与迭代参数。",
-      halign3: "面向大体量 DNA/RNA 的高速比对，内存占用较高。",
+      halign3: "面向超大规模 DNA/RNA 的原生高速比对，内存占用较高。",
       fmalign2_mafft: "FMAlign2 框架内置 MAFFT 后端，两步式加速比对。",
       fmalign2_halign3: "FMAlign2 框架内置 HAlign3 后端，适合大体量数据。"
     },
@@ -750,7 +750,7 @@ const en: typeof zh = {
       minipoa: "minipoa",
       mafft: "MAFFT",
       mafft_fast: "MAFFT fast",
-      halign3: "HAlign3",
+      halign3: "HAlign4",
       fmalign2_mafft: "FMAlign2 + MAFFT",
       fmalign2_halign3: "FMAlign2 + HAlign3"
     },
@@ -816,13 +816,13 @@ const en: typeof zh = {
     selectedAlgorithmUnavailable: "The selected alignment algorithm is unavailable. Choose an available algorithm in advanced settings.",
     algorithm: "Alignment method",
     algorithmHint:
-      "Auto lets the backend choose among minipoa, MAFFT, HAlign3, and FMAlign2 based on sequence count, length, and similarity; you can also pick a method directly.",
+      "Auto lets the backend choose among minipoa, MAFFT, HAlign4, and FMAlign2 based on sequence count, length, and similarity; you can also pick a method directly.",
     adaptiveBadge: "Recommended · Adaptive",
     algorithms: {
       auto: "Auto (adaptive)",
       minipoa: "minipoa",
       mafft: "MAFFT",
-      halign3: "HAlign3",
+      halign3: "HAlign4",
       fmalign2_mafft: "FMAlign2 + MAFFT",
       fmalign2_halign3: "FMAlign2 + HAlign3"
     },
@@ -830,7 +830,7 @@ const en: typeof zh = {
       auto: "The backend selects a suitable method from input features and shows the actual tool after completion.",
       minipoa: "Fast partial-order alignment for larger, closely related sequence sets.",
       mafft: "Classic multiple sequence alignment with multiple modes and iteration parameters.",
-      halign3: "High-speed alignment for large DNA/RNA datasets; higher memory usage.",
+      halign3: "Native high-speed alignment for ultra-large DNA/RNA datasets; higher memory usage.",
       fmalign2_mafft: "FMAlign2 framework with a built-in MAFFT backend.",
       fmalign2_halign3: "FMAlign2 framework with a built-in HAlign3 backend for large datasets."
     },
