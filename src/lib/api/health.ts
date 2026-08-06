@@ -19,6 +19,10 @@ export type QueueHealthResponse = {
   queueLength?: number;
 };
 
+export type ResourceHealthResponse = {
+  resolvedMaxThreadPerJob?: number;
+};
+
 export type ServiceHealthStatus = "ready" | "degraded" | "offline";
 
 export type ServiceHealth = {
@@ -29,6 +33,7 @@ export type ServiceHealth = {
   queueLength: number | null;
   preprocessAvailable: boolean;
   algorithms: Record<string, boolean>;
+  maxThreadPerJob: number | null;
 };
 
 async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
@@ -42,7 +47,8 @@ async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
 export function deriveServiceHealth(
   core: CoreHealthResponse,
   tools: ToolHealthResponse,
-  queue: QueueHealthResponse
+  queue: QueueHealthResponse,
+  resources: ResourceHealthResponse = {}
 ): ServiceHealth {
   const coreReady = core.status === "ok" || core.status === "healthy";
   const preprocessAvailable = tools.easymsaPrep?.available === true;
@@ -58,16 +64,21 @@ export function deriveServiceHealth(
     queueLength:
       typeof queue.queueLength === "number" ? queue.queueLength : null,
     preprocessAvailable,
-    algorithms
+    algorithms,
+    maxThreadPerJob:
+      typeof resources.resolvedMaxThreadPerJob === "number"
+        ? resources.resolvedMaxThreadPerJob
+        : null
   };
 }
 
 export async function getServiceHealth(signal?: AbortSignal): Promise<ServiceHealth> {
-  const [core, tools, queue] = await Promise.all([
+  const [core, tools, queue, resources] = await Promise.all([
     getJson<CoreHealthResponse>("/health", signal),
     getJson<ToolHealthResponse>("/health/tools", signal),
-    getJson<QueueHealthResponse>("/health/queue", signal)
+    getJson<QueueHealthResponse>("/health/queue", signal),
+    getJson<ResourceHealthResponse>("/health/resources", signal).catch(() => ({}))
   ]);
 
-  return deriveServiceHealth(core, tools, queue);
+  return deriveServiceHealth(core, tools, queue, resources);
 }

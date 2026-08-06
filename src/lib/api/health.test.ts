@@ -9,13 +9,15 @@ describe("deriveServiceHealth", () => {
         easymsaPrep: { available: true },
         algorithms: { auto: true, minipoa: true, mafft: false }
       },
-      { queueName: "msa", queueLength: 3 }
+      { queueName: "msa", queueLength: 3 },
+      { resolvedMaxThreadPerJob: 8 }
     );
 
     expect(health.status).toBe("ready");
     expect(health.acceptingJobs).toBe(true);
     expect(health.queueLength).toBe(3);
     expect(health.algorithms.mafft).toBe(false);
+    expect(health.maxThreadPerJob).toBe(8);
   });
 
   it("marks missing preprocessing support as degraded", () => {
@@ -27,5 +29,6 @@ describe("deriveServiceHealth", () => {
 
     expect(health.status).toBe("degraded");
     expect(health.acceptingJobs).toBe(false);
+    expect(health.maxThreadPerJob).toBeNull();
   });
 });

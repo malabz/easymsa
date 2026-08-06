@@ -15,7 +15,7 @@ export type CreateJobResponse = {
   createdAt?: string;
 };
 
-function toFormData(request: CreateJobRequest) {
+export function toFormData(request: CreateJobRequest) {
   const formData = new FormData();
   formData.set("job_name", request.jobName);
   formData.set("algorithm", request.algorithm ?? "auto");

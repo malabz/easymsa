@@ -8,6 +8,12 @@ import { createJob } from "../../lib/api/jobs";
 import { jobRoute } from "../../lib/api/tokens";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import { useServiceHealth } from "../../lib/query/useServiceHealth";
+import {
+  DEFAULT_ALGORITHM_PARAMETER_DRAFT,
+  type AlgorithmParameterDraft,
+  type AlgorithmParameterError,
+  validateAlgorithmParameters
+} from "../../lib/submit/algorithmParameters";
 import type {
   AlignmentAlgorithm,
   InputMethod,
@@ -18,6 +24,7 @@ import { EXAMPLE_FASTA } from "../../lib/utils/exampleFasta";
 import { validateInputFile } from "../../lib/utils/fileValidation";
 import { Button } from "../common/Button";
 import { ServiceStatus } from "../common/ServiceStatus";
+import { AlgorithmParameterFields } from "./AlgorithmParameterFields";
 import { FileUploadCard } from "./FileUploadCard";
 import { InputMethodTabs } from "./InputMethodTabs";
 import { PasteSequenceInput } from "./PasteSequenceInput";
@@ -35,6 +42,12 @@ export function SubmitJobForm() {
   const navigate = useNavigate();
   const [inputMethod, setInputMethod] = useState<InputMethod>("paste");
   const [algorithm, setAlgorithm] = useState<AlignmentAlgorithm>("auto");
+  const [algorithmParameterDraft, setAlgorithmParameterDraft] =
+    useState<AlgorithmParameterDraft>({ ...DEFAULT_ALGORITHM_PARAMETER_DRAFT });
+  const [algorithmParameterError, setAlgorithmParameterError] = useState<{
+    field: "thread" | "mafftMaxiterate";
+    error: AlgorithmParameterError;
+  } | null>(null);
   const [preprocessMode, setPreprocessMode] = useState<PreprocessMode>("audit");
   const [pastedSequence, setPastedSequence] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -90,6 +103,13 @@ export function SubmitJobForm() {
     serviceHealth.isError ||
     serviceHealth.data?.acceptingJobs === false ||
     selectedAlgorithmBlocked;
+  const maxThreadPerJob = serviceHealth.data?.maxThreadPerJob ?? null;
+
+  function handleAlgorithmParameterChange(value: AlgorithmParameterDraft) {
+    setAlgorithmParameterDraft(value);
+    setAlgorithmParameterError(null);
+    setFormError(null);
+  }
 
   function handleMethodChange(method: InputMethod) {
     setInputMethod(method);
@@ -112,6 +132,17 @@ export function SubmitJobForm() {
       return;
     }
 
+    const parameterValidation = validateAlgorithmParameters(
+      algorithm,
+      algorithmParameterDraft,
+      maxThreadPerJob
+    );
+    if (!parameterValidation.valid) {
+      setAlgorithmParameterError(parameterValidation);
+      setFormError(d.submit.errors.algorithmParams);
+      return;
+    }
+
     try {
       setSubmitting(true);
       const response = await createJob({
@@ -123,6 +154,7 @@ export function SubmitJobForm() {
         email: values.email.trim() || undefined,
         language: locale,
         algorithm,
+        algorithmParams: parameterValidation.params,
         preprocessMode
       });
 
@@ -216,7 +248,11 @@ export function SubmitJobForm() {
                 <select
                   className="h-10 max-w-xs rounded-md border border-slate-300 bg-white px-3 text-sm font-medium text-slate-900 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
                   id="alignmentAlgorithm"
-                  onChange={(event) => setAlgorithm(event.target.value as AlignmentAlgorithm)}
+                  onChange={(event) => {
+                    setAlgorithm(event.target.value as AlignmentAlgorithm);
+                    setAlgorithmParameterError(null);
+                    setFormError(null);
+                  }}
                   value={algorithm}
                 >
                   <option disabled={algorithmUnavailable("auto")} value="auto">{d.submit.algorithms.auto}</option>
@@ -226,6 +262,19 @@ export function SubmitJobForm() {
                 <p className="text-xs leading-5 text-slate-500">{d.submit.algorithmHint}</p>
               </div>
             </div>
+
+            <AlgorithmParameterFields
+              algorithm={algorithm}
+              error={algorithmParameterError}
+              maxThreadPerJob={maxThreadPerJob}
+              onChange={handleAlgorithmParameterChange}
+              onReset={() => {
+                setAlgorithmParameterDraft({ ...DEFAULT_ALGORITHM_PARAMETER_DRAFT });
+                setAlgorithmParameterError(null);
+                setFormError(null);
+              }}
+              value={algorithmParameterDraft}
+            />
 
             <div className="grid gap-3 sm:grid-cols-[12rem_1fr]">
               <p className="text-sm font-medium text-slate-800 sm:pt-2.5" id="preprocessModeLabel">
