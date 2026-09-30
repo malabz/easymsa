@@ -281,11 +281,11 @@ const zh: DocsSection[] = [
         keywords: ["缩略图", "缩放", "序列 ID", "命中", "键盘"],
         blocks: [
           { type: "list", items: [
-            "点击或拖动顶部概览导航图可以快速移动当前视窗。",
-            "按序列 ID 搜索可过滤显示行；列筛选可聚焦变异、高保守或低 gap 列。",
-            "motif 搜索支持 IUPAC 模糊碱基，可在命中列表中前后跳转。",
-            "低缩放使用 Canvas 保证性能，高缩放自动切换为可点击和键盘操作的 DOM 单元格。",
-            "方向键移动当前单元格，Shift 扩展列范围，也可以用鼠标拖拽选择区间。"
+            "点击或拖动顶部概览导航图可以快速移动当前视窗；概览始终使用原始 alignment 坐标，即使列筛选后也不会按压缩比例重映射。",
+            "按序列名称搜索只改变可见行。科学指标默认使用全部行；只有显式切换 Analysis scope 为“可见行”或“已选行”时才改变分析样本。",
+            "motif 搜索只自动移除空白，gap 或非法符号会直接报错，不会被静默删除；可选择严格/可能匹配和正向/双链搜索。",
+            "矩阵只有一个键盘 Tab 入口。方向键移动，Home/End、PageUp/PageDown 跨区导航，Shift 扩展选区并自动滚动。",
+            "低缩放使用 Canvas、高缩放使用 DOM；两种渲染共享同一 viewport、当前单元格、reference 和选择状态。"
           ] },
           { type: "code", label: "IUPAC motif 示例", language: "text", code: "ATGRY\nR = A/G\nY = C/T" }
         ]
@@ -298,9 +298,10 @@ const zh: DocsSection[] = [
         blocks: [
           { type: "list", items: [
             "任意序列都可以设为 reference；系统不会默认把第一条序列当作参考。",
-            "reference 会固定在顶部，差异视图弱化匹配位点并区分替换、插入和缺失。",
-            "参考坐标会跳过 reference 中的 gap，可在比对坐标和参考坐标之间切换。",
-            "检查器会显示当前单元格、列和区间统计；存在 reference 时还显示 mismatch、transition/transversion 等统计。"
+            "reference 会固定在顶部；差异分为 match、compatible ambiguity、substitution、insertion、deletion、empty 和 unknown。",
+            "参考 gap 列使用稳定 interbase 坐标，例如 12+1、12+2；reference 首碱基前的插入从 0+1 开始。",
+            "Ti/Tv 只统计双方均为确定 canonical 碱基的 substitution；模糊替换单列为未分类替换。",
+            "检查器和区间统计同时报告有效比较分母、差异绝对数与差异率，不把不可判定字符塞入 transversion。"
           ] }
         ]
       },
@@ -312,12 +313,26 @@ const zh: DocsSection[] = [
         blocks: [
           { type: "list", items: [
             "可切换 conservation、gap、coverage 和 Shannon entropy 轨道。",
-            "序列行可以固定、隐藏、多选，并只导出选中行。",
+            "序列行可以固定、隐藏、多选、批量操作和添加 note、review 或 exclude-candidate 标记；标记不会删除或自动排除源数据。",
             "Consensus 可在确定性多数规则与 IUPAC ambiguity 模式之间切换。",
-            "FASTA 导出支持当前可见数据、选中区间和区间 consensus。",
-            "SVG/PNG 导出会保留当前配色、reference 差异模式、统计轨道与选择范围。"
+            "FASTA、SVG 和 PNG 使用相同的四种范围：当前 viewport、连续 selected interval、完整 filtered view、原始 full alignment。",
+            "QC bundle 包含主文件、manifest.json、rows.tsv，并在非连续列或存在标记时加入 columns.tsv 与 annotations.tsv；仅裸文件模式不具备完整复现信息。"
           ] },
-          { type: "callout", tone: "tip", title: "偏好不会修改任务结果", body: "reference、配色、轨道、密度等查看偏好只保存在浏览器本地，不会写回服务端结果。" }
+          { type: "callout", tone: "tip", title: "工作区按比对指纹保存", body: "reference、scope、筛选、选区、布局和 QC 标记按规范化 alignment SHA-256 分区保存在浏览器本地，不会写回服务端，也不会写入 token、URL 查询参数或本机绝对路径。" }
+        ]
+      },
+      {
+        id: "workspace-modes",
+        title: "科研 QC 工作区与输入模式",
+        summary: "了解沉浸工作区、重复 header 和中性只读模式。",
+        keywords: ["工作区", "rowKey", "重复 header", "neutral", "蛋白", "不等长"],
+        blocks: [
+          { type: "list", items: [
+            "展开工作区会使用浏览器视口的完整高度；退出后恢复页面滚动位置和触发按钮焦点。",
+            "内部 rowKey 区分重复 FASTA header，因此同名序列仍能分别选择、固定、隐藏、设为 reference 和标记。",
+            "只有合法、等长的 DNA/RNA 或 IUPAC 核酸 alignment 启用科学统计。蛋白质、未知字符和不等长 FASTA 进入中性只读模式。",
+            "中性模式保留原始字符浏览、名称搜索和原始 FASTA 下载，但不会把尾部空白解释为 gap、deletion 或低 coverage。"
+          ] }
         ]
       }
     ]
@@ -334,13 +349,14 @@ const zh: DocsSection[] = [
         summary: "所有查看器统计都基于当前加载的完整可视化 alignment。",
         keywords: ["conservation", "coverage", "gap fraction", "Shannon entropy"],
         blocks: [
-          { type: "table", headers: ["指标", "含义", "阅读方式"], rows: [
-            ["Conservation", "非 gap 碱基中，占比最高碱基的比例。", "越接近 100%，该列越一致。"],
-            ["Coverage", "该列含有非 gap 碱基的序列比例。", "越高表示该列被更多序列覆盖。"],
-            ["Gap fraction", "该列 gap 或空位的比例。", "高值可能提示插入缺失或局部覆盖不足。"],
-            ["Shannon entropy", "该列非 gap 碱基组成的多样性，并归一化到 0–1。", "越高表示碱基分布越分散。"],
-            ["Consensus", "按确定性多数规则或 IUPAC 平票规则生成的代表碱基。", "它是摘要，不等同于真实参考序列。"],
-            ["GC%", "G 和 C 占 A/C/G/T/U 的比例。", "N、其他模糊字符和 gap 不进入 GC 分母。"]
+          { type: "table", headers: ["指标", "nucleotide-v2 定义", "阅读方式"], rows: [
+            ["Coverage", "非 gap 行数 / 总行数。", "模糊碱基计入 coverage。"],
+            ["Informative coverage", "canonical A/C/G/T(U) 行数 / 总行数。", "只表示可确定碱基的覆盖。"],
+            ["Conservation", "dominant canonical count / canonical count；无 canonical 时不可用。", "越接近 100%，确定碱基越一致。"],
+            ["Gap fraction", "gap 行数 / 总行数。", "高值可能提示 indel 或局部覆盖不足。"],
+            ["Shannon entropy", "仅基于 canonical 的 −Σ p log2(p)，单位 bits；normalized entropy = entropy bits / 2。", "A/C/G/T 等频时为 2 bits、归一化为 1。"],
+            ["Consensus", "canonical 多数；平票时 majority 用确定性顺序并标记 tie，IUPAC 模式输出并列集合对应码；无 canonical 输出 N。", "Consensus 是摘要，不是真实 reference。"],
+            ["GC%", "(G + C) / (A + C + G + T/U)。", "N、其他模糊字符和 gap 不进入分母。"]
           ] }
         ]
       },
@@ -352,7 +368,8 @@ const zh: DocsSection[] = [
         blocks: [
           { type: "callout", tone: "warning", title: "结合实验设计解释", body: "高 entropy、gap 或 mismatch 可能来自真实变异、测序质量、方向问题、输入截断或比对错误。应结合样本来源和分析目的判断。" },
           { type: "list", items: [
-            "当前配色和统计优先面向 DNA/RNA，不提供蛋白专用指标。",
+            "R/Y/S/W/K/M/B/D/H/V/N 计入 ambiguity，但不进入 conservation、entropy、GC、Ti/Tv 或确定性 consensus 的分母；ambiguity 本身不会制造变异列。",
+            "蛋白质、非法字符、无法可靠判断的字母表和不等长 FASTA 不提供 GC、IUPAC、Ti/Tv、conservation 或 consensus。",
             "Consensus 不是系统自动选择的 reference；差异分析必须由用户显式设置 reference。",
             "结果超过预览限制时，页面不会基于抽样序列推断这些指标。"
           ] }
@@ -604,11 +621,11 @@ const en: DocsSection[] = [
         keywords: ["minimap", "zoom", "sequence ID", "matches", "keyboard"],
         blocks: [
           { type: "list", items: [
-            "Click or drag the overview navigator to move the current viewport.",
-            "Search by sequence ID to filter rows; column filters isolate variable, highly conserved, or low-gap columns.",
-            "Motif search accepts IUPAC ambiguity codes and supports previous/next navigation plus a match list.",
-            "Low zoom uses Canvas for performance; high zoom switches to keyboard-accessible, clickable DOM cells.",
-            "Arrow keys move the selected cell, Shift extends the column range, and pointer dragging selects a region."
+            "Click or drag the overview navigator to move the viewport. It always maps full alignment coordinates, even when a column filter is active.",
+            "Sequence-name search changes visible rows only. Scientific metrics use all rows by default and change only when Analysis scope is explicitly set to Visible or Selected.",
+            "Motif search removes whitespace only. Gaps and invalid symbols produce validation errors; strict/possible matching and forward/both-strand search are explicit controls.",
+            "The matrix has one keyboard Tab stop. Arrow keys move; Home/End and PageUp/PageDown navigate farther; Shift extends the range with automatic scrolling.",
+            "Low zoom uses Canvas and high zoom uses DOM; both renderers share the same viewport, active cell, reference, and selection state."
           ] },
           { type: "code", label: "IUPAC motif example", language: "text", code: "ATGRY\nR = A/G\nY = C/T" }
         ]
@@ -621,9 +638,10 @@ const en: DocsSection[] = [
         blocks: [
           { type: "list", items: [
             "Any sequence may be the reference; the first sequence is never assumed automatically.",
-            "The reference remains pinned at the top, and difference mode distinguishes substitutions, insertions, and deletions while fading matches.",
-            "Reference coordinates skip gaps in the reference and can be toggled against alignment coordinates.",
-            "The inspector reports cell, column, and range statistics; with a reference it also reports mismatch and transition/transversion statistics."
+            "The reference remains pinned. Differences are match, compatible ambiguity, substitution, insertion, deletion, empty, or unknown.",
+            "Reference-gap columns use stable interbase coordinates such as 12+1 and 12+2; insertions before the first reference base begin at 0+1.",
+            "Ti/Tv includes substitutions only when both sides are unambiguous canonical bases; ambiguous substitutions are reported as unclassified.",
+            "The inspector and range statistics show the valid comparison denominator, absolute difference count, and difference rate."
           ] }
         ]
       },
@@ -635,12 +653,26 @@ const en: DocsSection[] = [
         blocks: [
           { type: "list", items: [
             "Toggle conservation, gap, coverage, and Shannon entropy tracks.",
-            "Rows can be pinned, hidden, multi-selected, and exported as selected rows only.",
+            "Rows can be pinned, hidden, multi-selected, batch-operated, and annotated as note, review, or exclude-candidate; annotations never delete or automatically exclude source data.",
             "Consensus can use deterministic majority or IUPAC ambiguity mode.",
-            "FASTA export supports current visible data, a selected region, and region consensus.",
-            "SVG and PNG export preserve the current colors, reference difference mode, statistical tracks, and selection."
+            "FASTA, SVG, and PNG share four regions: viewport, continuous selected interval, complete filtered view, and original full alignment.",
+            "A QC bundle includes the primary file, manifest.json, rows.tsv, and—when needed—columns.tsv and annotations.tsv. Bare-file mode omits complete reproducibility metadata."
           ] },
-          { type: "callout", tone: "tip", title: "Preferences do not modify task results", body: "Reference, colors, tracks, and density are stored locally in the browser and are never written back to server results." }
+          { type: "callout", tone: "tip", title: "Workspaces are keyed by alignment fingerprint", body: "Reference, scope, filters, selection, layout, and QC annotations are stored locally by normalized alignment SHA-256. They are not written to the server and never include tokens, URL queries, or absolute local paths." }
+        ]
+      },
+      {
+        id: "workspace-modes",
+        title: "Scientific QC workspace and input modes",
+        summary: "Understand immersive layout, duplicate headers, and neutral read-only mode.",
+        keywords: ["workspace", "rowKey", "duplicate header", "neutral", "protein", "unequal"],
+        blocks: [
+          { type: "list", items: [
+            "Immersive workspace mode fills the browser viewport and restores page scroll and trigger focus when closed.",
+            "Internal rowKey identities distinguish duplicate FASTA headers, so same-named rows can still be selected, pinned, hidden, referenced, and annotated independently.",
+            "Scientific metrics are enabled only for legal, equal-length DNA/RNA or IUPAC nucleotide alignments. Proteins, unknown symbols, and unequal FASTA enter neutral read-only mode.",
+            "Neutral mode keeps raw-character browsing, name search, and raw FASTA download, but never interprets missing tails as gaps, deletions, or low coverage."
+          ] }
         ]
       }
     ]
@@ -657,13 +689,14 @@ const en: DocsSection[] = [
         summary: "Viewer statistics use the complete alignment currently loaded for visualization.",
         keywords: ["conservation", "coverage", "gap fraction", "Shannon entropy"],
         blocks: [
-          { type: "table", headers: ["Metric", "Meaning", "How to read it"], rows: [
-            ["Conservation", "The largest base fraction among non-gap observations.", "Values near 100% indicate stronger agreement."],
-            ["Coverage", "The fraction of sequences with a non-gap base in the column.", "Higher values mean more sequences cover the position."],
-            ["Gap fraction", "The fraction of gaps or empty cells in the column.", "High values may reflect indels or limited local coverage."],
-            ["Shannon entropy", "Diversity of non-gap base composition, normalized to 0–1.", "Higher values indicate a more dispersed base distribution."],
-            ["Consensus", "A representative base from deterministic majority or IUPAC tie handling.", "It is a summary, not a biological reference sequence."],
-            ["GC content", "G and C divided by A/C/G/T/U.", "N, other ambiguities, and gaps are excluded from the denominator."]
+          { type: "table", headers: ["Metric", "nucleotide-v2 definition", "How to read it"], rows: [
+            ["Coverage", "Non-gap rows / total rows.", "Ambiguous bases count toward coverage."],
+            ["Informative coverage", "Canonical A/C/G/T(U) rows / total rows.", "Measures coverage by determinate bases only."],
+            ["Conservation", "Dominant canonical count / canonical count; unavailable with no canonical observation.", "Values near 100% indicate stronger canonical agreement."],
+            ["Gap fraction", "Gap rows / total rows.", "High values may reflect indels or limited local coverage."],
+            ["Shannon entropy", "−Σ p log2(p) over canonical bases, in bits; normalized entropy = entropy bits / 2.", "Equal A/C/G/T gives 2 bits and normalized value 1."],
+            ["Consensus", "Canonical majority; deterministic marked tie in majority mode, IUPAC code for tied maxima in IUPAC mode, N when no canonical base exists.", "It is a summary, not a biological reference sequence."],
+            ["GC content", "(G + C) / (A + C + G + T/U).", "N, other ambiguities, and gaps are excluded from the denominator."]
           ] }
         ]
       },
@@ -675,7 +708,8 @@ const en: DocsSection[] = [
         blocks: [
           { type: "callout", tone: "warning", title: "Interpret in the context of study design", body: "High entropy, gaps, or mismatches may represent real variation, sequencing quality, orientation problems, truncated input, or alignment error. Evaluate them against sample provenance and analysis goals." },
           { type: "list", items: [
-            "Current colors and statistics prioritize DNA/RNA and do not provide protein-specific metrics.",
+            "R/Y/S/W/K/M/B/D/H/V/N count as ambiguity but are excluded from conservation, entropy, GC, Ti/Tv, and determinate-consensus denominators; ambiguity alone does not create a variable column.",
+            "Protein, illegal-symbol, uncertain-alphabet, and unequal-length FASTA inputs do not show GC, IUPAC, Ti/Tv, conservation, or consensus metrics.",
             "Consensus is not an automatically selected reference; difference analysis requires an explicit user-selected reference.",
             "When a result exceeds preview limits, these metrics are not inferred from a sequence sample."
           ] }

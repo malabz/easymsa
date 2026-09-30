@@ -1,18 +1,25 @@
 import {
   useEffect,
+  useMemo,
   useRef,
-  type KeyboardEvent,
   type RefObject
 } from "react";
-import { useLanguage } from "../../lib/i18n/useLanguage";
 import { msaCellColorStyle, type MSAColorScheme } from "../msa-export/exportColors";
 import type { MSASequence } from "../../lib/types/msa";
 import { classifyDifference } from "./analysis";
+import { rowKeyForSequence } from "./alignmentModel";
 import { differenceColorStyle } from "./differenceColors";
+import {
+  columnColorContextAtPosition,
+  filteredColumnPositionView,
+  positionAt
+} from "./columnStatsStore";
 import type {
   CellSelection,
+  ColumnPositionView,
   ColumnRange,
   ColumnStats,
+  ColumnStatsStoreV1,
   MsaViewSettings
 } from "./types";
 
@@ -21,6 +28,29 @@ type CellLocation = {
   columnIndex: number;
   position: number;
 };
+
+type PointerGesture = {
+  location: CellLocation;
+  moved: boolean;
+  pointerId: number;
+  startScrollLeft: number;
+  startScrollTop: number;
+  startX: number;
+  startY: number;
+  touchPan: boolean;
+};
+
+function canvasSequenceRowKey(sequence: MSASequence, index: number) {
+  return rowKeyForSequence(sequence, sequence.originalIndex ?? index);
+}
+
+function selectionRowKey(selection: CellSelection | null) {
+  return selection?.rowKey ?? null;
+}
+
+function rowSelection(rowKey: string, position: number): CellSelection {
+  return { rowKey, position };
+}
 
 export function canvasCellLocation({
   clientX,
@@ -66,11 +96,12 @@ export function MsaCanvasMatrix({
   colorScheme,
   columns,
   differenceMode,
+  differenceRowKeys,
   headerHeight,
   motifPositionMap,
-  onNavigate,
   onRangeSelect,
   onSelect,
+  rangeSelectionMode = false,
   reference,
   scrollRef,
   selectedRange,
@@ -81,13 +112,15 @@ export function MsaCanvasMatrix({
   visiblePositions
 }: {
   colorScheme: MSAColorScheme;
-  columns: ColumnStats[];
+  columns: ColumnStatsStoreV1 | ColumnStats[] | null;
   differenceMode: boolean;
+  differenceRowKeys?: ReadonlySet<string>;
   headerHeight: number;
   motifPositionMap: Map<string, Set<number>>;
   onNavigate: (deltaRow: number, deltaColumn: number, extendRange: boolean) => void;
-  onRangeSelect: (sequenceId: string, start: number, end: number) => void;
+  onRangeSelect: (rowKey: string, start: number, end: number) => void;
   onSelect: (selection: CellSelection) => void;
+  rangeSelectionMode?: boolean;
   reference: MSASequence | null;
   scrollRef: RefObject<HTMLDivElement>;
   selectedRange: ColumnRange | null;
@@ -95,12 +128,17 @@ export function MsaCanvasMatrix({
   sequences: MSASequence[];
   settings: MsaViewSettings;
   viewportRef: RefObject<HTMLDivElement>;
-  visiblePositions: number[];
+  visiblePositions: ColumnPositionView | number[];
 }) {
-  const { dictionary: d } = useLanguage();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const frameRef = useRef<number | null>(null);
-  const dragStartRef = useRef<CellLocation | null>(null);
+  const gestureRef = useRef<PointerGesture | null>(null);
+  const positionView = useMemo(
+    () => Array.isArray(visiblePositions)
+      ? filteredColumnPositionView(visiblePositions)
+      : visiblePositions,
+    [visiblePositions]
+  );
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -112,9 +150,12 @@ export function MsaCanvasMatrix({
 
     const draw = () => {
       frameRef.current = null;
-      const bounds = canvas.getBoundingClientRect();
-      const width = Math.max(1, Math.round(bounds.width));
-      const height = Math.max(1, Math.round(bounds.height));
+      const bounds = viewport.getBoundingClientRect();
+      const width = Math.max(1, Math.round(bounds.width - settings.labelWidth - 16));
+      const height = Math.max(1, Math.round(bounds.height - headerHeight - 16));
+      // Keep CSS dimensions independent of the high-DPI backing buffer.
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
       const ratio = Math.min(2, window.devicePixelRatio || 1);
       const pixelWidth = Math.round(width * ratio);
       const pixelHeight = Math.round(height * ratio);
@@ -135,7 +176,7 @@ export function MsaCanvasMatrix({
       const matrixScrollTop = Math.max(0, scrollElement.scrollTop - headerHeight);
       const firstColumn = Math.max(0, Math.floor((scrollElement.scrollLeft - 12) / pitch));
       const lastColumn = Math.min(
-        visiblePositions.length - 1,
+        positionView.length - 1,
         Math.ceil((scrollElement.scrollLeft + width) / pitch) + 1
       );
       const firstRow = Math.max(0, Math.floor(matrixScrollTop / settings.rowHeight));
@@ -144,6 +185,25 @@ export function MsaCanvasMatrix({
         Math.ceil((matrixScrollTop + height) / settings.rowHeight) + 1
       );
 
+      const renderColumns = [] as Array<{
+        columnIndex: number;
+        position: number;
+        colorContext: ColumnStats | ReturnType<typeof columnColorContextAtPosition>;
+      }>;
+      for (let columnIndex = firstColumn; columnIndex <= lastColumn; columnIndex += 1) {
+        const position = positionAt(positionView, columnIndex);
+        if (position === undefined) continue;
+        renderColumns.push({
+          columnIndex,
+          position,
+          colorContext: Array.isArray(columns)
+            ? columns[position - 1] ?? null
+            : columns
+              ? columnColorContextAtPosition(columns, position)
+              : null
+        });
+      }
+
       for (let rowIndex = firstRow; rowIndex <= lastRow; rowIndex += 1) {
         const sequence = sequences[rowIndex];
         if (!sequence) {
@@ -151,26 +211,39 @@ export function MsaCanvasMatrix({
         }
         const y = rowIndex * settings.rowHeight - matrixScrollTop +
           Math.max(0, (settings.rowHeight - settings.cellHeight) / 2);
-        for (let columnIndex = firstColumn; columnIndex <= lastColumn; columnIndex += 1) {
-          const position = visiblePositions[columnIndex];
-          if (!position) {
-            continue;
-          }
+        for (const { columnIndex, position, colorContext } of renderColumns) {
+          const missingTail = position > sequence.sequence.length;
           const base = sequence.sequence[position - 1] ?? "";
           const referenceBase = reference?.sequence[position - 1] ?? "";
-          const style = differenceMode && reference
+          const rowKey = canvasSequenceRowKey(sequence, rowIndex);
+          const style = differenceMode && reference &&
+              (!differenceRowKeys || differenceRowKeys.has(rowKey))
             ? differenceColorStyle(classifyDifference(base, referenceBase))
-            : msaCellColorStyle(base, colorScheme, columns[position - 1]);
+            : msaCellColorStyle(base, colorScheme, colorContext ?? undefined);
           const x = 12 + columnIndex * pitch - scrollElement.scrollLeft;
-          context.fillStyle = style.background;
+          context.fillStyle = missingTail ? "#f8fafc" : style.background;
           context.fillRect(x, y, settings.cellWidth, settings.cellHeight);
+          if (missingTail) {
+            context.strokeStyle = "rgba(148, 163, 184, 0.45)";
+            context.lineWidth = 1;
+            for (let offset = -settings.cellHeight; offset < settings.cellWidth; offset += 5) {
+              context.beginPath();
+              context.moveTo(x + offset, y + settings.cellHeight);
+              context.lineTo(x + offset + settings.cellHeight, y);
+              context.stroke();
+            }
+          }
 
           const selectedCell =
-            selection?.sequenceId === sequence.id && selection.position === position;
+            selection !== null &&
+            selectionRowKey(selection) === canvasSequenceRowKey(sequence, rowIndex) &&
+            selection.position === position;
           const inRange = selectedRange
             ? position >= selectedRange.start && position <= selectedRange.end
             : false;
-          const motifHit = motifPositionMap.get(sequence.id)?.has(position) ?? false;
+          const motifHit = motifPositionMap
+            .get(canvasSequenceRowKey(sequence, rowIndex))
+            ?.has(position) ?? false;
           if (selectedCell || inRange || motifHit) {
             context.strokeStyle = selectedCell
               ? "#0f766e"
@@ -204,12 +277,14 @@ export function MsaCanvasMatrix({
       scrollElement.removeEventListener("scroll", scheduleDraw);
       if (frameRef.current !== null) {
         window.cancelAnimationFrame(frameRef.current);
+        frameRef.current = null;
       }
     };
   }, [
     colorScheme,
     columns,
     differenceMode,
+    differenceRowKeys,
     headerHeight,
     motifPositionMap,
     reference,
@@ -219,7 +294,7 @@ export function MsaCanvasMatrix({
     sequences,
     settings,
     viewportRef,
-    visiblePositions
+    positionView
   ]);
 
   function locationForEvent(clientX: number, clientY: number) {
@@ -229,70 +304,138 @@ export function MsaCanvasMatrix({
       return null;
     }
     const bounds = canvas.getBoundingClientRect();
-    return canvasCellLocation({
-      clientX,
-      clientY,
-      canvasLeft: bounds.left,
-      canvasTop: bounds.top,
-      scrollLeft: scrollElement.scrollLeft,
-      scrollTop: Math.max(0, scrollElement.scrollTop - headerHeight),
-      settings,
-      visiblePositions,
-      sequenceCount: sequences.length
-    });
-  }
-
-  function handleKeyDown(event: KeyboardEvent<HTMLCanvasElement>) {
-    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
-      event.preventDefault();
-      onNavigate(0, event.key === "ArrowLeft" ? -1 : 1, event.shiftKey);
-    } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
-      event.preventDefault();
-      onNavigate(event.key === "ArrowUp" ? -1 : 1, 0, event.shiftKey);
-    } else if (event.key === "Home" || event.key === "End") {
-      event.preventDefault();
-      onNavigate(0, event.key === "Home" ? -visiblePositions.length : visiblePositions.length, event.shiftKey);
-    }
+    const pitch = settings.cellWidth + settings.cellGap;
+    const columnIndex = Math.floor(
+      (scrollElement.scrollLeft + clientX - bounds.left - 12) / pitch
+    );
+    const rowIndex = Math.floor(
+      (Math.max(0, scrollElement.scrollTop - headerHeight) + clientY - bounds.top) /
+      settings.rowHeight
+    );
+    const position = positionAt(positionView, columnIndex);
+    if (
+      position === undefined ||
+      columnIndex < 0 ||
+      rowIndex < 0 ||
+      rowIndex >= sequences.length
+    ) return null;
+    return { rowIndex, columnIndex, position };
   }
 
   return (
     <canvas
-      aria-label={d.results.viewer.matrixNavigation}
+      aria-hidden="true"
       className="absolute z-10 cursor-crosshair bg-white outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500"
       data-msa-canvas="true"
-      onKeyDown={handleKeyDown}
+      data-msa-cell-pitch={settings.cellWidth + settings.cellGap}
+      data-msa-row-height={settings.rowHeight}
       onPointerDown={(event) => {
+        if (
+          event.pointerType === "touch" &&
+          gestureRef.current &&
+          gestureRef.current.pointerId !== event.pointerId
+        ) {
+          // The matrix root owns two-finger pinch. Stop the pending tap/pan so
+          // the first pointer cannot scroll the matrix while pinch is active.
+          gestureRef.current = null;
+          return;
+        }
         const location = locationForEvent(event.clientX, event.clientY);
         if (!location) {
           return;
         }
-        dragStartRef.current = location;
+        const touchPan = event.pointerType === "touch" && !rangeSelectionMode;
+        gestureRef.current = {
+          location,
+          moved: false,
+          pointerId: event.pointerId,
+          startScrollLeft: scrollRef.current?.scrollLeft ?? 0,
+          startScrollTop: scrollRef.current?.scrollTop ?? 0,
+          startX: event.clientX,
+          startY: event.clientY,
+          touchPan
+        };
+        if (touchPan) {
+          event.preventDefault();
+          scrollRef.current?.focus({ preventScroll: true });
+          event.currentTarget.setPointerCapture(event.pointerId);
+          return;
+        }
+        event.preventDefault();
+        scrollRef.current?.focus({ preventScroll: true });
         event.currentTarget.setPointerCapture(event.pointerId);
-        onSelect({
-          sequenceId: sequences[location.rowIndex].id,
-          position: location.position
-        });
+        const sequence = sequences[location.rowIndex];
+        onSelect(
+          rowSelection(
+            canvasSequenceRowKey(sequence, location.rowIndex),
+            location.position
+          )
+        );
       }}
       onPointerMove={(event) => {
-        const start = dragStartRef.current;
-        if (!start || !event.currentTarget.hasPointerCapture(event.pointerId)) {
+        const gesture = gestureRef.current;
+        if (!gesture || gesture.pointerId !== event.pointerId) {
+          return;
+        }
+        if (
+          Math.hypot(event.clientX - gesture.startX, event.clientY - gesture.startY) > 8
+        ) {
+          gesture.moved = true;
+        }
+        if (
+          gesture.touchPan
+        ) {
+          event.preventDefault();
+          const scrollElement = scrollRef.current;
+          if (scrollElement) {
+            scrollElement.scrollLeft = Math.max(
+              0,
+              gesture.startScrollLeft + gesture.startX - event.clientX
+            );
+            scrollElement.scrollTop = Math.max(
+              0,
+              gesture.startScrollTop + gesture.startY - event.clientY
+            );
+          }
+          return;
+        }
+        if (!event.currentTarget.hasPointerCapture(event.pointerId)) {
           return;
         }
         const current = locationForEvent(event.clientX, event.clientY);
         if (!current) {
           return;
         }
+        const sequence = sequences[gesture.location.rowIndex];
         onRangeSelect(
-          sequences[current.rowIndex].id,
-          Math.min(start.position, current.position),
-          Math.max(start.position, current.position)
+          canvasSequenceRowKey(sequence, gesture.location.rowIndex),
+          Math.min(gesture.location.position, current.position),
+          Math.max(gesture.location.position, current.position)
         );
       }}
       onPointerUp={(event) => {
-        dragStartRef.current = null;
+        const gesture = gestureRef.current;
+        if (
+          gesture?.pointerId === event.pointerId &&
+          gesture.touchPan &&
+          !gesture.moved
+        ) {
+          const sequence = sequences[gesture.location.rowIndex];
+          scrollRef.current?.focus({ preventScroll: true });
+          onSelect(
+            rowSelection(
+              canvasSequenceRowKey(sequence, gesture.location.rowIndex),
+              gesture.location.position
+            )
+          );
+        }
+        gestureRef.current = null;
         if (event.currentTarget.hasPointerCapture(event.pointerId)) {
           event.currentTarget.releasePointerCapture(event.pointerId);
         }
+      }}
+      onPointerCancel={() => {
+        gestureRef.current = null;
       }}
       onWheel={(event) => {
         const scrollElement = scrollRef.current;
@@ -304,14 +447,15 @@ export function MsaCanvasMatrix({
         scrollElement.scrollTop += event.shiftKey ? 0 : event.deltaY;
       }}
       ref={canvasRef}
-      role="application"
+      role="presentation"
       style={{
         bottom: 16,
         left: settings.labelWidth,
         right: 16,
-        top: headerHeight
+        top: headerHeight,
+        touchAction: "none"
       }}
-      tabIndex={0}
+      tabIndex={-1}
     />
   );
 }

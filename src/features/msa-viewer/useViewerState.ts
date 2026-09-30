@@ -1,4 +1,9 @@
-import { useEffect, useReducer } from "react";
+import { useCallback, useMemo, useReducer } from "react";
+import type { AlignmentDescriptor, MSASequence } from "../../lib/types/msa";
+import {
+  canonicalAlignmentSourceKey,
+  rowKeyForSequence
+} from "./alignmentModel";
 import type {
   CellSelection,
   ColumnRange,
@@ -6,11 +11,22 @@ import type {
   ViewerPreferences,
   ViewerState
 } from "./types";
+import {
+  DEFAULT_QC_THRESHOLDS,
+  loadWorkspaceSnapshot,
+  migrateLegacyPreferences,
+  migrateLegacyReference,
+  type MsaWorkspaceSnapshotV1,
+  type QcAnnotation
+} from "./workspaceSnapshot";
+import {
+  resolveBrowserStorage,
+  useWorkspacePersistence,
+  viewerStateFromSnapshot,
+  type WorkspaceSourceIdentity
+} from "./useWorkspacePersistence";
 
-const PREFERENCES_KEY = "easymsa.viewer.preferences.v2";
-const REFERENCES_KEY = "easymsa.viewer.references.v1";
-
-const DEFAULT_PREFERENCES: ViewerPreferences = {
+export const DEFAULT_VIEWER_PREFERENCES: ViewerPreferences = {
   activeTracks: ["conservation", "gap"],
   colorScheme: "nucleotide",
   consensusMode: "majority",
@@ -19,81 +35,276 @@ const DEFAULT_PREFERENCES: ViewerPreferences = {
   differenceMode: false
 };
 
-function readJson<T>(key: string): T | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-  try {
-    return JSON.parse(window.localStorage.getItem(key) ?? "null") as T | null;
-  } catch {
-    return null;
-  }
-}
+export type ViewerStateOptions = {
+  descriptor?: AlignmentDescriptor;
+  rows: MSASequence[];
+  sourceFingerprint?: string;
+  alignmentLength?: number;
+  legacyJobId?: string;
+  sourceType?: "server-job" | "local-file" | "pasted";
+  /** null explicitly disables persistence; omitted uses browser localStorage. */
+  storage?: Storage | null;
+};
 
-function readPreferences(): ViewerPreferences {
-  const stored = readJson<Partial<ViewerPreferences>>(PREFERENCES_KEY);
-  const tracks = stored?.activeTracks?.filter((track): track is MsaTrackId =>
-    ["conservation", "gap", "coverage", "entropy"].includes(track)
-  );
+type ResolvedViewerSource = WorkspaceSourceIdentity & {
+  signature: string;
+  rowKeys: string[];
+  rows: Array<{ id: string; rowKey: string }>;
+  sourceType: "server-job" | "local-file" | "pasted";
+  legacyJobId?: string;
+  storage: Storage | null;
+  persistenceEnabled: boolean;
+};
+
+function cloneDefaultThresholds() {
   return {
-    activeTracks: tracks?.length ? tracks : DEFAULT_PREFERENCES.activeTracks,
-    colorScheme:
-      stored?.colorScheme === "purinePyrimidine" ||
-      stored?.colorScheme === "conservation"
-        ? stored.colorScheme
-        : "nucleotide",
-    consensusMode: stored?.consensusMode === "iupac" ? "iupac" : "majority",
-    coordinateMode: stored?.coordinateMode === "reference" ? "reference" : "alignment",
-    density: stored?.density === "compact" ? "compact" : "comfortable",
-    differenceMode: Boolean(stored?.differenceMode)
+    row: { ...DEFAULT_QC_THRESHOLDS.row },
+    column: { ...DEFAULT_QC_THRESHOLDS.column }
   };
 }
 
-function readReference(jobId: string) {
-  const references = readJson<Record<string, string>>(REFERENCES_KEY) ?? {};
-  return references[jobId] ?? null;
-}
-
-export function createInitialViewerState(jobId: string): ViewerState {
+function defaultViewerState(
+  preferences: Partial<ViewerPreferences> = {}
+): ViewerState {
   return {
-    ...readPreferences(),
+    ...DEFAULT_VIEWER_PREFERENCES,
+    ...preferences,
+    activeTracks: preferences.activeTracks?.length
+      ? [...preferences.activeTracks]
+      : [...DEFAULT_VIEWER_PREFERENCES.activeTracks],
     activeMotifIndex: 0,
+    analysisScope: "all",
+    annotations: [],
     columnFilter: "all",
-    hiddenSequenceIds: new Set(),
+    hiddenRowKeys: new Set(),
+    immersive: false,
     inspectorOpen: false,
+    inspectorWidth: 320,
+    labelWidth: 192,
+    lastHiddenRowKeys: [],
+    minimapCollapsed: false,
+    motifMatchMode: "strict",
     motifQuery: "",
-    pinnedSequenceIds: new Set(),
-    referenceSequenceId: readReference(jobId),
+    motifStrandMode: "forward",
+    pinnedRowKeys: new Set(),
+    qcPanelOpen: false,
+    qcSortMode: "original",
+    qcThresholds: cloneDefaultThresholds(),
+    rangeSelectionMode: false,
+    referenceRowKey: null,
     search: "",
     selectedRange: null,
-    selectedSequenceIds: new Set(),
+    selectedRowKeys: new Set(),
     selection: null,
+    settingsOpen: false,
     sortMode: "original",
     viewport: null,
+    viewMode: "detail",
     zoomLevel: 1
   };
 }
 
+function sourceKindFromDescriptor(descriptor?: AlignmentDescriptor) {
+  if (descriptor?.sourceKind === "local-file") {
+    return "local-file" as const;
+  }
+  if (descriptor?.sourceKind === "pasted") {
+    return "pasted" as const;
+  }
+  return "server-job" as const;
+}
+
+function normalizeFingerprint(value: string) {
+  const trimmed = value.trim();
+  return trimmed.length >= 8 ? trimmed : `source:${trimmed || "unknown"}`;
+}
+
+export function resolveViewerSource(
+  input: string | ViewerStateOptions
+): ResolvedViewerSource {
+  if (typeof input === "string") {
+    const fingerprint = normalizeFingerprint(`legacy-job:${input}`);
+    return {
+      fingerprint,
+      sequenceCount: 0,
+      alignmentLength: 0,
+      signature: `${fingerprint}:0:0`,
+      rowKeys: [],
+      rows: [],
+      sourceType: "server-job",
+      legacyJobId: input,
+      storage: resolveBrowserStorage(),
+      // A job id is not a content fingerprint, so it is not persisted as one.
+      persistenceEnabled: false
+    };
+  }
+
+  const rows = input.rows.map((row, index) => ({
+    id: row.id,
+    rowKey: rowKeyForSequence(row, index)
+  }));
+  const descriptor = input.descriptor;
+  const fingerprint = normalizeFingerprint(
+    input.sourceFingerprint ??
+      descriptor?.alignmentSha256 ??
+      descriptor?.sourceKey ??
+      canonicalAlignmentSourceKey(input.rows)
+  );
+  const alignmentLength =
+    input.alignmentLength ??
+    descriptor?.alignmentLength ??
+    input.rows.reduce(
+      (maximum, row) => Math.max(maximum, row.sequence.length),
+      0
+    );
+  const sequenceCount = descriptor?.sequenceCount ?? input.rows.length;
+  const storage = input.storage === undefined
+    ? resolveBrowserStorage()
+    : input.storage;
+
+  return {
+    fingerprint,
+    sequenceCount,
+    alignmentLength,
+    signature: `${fingerprint}:${sequenceCount}:${alignmentLength}`,
+    rowKeys: rows.map((row) => row.rowKey),
+    rows,
+    sourceType: input.sourceType ?? sourceKindFromDescriptor(descriptor),
+    legacyJobId: input.legacyJobId,
+    storage,
+    persistenceEnabled: true
+  };
+}
+
+function loadInitialViewerState(source: ResolvedViewerSource): ViewerState {
+  const preferences = source.storage
+    ? migrateLegacyPreferences(source.storage) ?? {}
+    : {};
+  let state = defaultViewerState(preferences);
+  const snapshot = source.storage
+    ? loadWorkspaceSnapshot(source.storage, source.fingerprint)
+    : null;
+
+  if (
+    snapshot &&
+    snapshot.source.sequenceCount === source.sequenceCount &&
+    snapshot.source.alignmentLength === source.alignmentLength
+  ) {
+    return viewerStateFromSnapshot(state, snapshot, source.rowKeys);
+  }
+
+  if (source.storage) {
+    const migratedReference = migrateLegacyReference(source.storage, {
+      sourceType: source.sourceType,
+      legacyJobId: source.legacyJobId,
+      rows: source.rows
+    });
+    if (migratedReference) {
+      state = { ...state, referenceRowKey: migratedReference };
+    }
+  }
+  return state;
+}
+
+export function createInitialViewerState(
+  input: string | ViewerStateOptions = ""
+): ViewerState {
+  return loadInitialViewerState(resolveViewerSource(input));
+}
+
+export type AnnotationUpdate = Partial<
+  Pick<QcAnnotation, "category" | "text" | "target" | "updatedAt">
+>;
+
 export type ViewerAction =
   | { type: "patch"; patch: Partial<ViewerState> }
-  | { type: "select"; selection: CellSelection; range: ColumnRange }
+  | { type: "select"; selection: CellSelection; range: ColumnRange; openInspector?: boolean }
   | { type: "clearSelection" }
   | { type: "toggleTrack"; track: MsaTrackId }
   | {
+      type: "toggleRowSet";
+      field: "pinnedRowKeys" | "selectedRowKeys";
+      rowKey: string;
+    }
+  | {
+      /** @deprecated Callers should dispatch toggleRowSet with a rowKey. */
       type: "toggleSequenceSet";
       field: "pinnedSequenceIds" | "selectedSequenceIds";
       sequenceId: string;
     }
+  | { type: "hideRow"; rowKey: string }
   | { type: "hideSequence"; sequenceId: string }
-  | { type: "showAllSequences" };
+  | { type: "showAllRows" | "showAllSequences" }
+  | { type: "selectAllVisible"; rowKeys: Iterable<string> }
+  | {
+      type: "batchRows";
+      operation: "hide" | "pin" | "unpin";
+      rowKeys: Iterable<string>;
+    }
+  | { type: "undoLastHide" }
+  | { type: "resetView" }
+  | { type: "addAnnotation"; annotation: QcAnnotation }
+  | { type: "updateAnnotation"; id: string; patch: AnnotationUpdate }
+  | { type: "removeAnnotation"; id: string }
+  | {
+      type: "restoreSnapshot";
+      snapshot: MsaWorkspaceSnapshotV1;
+      validRowKeys: Iterable<string>;
+    };
+
+function toggleSet(set: Set<string>, value: string) {
+  const next = new Set(set);
+  if (next.has(value)) {
+    next.delete(value);
+  } else {
+    next.add(value);
+  }
+  return next;
+}
+
+function hideRows(state: ViewerState, values: Iterable<string>): ViewerState {
+  const candidates = Array.from(new Set(values)).filter(
+    (rowKey) => rowKey !== state.referenceRowKey && !state.hiddenRowKeys.has(rowKey)
+  );
+  if (!candidates.length) {
+    return state;
+  }
+  const hiddenRowKeys = new Set(state.hiddenRowKeys);
+  const selectedRowKeys = new Set(state.selectedRowKeys);
+  const pinnedRowKeys = new Set(state.pinnedRowKeys);
+  candidates.forEach((rowKey) => {
+    hiddenRowKeys.add(rowKey);
+    selectedRowKeys.delete(rowKey);
+    pinnedRowKeys.delete(rowKey);
+  });
+  const selectedHidden = state.selection
+    ? candidates.includes(state.selection.rowKey)
+    : false;
+  const next: ViewerState = {
+    ...state,
+    hiddenRowKeys,
+    pinnedRowKeys,
+    selectedRowKeys,
+    selection: selectedHidden ? null : state.selection,
+    selectedRange: selectedHidden ? null : state.selectedRange,
+    lastHiddenRowKeys: candidates
+  };
+  return next.analysisScope === "selected" && next.selectedRowKeys.size === 0
+    ? { ...next, analysisScope: "all" }
+    : next;
+}
 
 export function viewerReducer(state: ViewerState, action: ViewerAction): ViewerState {
   if (action.type === "patch") {
-    return { ...state, ...action.patch };
+    const next = { ...state, ...action.patch };
+    return next.analysisScope === "selected" && next.selectedRowKeys.size === 0
+      ? { ...next, analysisScope: "all" }
+      : next;
   }
   if (action.type === "select") {
     return {
       ...state,
+      inspectorOpen: action.openInspector ?? true,
       selection: action.selection,
       selectedRange: action.range
     };
@@ -107,66 +318,207 @@ export function viewerReducer(state: ViewerState, action: ViewerAction): ViewerS
       : [...state.activeTracks, action.track];
     return { ...state, activeTracks };
   }
+  if (action.type === "toggleRowSet") {
+    const next = {
+      ...state,
+      [action.field]: toggleSet(state[action.field], action.rowKey)
+    };
+    return next.analysisScope === "selected" && next.selectedRowKeys.size === 0
+      ? { ...next, analysisScope: "all" }
+      : next;
+  }
   if (action.type === "toggleSequenceSet") {
-    const next = new Set(state[action.field]);
-    if (next.has(action.sequenceId)) {
-      next.delete(action.sequenceId);
-    } else {
-      next.add(action.sequenceId);
-    }
-    return { ...state, [action.field]: next };
+    const field = action.field === "pinnedSequenceIds"
+      ? "pinnedRowKeys"
+      : "selectedRowKeys";
+    const next = { ...state, [field]: toggleSet(state[field], action.sequenceId) };
+    return next.analysisScope === "selected" && next.selectedRowKeys.size === 0
+      ? { ...next, analysisScope: "all" }
+      : next;
+  }
+  if (action.type === "hideRow") {
+    return hideRows(state, [action.rowKey]);
   }
   if (action.type === "hideSequence") {
-    const hiddenSequenceIds = new Set(state.hiddenSequenceIds);
-    hiddenSequenceIds.add(action.sequenceId);
-    const selectedSequenceIds = new Set(state.selectedSequenceIds);
-    selectedSequenceIds.delete(action.sequenceId);
+    return hideRows(state, [action.sequenceId]);
+  }
+  if (action.type === "showAllRows" || action.type === "showAllSequences") {
+    return { ...state, hiddenRowKeys: new Set(), lastHiddenRowKeys: [] };
+  }
+  if (action.type === "selectAllVisible") {
+    const selectedRowKeys = new Set(action.rowKeys);
     return {
       ...state,
-      hiddenSequenceIds,
-      selectedSequenceIds,
-      selection:
-        state.selection?.sequenceId === action.sequenceId ? null : state.selection
+      selectedRowKeys,
+      analysisScope:
+        state.analysisScope === "selected" && selectedRowKeys.size === 0
+          ? "all"
+          : state.analysisScope
     };
   }
-  return { ...state, hiddenSequenceIds: new Set() };
+  if (action.type === "batchRows") {
+    if (action.operation === "hide") {
+      return hideRows(state, action.rowKeys);
+    }
+    const pinnedRowKeys = new Set(state.pinnedRowKeys);
+    for (const rowKey of action.rowKeys) {
+      if (action.operation === "pin") {
+        pinnedRowKeys.add(rowKey);
+      } else {
+        pinnedRowKeys.delete(rowKey);
+      }
+    }
+    return { ...state, pinnedRowKeys };
+  }
+  if (action.type === "undoLastHide") {
+    const hiddenRowKeys = new Set(state.hiddenRowKeys);
+    state.lastHiddenRowKeys.forEach((rowKey) => hiddenRowKeys.delete(rowKey));
+    return { ...state, hiddenRowKeys, lastHiddenRowKeys: [] };
+  }
+  if (action.type === "resetView") {
+    return {
+      ...state,
+      activeTracks: [...DEFAULT_VIEWER_PREFERENCES.activeTracks],
+      activeMotifIndex: 0,
+      analysisScope: "all",
+      columnFilter: "all",
+      coordinateMode: "alignment",
+      differenceMode: false,
+      hiddenRowKeys: new Set(),
+      lastHiddenRowKeys: [],
+      inspectorWidth: 320,
+      labelWidth: 192,
+      minimapCollapsed: false,
+      motifQuery: "",
+      pinnedRowKeys: new Set(),
+      qcThresholds: cloneDefaultThresholds(),
+      rangeSelectionMode: false,
+      referenceRowKey: null,
+      search: "",
+      selectedRange: null,
+      selectedRowKeys: new Set(),
+      selection: null,
+      sortMode: "original",
+      viewport: null,
+      viewMode: "detail",
+      zoomLevel: 1
+    };
+  }
+  if (action.type === "addAnnotation") {
+    const annotations = state.annotations.some(
+      (annotation) => annotation.id === action.annotation.id
+    )
+      ? state.annotations.map((annotation) =>
+          annotation.id === action.annotation.id ? action.annotation : annotation
+        )
+      : [...state.annotations, action.annotation];
+    return { ...state, annotations };
+  }
+  if (action.type === "updateAnnotation") {
+    return {
+      ...state,
+      annotations: state.annotations.map((annotation) =>
+        annotation.id === action.id
+          ? {
+              ...annotation,
+              ...action.patch,
+              updatedAt: action.patch.updatedAt ?? new Date().toISOString()
+            }
+          : annotation
+      )
+    };
+  }
+  if (action.type === "removeAnnotation") {
+    return {
+      ...state,
+      annotations: state.annotations.filter(
+        (annotation) => annotation.id !== action.id
+      )
+    };
+  }
+  if (action.type === "restoreSnapshot") {
+    return viewerStateFromSnapshot(state, action.snapshot, action.validRowKeys);
+  }
+  return state;
 }
 
-export function useViewerState(jobId: string) {
-  const [state, dispatch] = useReducer(
-    viewerReducer,
-    jobId,
-    createInitialViewerState
+type ReducerRecord = {
+  signature: string;
+  state: ViewerState;
+};
+
+type InternalAction =
+  | { type: "viewer"; action: ViewerAction }
+  | { type: "switchSource"; source: ResolvedViewerSource };
+
+function internalReducer(record: ReducerRecord, action: InternalAction): ReducerRecord {
+  if (action.type === "switchSource") {
+    return {
+      signature: action.source.signature,
+      state: loadInitialViewerState(action.source)
+    };
+  }
+  return { ...record, state: viewerReducer(record.state, action.action) };
+}
+
+/**
+ * The string overload remains for staged integration. New callers should pass
+ * descriptor + rows so restoration is bound to alignment content, never a job
+ * id or filename.
+ */
+export function useViewerState(input: string | ViewerStateOptions) {
+  const source = resolveViewerSource(input);
+  const [record, dispatchInternal] = useReducer(
+    internalReducer,
+    source,
+    (initialSource): ReducerRecord => ({
+      signature: initialSource.signature,
+      state: loadInitialViewerState(initialSource)
+    })
   );
 
-  useEffect(() => {
-    const preferences: ViewerPreferences = {
-      activeTracks: state.activeTracks,
-      colorScheme: state.colorScheme,
-      consensusMode: state.consensusMode,
-      coordinateMode: state.coordinateMode,
-      density: state.density,
-      differenceMode: state.differenceMode
-    };
-    window.localStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences));
-  }, [
-    state.activeTracks,
-    state.colorScheme,
-    state.consensusMode,
-    state.coordinateMode,
-    state.density,
-    state.differenceMode
-  ]);
+  // React immediately restarts this render with the new source state, so stale
+  // selections/references never commit or reach downstream workers.
+  if (record.signature !== source.signature) {
+    dispatchInternal({ type: "switchSource", source });
+  }
 
-  useEffect(() => {
-    const references = readJson<Record<string, string>>(REFERENCES_KEY) ?? {};
-    if (state.referenceSequenceId) {
-      references[jobId] = state.referenceSequenceId;
-    } else {
-      delete references[jobId];
-    }
-    window.localStorage.setItem(REFERENCES_KEY, JSON.stringify(references));
-  }, [jobId, state.referenceSequenceId]);
+  const dispatch = useCallback(
+    (action: ViewerAction) => dispatchInternal({ type: "viewer", action }),
+    []
+  );
+  const sourceIdentity = useMemo<WorkspaceSourceIdentity>(
+    () => ({
+      fingerprint: source.fingerprint,
+      sequenceCount: source.sequenceCount,
+      alignmentLength: source.alignmentLength
+    }),
+    [source.alignmentLength, source.fingerprint, source.sequenceCount]
+  );
+  const validRowKeySignature = source.rowKeys.join("\u0000");
+  const validRowKeys = useMemo(
+    () => source.rowKeys,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [validRowKeySignature]
+  );
+  const onRestore = useCallback(
+    (snapshot: MsaWorkspaceSnapshotV1) =>
+      dispatch({ type: "restoreSnapshot", snapshot, validRowKeys }),
+    [dispatch, validRowKeys]
+  );
+  const workspace = useWorkspacePersistence({
+    state: record.state,
+    source: sourceIdentity,
+    storage: source.storage,
+    enabled: source.persistenceEnabled,
+    onRestore
+  });
 
-  return { state, dispatch };
+  return {
+    state: record.state,
+    dispatch,
+    sourceFingerprint: source.fingerprint,
+    workspaceSource: sourceIdentity,
+    ...workspace
+  };
 }

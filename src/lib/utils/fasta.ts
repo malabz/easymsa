@@ -15,6 +15,7 @@ export type FastaParseResult = FastaValidationResult & {
 };
 
 export const MAX_FASTA_CHARACTERS = 200_000;
+export const MAX_LOCAL_FASTA_BYTES = 1024 * 1024;
 
 export function estimateFastaSequenceCount(input: string): number {
   return input
@@ -22,7 +23,11 @@ export function estimateFastaSequenceCount(input: string): number {
     .filter((line) => line.trim().startsWith(">")).length;
 }
 
-export function parseFasta(input: string, minSequences = 2): FastaParseResult {
+export function parseFasta(
+  input: string,
+  minSequences = 2,
+  maxCharacters = MAX_FASTA_CHARACTERS
+): FastaParseResult {
   const characterCount = input.length;
   const trimmed = input.trim();
   const errors: string[] = [];
@@ -32,8 +37,8 @@ export function parseFasta(input: string, minSequences = 2): FastaParseResult {
     errors.push("Input is empty.");
   }
 
-  if (characterCount > MAX_FASTA_CHARACTERS) {
-    errors.push("Input exceeds 200,000 characters.");
+  if (characterCount > maxCharacters) {
+    errors.push(`Input exceeds ${maxCharacters.toLocaleString("en-US")} characters.`);
   }
 
   if (trimmed && !trimmed.includes(">")) {

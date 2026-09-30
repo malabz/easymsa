@@ -1,8 +1,9 @@
-export type MSAColorScheme = "nucleotide" | "purinePyrimidine" | "conservation";
+/** `neutral` is a render-only palette for protein, unknown, and raw-unequal input. */
+export type MSAColorScheme = "nucleotide" | "purinePyrimidine" | "conservation" | "neutral";
 
 export type ConservationColorContext = {
   dominantBase?: string;
-  conservation?: number;
+  conservation?: number | null;
 };
 
 export type MsaCellColorStyle = {
@@ -94,6 +95,12 @@ export function msaCellColorStyle(
     return style(COLORS.transparent, COLORS.transparent, COLORS.transparent);
   }
 
+  if (scheme === "neutral") {
+    return normalizedBase === "-"
+      ? style(COLORS.zinc100, COLORS.zinc500, COLORS.zinc200)
+      : style(COLORS.slate100, COLORS.slate800, COLORS.slate200);
+  }
+
   if (scheme === "purinePyrimidine") {
     if (normalizedBase === "A" || normalizedBase === "G") {
       return style(COLORS.indigo100, COLORS.indigo900, COLORS.indigo200);
@@ -138,6 +145,12 @@ export function msaCellColorClass(
     return "bg-transparent text-transparent border-transparent";
   }
 
+  if (scheme === "neutral") {
+    return normalizedBase === "-"
+      ? "bg-zinc-100 text-zinc-500 border-zinc-200"
+      : "bg-slate-100 text-slate-800 border-slate-200";
+  }
+
   if (scheme === "purinePyrimidine") {
     if (normalizedBase === "A" || normalizedBase === "G") {
       return "bg-indigo-100 text-indigo-900 border-indigo-200";
@@ -180,6 +193,12 @@ export function legendColorStyles(
     gapEmpty: string;
   }
 ) {
+  if (scheme === "neutral") {
+    return [
+      { label: "Residue", style: msaCellColorStyle("X", scheme) },
+      { label: labels?.gapEmpty ?? "Gap", style: msaCellColorStyle("-", scheme) }
+    ];
+  }
   if (scheme === "purinePyrimidine") {
     return [
       { label: "A / G", style: msaCellColorStyle("A", scheme) },

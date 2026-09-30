@@ -4,54 +4,24 @@ import { Button } from "../components/common/Button";
 import { PageContainer } from "../components/layout/PageContainer";
 import { MSAViewer } from "../components/results/MSAViewer";
 import { useLanguage } from "../lib/i18n/useLanguage";
-import type { MSAResult, MSASequence } from "../lib/types/msa";
+import type { MSAResult } from "../lib/types/msa";
+import {
+  declaredAlphabetForFileName,
+  MsaInputError
+} from "../features/msa-viewer/inputWorkerProtocol";
+import { useAlignmentInput } from "../features/msa-viewer/useAlignmentInput";
+import { createLocalViewerContext } from "../features/msa-viewer/viewerContext";
 import {
   estimateFastaSequenceCount,
   MAX_FASTA_CHARACTERS,
-  parseFasta
+  MAX_LOCAL_FASTA_BYTES
 } from "../lib/utils/fasta";
-
-function consensusFromSequences(sequences: MSASequence[], length: number) {
-  const consensus: string[] = [];
-
-  for (let index = 0; index < length; index += 1) {
-    const counts = new Map<string, number>();
-
-    for (const sequence of sequences) {
-      const base = sequence.sequence[index];
-      if (!base) {
-        continue;
-      }
-      counts.set(base, (counts.get(base) ?? 0) + 1);
-    }
-
-    consensus.push(
-      Array.from(counts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ?? ""
-    );
-  }
-
-  return consensus.join("");
-}
-
-function toViewerResult(name: string, sequences: MSASequence[]): MSAResult {
-  const alignmentLength = Math.max(
-    0,
-    ...sequences.map((sequence) => sequence.sequence.length)
-  );
-
-  return {
-    jobId: name,
-    truncated: false,
-    sequences,
-    consensus: consensusFromSequences(sequences, alignmentLength),
-    alignmentLength,
-    sequenceCount: sequences.length
-  };
-}
 
 export function ViewerPage() {
   const { dictionary: d } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const loadGenerationRef = useRef(0);
+  const { cancel: cancelInput, processInput } = useAlignmentInput();
   const [pastedFasta, setPastedFasta] = useState("");
   const [sourceName, setSourceName] = useState(d.viewerPage.uploadedSource);
   const [alignment, setAlignment] = useState<MSAResult | null>(null);
@@ -74,23 +44,44 @@ export function ViewerPage() {
     sequenceLengths.length > 0 &&
     new Set(sequenceLengths).size === 1;
 
-  function loadFasta(input: string, name: string) {
-    const parsed = parseFasta(input, 1);
-
-    if (!parsed.valid) {
-      setError(parsed.errors.join(" "));
+  async function loadFasta(
+    generation: number,
+    name: string,
+    request: Parameters<typeof processInput>[0]
+  ) {
+    try {
+      const nextAlignment = await processInput(request);
+      if (generation === loadGenerationRef.current) {
+        setSourceName(name);
+        setAlignment(nextAlignment);
+        setError(null);
+      }
+    } catch (inputError) {
+      if (
+        generation !== loadGenerationRef.current ||
+        (inputError instanceof MsaInputError && inputError.code === "INPUT_CANCELLED")
+      ) {
+        return;
+      }
+      const code = inputError instanceof MsaInputError ? inputError.code : null;
+      const message = code === "INPUT_TOO_LARGE"
+        ? request.sourceKind === "local-file"
+          ? d.viewerPage.fileTooLarge.replace("{limit}", MAX_LOCAL_FASTA_BYTES.toLocaleString())
+          : d.viewerPage.characterLimit.replace("{limit}", MAX_FASTA_CHARACTERS.toLocaleString())
+        : code === "INPUT_DECODE_FAILED"
+          ? d.viewerPage.inputErrors.decode
+          : code === "INPUT_EMPTY"
+            ? d.viewerPage.inputErrors.empty
+            : code === "INPUT_INVALID_FASTA"
+              ? d.viewerPage.inputErrors.invalid
+              : code === "PROTOCOL_VERSION_MISMATCH"
+                ? d.viewerPage.inputErrors.protocol
+                : code === "INPUT_WORKER_FAILED"
+                  ? d.viewerPage.inputErrors.worker
+                  : d.viewerPage.readError;
+      setError(message);
       setAlignment(null);
-      return;
     }
-
-    const sequences = parsed.records.map((record) => ({
-      id: record.id,
-      sequence: record.sequence
-    }));
-
-    setSourceName(name);
-    setAlignment(toViewerResult(name, sequences));
-    setError(null);
   }
 
   async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
@@ -101,11 +92,15 @@ export function ViewerPage() {
       return;
     }
 
-    if (file.size > MAX_FASTA_CHARACTERS) {
+    const generation = loadGenerationRef.current + 1;
+    loadGenerationRef.current = generation;
+    cancelInput();
+
+    if (file.size > MAX_LOCAL_FASTA_BYTES) {
       setError(
         d.viewerPage.fileTooLarge.replace(
           "{limit}",
-          MAX_FASTA_CHARACTERS.toLocaleString()
+          MAX_LOCAL_FASTA_BYTES.toLocaleString()
         )
       );
       setAlignment(null);
@@ -113,18 +108,44 @@ export function ViewerPage() {
     }
 
     try {
-      loadFasta(await file.text(), file.name);
+      const bytes = await file.arrayBuffer();
+      if (generation !== loadGenerationRef.current) {
+        return;
+      }
+      await loadFasta(
+        generation,
+        file.name,
+        {
+          sourceKind: "local-file",
+          sourceName: file.name,
+          declaredAlphabet: declaredAlphabetForFileName(file.name),
+          payload: { kind: "bytes", bytes }
+        }
+      );
     } catch {
-      setError(d.viewerPage.readError);
-      setAlignment(null);
+      if (generation === loadGenerationRef.current) {
+        setError(d.viewerPage.readError);
+        setAlignment(null);
+      }
     }
   }
 
   function handlePasteLoad() {
-    loadFasta(pastedFasta, d.viewerPage.pastedSource);
+    if (pastedFasta.length > MAX_FASTA_CHARACTERS) {
+      return;
+    }
+    const generation = loadGenerationRef.current + 1;
+    loadGenerationRef.current = generation;
+    void loadFasta(generation, d.viewerPage.pastedSource, {
+      sourceKind: "pasted",
+      sourceName: d.viewerPage.pastedSource,
+      payload: { kind: "text", text: pastedFasta }
+    });
   }
 
   function resetViewer() {
+    loadGenerationRef.current += 1;
+    cancelInput();
     setAlignment(null);
     setError(null);
   }
@@ -135,6 +156,7 @@ export function ViewerPage() {
       <div className="mt-4 space-y-4">
         <input
           accept=".fa,.fasta,.fna,.faa,.txt,text/plain"
+          aria-label={d.viewerPage.uploadFasta}
           className="hidden"
           onChange={handleFileChange}
           ref={fileInputRef}
@@ -233,7 +255,13 @@ export function ViewerPage() {
           </div>
         </div>
 
-        <MSAViewer alignment={alignment} />
+        <MSAViewer
+          alignment={alignment}
+          context={createLocalViewerContext(
+            alignment.descriptor?.sourceKind === "pasted" ? "pasted" : "local-file",
+            sourceName
+          )}
+        />
       </PageContainer>
     );
   }

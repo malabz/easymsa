@@ -1,0 +1,1 @@
+Visual regression uses these licensed, fixed font files to make screenshot baselines independent of the operating system font inventory. Fonts are injected only by the screenshot helper; production fonts and functional browser tests use the application font stack.

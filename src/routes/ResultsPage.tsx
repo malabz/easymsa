@@ -19,6 +19,7 @@ import {
 } from "../lib/api/tokens";
 import { useLanguage } from "../lib/i18n/useLanguage";
 import { useAlignmentResult, useResultSummary } from "../lib/query/useJobResults";
+import { createServerViewerContext } from "../features/msa-viewer/viewerContext";
 
 const MSAViewer = lazy(() =>
   import("../components/results/MSAViewer").then((module) => ({ default: module.MSAViewer }))
@@ -134,7 +135,12 @@ export function ResultsPage() {
         ) : null}
         {activeTab === "alignment" && alignmentQuery.data ? (
           <Suspense fallback={<LoadingState label={d.results.loading.viewer} />}>
-            <MSAViewer alignment={alignmentQuery.data} />
+            <MSAViewer
+              alignment={alignmentQuery.data}
+              context={summaryQuery.data
+                ? createServerViewerContext(summaryQuery.data, files)
+                : undefined}
+            />
           </Suspense>
         ) : null}
       </section>

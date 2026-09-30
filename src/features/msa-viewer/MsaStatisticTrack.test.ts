@@ -20,4 +20,11 @@ describe("trackValue", () => {
     expect(trackValue(column, "coverage")).toBe(0.8);
     expect(trackValue(column, "entropy")).toBe(0.4);
   });
+
+  it("keeps conservation and entropy unavailable without canonical observations", () => {
+    const unavailable = { ...column, hasInformativeBases: false };
+    expect(trackValue(unavailable, "conservation")).toBeNull();
+    expect(trackValue(unavailable, "entropy")).toBeNull();
+    expect(trackValue(unavailable, "gap")).toBe(0.2);
+  });
 });

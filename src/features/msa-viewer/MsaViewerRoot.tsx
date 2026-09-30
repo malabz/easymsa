@@ -1,26 +1,54 @@
-import { Loader2, MousePointer2, X } from "lucide-react";
+import { Download, Loader2, MousePointer2, RotateCcw, X } from "lucide-react";
 import {
   useDeferredValue,
   useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
-  useState
+  useState,
+  type ChangeEvent
 } from "react";
 import { EmptyState } from "../../components/common/EmptyState";
+import { OverlayDialog } from "../../components/common/OverlayDialog";
 import { MSAColorLegend } from "../../components/results/MSAColorLegend";
-import { ExportDialog } from "../msa-export/ExportDialog";
-import { useMsaExport } from "../msa-export/useMsaExport";
 import { useLanguage } from "../../lib/i18n/useLanguage";
-import type { MSAResult, MSASequence } from "../../lib/types/msa";
+import type {
+  AlignmentDescriptor,
+  MSAResult,
+  MSASequence
+} from "../../lib/types/msa";
+import { ExportDialog } from "../msa-export/ExportDialog";
+import type { MsaExportAnnotation } from "../msa-export/exportTypes";
+import { useMsaExport } from "../msa-export/useMsaExport";
 import {
-  buildReferenceCoordinateMap,
-  calculateRangeStats
-} from "./analysis";
+  buildAlignmentDescriptor,
+  canonicalAlignmentSourceKey,
+  resolveAnalysisScopeSequences,
+  rowKeyForSequence,
+  stableRowKey
+} from "./alignmentModel";
+import { buildReferenceCoordinateMap } from "./analysis";
+import {
+  identityColumnPositionView,
+  lowerBoundVisibleIndex,
+  materializePositionArray,
+  positionAt,
+  visibleIndexOfPosition
+} from "./columnStatsStore";
+import { MsaAnnotationPanel } from "./MsaAnnotationPanel";
 import { MsaDomMatrix } from "./MsaDomMatrix";
 import { MsaInspector } from "./MsaInspector";
 import { MsaOverviewNavigator } from "./MsaOverviewNavigator";
+import { MsaQcPanel } from "./MsaQcPanel";
 import { MsaViewerToolbar } from "./MsaViewerToolbar";
+import { MsaWorkspaceShell } from "./MsaWorkspaceShell";
+import {
+  DEFAULT_ROW_QC_FILTERS,
+  createQcAnnotation,
+  filterColumnPositionViewForQc,
+  type RowQcFilters,
+  type RowQcSortKey
+} from "./qcModel";
 import type {
   CellSelection,
   ColumnRange,
@@ -28,12 +56,18 @@ import type {
   ViewerState
 } from "./types";
 import { useMsaAnalysis } from "./useMsaAnalysis";
+import { useMsaRangeStats } from "./useMsaRangeStats";
 import { useViewerState } from "./useViewerState";
+import {
+  serializableViewerContext,
+  type MsaViewerContext
+} from "./viewerContext";
+import type { QcAnnotation } from "./workspaceSnapshot";
 
 const DETAIL_ZOOM_THRESHOLD = 0.7;
 const MIN_ZOOM = 0.25;
 const MAX_ZOOM = 2.5;
-const EMPTY_SEQUENCES: MSASequence[] = [];
+const CONSENSUS_ROW_KEY = "easymsa:consensus";
 
 function clampZoom(value: number) {
   return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Number(value.toFixed(2))));
@@ -41,15 +75,18 @@ function clampZoom(value: number) {
 
 export function getMsaViewSettings(
   zoomLevel: number,
-  density: ViewerState["density"]
+  density: ViewerState["density"],
+  viewMode?: ViewerState["viewMode"],
+  labelWidth?: number
 ): MsaViewSettings {
   const compact = density === "compact";
-  const showCharacters = zoomLevel >= DETAIL_ZOOM_THRESHOLD;
+  const showCharacters = viewMode
+    ? viewMode === "detail"
+    : zoomLevel >= DETAIL_ZOOM_THRESHOLD;
   const baseCellWidth = compact ? 14 : 20;
   const baseCellHeight = compact ? 20 : 24;
   const rowPadding = compact ? 10 : 14;
   const overviewCellSize = Math.max(3, Math.round(12 * zoomLevel));
-
   return {
     cellWidth: showCharacters
       ? Math.round(baseCellWidth * zoomLevel)
@@ -61,8 +98,14 @@ export function getMsaViewSettings(
       ? Math.round(baseCellHeight * zoomLevel + rowPadding)
       : Math.max(6, overviewCellSize + 2),
     fontSize: Math.max(9, Math.round((compact ? 10 : 11) * zoomLevel)),
-    labelWidth: Math.round(
-      (compact ? 160 : 192) * Math.min(Math.max(zoomLevel, 0.8), 1.2)
+    labelWidth: Math.max(
+      96,
+      Math.min(
+        360,
+        labelWidth ?? Math.round(
+          (compact ? 160 : 192) * Math.min(Math.max(zoomLevel, 0.8), 1.2)
+        )
+      )
     ),
     markerEvery:
       zoomLevel < 0.35 ? 100 : zoomLevel < 0.7 ? 50 : zoomLevel < 0.95 ? 20 : 10,
@@ -71,14 +114,50 @@ export function getMsaViewSettings(
   };
 }
 
-function downloadText(filename: string, text: string) {
-  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+function useMobileLayout() {
+  const [mobile, setMobile] = useState(false);
+  useEffect(() => {
+    if (typeof window.matchMedia !== "function") return;
+    const query = window.matchMedia("(max-width: 1023px)");
+    const update = () => setMobile(query.matches);
+    update();
+    query.addEventListener?.("change", update);
+    return () => query.removeEventListener?.("change", update);
+  }, []);
+  return mobile;
+}
+
+function prepareAlignment(alignment: MSAResult) {
+  const sourceKey = alignment.descriptor?.sourceKey ??
+    canonicalAlignmentSourceKey(alignment.sequences);
+  const sequences = alignment.sequences.map((sequence, index) => ({
+    ...sequence,
+    originalIndex: sequence.originalIndex ?? index,
+    rowKey: sequence.rowKey ?? stableRowKey(sourceKey, sequence.originalIndex ?? index)
+  }));
+  const descriptor: AlignmentDescriptor = alignment.descriptor ??
+    buildAlignmentDescriptor(sequences, {
+      sourceKind: "job",
+      sourceName: alignment.jobId || "alignment",
+      sourceKey
+    });
+  return {
+    ...alignment,
+    sequences,
+    sequenceCount: alignment.sequenceCount ?? sequences.length,
+    alignmentLength: alignment.alignmentLength ?? descriptor.alignmentLength,
+    descriptor
+  } satisfies MSAResult;
+}
+
+function downloadText(filename: string, text: string, type = "text/plain;charset=utf-8") {
+  const blob = new Blob([text], { type });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
   anchor.download = filename;
   anchor.click();
-  URL.revokeObjectURL(url);
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 function fastaForPositions(sequences: MSASequence[], positions: number[]) {
@@ -92,30 +171,25 @@ function fastaForPositions(sequences: MSASequence[], positions: number[]) {
 }
 
 function selectedRangeLabel(range: ColumnRange | null) {
-  if (!range) {
-    return "";
-  }
-  return range.start === range.end
-    ? String(range.start)
-    : `${range.start}-${range.end}`;
+  if (!range) return "";
+  return range.start === range.end ? String(range.start) : `${range.start}-${range.end}`;
 }
 
 function DifferenceLegend() {
   const { dictionary: d } = useLanguage();
   const t = d.results.viewer.stageTwo.differences;
   const items = [
-    [t.match, "bg-slate-100 border-slate-200"],
-    [t.mismatch, "bg-rose-200 border-rose-300"],
-    [t.insertion, "bg-teal-200 border-teal-300"],
-    [t.deletion, "bg-amber-200 border-amber-300"]
+    [t.match, "bg-slate-100 border-slate-300"],
+    [t.compatibleAmbiguity, "bg-violet-100 border-violet-400 border-dashed"],
+    [t.substitution, "bg-rose-200 border-rose-500"],
+    [t.insertion, "bg-teal-200 border-teal-500 border-dashed"],
+    [t.deletion, "bg-amber-200 border-amber-500 border-dotted"],
+    [t.unknown, "bg-slate-200 border-slate-500 border-dashed"]
   ];
   return (
-    <div className="flex flex-wrap gap-2 border-t border-slate-200 pt-4">
+    <div className="flex flex-wrap gap-2 p-3">
       {items.map(([label, className]) => (
-        <span
-          className={`inline-flex h-8 items-center rounded border px-3 text-xs font-medium text-slate-800 ${className}`}
-          key={label}
-        >
+        <span className={`inline-flex min-h-8 items-center rounded border px-3 text-xs font-medium text-slate-800 ${className}`} key={label}>
           {label}
         </span>
       ))}
@@ -123,310 +197,396 @@ function DifferenceLegend() {
   );
 }
 
-export function MsaViewerRoot({ alignment }: { alignment: MSAResult }) {
-  const { dictionary: d } = useLanguage();
-  const { state, dispatch } = useViewerState(alignment.jobId);
+function rowMetric(row: ReturnType<typeof useMsaAnalysis>["rowQc"][number] | undefined, key: ViewerState["sortMode"]) {
+  if (!row) return Number.POSITIVE_INFINITY;
+  if (key === "gap") return row.gapFraction ?? 0;
+  if (key === "ambiguity") return row.ambiguityFraction;
+  if (key === "gc") return row.gcFraction ?? Number.POSITIVE_INFINITY;
+  if (key === "identity") return row.identity ?? row.reference?.identity ?? Number.POSITIVE_INFINITY;
+  return row.originalIndex;
+}
+
+export function MsaViewerRoot({
+  alignment: sourceAlignment,
+  context
+}: {
+  alignment: MSAResult;
+  context?: MsaViewerContext;
+}) {
+  const { dictionary: d, locale } = useLanguage();
+  const mobile = useMobileLayout();
+  const alignment = useMemo(() => prepareAlignment(sourceAlignment), [sourceAlignment]);
+  const descriptor = alignment.descriptor!;
+  const alignmentLength = alignment.alignmentLength ?? descriptor.alignmentLength;
+  const {
+    state,
+    dispatch,
+    sourceFingerprint,
+    exportWorkspace,
+    importWorkspace
+  } = useViewerState({
+    descriptor,
+    rows: alignment.sequences,
+    alignmentLength,
+    legacyJobId: alignment.jobId
+  });
   const [jumpPosition, setJumpPosition] = useState("");
+  const [workspaceMessage, setWorkspaceMessage] = useState<string | null>(null);
+  const [qcFilters, setQcFilters] = useState<RowQcFilters>(DEFAULT_ROW_QC_FILTERS);
+  const [qcSortDirection, setQcSortDirection] = useState<"asc" | "desc">("asc");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const workspaceFileRef = useRef<HTMLInputElement>(null);
   const pendingZoomAnchorRef = useRef<number | null>(null);
-  const deferredSearch = useDeferredValue(state.search.trim().toLowerCase());
-  const alignmentLength =
-    alignment.alignmentLength ??
-    Math.max(0, ...alignment.sequences.map((sequence) => sequence.sequence.length));
-  const viewSettings = useMemo(
-    () => getMsaViewSettings(state.zoomLevel, state.density),
-    [state.density, state.zoomLevel]
+  const restoredViewportSourceRef = useRef<string | null>(null);
+  const deferredSearch = useDeferredValue(state.search.trim().toLocaleLowerCase());
+  const canAnalyze = !alignment.truncated &&
+    descriptor.alignmentMode === "aligned" &&
+    descriptor.alphabet !== "protein" &&
+    descriptor.alphabet !== "unknown";
+  const renderColorScheme = canAnalyze ? state.colorScheme : "neutral" as const;
+  const rowRecords = useMemo(
+    () => alignment.sequences.map((sequence, index) => ({
+      sequence,
+      rowKey: rowKeyForSequence(sequence, sequence.originalIndex ?? index),
+      sourceIndex: sequence.originalIndex ?? index
+    })),
+    [alignment.sequences]
   );
-  const canAnalyze = !alignment.truncated && alignment.sequences.length > 0;
-  const analysis = useMsaAnalysis(
-    canAnalyze ? alignment.sequences : EMPTY_SEQUENCES,
-    canAnalyze ? alignmentLength : 0,
-    state.motifQuery
+  const rowByKey = useMemo(
+    () => new Map(rowRecords.map((row) => [row.rowKey, row.sequence])),
+    [rowRecords]
   );
-  const reference = useMemo(
-    () =>
-      alignment.sequences.find(
-        (sequence) => sequence.id === state.referenceSequenceId
-      ) ?? null,
-    [alignment.sequences, state.referenceSequenceId]
+  const headerCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    rowRecords.forEach(({ sequence }) => counts.set(sequence.id, (counts.get(sequence.id) ?? 0) + 1));
+    return counts;
+  }, [rowRecords]);
+  const rowLabels = useMemo(
+    () => new Map(rowRecords.map(({ rowKey, sequence, sourceIndex }) => [
+      rowKey,
+      (headerCounts.get(sequence.id) ?? 0) > 1
+        ? `${sequence.id} (#${sourceIndex + 1})`
+        : sequence.id
+    ])),
+    [headerCounts, rowRecords]
   );
-  const referenceMap = useMemo(
-    () => (reference ? buildReferenceCoordinateMap(reference.sequence) : null),
-    [reference]
-  );
+  const reference = state.referenceRowKey
+    ? rowByKey.get(state.referenceRowKey) ?? null
+    : null;
 
   useEffect(() => {
-    if (state.referenceSequenceId && !reference) {
+    setQcFilters(DEFAULT_ROW_QC_FILTERS);
+    setQcSortDirection("asc");
+    setWorkspaceMessage(null);
+  }, [sourceFingerprint]);
+
+  useEffect(() => {
+    if (state.referenceRowKey && !reference) {
       dispatch({
         type: "patch",
         patch: {
           coordinateMode: "alignment",
           differenceMode: false,
-          referenceSequenceId: null
+          referenceRowKey: null
         }
       });
     }
-  }, [dispatch, reference, state.referenceSequenceId]);
+  }, [dispatch, reference, state.referenceRowKey]);
 
-  const consensus = useMemo(
-    () =>
-      analysis.columns
-        .map((column) =>
-          state.consensusMode === "iupac"
-            ? column.ambiguityConsensus
-            : column.consensusBase
-        )
-        .join(""),
-    [analysis.columns, state.consensusMode]
-  );
-  const viewerAlignment = useMemo(
-    () => ({ ...alignment, consensus: consensus || alignment.consensus }),
-    [alignment, consensus]
-  );
+  useEffect(() => {
+    if (!canAnalyze && (
+      state.activeTracks.length ||
+      state.analysisScope !== "all" ||
+      state.columnFilter !== "all" ||
+      state.differenceMode ||
+      state.coordinateMode === "reference" ||
+      state.referenceRowKey ||
+      state.motifQuery ||
+      state.qcPanelOpen
+    )) {
+      dispatch({
+        type: "patch",
+        patch: {
+          activeTracks: [],
+          activeMotifIndex: 0,
+          analysisScope: "all",
+          columnFilter: "all",
+          coordinateMode: "alignment",
+          differenceMode: false,
+          motifQuery: "",
+          qcPanelOpen: false,
+          referenceRowKey: null
+        }
+      });
+    }
+  }, [canAnalyze, dispatch, state.activeTracks.length, state.analysisScope, state.columnFilter, state.coordinateMode, state.differenceMode, state.motifQuery, state.qcPanelOpen, state.referenceRowKey]);
 
-  const displayedSequences = useMemo(() => {
-    const referenceId = reference?.id ?? null;
-    const filtered = alignment.sequences.filter((sequence) => {
-      if (sequence.id === referenceId) {
-        return true;
-      }
-      if (state.hiddenSequenceIds.has(sequence.id)) {
-        return false;
-      }
-      return !deferredSearch || sequence.id.toLowerCase().includes(deferredSearch);
-    });
-    const order = new Map(
-      alignment.sequences.map((sequence, index) => [sequence.id, index])
-    );
-    const sorted = [...filtered].sort((left, right) => {
+  const baseVisibleRecords = useMemo(
+    () => rowRecords.filter(({ rowKey, sequence }) => {
+      if (rowKey === state.referenceRowKey) return true;
+      if (state.hiddenRowKeys.has(rowKey)) return false;
+      return !deferredSearch || sequence.id.toLocaleLowerCase().includes(deferredSearch);
+    }),
+    [deferredSearch, rowRecords, state.hiddenRowKeys, state.referenceRowKey]
+  );
+  const baseVisibleRowKeys = useMemo(
+    () => baseVisibleRecords.map((row) => row.rowKey),
+    [baseVisibleRecords]
+  );
+  const analysis = useMsaAnalysis(alignment.sequences, alignmentLength, {
+    sourceFingerprint,
+    alphabet: descriptor.alphabet,
+    alignmentMode: descriptor.alignmentMode,
+    analysisScope: state.analysisScope,
+    visibleRowKeys: baseVisibleRowKeys,
+    selectedRowKeys: state.selectedRowKeys,
+    referenceRowKey: state.referenceRowKey,
+    enabled: canAnalyze,
+    motifQuery: state.motifQuery,
+    motifMatchMode: state.motifMatchMode,
+    motifStrandMode: state.motifStrandMode
+  });
+  const rowQcByKey = useMemo(
+    () => new Map(analysis.rowQc.map((row) => [row.rowKey, row])),
+    [analysis.rowQc]
+  );
+  const displayedRecords = useMemo(() => {
+    const sorted = [...baseVisibleRecords].sort((left, right) => {
+      if (left.rowKey === state.referenceRowKey) return -1;
+      if (right.rowKey === state.referenceRowKey) return 1;
+      const leftPinned = state.pinnedRowKeys.has(left.rowKey);
+      const rightPinned = state.pinnedRowKeys.has(right.rowKey);
+      if (leftPinned !== rightPinned) return leftPinned ? -1 : 1;
       if (state.sortMode === "name") {
-        return left.id.localeCompare(right.id);
+        return left.sequence.id.localeCompare(right.sequence.id) || left.sourceIndex - right.sourceIndex;
       }
       if (state.sortMode === "length") {
-        return (
-          right.sequence.length - left.sequence.length ||
-          left.id.localeCompare(right.id)
-        );
+        return right.sequence.sequence.length - left.sequence.sequence.length || left.sourceIndex - right.sourceIndex;
       }
-      return (order.get(left.id) ?? 0) - (order.get(right.id) ?? 0);
+      if (state.sortMode !== "original") {
+        const compared = rowMetric(rowQcByKey.get(left.rowKey), state.sortMode) -
+          rowMetric(rowQcByKey.get(right.rowKey), state.sortMode);
+        if (Number.isFinite(compared) && compared !== 0) return compared;
+      }
+      return left.sourceIndex - right.sourceIndex;
     });
-    return sorted.sort((left, right) => {
-      const rank = (sequence: MSASequence) =>
-        sequence.id === referenceId
-          ? 0
-          : state.pinnedSequenceIds.has(sequence.id)
-            ? 1
-            : 2;
-      return rank(left) - rank(right);
-    });
-  }, [
-    alignment.sequences,
-    deferredSearch,
-    reference,
-    state.hiddenSequenceIds,
-    state.pinnedSequenceIds,
-    state.sortMode
-  ]);
-
-  const visiblePositions = useMemo(
-    () =>
-      analysis.columns
-        .filter((column) => {
-          if (state.columnFilter === "variable") {
-            return column.variation > 0;
-          }
-          if (state.columnFilter === "conserved") {
-            return column.conservation >= 0.8 && column.gapFraction < 0.5;
-          }
-          if (state.columnFilter === "lowGap") {
-            return column.gapFraction <= 0.5;
-          }
-          return true;
-        })
-        .map((column) => column.position),
-    [analysis.columns, state.columnFilter]
+    return sorted;
+  }, [baseVisibleRecords, rowQcByKey, state.pinnedRowKeys, state.referenceRowKey, state.sortMode]);
+  const displayedSequences = useMemo(
+    () => displayedRecords.map((row) => row.sequence),
+    [displayedRecords]
   );
-  const displayedIds = useMemo(
-    () => new Set(displayedSequences.map((sequence) => sequence.id)),
-    [displayedSequences]
+  const displayedRowKeys = useMemo(
+    () => displayedRecords.map((row) => row.rowKey),
+    [displayedRecords]
   );
-  const motifMatches = useMemo(
-    () => analysis.motifMatches.filter((match) => displayedIds.has(match.sequenceId)),
-    [analysis.motifMatches, displayedIds]
+  const displayedRowIndex = useMemo(
+    () => new Map(displayedRowKeys.map((rowKey, index) => [rowKey, index])),
+    [displayedRowKeys]
+  );
+  const displayedRowKeySet = useMemo(() => new Set(displayedRowKeys), [displayedRowKeys]);
+  const scopeSequences = useMemo(
+    () => resolveAnalysisScopeSequences(alignment.sequences, state.analysisScope, {
+      visibleRowKeys: baseVisibleRowKeys,
+      selectedRowKeys: state.selectedRowKeys
+    }),
+    [alignment.sequences, baseVisibleRowKeys, state.analysisScope, state.selectedRowKeys]
+  );
+  const analysisRowKeySet = useMemo(
+    () => new Set(analysis.scopeRowKeys),
+    [analysis.scopeRowKeys]
+  );
+  const consensus = state.consensusMode === "iupac"
+    ? analysis.consensus.iupac
+    : analysis.consensus.majority;
+  const viewerAlignment = useMemo(
+    () => ({ ...alignment, consensus: canAnalyze ? consensus : undefined }),
+    [alignment, canAnalyze, consensus]
+  );
+  const identityPositions = useMemo(
+    () => identityColumnPositionView(alignmentLength),
+    [alignmentLength]
+  );
+  const visiblePositions = useMemo(() => {
+    if (!canAnalyze || !analysis.columnStore) return identityPositions;
+    return filterColumnPositionViewForQc(
+      analysis.columnStore,
+      state.columnFilter,
+      state.qcThresholds.column
+    );
+  }, [analysis.columnStore, canAnalyze, identityPositions, state.columnFilter, state.qcThresholds.column]);
+  const viewSettings = useMemo(() => {
+    const settings = getMsaViewSettings(
+      state.zoomLevel,
+      state.density,
+      state.viewMode,
+      mobile ? Math.min(120, state.labelWidth) : state.labelWidth
+    );
+    return mobile && settings.showCharacters
+      ? {
+          ...settings,
+          cellWidth: Math.max(44, settings.cellWidth),
+          cellHeight: Math.max(44, settings.cellHeight),
+          rowHeight: Math.max(48, settings.rowHeight)
+        }
+      : settings;
+  }, [mobile, state.density, state.labelWidth, state.viewMode, state.zoomLevel]);
+  const activeTracks = canAnalyze ? state.activeTracks : [];
+  const navigationRowKeys = useMemo(
+    () => [
+      ...activeTracks.map((track) => `track:${track}`),
+      ...displayedRowKeys,
+      ...(canAnalyze ? [CONSENSUS_ROW_KEY] : [])
+    ],
+    [activeTracks, canAnalyze, displayedRowKeys]
+  );
+  const navigationRowIndex = useMemo(
+    () => new Map(navigationRowKeys.map((rowKey, index) => [rowKey, index])),
+    [navigationRowKeys]
+  );
+  const referenceMap = useMemo(
+    () => canAnalyze && reference ? buildReferenceCoordinateMap(reference.sequence) : null,
+    [canAnalyze, reference]
+  );
+  const displayedMotifMatches = useMemo(
+    () => analysis.motifMatches.filter((match) => displayedRowKeySet.has(match.rowKey)),
+    [analysis.motifMatches, displayedRowKeySet]
+  );
+  const motifMatchCount = useMemo(
+    () => displayedRowKeys.reduce(
+      (total, rowKey) => total + (analysis.motifRowTotals[rowKey] ?? 0),
+      0
+    ),
+    [analysis.motifRowTotals, displayedRowKeys]
   );
   const motifPositionMap = useMemo(() => {
     const map = new Map<string, Set<number>>();
-    motifMatches.forEach((match) => {
-      const positions = map.get(match.sequenceId) ?? new Set<number>();
+    displayedMotifMatches.forEach((match) => {
+      const positions = map.get(match.rowKey) ?? new Set<number>();
       match.positions.forEach((position) => positions.add(position));
-      map.set(match.sequenceId, positions);
+      map.set(match.rowKey, positions);
     });
     return map;
-  }, [motifMatches]);
-  const hasSequenceFilter = Boolean(deferredSearch || state.hiddenSequenceIds.size);
-  const motifMatchCount = hasSequenceFilter
-    ? motifMatches.length
-    : analysis.motifMatchCount;
-  const motifMatchesTruncated = !hasSequenceFilter && analysis.motifMatchesTruncated;
+  }, [displayedMotifMatches]);
 
   useEffect(() => {
-    if (!motifMatches.length && state.activeMotifIndex !== 0) {
+    if (!displayedMotifMatches.length && state.activeMotifIndex !== 0) {
       dispatch({ type: "patch", patch: { activeMotifIndex: 0 } });
-    } else if (state.activeMotifIndex >= motifMatches.length && motifMatches.length) {
-      dispatch({ type: "patch", patch: { activeMotifIndex: motifMatches.length - 1 } });
+    } else if (state.activeMotifIndex >= displayedMotifMatches.length && displayedMotifMatches.length) {
+      dispatch({ type: "patch", patch: { activeMotifIndex: displayedMotifMatches.length - 1 } });
     }
-  }, [dispatch, motifMatches.length, state.activeMotifIndex]);
+  }, [dispatch, displayedMotifMatches.length, state.activeMotifIndex]);
 
   const selectedSequence = state.selection
-    ? alignment.sequences.find(
-        (sequence) => sequence.id === state.selection?.sequenceId
-      )
+    ? rowByKey.get(state.selection.rowKey) ?? null
     : null;
   const selectedBase = state.selection
     ? selectedSequence?.sequence[state.selection.position - 1] ??
-      (state.selection.sequenceId === d.results.viewer.consensus
+      (state.selection.rowKey === CONSENSUS_ROW_KEY
         ? consensus[state.selection.position - 1] ?? ""
-        : analysis.columns[state.selection.position - 1]?.dominantBase ?? "")
+        : analysis.getColumnStats(state.selection.position)?.dominantBase ?? "")
     : "";
-  const selectedColumnStats = state.selection
-    ? analysis.columns[state.selection.position - 1] ?? null
+  const selectedColumnStats = canAnalyze && state.selection
+    ? analysis.getColumnStats(state.selection.position)
     : null;
   const selectedReferencePosition = state.selection && referenceMap
-    ? referenceMap.alignmentToReference[state.selection.position - 1] ?? null
+    ? referenceMap.alignmentToReferenceLabel[state.selection.position - 1] ?? null
     : null;
   const columnSummary = useMemo(() => {
-    if (!state.selection) {
-      return "";
-    }
+    if (!state.selection || !canAnalyze) return "";
     const counts = new Map<string, number>();
-    displayedSequences.forEach((sequence) => {
-      const base = sequence.sequence[state.selection!.position - 1] || "-";
-      counts.set(base, (counts.get(base) ?? 0) + 1);
+    scopeSequences.forEach((sequence) => {
+      const base = sequence.sequence[state.selection!.position - 1];
+      if (base === undefined) return;
+      const label = base || "-";
+      counts.set(label, (counts.get(label) ?? 0) + 1);
     });
     return Array.from(counts)
       .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
       .map(([base, count]) => `${base}:${count}`)
       .join("  ");
-  }, [displayedSequences, state.selection]);
-  const rangeStats = useMemo(
-    () =>
-      state.selectedRange
-        ? calculateRangeStats({
-            sequences: displayedSequences,
-            columns: analysis.columns,
-            range: state.selectedRange,
-            consensus,
-            reference
-          })
-        : null,
-    [
-      analysis.columns,
-      consensus,
-      displayedSequences,
-      reference,
-      state.selectedRange
-    ]
-  );
-
-  const imageExport = useMsaExport(viewerAlignment, getExportViewerState);
+  }, [canAnalyze, scopeSequences, state.selection]);
+  const rangeAnalysis = useMsaRangeStats({
+    sourceFingerprint,
+    scopeRowKeys: analysis.scopeRowKeys,
+    sequences: scopeSequences,
+    range: state.selectedRange,
+    consensusMode: state.consensusMode,
+    reference,
+    alphabet: descriptor.alphabet,
+    enabled: canAnalyze && scopeSequences.length > 0
+  });
+  const rangeStats = rangeAnalysis.rangeStats;
 
   useLayoutEffect(() => {
     const anchorPosition = pendingZoomAnchorRef.current;
-    if (anchorPosition === null) {
-      return;
-    }
+    if (anchorPosition === null) return;
     pendingZoomAnchorRef.current = null;
     scrollToAlignmentPosition(anchorPosition);
-  }, [viewSettings.cellWidth, viewSettings.cellGap, visiblePositions]);
+  }, [viewSettings.cellGap, viewSettings.cellWidth, visiblePositions]);
+
+  useLayoutEffect(() => {
+    if (
+      restoredViewportSourceRef.current === sourceFingerprint ||
+      !state.viewport ||
+      !scrollRef.current
+    ) return;
+    restoredViewportSourceRef.current = sourceFingerprint;
+    scrollRef.current.scrollLeft = state.viewport.scrollLeft;
+    scrollRef.current.scrollTop = state.viewport.scrollTop;
+  }, [sourceFingerprint, state.viewport, displayedSequences.length, visiblePositions.length]);
 
   useEffect(() => {
     const element = scrollRef.current;
-    if (!element || analysis.isCalculating) {
-      return;
-    }
+    if (!element) return;
     let timeout = 0;
     const updateViewport = () => {
       window.clearTimeout(timeout);
-      timeout = window.setTimeout(() => {
-        dispatch({
-          type: "patch",
-          patch: {
-            viewport: {
-              scrollLeft: element.scrollLeft,
-              scrollTop: element.scrollTop,
-              clientWidth: element.clientWidth,
-              clientHeight: element.clientHeight
-            }
+      timeout = window.setTimeout(() => dispatch({
+        type: "patch",
+        patch: {
+          viewport: {
+            scrollLeft: element.scrollLeft,
+            scrollTop: element.scrollTop,
+            clientWidth: element.clientWidth,
+            clientHeight: element.clientHeight
           }
-        });
-      }, 120);
+        }
+      }), 120);
     };
-    const resizeObserver = new ResizeObserver(updateViewport);
-    resizeObserver.observe(element);
+    const resizeObserver = typeof ResizeObserver === "undefined"
+      ? null
+      : new ResizeObserver(updateViewport);
+    resizeObserver?.observe(element);
     element.addEventListener("scroll", updateViewport, { passive: true });
     updateViewport();
     return () => {
       window.clearTimeout(timeout);
-      resizeObserver.disconnect();
+      resizeObserver?.disconnect();
       element.removeEventListener("scroll", updateViewport);
     };
-  }, [
-    analysis.isCalculating,
-    dispatch,
-    displayedSequences.length,
-    visiblePositions.length
-  ]);
+  }, [dispatch, displayedSequences.length, visiblePositions.length]);
 
   function patchState(patch: Partial<ViewerState>) {
     dispatch({ type: "patch", patch });
   }
 
-  function getExportViewerState() {
-    const viewport = scrollRef.current
-      ? {
-          scrollLeft: scrollRef.current.scrollLeft,
-          scrollTop: scrollRef.current.scrollTop,
-          clientWidth: scrollRef.current.clientWidth,
-          clientHeight: scrollRef.current.clientHeight
-        }
-      : null;
-    return {
-      sequences: displayedSequences,
-      visiblePositions,
-      conservationColumns: analysis.columns,
-      colorScheme: state.colorScheme,
-      selectedRange: state.selectedRange,
-      viewSettings,
-      viewport,
-      alignmentLength,
-      activeTracks: state.activeTracks,
-      consensusMode: state.consensusMode,
-      coordinateMode: state.coordinateMode,
-      differenceMode: state.differenceMode,
-      referenceSequenceId: reference?.id ?? null
-    };
-  }
-
-  function scrollToAlignmentPosition(position: number, sequenceId?: string) {
+  function scrollToAlignmentPosition(position: number, rowKey?: string) {
     const element = scrollRef.current;
-    if (!element || !visiblePositions.length) {
-      return;
-    }
-    const nextIndex = visiblePositions.findIndex(
-      (visiblePosition) => visiblePosition >= position
-    );
-    const columnIndex = nextIndex >= 0 ? nextIndex : visiblePositions.length - 1;
+    if (!element || !visiblePositions.length) return;
+    const exactIndex = visibleIndexOfPosition(visiblePositions, position);
+    const columnIndex = exactIndex >= 0
+      ? exactIndex
+      : lowerBoundVisibleIndex(visiblePositions, position);
     const pitch = viewSettings.cellWidth + viewSettings.cellGap;
     element.scrollLeft = Math.max(
       0,
       viewSettings.labelWidth + 24 + columnIndex * pitch - element.clientWidth / 2
     );
-    if (sequenceId) {
-      const rowIndex = displayedSequences.findIndex(
-        (sequence) => sequence.id === sequenceId
-      );
+    if (rowKey) {
+      const rowIndex = displayedRowIndex.get(rowKey) ?? -1;
       if (rowIndex >= 0) {
-        const headerHeight = (1 + state.activeTracks.length) * viewSettings.rowHeight;
+        const headerHeight = (1 + activeTracks.length) * viewSettings.rowHeight;
         element.scrollTop = Math.max(
           0,
           headerHeight + rowIndex * viewSettings.rowHeight - element.clientHeight / 2
@@ -441,88 +601,74 @@ export function MsaViewerRoot({ alignment }: { alignment: MSAResult }) {
       : next.position;
     dispatch({
       type: "select",
+      openInspector: !(mobile && state.rangeSelectionMode),
       selection: next,
-      range: {
-        start: Math.min(anchor, next.position),
-        end: Math.max(anchor, next.position)
-      }
+      range: { start: Math.min(anchor, next.position), end: Math.max(anchor, next.position) }
     });
   }
 
-  function handleRangeSelect(sequenceId: string, start: number, end: number) {
+  function handleRangeSelect(rowKey: string, start: number, end: number) {
     dispatch({
       type: "select",
-      selection: { sequenceId, position: end },
+      openInspector: !(mobile && state.rangeSelectionMode),
+      selection: { rowKey, position: end },
       range: { start, end }
     });
   }
 
   function moveSelection(deltaRow: number, deltaColumn: number, extendRange: boolean) {
-    if (!visiblePositions.length || !displayedSequences.length) {
-      return;
-    }
-    const navigationRowIds = [
-      ...state.activeTracks.map((track) => `track:${track}`),
-      ...displayedSequences.map((sequence) => sequence.id),
-      d.results.viewer.consensus
-    ];
-    const currentPosition = state.selection?.position ?? visiblePositions[0];
-    const exactColumnIndex = visiblePositions.indexOf(currentPosition);
-    const nearestColumnIndex = visiblePositions.findIndex(
-      (position) => position >= currentPosition
-    );
-    const currentColumnIndex = exactColumnIndex >= 0
-      ? exactColumnIndex
-      : nearestColumnIndex >= 0
-        ? nearestColumnIndex
-        : visiblePositions.length - 1;
-    const fallbackRow = state.activeTracks.length;
-    const selectedRowIndex = navigationRowIds.indexOf(
-      state.selection?.sequenceId ?? displayedSequences[0].id
-    );
-    const currentRowIndex = selectedRowIndex >= 0 ? selectedRowIndex : fallbackRow;
+    if (!visiblePositions.length || !displayedSequences.length) return;
+    const currentPosition = state.selection?.position ?? positionAt(visiblePositions, 0) ?? 1;
+    const exactIndex = visibleIndexOfPosition(visiblePositions, currentPosition);
+    const currentColumnIndex = exactIndex >= 0
+      ? exactIndex
+      : lowerBoundVisibleIndex(visiblePositions, currentPosition);
+    const selectedRowIndex = state.selection
+      ? navigationRowIndex.get(state.selection.rowKey) ?? -1
+      : -1;
+    const currentRowIndex = selectedRowIndex >= 0 ? selectedRowIndex : activeTracks.length;
     const nextColumnIndex = Math.min(
       visiblePositions.length - 1,
       Math.max(0, currentColumnIndex + deltaColumn)
     );
     const nextRowIndex = Math.min(
-      navigationRowIds.length - 1,
+      navigationRowKeys.length - 1,
       Math.max(0, currentRowIndex + deltaRow)
     );
     const next = {
-      sequenceId: navigationRowIds[nextRowIndex],
-      position: visiblePositions[nextColumnIndex]
+      rowKey: navigationRowKeys[nextRowIndex],
+      position: positionAt(visiblePositions, nextColumnIndex) ?? currentPosition
     };
     handleSelect(next, extendRange);
-    scrollToAlignmentPosition(next.position, next.sequenceId);
-  }
-
-  function navigateMotif(delta: number) {
-    if (!motifMatches.length) {
-      return;
-    }
-    const index =
-      (state.activeMotifIndex + delta + motifMatches.length) % motifMatches.length;
-    selectMotif(index);
+    scrollToAlignmentPosition(next.position, next.rowKey);
   }
 
   function selectMotif(index: number) {
-    const match = motifMatches[index];
-    if (!match) {
-      return;
-    }
+    const match = displayedMotifMatches[index];
+    if (!match) return;
+    let start = Number.POSITIVE_INFINITY;
+    let end = 0;
+    match.positions.forEach((position) => {
+      start = Math.min(start, position);
+      end = Math.max(end, position);
+    });
     dispatch({
       type: "patch",
       patch: {
         activeMotifIndex: index,
-        selection: { sequenceId: match.sequenceId, position: match.start },
-        selectedRange: {
-          start: Math.min(...match.positions),
-          end: Math.max(...match.positions)
-        }
+        inspectorOpen: true,
+        selection: { rowKey: match.rowKey, position: match.start },
+        selectedRange: { start: Number.isFinite(start) ? start : match.start, end: end || match.start }
       }
     });
-    scrollToAlignmentPosition(match.start, match.sequenceId);
+    scrollToAlignmentPosition(match.start, match.rowKey);
+  }
+
+  function navigateMotif(delta: number) {
+    if (!displayedMotifMatches.length) return;
+    selectMotif(
+      (state.activeMotifIndex + delta + displayedMotifMatches.length) % displayedMotifMatches.length
+    );
   }
 
   function changeZoom(nextZoom: number) {
@@ -534,13 +680,10 @@ export function MsaViewerRoot({ alignment }: { alignment: MSAResult }) {
         0,
         Math.min(
           visiblePositions.length - 1,
-          Math.round(
-            (element.scrollLeft + element.clientWidth / 2 - viewSettings.labelWidth - 24) /
-              pitch
-          )
+          Math.round((element.scrollLeft + element.clientWidth / 2 - viewSettings.labelWidth - 24) / pitch)
         )
       );
-      anchorPosition = visiblePositions[centerIndex];
+      anchorPosition = positionAt(visiblePositions, centerIndex) ?? null;
     }
     pendingZoomAnchorRef.current = anchorPosition;
     patchState({ zoomLevel: clampZoom(nextZoom) });
@@ -548,254 +691,574 @@ export function MsaViewerRoot({ alignment }: { alignment: MSAResult }) {
 
   function jumpToPosition() {
     const parsed = Number.parseInt(jumpPosition, 10);
-    if (Number.isNaN(parsed)) {
-      return;
-    }
+    if (Number.isNaN(parsed)) return;
     let alignmentPosition = Math.max(1, Math.min(alignmentLength, parsed));
     if (state.coordinateMode === "reference" && referenceMap) {
-      const referencePosition = Math.max(
-        1,
-        Math.min(referenceMap.referenceLength, parsed)
-      );
-      alignmentPosition =
-        referenceMap.referenceToAlignment[referencePosition - 1] ?? alignmentPosition;
+      const referencePosition = Math.max(1, Math.min(referenceMap.referenceLength, parsed));
+      alignmentPosition = referenceMap.referenceToAlignment[referencePosition - 1] ?? alignmentPosition;
       setJumpPosition(String(referencePosition));
     } else {
       setJumpPosition(String(alignmentPosition));
     }
     scrollToAlignmentPosition(alignmentPosition);
-    const sequenceId = reference?.id ?? displayedSequences[0]?.id;
-    if (sequenceId) {
-      handleSelect({ sequenceId, position: alignmentPosition });
-    }
+    const rowKey = state.referenceRowKey ?? displayedRowKeys[0];
+    if (rowKey) handleSelect({ rowKey, position: alignmentPosition });
   }
 
-  function setReference(sequenceId: string) {
-    const nextReferenceId = reference?.id === sequenceId ? null : sequenceId;
+  function setReference(rowKey: string) {
+    if (!canAnalyze) return;
+    const nextReferenceRowKey = state.referenceRowKey === rowKey ? null : rowKey;
     patchState({
-      coordinateMode: nextReferenceId ? state.coordinateMode : "alignment",
-      differenceMode: nextReferenceId ? state.differenceMode : false,
-      referenceSequenceId: nextReferenceId
+      coordinateMode: nextReferenceRowKey ? state.coordinateMode : "alignment",
+      differenceMode: nextReferenceRowKey ? state.differenceMode : false,
+      referenceRowKey: nextReferenceRowKey
     });
-  }
-
-  function hideSequence(sequenceId: string) {
-    if (sequenceId === reference?.id) {
-      return;
-    }
-    dispatch({ type: "hideSequence", sequenceId });
   }
 
   function exportVisibleFasta() {
     if (displayedSequences.length && visiblePositions.length) {
       downloadText(
-        "easymsa-visible-alignment.fasta",
-        fastaForPositions(displayedSequences, visiblePositions)
+        "easymsa-filtered-view.fasta",
+        fastaForPositions(displayedSequences, materializePositionArray(visiblePositions))
       );
     }
   }
 
   function exportRangeFasta() {
-    if (!state.selectedRange || !displayedSequences.length) {
-      return;
-    }
+    if (!state.selectedRange || !displayedSequences.length) return;
     const positions = Array.from(
       { length: state.selectedRange.end - state.selectedRange.start + 1 },
       (_, index) => state.selectedRange!.start + index
     );
     downloadText(
-      `easymsa-visible-region-${state.selectedRange.start}-${state.selectedRange.end}.fasta`,
+      `easymsa-selected-interval-${state.selectedRange.start}-${state.selectedRange.end}.fasta`,
       fastaForPositions(displayedSequences, positions)
     );
   }
 
   function exportConsensusRange() {
-    if (!state.selectedRange || !rangeStats) {
-      return;
-    }
+    if (!canAnalyze || !state.selectedRange || !rangeStats) return;
     downloadText(
-      `easymsa-consensus-region-${state.selectedRange.start}-${state.selectedRange.end}.fasta`,
+      `easymsa-consensus-${state.selectedRange.start}-${state.selectedRange.end}.fasta`,
       `>${alignment.jobId || "easymsa"}:consensus:${state.selectedRange.start}-${state.selectedRange.end}\n${rangeStats.consensusSegment}\n`
     );
   }
 
   function exportSelectedRows() {
-    const rows = displayedSequences.filter((sequence) =>
-      state.selectedSequenceIds.has(sequence.id)
-    );
+    const rows = displayedRecords
+      .filter((row) => state.selectedRowKeys.has(row.rowKey))
+      .map((row) => row.sequence);
     if (rows.length) {
       downloadText(
-        "easymsa-selected-sequences.fasta",
-        fastaForPositions(rows, visiblePositions)
+        "easymsa-selected-rows.fasta",
+        fastaForPositions(rows, materializePositionArray(visiblePositions))
       );
     }
   }
 
-  if (alignment.truncated) {
-    return (
-      <EmptyState
-        message={
-          alignment.message ??
-          "Alignment is too large for preview. Download the result archive instead."
+  function getExportViewerState() {
+    const viewport = scrollRef.current
+      ? {
+          scrollLeft: scrollRef.current.scrollLeft,
+          scrollTop: scrollRef.current.scrollTop,
+          clientWidth: scrollRef.current.clientWidth,
+          clientHeight: scrollRef.current.clientHeight
         }
-      />
+      : null;
+    const exportAnnotations: MsaExportAnnotation[] = state.annotations.map((annotation) => ({
+      id: annotation.id,
+      category: annotation.category,
+      label: annotation.category,
+      rowKey: annotation.target.rowKey,
+      sequenceId: annotation.target.rowKey
+        ? rowByKey.get(annotation.target.rowKey)?.id ?? null
+        : null,
+      start: annotation.target.start,
+      end: annotation.target.end,
+      note: annotation.text
+    }));
+    return {
+      sequences: displayedSequences,
+      visiblePositions: materializePositionArray(visiblePositions),
+      columnStore: analysis.columnStore,
+      colorScheme: renderColorScheme,
+      selectedRange: state.selectedRange,
+      viewSettings,
+      viewport,
+      alignmentLength,
+      activeTracks,
+      consensusMode: state.consensusMode,
+      consensusSequence:
+        state.consensusMode === "iupac"
+          ? analysis.consensus.iupac
+          : analysis.consensus.majority,
+      coordinateMode: state.coordinateMode,
+      differenceMode: state.differenceMode,
+      referenceRowKey: state.referenceRowKey,
+      analysisScope: state.analysisScope,
+      analysisRowKeys: analysis.scopeRowKeys,
+      viewerContext: context ? serializableViewerContext(context) : undefined,
+      thresholds: state.qcThresholds,
+      frontendVersion: import.meta.env.VITE_APP_VERSION ?? null,
+      buildSha: import.meta.env.VITE_GIT_SHA ?? null,
+      annotations: exportAnnotations
+    };
+  }
+
+  const imageExport = useMsaExport(viewerAlignment, getExportViewerState, canAnalyze);
+
+  function exportWorkspaceFile() {
+    downloadText(
+      `easymsa-workspace-${sourceFingerprint.replace(/[^a-z0-9_-]+/gi, "-").slice(-32)}.easymsa-view.json`,
+      exportWorkspace(),
+      "application/json;charset=utf-8"
     );
   }
 
-  const canExport = displayedSequences.length > 0 && visiblePositions.length > 0;
-  const rangeText = selectedRangeLabel(state.selectedRange);
+  async function importWorkspaceFile(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (file.size > 3_000_000) {
+      setWorkspaceMessage(locale === "zh" ? "工作区文件超过 3 MB 上限。" : "The workspace file exceeds the 3 MB limit.");
+      return;
+    }
+    try {
+      const result = importWorkspace(await file.text());
+      setWorkspaceMessage(result.ok
+        ? locale === "zh" ? "工作区状态已恢复。" : "Workspace state restored."
+        : result.message);
+    } catch {
+      setWorkspaceMessage(locale === "zh" ? "无法读取工作区文件。" : "The workspace file could not be read.");
+    }
+  }
 
-  return (
-    <div className="space-y-4">
-      <MsaViewerToolbar
-        alignmentLength={alignmentLength}
-        canExport={canExport}
-        canExportSelectedRows={state.selectedSequenceIds.size > 0 && visiblePositions.length > 0}
-        hiddenCount={state.hiddenSequenceIds.size}
-        isSearchingMotif={analysis.isSearchingMotif}
-        jumpPosition={jumpPosition}
-        motifMatchCount={motifMatchCount}
-        motifMatches={motifMatches}
-        motifMatchesTruncated={motifMatchesTruncated}
-        onExportConsensusRange={exportConsensusRange}
-        onExportImage={imageExport.openDialog}
-        onExportSelectedRange={exportRangeFasta}
-        onExportSelectedRows={exportSelectedRows}
-        onExportVisible={exportVisibleFasta}
-        onJump={jumpToPosition}
-        onJumpPositionChange={setJumpPosition}
-        onMotifNavigate={navigateMotif}
-        onMotifSelect={selectMotif}
-        onOpenInspector={() => patchState({ inspectorOpen: true })}
-        onPatch={patchState}
-        onShowAll={() => dispatch({ type: "showAllSequences" })}
-        onToggleTrack={(track) => dispatch({ type: "toggleTrack", track })}
-        onZoom={changeZoom}
-        selectedRowCount={state.selectedSequenceIds.size}
-        state={state}
-        totalSequenceCount={alignment.sequences.length}
-        visibleColumnCount={visiblePositions.length}
-        visibleSequenceCount={displayedSequences.length}
+  const neutralReason = !canAnalyze && !alignment.truncated
+    ? descriptor.alignmentMode === "rawUnequal"
+      ? d.results.viewer.scienceV2.neutralReasons.rawUnequal
+      : descriptor.warnings.includes("invalid_alignment_symbol")
+        ? d.results.viewer.scienceV2.neutralReasons.invalidSymbols
+      : descriptor.alphabet === "protein"
+        ? d.results.viewer.scienceV2.neutralReasons.protein
+        : descriptor.alphabet === "unknown"
+          ? d.results.viewer.scienceV2.neutralReasons.unknown
+          : d.results.viewer.scienceV2.neutralDescription
+    : null;
+  const motifValidationError = analysis.motifErrorCode === "MOTIF_INVALID"
+    ? d.results.viewer.stageTwo.motifErrors.invalid.replace(
+        "{characters}",
+        analysis.motifInvalidCharacters.join(", ") || "—"
+      )
+    : analysis.motifErrorCode
+      ? d.results.viewer.stageTwo.motifErrors.failed
+      : null;
+  const activeAnnotationTarget = useMemo<QcAnnotation["target"] | null>(() => {
+    if (!state.selection && !state.selectedRange) return null;
+    const rowKey = state.selection && rowByKey.has(state.selection.rowKey)
+      ? state.selection.rowKey
+      : null;
+    return {
+      rowKey,
+      start: state.selectedRange?.start ?? state.selection?.position ?? null,
+      end: state.selectedRange?.end ?? state.selection?.position ?? null
+    };
+  }, [rowByKey, state.selectedRange, state.selection]);
+
+  function jumpToAnnotation(annotation: QcAnnotation) {
+    const rowKey = annotation.target.rowKey ?? displayedRowKeys[0];
+    const position = annotation.target.start ?? 1;
+    if (!rowKey) return;
+    const end = annotation.target.end ?? position;
+    dispatch({
+      type: "select",
+      selection: { rowKey, position },
+      range: { start: position, end }
+    });
+    scrollToAlignmentPosition(position, rowKey);
+  }
+
+  const qcLabels = locale === "zh" ? {
+    title: "序列 QC",
+    reviewOnly: "自动结果仅作为 QC 候选供复核；不会自动删除或改变源比对。",
+    scope: "分析范围",
+    rows: "序列",
+    columns: "列",
+    candidates: "QC 候选",
+    search: "搜索序列名称",
+    sort: "排序",
+    ascending: "升序",
+    descending: "降序",
+    name: "名称",
+    length: "非 gap 长度",
+    gap: "缺口",
+    ambiguity: "模糊碱基",
+    gc: "GC",
+    identity: "参考一致性",
+    differences: "差异",
+    review: "复核"
+  } : undefined;
+  const annotationLabels = locale === "zh" ? {
+    title: "QC 人工标记",
+    reviewOnly: "“排除候选”只是复核标记，不会改变分析范围或源比对。",
+    category: "类别",
+    sequenceRow: "序列行",
+    all: "全部",
+    allRows: "全部序列",
+    containsPosition: "包含比对位置",
+    previous: "上一条",
+    next: "下一条",
+    noMatches: "没有匹配标记",
+    newAnnotation: "新建标记",
+    selectTarget: "请先选择序列、列或区间",
+    optionalNote: "可选备注",
+    add: "添加",
+    delete: "删除",
+    updated: "更新于",
+    note: "备注",
+    review: "复核",
+    excludeCandidate: "排除候选"
+  } : undefined;
+  const inspector = (
+    <MsaInspector
+      alignmentPosition={state.selection?.position ?? null}
+      analysisScope={state.analysisScope}
+      base={selectedBase}
+      columnStats={selectedColumnStats}
+      columnSummary={columnSummary}
+      docked={!mobile}
+      mobileOpen={mobile && state.inspectorOpen && (!canAnalyze || !state.qcPanelOpen)}
+      onClose={() => patchState({ inspectorOpen: false })}
+      range={state.selectedRange}
+      rangeError={rangeAnalysis.error ? d.results.viewer.stageTwo.rangeStatsFailed : null}
+      rangeStats={rangeStats}
+      reference={canAnalyze ? reference : null}
+      referencePosition={selectedReferencePosition}
+      scopeRowCount={analysis.scopeRowCount}
+      selection={state.selection}
+      selectionLabel={state.selection ? rowLabels.get(state.selection.rowKey) : undefined}
+      showReferenceContext={canAnalyze}
+    />
+  );
+  const qcWorkspace = (
+    <div className="grid gap-4 p-3">
+      <MsaQcPanel
+        analysisScope={state.analysisScope}
+        filteredColumnCount={visiblePositions.length}
+        filters={qcFilters}
+        labels={qcLabels}
+        onFiltersChange={setQcFilters}
+        onReviewRow={(rowKey) => {
+          const position = state.selection?.position ?? positionAt(visiblePositions, 0) ?? 1;
+          handleSelect({ rowKey, position });
+          patchState({ inspectorOpen: false, qcPanelOpen: true });
+        }}
+        onSortChange={(key, direction) => {
+          patchState({ qcSortMode: key });
+          setQcSortDirection(direction);
+        }}
+        onColumnThresholdsChange={(column) => patchState({
+          columnFilter: "custom",
+          qcThresholds: { ...state.qcThresholds, column }
+        })}
+        onThresholdsChange={(qcThresholds) => patchState({ qcThresholds })}
+        rows={analysis.rowQc}
+        scopeRowCount={analysis.scopeRowCount}
+        sortDirection={qcSortDirection}
+        sortKey={state.qcSortMode as RowQcSortKey}
+        thresholds={state.qcThresholds}
+        totalColumnCount={alignmentLength}
+        totalRowCount={alignment.sequences.length}
       />
+      <MsaAnnotationPanel
+        activeTarget={activeAnnotationTarget}
+        annotations={state.annotations}
+        labels={annotationLabels}
+        onCreate={(category, text, target) => dispatch({
+          type: "addAnnotation",
+          annotation: createQcAnnotation({ category, text, target })
+        })}
+        onDelete={(id) => dispatch({ type: "removeAnnotation", id })}
+        onJump={jumpToAnnotation}
+        onUpdate={(id, patch) => dispatch({ type: "updateAnnotation", id, patch })}
+        rowLabels={rowLabels}
+      />
+    </div>
+  );
 
-      {analysis.columns.length ? (
-        <MsaOverviewNavigator columns={analysis.columns} scrollRef={scrollRef} />
-      ) : null}
+  if (alignment.truncated) {
+    const count = alignment.sequenceCount ?? descriptor.sequenceCount;
+    const length = alignment.alignmentLength ?? descriptor.alignmentLength;
+    return (
+      <section className="rounded-xl border border-amber-200 bg-amber-50 p-5" role="status">
+        <h2 className="font-semibold text-amber-950">
+          {locale === "zh" ? "该结果超过浏览器预览上限" : "This result exceeds the browser preview limits"}
+        </h2>
+        <p className="mt-2 text-sm leading-6 text-amber-900">
+          {alignment.message ?? (locale === "zh"
+            ? `结果包含 ${count.toLocaleString()} 条序列、${length.toLocaleString()} 列；当前上限保持为 1 MB、500 条序列和 10,000 列。`
+            : `The result contains ${count.toLocaleString()} rows and ${length.toLocaleString()} columns. Current limits remain 1 MB, 500 rows, and 10,000 columns.`)}
+        </p>
+        {context?.downloads?.fullResultHref ? (
+          <a className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg bg-amber-900 px-4 text-sm font-semibold text-white" href={context.downloads.fullResultHref}>
+            <Download className="h-4 w-4" />
+            {locale === "zh" ? "下载完整结果" : "Download full result"}
+          </a>
+        ) : null}
+      </section>
+    );
+  }
 
-      {analysis.error ? (
-        <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800" role="alert">
-          {analysis.error}
-        </div>
-      ) : null}
-
+  const rangeText = selectedRangeLabel(state.selectedRange);
+  const canExport = displayedSequences.length > 0 && visiblePositions.length > 0;
+  const qcPanelOpen = canAnalyze && state.qcPanelOpen;
+  const dockOpen = !mobile && (qcPanelOpen || state.inspectorOpen);
+  const dockContent = qcPanelOpen ? qcWorkspace : inspector;
+  const liveStatus = state.selection
+    ? `${rowLabels.get(state.selection.rowKey) ?? state.selection.rowKey}; ${d.results.viewer.position} ${state.selection.position}; ${selectedReferencePosition ?? ""}; ${selectedBase || d.results.viewer.emptyCell}; ${canAnalyze ? d.results.viewer.stageTwo.analysisScopes[state.analysisScope] : d.results.viewer.scienceV2.neutralTitle}; ${rangeText}`
+    : `${d.results.viewer.noSelection}; ${canAnalyze ? `${d.results.viewer.stageTwo.analysisScopes[state.analysisScope]}; ${analysis.scopeRowCount}` : d.results.viewer.scienceV2.neutralTitle}`;
+  const matrix = displayedSequences.length === 0 ? (
+    <EmptyState message={d.results.viewer.noMatches} />
+  ) : visiblePositions.length === 0 ? (
+    <EmptyState message={d.results.viewer.noColumns} />
+  ) : (
+    <div className="relative h-full min-h-0">
+      <MsaDomMatrix
+        activeTracks={activeTracks}
+        alignmentLength={alignmentLength}
+        analysisRowKeys={analysisRowKeySet}
+        colorScheme={renderColorScheme}
+        consensus={consensus}
+        coordinateMode={canAnalyze ? state.coordinateMode : "alignment"}
+        differenceMode={canAnalyze && state.differenceMode}
+        motifPositionMap={motifPositionMap}
+        onHideSequence={(rowKey) => dispatch({ type: "hideRow", rowKey })}
+        onNavigate={moveSelection}
+        onPinSequence={(rowKey) => dispatch({ type: "toggleRowSet", field: "pinnedRowKeys", rowKey })}
+        onRangeSelect={handleRangeSelect}
+        onSelect={handleSelect}
+        onSelectSequence={(rowKey) => dispatch({ type: "toggleRowSet", field: "selectedRowKeys", rowKey })}
+        onSetReference={setReference}
+        onZoomGesture={(factor) => changeZoom(state.zoomLevel * factor)}
+        pinnedSequenceIds={state.pinnedRowKeys}
+        rangeSelectionMode={state.rangeSelectionMode}
+        reference={canAnalyze ? reference : null}
+        referenceActionsEnabled={canAnalyze}
+        scrollRef={scrollRef}
+        selectedRange={state.selectedRange}
+        selectedSequenceIds={state.selectedRowKeys}
+        selection={state.selection}
+        sequences={displayedSequences}
+        settings={viewSettings}
+        showConsensus={canAnalyze}
+        stats={analysis.columnStore}
+        visiblePositions={visiblePositions}
+      />
       {analysis.isCalculating ? (
-        <div className="flex min-h-56 items-center justify-center rounded-xl border border-slate-200 bg-white text-sm text-slate-600" role="status">
-          <Loader2 className="mr-2 h-4 w-4 animate-spin text-teal-700" />
+        <div aria-live="polite" className="pointer-events-none absolute right-3 top-3 z-40 inline-flex items-center rounded-full border border-teal-200 bg-white/95 px-3 py-1.5 text-xs text-teal-800 shadow" role="status">
+          <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
           {d.results.viewer.calculating}
         </div>
-      ) : displayedSequences.length === 0 ? (
-        <EmptyState message={d.results.viewer.noMatches} />
-      ) : visiblePositions.length === 0 ? (
-        <EmptyState message={d.results.viewer.noColumns} />
-      ) : (
-        <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
-          <section className="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-            <MsaDomMatrix
-              activeTracks={state.activeTracks}
-              alignmentLength={alignmentLength}
-              colorScheme={state.colorScheme}
-              consensus={consensus || alignment.consensus}
-              coordinateMode={state.coordinateMode}
-              differenceMode={state.differenceMode}
-              motifPositionMap={motifPositionMap}
-              onHideSequence={hideSequence}
-              onNavigate={moveSelection}
-              onPinSequence={(sequenceId) =>
-                dispatch({
-                  type: "toggleSequenceSet",
-                  field: "pinnedSequenceIds",
-                  sequenceId
-                })
-              }
-              onRangeSelect={handleRangeSelect}
-              onSelect={handleSelect}
-              onSelectSequence={(sequenceId) =>
-                dispatch({
-                  type: "toggleSequenceSet",
-                  field: "selectedSequenceIds",
-                  sequenceId
-                })
-              }
-              onSetReference={setReference}
-              pinnedSequenceIds={state.pinnedSequenceIds}
-              reference={reference}
-              scrollRef={scrollRef}
-              selectedRange={state.selectedRange}
-              selectedSequenceIds={state.selectedSequenceIds}
-              selection={state.selection}
-              sequences={displayedSequences}
-              settings={viewSettings}
-              stats={analysis.columns}
-              visiblePositions={visiblePositions}
-            />
-            <div
-              className="flex min-h-10 flex-wrap items-center justify-between gap-2 border-t border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600"
-              data-msa-selected-position={state.selection?.position ?? ""}
-              data-msa-selected-range={rangeText}
-              data-msa-status="true"
-            >
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                {state.selection ? (
-                  <span>
-                    {d.results.viewer.selectedPosition}: <b>{state.selection.position}</b>
-                    {selectedReferencePosition ? ` / ${selectedReferencePosition}` : ""}
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5">
-                    <MousePointer2 className="h-3.5 w-3.5 text-teal-700" />
-                    {d.results.viewer.noSelection}
-                  </span>
-                )}
-                {state.selectedRange ? (
-                  <span>
-                    {d.results.viewer.selectedRange.replace("{range}", rangeText)}
-                  </span>
-                ) : null}
-                <span>
-                  {viewSettings.showCharacters
-                    ? d.results.viewer.stageTwo.domDetail
-                    : d.results.viewer.stageTwo.canvasOverview}
-                </span>
-                <span className="hidden md:inline">{d.results.viewer.stageTwo.shortcutHint}</span>
-              </div>
-              {state.selection ? (
-                <button
-                  className="inline-flex items-center gap-1 text-slate-500 hover:text-slate-950"
-                  onClick={() => dispatch({ type: "clearSelection" })}
-                  type="button"
-                >
-                  <X className="h-3.5 w-3.5" />
-                  {d.results.viewer.clearSelection}
-                </button>
-              ) : null}
+      ) : null}
+    </div>
+  );
+  const statusBar = (
+    <div
+      className="flex min-h-11 flex-nowrap items-center justify-between gap-2 overflow-x-auto px-3 py-2 text-xs text-slate-600 lg:flex-wrap lg:overflow-visible"
+      data-msa-analysis-status={analysis.status}
+      data-msa-range-mode={state.rangeSelectionMode ? "range" : "pan"}
+      data-msa-selected-row-key={state.selection?.rowKey ?? ""}
+      data-msa-selected-position={state.selection?.position ?? ""}
+      data-msa-selected-range={state.selectedRange ? `${state.selectedRange.start}-${state.selectedRange.end}` : ""}
+      data-msa-status="true"
+      data-msa-view-mode={state.viewMode}
+      data-msa-zoom={state.zoomLevel.toFixed(2)}
+    >
+      <div className="flex shrink-0 flex-nowrap items-center gap-x-4 gap-y-1 lg:flex-wrap">
+        {state.selection ? (
+          <span>
+            {d.results.viewer.selectedPosition}: <b>{state.selection.position}</b>
+            {selectedReferencePosition ? ` / ${selectedReferencePosition}` : ""}
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5">
+            <MousePointer2 className="h-3.5 w-3.5 text-teal-700" />
+            {d.results.viewer.noSelection}
+          </span>
+        )}
+        <span>{canAnalyze
+          ? d.results.viewer.scienceV2.scopeRows
+              .replace("{scope}", d.results.viewer.stageTwo.analysisScopes[state.analysisScope])
+              .replace("{count}", analysis.scopeRowCount.toLocaleString())
+          : d.results.viewer.scienceV2.neutralTitle}</span>
+        <span>{d.results.viewer.visibleColumns
+          .replace("{shown}", visiblePositions.length.toLocaleString())
+          .replace("{total}", alignmentLength.toLocaleString())}</span>
+        {descriptor.warnings.includes("duplicate_headers") ? (
+          <span className="font-medium text-amber-700">
+            {locale === "zh" ? "检测到重复 header；各行仍按内部 rowKey 独立操作。" : "Duplicate headers detected; rows remain independently addressable by rowKey."}
+          </span>
+        ) : null}
+        {descriptor.warnings.includes("mixed_t_u_alphabet") ? (
+          <span className="font-medium text-amber-700">
+            {locale === "zh" ? "检测到 T/U 混合；显示保留原字符，统计按统一核酸状态处理。" : "Mixed T/U detected; display is preserved and metrics use one normalized nucleotide state."}
+          </span>
+        ) : null}
+        {workspaceMessage ? <span role="status">{workspaceMessage}</span> : null}
+      </div>
+      <div className="flex shrink-0 flex-nowrap items-center gap-1 lg:flex-wrap">
+        {state.lastHiddenRowKeys.length ? (
+          <button className="inline-flex min-h-11 items-center gap-1 rounded px-2 hover:bg-slate-100" onClick={() => dispatch({ type: "undoLastHide" })} type="button">
+            <RotateCcw className="h-3.5 w-3.5" />
+            {d.results.viewer.stageTwo.undoHide}
+          </button>
+        ) : null}
+        <input
+          accept=".easymsa-view.json,application/json"
+          aria-label={locale === "zh" ? "导入工作区状态文件" : "Import workspace state file"}
+          className="hidden"
+          onChange={importWorkspaceFile}
+          ref={workspaceFileRef}
+          type="file"
+        />
+        <details className="relative">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center rounded px-2 hover:bg-slate-100 [&::-webkit-details-marker]:hidden">
+            {locale === "zh" ? "工作区状态" : "Workspace state"}
+          </summary>
+          <div className="absolute bottom-full right-0 z-50 mb-2 grid min-w-48 rounded-xl border border-slate-200 bg-white p-1 shadow-xl">
+            <button className="min-h-11 rounded px-3 text-left hover:bg-slate-100" onClick={exportWorkspaceFile} type="button">
+              {locale === "zh" ? "导出工作区状态" : "Export workspace state"}
+            </button>
+            <button className="min-h-11 rounded px-3 text-left hover:bg-slate-100" onClick={() => workspaceFileRef.current?.click()} type="button">
+              {locale === "zh" ? "导入状态" : "Import state"}
+            </button>
+          </div>
+        </details>
+        {canAnalyze ? (
+          <details className="relative">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center rounded px-2 hover:bg-slate-100 [&::-webkit-details-marker]:hidden">
+              {d.results.viewer.legend}
+            </summary>
+            <div className="absolute bottom-full right-0 z-50 mb-2 min-w-72 rounded-xl border border-slate-200 bg-white shadow-xl">
+              {state.differenceMode && reference ? <DifferenceLegend /> : <MSAColorLegend scheme={state.colorScheme} />}
             </div>
-          </section>
+          </details>
+        ) : null}
+        {state.selection ? (
+          <button className="inline-flex min-h-11 items-center gap-1 rounded px-2 hover:bg-slate-100" onClick={() => dispatch({ type: "clearSelection" })} type="button">
+            <X className="h-3.5 w-3.5" />
+            {d.results.viewer.clearSelection}
+          </button>
+        ) : null}
+      </div>
+      <span aria-live="polite" className="sr-only" role="status">{liveStatus}</span>
+    </div>
+  );
 
-          <MsaInspector
-            alignmentPosition={state.selection?.position ?? null}
-            base={selectedBase}
-            columnStats={selectedColumnStats}
-            columnSummary={columnSummary}
-            mobileOpen={state.inspectorOpen}
-            onClose={() => patchState({ inspectorOpen: false })}
-            range={state.selectedRange}
-            rangeStats={rangeStats}
-            reference={reference}
-            referencePosition={selectedReferencePosition}
-            selection={state.selection}
+  return (
+    <>
+      <MsaWorkspaceShell
+        commandBar={(
+          <MsaViewerToolbar
+            actualScopeRowCount={analysis.scopeRowCount}
+            alignmentLength={alignmentLength}
+            analysisDisabled={!canAnalyze}
+            canExport={canExport}
+            canExportSelectedRows={state.selectedRowKeys.size > 0 && visiblePositions.length > 0}
+            canUndoHide={state.lastHiddenRowKeys.length > 0}
+            hiddenCount={state.hiddenRowKeys.size}
+            isSearchingMotif={analysis.isSearchingMotif}
+            jumpPosition={jumpPosition}
+            motifMatchCount={motifMatchCount}
+            motifMatches={displayedMotifMatches}
+            motifMatchesTruncated={analysis.motifMatchesTruncated}
+            motifValidationError={motifValidationError}
+            neutralReason={neutralReason}
+            onClearReference={() => setReference(state.referenceRowKey ?? "")}
+            onExportConsensusRange={exportConsensusRange}
+            onExportImage={imageExport.openDialog}
+            onExportSelectedRange={exportRangeFasta}
+            onExportSelectedRows={exportSelectedRows}
+            onExportVisible={exportVisibleFasta}
+            onHideSelected={() => dispatch({ type: "batchRows", operation: "hide", rowKeys: state.selectedRowKeys })}
+            onJump={jumpToPosition}
+            onJumpPositionChange={setJumpPosition}
+            onMotifNavigate={navigateMotif}
+            onMotifSelect={selectMotif}
+            onOpenInspector={() => patchState({ inspectorOpen: true, qcPanelOpen: false })}
+            onOpenQc={() => patchState({ qcPanelOpen: !state.qcPanelOpen, inspectorOpen: false })}
+            onPatch={patchState}
+            onPinSelected={() => dispatch({ type: "batchRows", operation: "pin", rowKeys: state.selectedRowKeys })}
+            onResetView={() => dispatch({ type: "resetView" })}
+            onSelectAllVisible={() => dispatch({ type: "selectAllVisible", rowKeys: displayedRowKeys })}
+            onShowAll={() => dispatch({ type: "showAllRows" })}
+            onToggleTrack={(track) => dispatch({ type: "toggleTrack", track })}
+            onToggleWorkspace={() => patchState({ immersive: !state.immersive })}
+            onUndoHide={() => dispatch({ type: "undoLastHide" })}
+            onUnpinSelected={() => dispatch({ type: "batchRows", operation: "unpin", rowKeys: state.selectedRowKeys })}
+            onZoom={changeZoom}
+            referenceLabel={state.referenceRowKey ? rowLabels.get(state.referenceRowKey) : null}
+            selectedRowCount={state.selectedRowKeys.size}
+            state={state}
+            totalSequenceCount={alignment.sequences.length}
+            visibleColumnCount={visiblePositions.length}
+            visibleSequenceCount={displayedSequences.length}
           />
+        )}
+        dock={dockContent}
+        dockCloseLabel={qcPanelOpen
+          ? d.results.viewer.stageTwo.closeQc
+          : d.results.viewer.stageTwo.closeInspector}
+        dockLabel={qcPanelOpen ? d.results.viewer.stageTwo.qc : d.results.viewer.stageTwo.inspector}
+        dockOpen={dockOpen}
+        dockResizeLabel={d.results.viewer.stageTwo.resizeDock}
+        dockWidth={state.inspectorWidth}
+        matrix={matrix}
+        matrixLabel={d.results.viewer.matrixNavigation}
+        navigator={state.minimapCollapsed ? undefined : (
+          <MsaOverviewNavigator
+            alignmentLength={alignmentLength}
+            cellPitch={viewSettings.cellWidth + viewSettings.cellGap}
+            labelOffset={viewSettings.labelWidth + 24}
+            overviewBins={analysis.overviewBins}
+            positionView={visiblePositions}
+            scrollRef={scrollRef}
+          />
+        )}
+        onDockClose={() => patchState({ inspectorOpen: false, qcPanelOpen: false })}
+        onDockWidthChange={(inspectorWidth) => patchState({ inspectorWidth })}
+        statusBar={statusBar}
+        workspaceLabel={canAnalyze
+          ? (locale === "zh" ? "MSA 科研 QC 工作区" : "MSA scientific QC workspace")
+          : (locale === "zh" ? "MSA 中性矩阵浏览工作区" : "MSA neutral matrix browser")}
+        {...(state.immersive
+          ? {
+              mode: "immersive" as const,
+              exitImmersiveLabel: d.results.viewer.stageTwo.exitWorkspace,
+              onExitImmersive: () => patchState({ immersive: false })
+            }
+          : { mode: "embedded" as const })}
+      />
+
+      {mobile ? inspector : null}
+      <OverlayDialog
+        closeLabel={d.results.viewer.stageTwo.closeQc}
+        isOpen={mobile && qcPanelOpen}
+        onClose={() => patchState({ qcPanelOpen: false })}
+        title={locale === "zh" ? "QC 与人工标记" : "QC and annotations"}
+        variant="bottom-sheet"
+      >
+        {qcWorkspace}
+      </OverlayDialog>
+
+      {analysis.status === "error" ? (
+        <div className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800" role="alert">
+          {analysis.errorCode === "RAW_UNEQUAL_ALIGNMENT"
+            ? d.results.viewer.scienceV2.neutralReasons.rawUnequal
+            : analysis.errorCode === "ANALYSIS_DISABLED_NEUTRAL"
+              ? d.results.viewer.scienceV2.neutralDescription
+              : d.results.viewer.stageTwo.analysisFailed}
         </div>
-      )}
+      ) : null}
 
       <ExportDialog
         error={imageExport.error}
@@ -803,17 +1266,15 @@ export function MsaViewerRoot({ alignment }: { alignment: MSAResult }) {
         isExporting={imageExport.isExporting}
         isOpen={imageExport.isOpen}
         layout={imageExport.layout}
+        preflight={imageExport.preflight}
+        onCancelExport={imageExport.cancelExport}
         onClose={imageExport.closeDialog}
         onExport={imageExport.runExport}
         onUpdate={imageExport.updateOptions}
         options={imageExport.options}
+        progress={imageExport.progress}
+        scientificLayersEnabled={canAnalyze}
       />
-
-      {state.differenceMode && reference ? (
-        <DifferenceLegend />
-      ) : (
-        <MSAColorLegend scheme={state.colorScheme} />
-      )}
-    </div>
+    </>
   );
 }

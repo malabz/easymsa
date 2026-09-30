@@ -250,17 +250,30 @@ export function ResultOverview({
 }: ResultOverviewProps) {
   const { dictionary: d } = useLanguage();
   const t = d.results.overview;
+  const descriptor = alignment?.descriptor;
   const canAnalyze = Boolean(
     alignment &&
       !alignment.truncated &&
-      alignment.sequences.length > 0
+      alignment.sequences.length > 0 &&
+      descriptor?.alignmentMode !== "neutral" &&
+      descriptor?.alignmentMode !== "rawUnequal" &&
+      descriptor?.alphabet !== "protein" &&
+      descriptor?.alphabet !== "unknown"
   );
   const analysisSequences = canAnalyze ? alignment!.sequences : EMPTY_SEQUENCES;
   const analysisLength = canAnalyze
     ? alignment!.alignmentLength ??
-      Math.max(0, ...alignment!.sequences.map((sequence) => sequence.sequence.length))
+      alignment!.sequences.reduce(
+        (maximum, sequence) => Math.max(maximum, sequence.sequence.length),
+        0
+      )
     : 0;
-  const analysis = useMsaAnalysis(analysisSequences, analysisLength, "");
+  const analysis = useMsaAnalysis(analysisSequences, analysisLength, {
+    sourceFingerprint: descriptor?.alignmentSha256 ?? descriptor?.sourceKey,
+    alphabet: descriptor?.alphabet,
+    alignmentMode: descriptor?.alignmentMode,
+    enabled: canAnalyze
+  });
   const preprocess = summary.preprocess;
   const retention = sequenceRetentionFraction(
     preprocess.rawSequenceCount,
@@ -290,24 +303,26 @@ export function ResultOverview({
           ? "—"
           : formatPercent(summary.metrics.gapPercentage)
     },
-    {
-      key: "averageConservation",
-      icon: ShieldCheck,
-      label: d.results.metrics.averageConservation,
-      value: derivedPending ? "…" : percentFromFraction(derived?.averageConservation ?? null)
-    },
-    {
-      key: "averageEntropy",
-      icon: Activity,
-      label: d.results.metrics.averageEntropy,
-      value: derivedPending ? "…" : derived ? derived.averageEntropy.toFixed(3) : "—"
-    },
-    {
-      key: "variableColumns",
-      icon: Layers3,
-      label: d.results.metrics.variableColumns,
-      value: derivedPending ? "…" : count(derived?.variableColumns ?? null)
-    },
+    ...(canAnalyze ? [
+      {
+        key: "averageConservation",
+        icon: ShieldCheck,
+        label: d.results.metrics.averageConservation,
+        value: derivedPending ? "…" : percentFromFraction(derived?.averageConservation ?? null)
+      },
+      {
+        key: "averageEntropy",
+        icon: Activity,
+        label: d.results.metrics.averageEntropy,
+        value: derivedPending ? "…" : derived ? derived.averageEntropy.toFixed(3) : "—"
+      },
+      {
+        key: "variableColumns",
+        icon: Layers3,
+        label: d.results.metrics.variableColumns,
+        value: derivedPending ? "…" : count(derived?.variableColumns ?? null)
+      }
+    ] : []),
     ...(summary.metrics.averageIdentity !== null
       ? [{
           key: "averageIdentity",
@@ -319,13 +334,23 @@ export function ResultOverview({
   ];
   const preprocessLabels = t.preprocess.values as Record<string, string>;
 
-  let analysisState: "loading" | "ready" | "truncated" | "error" | "empty" = "empty";
+  let analysisState: "loading" | "ready" | "truncated" | "neutral" | "error" | "empty" = "empty";
   if (alignmentPending && !alignment) {
     analysisState = "loading";
-  } else if (alignmentError || analysis.error) {
+  } else if (alignmentError) {
     analysisState = "error";
   } else if (alignment?.truncated) {
     analysisState = "truncated";
+  } else if (
+    alignment?.sequences.length &&
+    (descriptor?.alignmentMode === "neutral" ||
+      descriptor?.alignmentMode === "rawUnequal" ||
+      descriptor?.alphabet === "protein" ||
+      descriptor?.alphabet === "unknown")
+  ) {
+    analysisState = "neutral";
+  } else if (canAnalyze && analysis.error) {
+    analysisState = "error";
   } else if (canAnalyze && (analysis.isCalculating || !analysis.overview)) {
     analysisState = "loading";
   } else if (canAnalyze && analysis.overview) {
@@ -455,6 +480,12 @@ export function ResultOverview({
                 {t.science.truncated}
               </div>
             ) : null}
+            {analysisState === "neutral" ? (
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-700" role="status">
+                <strong className="block text-slate-950">{d.results.viewer.neutralTitle}</strong>
+                <span>{d.results.viewer.neutralDescription}</span>
+              </div>
+            ) : null}
             {analysisState === "empty" ? (
               <div className="rounded-xl bg-slate-50 p-4 text-sm leading-6 text-slate-600">
                 {t.science.empty}
@@ -467,7 +498,9 @@ export function ResultOverview({
                   <MetricCard icon={Gauge} label={d.results.metrics.averageCoverage} value={percentFromFraction(derived.averageCoverage)} />
                   <MetricCard icon={Layers3} label={d.results.metrics.highGapColumns} value={derived.highGapColumns.toLocaleString()} />
                 </div>
-                <AlignmentQualityOverview columns={analysis.columns} />
+                {analysis.columnStore ? (
+                  <AlignmentQualityOverview columnStore={analysis.columnStore} />
+                ) : null}
                 <Composition overview={derived} />
               </div>
             ) : null}

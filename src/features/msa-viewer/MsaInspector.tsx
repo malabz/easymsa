@@ -1,17 +1,17 @@
-import { BarChart3, Dna, MousePointer2, X } from "lucide-react";
-import { useEffect } from "react";
+import { BarChart3, Dna, MousePointer2 } from "lucide-react";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import type { MSASequence } from "../../lib/types/msa";
-import { Button } from "../../components/common/Button";
+import { OverlayDialog } from "../../components/common/OverlayDialog";
 import type {
+  AnalysisScope,
   CellSelection,
   ColumnRange,
   ColumnStats,
   RangeStats
 } from "./types";
 
-function percent(value: number | null) {
-  return value === null ? "—" : `${Math.round(value * 100)}%`;
+function percent(value: number | null | undefined) {
+  return value == null ? "—" : `${Math.round(value * 100)}%`;
 }
 
 function Stat({ label, value }: { label: string; value: string | number }) {
@@ -27,41 +27,65 @@ function Stat({ label, value }: { label: string; value: string | number }) {
   );
 }
 
-function InspectorContent({
+export function MsaInspectorContent({
   alignmentPosition,
   base,
   columnStats,
   columnSummary,
   range,
+  rangeError,
   rangeStats,
   reference,
   referencePosition,
-  selection
+  selection,
+  selectionLabel,
+  showReferenceContext = true,
+  analysisScope = "all",
+  scopeRowCount
 }: {
   alignmentPosition: number | null;
   base: string;
   columnStats: ColumnStats | null;
   columnSummary: string;
   range: ColumnRange | null;
+  rangeError?: string | null;
   rangeStats: RangeStats | null;
   reference: MSASequence | null;
-  referencePosition: number | null;
+  referencePosition: string | number | null;
   selection: CellSelection | null;
+  selectionLabel?: string;
+  showReferenceContext?: boolean;
+  analysisScope?: AnalysisScope;
+  scopeRowCount?: number;
 }) {
   const { dictionary: d } = useLanguage();
   const t = d.results.viewer.stageTwo;
+  const science = d.results.viewer.scienceV2;
 
   return (
     <div className="space-y-4">
-      <section className="rounded-xl border border-slate-200 bg-slate-50/80 p-3">
-        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-          <Dna className="h-3.5 w-3.5 text-teal-700" />
-          {t.reference}
-        </p>
-        <p className="mt-2 truncate font-mono text-sm text-slate-900">
-          {reference?.id ?? t.noReference}
-        </p>
-      </section>
+      <div className="flex flex-wrap gap-2 text-xs">
+        <span className="rounded-full bg-teal-50 px-2.5 py-1 font-semibold text-teal-800">
+          {showReferenceContext
+            ? scopeRowCount === undefined
+              ? `${t.analysisScope}: ${t.analysisScopes[analysisScope]}`
+              : science.scopeRows
+                  .replace("{scope}", t.analysisScopes[analysisScope])
+                  .replace("{count}", scopeRowCount.toLocaleString())
+            : science.neutralTitle}
+        </span>
+      </div>
+      {showReferenceContext ? (
+        <section className="rounded-xl border border-slate-200 bg-slate-50/80 p-3">
+          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <Dna className="h-3.5 w-3.5 text-teal-700" />
+            {t.reference}
+          </p>
+          <p className="mt-2 truncate font-mono text-sm text-slate-900">
+            {reference?.id ?? t.noReference}
+          </p>
+        </section>
+      ) : null}
 
       {selection && alignmentPosition ? (
         <>
@@ -71,24 +95,38 @@ function InspectorContent({
               {d.results.viewer.selectedCell}
             </h3>
             <div className="grid grid-cols-2 gap-2">
-              <Stat label={d.results.viewer.selectedSequence} value={selection.sequenceId} />
+              <Stat
+                label={d.results.viewer.selectedSequence}
+                value={selectionLabel ?? selection.sequenceId ?? selection.rowKey}
+              />
               <Stat label={t.alignmentPosition} value={alignmentPosition} />
-              <Stat label={t.referencePosition} value={referencePosition ?? "—"} />
+              {showReferenceContext ? (
+                <Stat label={t.referencePosition} value={referencePosition ?? "—"} />
+              ) : null}
               <Stat label={d.results.viewer.selectedBase} value={base || d.results.viewer.emptyCell} />
             </div>
           </section>
 
-          {columnStats ? (
+          {showReferenceContext && columnStats ? (
             <section>
               <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-900">
                 <BarChart3 className="h-4 w-4 text-teal-700" />
                 {d.results.viewer.columnSummary}
               </h3>
               <div className="grid grid-cols-2 gap-2">
-                <Stat label={d.results.viewer.columnConservation} value={percent(columnStats.conservation)} />
+                <Stat
+                  label={d.results.viewer.columnConservation}
+                  value={columnStats.hasInformativeBases === false ? "—" : percent(columnStats.conservation)}
+                />
                 <Stat label={d.results.viewer.columnGap} value={percent(columnStats.gapFraction)} />
                 <Stat label={t.tracks.coverage} value={percent(columnStats.coverage)} />
-                <Stat label={t.tracks.entropy} value={columnStats.entropy.toFixed(3)} />
+                <Stat
+                  label={t.tracks.entropy}
+                  value={columnStats.hasInformativeBases === false ? "—" : `${(columnStats.entropyBits ?? columnStats.normalizedEntropy ?? columnStats.entropy ?? 0).toFixed(3)} bits`}
+                />
+                <Stat label={science.metrics.informativeCoverage} value={percent(columnStats.informativeCoverage)} />
+                <Stat label={science.metrics.ambiguityFraction} value={percent(columnStats.ambiguityFraction)} />
+                <Stat label={t.stats.gcContent} value={percent(columnStats.gcFraction)} />
                 <div className="col-span-2">
                   <Stat label={t.stats.baseComposition} value={columnSummary || "—"} />
                 </div>
@@ -102,7 +140,7 @@ function InspectorContent({
         </p>
       )}
 
-      {range && rangeStats ? (
+      {showReferenceContext && range && rangeStats ? (
         <section>
           <h3 className="mb-2 text-sm font-semibold text-slate-900">
             {d.results.viewer.selectedRange.replace(
@@ -117,11 +155,40 @@ function InspectorContent({
             <Stat label={d.results.viewer.rangeGap} value={percent(rangeStats.averageGapFraction)} />
             <Stat label={t.stats.averageCoverage} value={percent(rangeStats.averageCoverage)} />
             <Stat label={t.stats.averageEntropy} value={rangeStats.averageEntropy.toFixed(3)} />
-            {reference ? (
+            {showReferenceContext && reference ? (
               <>
-                <Stat label={t.stats.mismatches} value={rangeStats.mismatchCount} />
+                <Stat label={t.stats.mismatches} value={rangeStats.substitutionCount ?? rangeStats.mismatchCount} />
                 <Stat label={t.stats.insertions} value={rangeStats.insertionCount} />
                 <Stat label={t.stats.deletions} value={rangeStats.deletionCount} />
+                <Stat label={t.differences.compatibleAmbiguity} value={rangeStats.compatibleAmbiguityCount ?? 0} />
+                <Stat label={science.metrics.unclassifiedSubstitutions} value={rangeStats.unclassifiedSubstitutionCount ?? 0} />
+                <Stat label={science.metrics.unknownComparisons} value={rangeStats.unknownComparisonCount ?? 0} />
+                <Stat
+                  label={science.metrics.validComparisons}
+                  value={
+                    (rangeStats.comparableCanonicalCount ?? 0) +
+                    (rangeStats.compatibleAmbiguityCount ?? 0) +
+                    (rangeStats.unclassifiedSubstitutionCount ?? 0) +
+                    rangeStats.insertionCount +
+                    rangeStats.deletionCount
+                  }
+                />
+                <Stat
+                  label={science.metrics.differenceRate}
+                  value={(() => {
+                    const denominator =
+                      (rangeStats.comparableCanonicalCount ?? 0) +
+                      (rangeStats.compatibleAmbiguityCount ?? 0) +
+                      (rangeStats.unclassifiedSubstitutionCount ?? 0) +
+                      rangeStats.insertionCount +
+                      rangeStats.deletionCount;
+                    const differences =
+                      (rangeStats.substitutionCount ?? rangeStats.mismatchCount) +
+                      rangeStats.insertionCount +
+                      rangeStats.deletionCount;
+                    return denominator ? percent(differences / denominator) : "—";
+                  })()}
+                />
                 <Stat label={t.stats.transitions} value={rangeStats.transitionCount} />
                 <Stat label={t.stats.transversions} value={rangeStats.transversionCount} />
               </>
@@ -129,34 +196,37 @@ function InspectorContent({
           </div>
         </section>
       ) : null}
+      {showReferenceContext && range && !rangeStats && rangeError ? (
+        <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800" role="alert">
+          {rangeError}
+        </p>
+      ) : null}
     </div>
   );
 }
 
 export function MsaInspector({
+  docked = false,
   mobileOpen,
   onClose,
   ...contentProps
-}: Parameters<typeof InspectorContent>[0] & {
+}: Parameters<typeof MsaInspectorContent>[0] & {
+  docked?: boolean;
   mobileOpen: boolean;
   onClose: () => void;
 }) {
   const { dictionary: d } = useLanguage();
   const title = d.results.viewer.stageTwo.inspector;
-  const content = <InspectorContent {...contentProps} />;
+  const content = <MsaInspectorContent {...contentProps} />;
 
-  useEffect(() => {
-    if (!mobileOpen) {
-      return;
-    }
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [mobileOpen, onClose]);
+  if (docked) {
+    return (
+      <div className="p-4">
+        <h2 className="mb-4 text-base font-semibold text-slate-950">{title}</h2>
+        {content}
+      </div>
+    );
+  }
 
   return (
     <>
@@ -167,34 +237,15 @@ export function MsaInspector({
         </div>
       </aside>
 
-      {mobileOpen ? (
-        <div
-          className="fixed inset-0 z-50 bg-slate-950/35 xl:hidden"
-          onClick={(event) => event.target === event.currentTarget && onClose()}
-          role="presentation"
-        >
-          <aside
-            aria-label={title}
-            aria-modal="true"
-            className="absolute inset-y-0 right-0 w-[min(90vw,24rem)] overflow-auto bg-white p-5 shadow-2xl"
-            role="dialog"
-          >
-            <div className="mb-5 flex items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold text-slate-950">{title}</h2>
-              <Button
-                aria-label={d.results.viewer.stageTwo.closeInspector}
-                className="h-9 w-9 px-0"
-                onClick={onClose}
-                size="sm"
-                variant="ghost"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            {content}
-          </aside>
-        </div>
-      ) : null}
+      <OverlayDialog
+        closeLabel={d.results.viewer.stageTwo.closeInspector}
+        isOpen={mobileOpen}
+        onClose={onClose}
+        title={title}
+        variant="bottom-sheet"
+      >
+        {content}
+      </OverlayDialog>
     </>
   );
 }

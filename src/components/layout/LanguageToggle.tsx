@@ -14,7 +14,7 @@ export function LanguageToggle() {
       variant="outline"
     >
       <Languages className="h-4 w-4" />
-      <span>{locale === "zh" ? "中文 / EN" : "EN / 中文"}</span>
+      <span className="hidden sm:inline">{locale === "zh" ? "中文 / EN" : "EN / 中文"}</span>
     </Button>
   );
 }

@@ -114,9 +114,11 @@ function drawCoordinateRow(
   y: number
 ) {
   const coordinateLength = layout.coordinateMode === "reference"
-    ? Math.max(0, ...layout.columns.map((column) => column.referencePosition ?? 0))
-    : layout.alignment.alignmentLength ??
-      Math.max(0, ...layout.columns.map((column) => column.position));
+    ? layout.referenceSequence?.sequence.replace(/-/g, "").length ?? 0
+    : layout.alignment.alignmentLength ?? layout.columns.reduce(
+        (maximum, column) => Math.max(maximum, column.position),
+        0
+      );
   drawLabel(
     ctx,
     layout,
@@ -127,15 +129,24 @@ function drawCoordinateRow(
   );
   block.columns.forEach((column, index) => {
     const x = block.cellAreaX + index * layout.cellPitch;
+    const coordinateBreak =
+      index > 0 &&
+      column.position !== block.columns[index - 1].position + 1;
     ctx.fillStyle = LABEL_BACKGROUND;
     ctx.fillRect(x, y, layout.cellWidth, layout.cellHeight);
     const coordinate = layout.coordinateMode === "reference"
       ? column.referencePosition ?? null
       : column.position;
+    const numericCoordinate = typeof coordinate === "number"
+      ? coordinate
+      : coordinate && /^\d+$/.test(coordinate)
+        ? Number(coordinate)
+        : null;
     const showMarker = coordinate !== null && (
-      coordinate === 1 ||
-      coordinate === coordinateLength ||
-      coordinate % layout.markerEvery === 0
+      (typeof coordinate === "string" && coordinate.includes("+")) ||
+      numericCoordinate === 1 ||
+      numericCoordinate === coordinateLength ||
+      (numericCoordinate !== null && numericCoordinate % layout.markerEvery === 0)
     );
 
     if (showMarker) {
@@ -144,6 +155,19 @@ function drawCoordinateRow(
         fontSize: Math.max(8, layout.fontSize - 2),
         align: "center"
       });
+    }
+    if (coordinateBreak) {
+      ctx.save();
+      ctx.strokeStyle = "#475569";
+      ctx.lineWidth = 1.5;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(x - 2, y + layout.cellHeight * 0.25);
+      ctx.lineTo(x + 2, y + layout.cellHeight * 0.45);
+      ctx.moveTo(x - 2, y + layout.cellHeight * 0.55);
+      ctx.lineTo(x + 2, y + layout.cellHeight * 0.75);
+      ctx.stroke();
+      ctx.restore();
     }
   });
 }
@@ -204,6 +228,7 @@ function drawSequenceRow(
   block: MsaExportBlock,
   sequenceId: string,
   sequence: string,
+  rowKey: string | undefined,
   y: number,
   labelBackground = "#ffffff",
   labelColor = TEXT_COLOR
@@ -220,6 +245,44 @@ function drawSequenceRow(
       x,
       y
     );
+    const annotationIndex = layout.annotations.findIndex((annotation) => {
+      const rowMatches = annotation.rowKey
+        ? annotation.rowKey === rowKey
+        : annotation.sequenceId
+          ? annotation.sequenceId === sequenceId
+          : true;
+      if (!rowMatches || annotation.start === null || annotation.end === null) return false;
+      const start = Math.min(annotation.start, annotation.end);
+      const end = Math.max(annotation.start, annotation.end);
+      return column.position >= start && column.position <= end;
+    });
+    if (annotationIndex >= 0) {
+      const annotation = layout.annotations[annotationIndex];
+      const stroke = annotation.category === "exclude-candidate"
+        ? "#be123c"
+        : annotation.category === "review"
+          ? "#b45309"
+          : "#0369a1";
+      ctx.save();
+      ctx.strokeStyle = stroke;
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([3, 2]);
+      ctx.strokeRect(
+        x + 1,
+        y + 1,
+        Math.max(1, layout.cellWidth - 2),
+        Math.max(1, layout.cellHeight - 2)
+      );
+      ctx.restore();
+      if (column.position === Math.min(annotation.start!, annotation.end!)) {
+        drawText(ctx, String(annotationIndex + 1), x + layout.cellWidth - 2, y + 4, {
+          color: stroke,
+          fontSize: Math.max(6, layout.fontSize - 4),
+          fontWeight: "700",
+          align: "right"
+        });
+      }
+    }
   });
 }
 
@@ -244,13 +307,16 @@ function drawBlock(
   }
 
   for (const row of layout.rows) {
-    const isReference = row.id === layout.referenceSequence?.id;
+    const isReference = row.rowKey && layout.referenceSequence?.rowKey
+      ? row.rowKey === layout.referenceSequence.rowKey
+      : row === layout.referenceSequence;
     drawSequenceRow(
       ctx,
       layout,
       block,
       row.id,
       row.sequence,
+      row.rowKey,
       y,
       isReference ? "#fffbeb" : "#ffffff",
       isReference ? "#92400e" : TEXT_COLOR
@@ -266,7 +332,8 @@ function drawBlock(
       layout,
       block,
       labels.consensus,
-      layout.alignment.consensus,
+      layout.consensusSequence,
+      undefined,
       y + 2,
       CONSENSUS_LABEL_BACKGROUND,
       "#134e4a"
@@ -282,21 +349,37 @@ function drawLegend(ctx: CanvasRenderingContext2D, layout: MsaExportLayout, labe
   const items = layout.differenceMode
     ? [
         { label: labels.differences.match, style: differenceColorStyle("match") },
-        { label: labels.differences.mismatch, style: differenceColorStyle("mismatch") },
+        {
+          label: labels.differences.compatibleAmbiguity,
+          style: differenceColorStyle("compatibleAmbiguity")
+        },
+        {
+          label: labels.differences.substitution,
+          style: differenceColorStyle("substitution")
+        },
         { label: labels.differences.insertion, style: differenceColorStyle("insertion") },
-        { label: labels.differences.deletion, style: differenceColorStyle("deletion") }
+        { label: labels.differences.deletion, style: differenceColorStyle("deletion") },
+        {
+          label: labels.differences.unknown,
+          style: differenceColorStyle("unknown")
+        }
       ]
     : legendColorStyles(layout.colorScheme, labels);
   let x = layout.padding;
-  const y = layout.height - layout.padding - 30;
-  drawText(ctx, labels.legend, x, y + 12, {
+  let y = layout.height - layout.padding - layout.legendHeight + 12;
+  drawText(ctx, labels.legend, x, y + 10, {
     color: MUTED_TEXT_COLOR,
     fontSize: 11,
     fontWeight: "700"
   });
-  x += 95;
+  y += 28;
 
   for (const item of items) {
+    const itemWidth = 30 + Math.min(140, Math.max(48, item.label.length * 8)) + 16;
+    if (x > layout.padding && x + itemWidth > layout.width - layout.padding) {
+      x = layout.padding;
+      y += 30;
+    }
     ctx.fillStyle = item.style.background;
     ctx.fillRect(x, y, 22, 22);
     ctx.strokeStyle = item.style.border;
@@ -306,7 +389,7 @@ function drawLegend(ctx: CanvasRenderingContext2D, layout: MsaExportLayout, labe
       fontSize: 11,
       maxWidth: 110
     });
-    x += 30 + Math.min(110, Math.max(36, item.label.length * 8)) + 16;
+    x += itemWidth;
   }
 }
 
@@ -326,7 +409,8 @@ export function renderMsaExportToCanvas(
   }
 
   ctx.save();
-  ctx.scale(layout.options.scale, layout.options.scale);
+  ctx.imageSmoothingEnabled = false;
+  ctx.setTransform(layout.renderScale, 0, 0, layout.renderScale, 0, 0);
   if (!layout.options.transparentBackground) {
     ctx.fillStyle = layout.options.backgroundColor || "#ffffff";
     ctx.fillRect(0, 0, layout.width, layout.height);
@@ -357,6 +441,7 @@ export async function renderMsaExportToPngBlob(
   layout: MsaExportLayout,
   labels: MsaExportLabels
 ) {
+  await document.fonts?.ready;
   const canvas = renderMsaExportToCanvas(layout, labels);
   return canvasToBlob(canvas);
 }

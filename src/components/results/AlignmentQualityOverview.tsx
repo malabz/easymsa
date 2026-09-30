@@ -1,16 +1,20 @@
 import { useEffect, useId, useRef } from "react";
-import type { ColumnStats } from "../../features/msa-viewer/types";
+import {
+  columnMetricAtIndex,
+  type ColumnMetric
+} from "../../features/msa-viewer/columnStatsStore";
+import type { ColumnStatsStoreV1 } from "../../features/msa-viewer/types";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 
 type Track = {
   color: string;
   label: string;
-  value: (column: ColumnStats) => number;
+  metric: ColumnMetric;
 };
 
 function drawTrack(
   context: CanvasRenderingContext2D,
-  columns: ColumnStats[],
+  columnStore: ColumnStatsStoreV1,
   track: Track,
   top: number,
   width: number,
@@ -26,22 +30,27 @@ function drawTrack(
 
   context.fillStyle = track.color;
   for (let x = 0; x < width; x += 1) {
-    const start = Math.floor((x / width) * columns.length);
+    const start = Math.floor((x / width) * columnStore.length);
     const end = Math.max(
       start + 1,
-      Math.floor(((x + 1) / width) * columns.length)
+      Math.floor(((x + 1) / width) * columnStore.length)
     );
     let total = 0;
-    for (let index = start; index < Math.min(end, columns.length); index += 1) {
-      total += track.value(columns[index]);
+    let observed = 0;
+    for (let index = start; index < Math.min(end, columnStore.length); index += 1) {
+      const next = columnMetricAtIndex(columnStore, index, track.metric);
+      if (next === null) continue;
+      total += next;
+      observed += 1;
     }
-    const value = Math.max(0, Math.min(1, total / Math.max(1, end - start)));
+    if (!observed) continue;
+    const value = Math.max(0, Math.min(1, total / observed));
     const barHeight = Math.max(1, Math.round(value * (height - 5)));
     context.fillRect(x, top + height - barHeight, 1, barHeight);
   }
 }
 
-export function AlignmentQualityOverview({ columns }: { columns: ColumnStats[] }) {
+export function AlignmentQualityOverview({ columnStore }: { columnStore: ColumnStatsStoreV1 }) {
   const { dictionary: d } = useLanguage();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const descriptionId = useId();
@@ -49,7 +58,7 @@ export function AlignmentQualityOverview({ columns }: { columns: ColumnStats[] }
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || columns.length === 0) {
+    if (!canvas || columnStore.length === 0) {
       return;
     }
 
@@ -76,17 +85,17 @@ export function AlignmentQualityOverview({ columns }: { columns: ColumnStats[] }
         {
           color: "#0f766e",
           label: d.results.viewer.stageTwo.tracks.conservation,
-          value: (column) => column.conservation
+          metric: "conservation"
         },
         {
           color: "#e11d48",
           label: d.results.viewer.stageTwo.tracks.gap,
-          value: (column) => column.gapFraction
+          metric: "gap"
         },
         {
           color: "#7c3aed",
           label: d.results.viewer.stageTwo.tracks.entropy,
-          value: (column) => column.entropy
+          metric: "entropy"
         }
       ];
       const gap = 8;
@@ -94,7 +103,7 @@ export function AlignmentQualityOverview({ columns }: { columns: ColumnStats[] }
       tracks.forEach((track, index) => {
         drawTrack(
           context,
-          columns,
+          columnStore,
           track,
           index * (trackHeight + gap),
           cssWidth,
@@ -111,11 +120,11 @@ export function AlignmentQualityOverview({ columns }: { columns: ColumnStats[] }
     }
     window.addEventListener("resize", draw);
     return () => window.removeEventListener("resize", draw);
-  }, [columns, d.results.viewer.stageTwo.tracks]);
+  }, [columnStore, d.results.viewer.stageTwo.tracks]);
 
   const summary = t.qualityChartSummary.replace(
     "{columns}",
-    columns.length.toLocaleString()
+    columnStore.length.toLocaleString()
   );
 
   return (

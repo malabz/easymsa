@@ -75,9 +75,12 @@ const labels: MsaExportLabels = {
   },
   differences: {
     match: "Match",
+    compatibleAmbiguity: "Compatible ambiguity",
+    substitution: "Substitution",
     mismatch: "Substitution",
     insertion: "Insertion",
-    deletion: "Deletion"
+    deletion: "Deletion",
+    unknown: "Unknown"
   }
 };
 
@@ -87,6 +90,10 @@ describe("renderMsaExportToSvg", () => {
     const svg = renderMsaExportToSvg(layout, labels);
 
     expect(svg).toContain("<svg");
+    expect(svg).toContain("<title>EasyMSA MSA export:");
+    expect(svg).toContain("<desc>");
+    expect(svg).toContain('id="easymsa-export-metadata"');
+    expect(svg).toContain("easymsa-msa-export/v1");
     expect(svg).toContain("viewBox=");
     expect(svg).toContain("<rect");
     expect(svg).toContain("<text");
@@ -112,5 +119,31 @@ describe("renderMsaExportToSvg", () => {
     expect(svg).toContain("Shannon entropy");
     expect(svg).toContain("Reference coordinate");
     expect(svg).toContain("#ffedd5");
+  });
+
+  it("clips long labels, marks coordinate discontinuities, and identifies duplicate headers by rowKey", () => {
+    const duplicateAlignment: MSAResult = {
+      ...alignment,
+      sequences: [
+        { id: "duplicate-header-with-a-very-long-name", rowKey: "row:first", sequence: "ACGT" },
+        { id: "duplicate-header-with-a-very-long-name", rowKey: "row:second", sequence: "A-GT" }
+      ]
+    };
+    const layout = calculateExportLayout(
+      duplicateAlignment,
+      {
+        ...state,
+        sequences: duplicateAlignment.sequences,
+        visiblePositions: [1, 3, 4],
+        referenceRowKey: "row:second"
+      },
+      { ...options, region: "filteredView" }
+    );
+    const svg = renderMsaExportToSvg(layout, labels);
+
+    expect(svg).toContain("<clipPath");
+    expect(svg).toContain("stroke-linecap=\"round\"");
+    expect(svg.match(/#fffbeb/g)).toHaveLength(1);
+    expect(svg).toContain("font-variant-ligatures:none");
   });
 });

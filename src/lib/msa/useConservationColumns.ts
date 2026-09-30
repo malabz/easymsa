@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { materializeAllColumnStats } from "../../features/msa-viewer/columnStatsStore";
 import { useMsaAnalysis } from "../../features/msa-viewer/useMsaAnalysis";
 
 export function useConservationColumns(
@@ -16,9 +17,18 @@ export function useConservationColumns(
     alignmentLength,
     ""
   );
+  // Explicit compatibility bridge for the one legacy caller. Production MSA
+  // Viewer paths consume the compact store directly and never expose an
+  // implicit full-column getter.
+  const columns = useMemo(
+    () => analysis.columnStore
+      ? materializeAllColumnStats(analysis.columnStore)
+      : [],
+    [analysis.columnStore]
+  );
 
   return {
-    columns: analysis.columns,
+    columns,
     isCalculating: analysis.isCalculating
   };
 }

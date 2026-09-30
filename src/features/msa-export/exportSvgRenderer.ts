@@ -1,6 +1,11 @@
 import { legendColorStyles, msaCellColorStyle } from "./exportColors";
 import { classifyDifference } from "../msa-viewer/analysis";
 import { differenceColorStyle } from "../msa-viewer/differenceColors";
+import {
+  MSA_EXPORT_MANIFEST_SCHEMA,
+  sanitizeManifestLabel,
+  type MsaExportManifestV1
+} from "./exportManifest";
 import type {
   MsaExportBlock,
   MsaExportColumn,
@@ -66,13 +71,22 @@ function renderLabel(
     return "";
   }
 
+  const clipId = `msa-label-${Math.round(x)}-${Math.round(y)}-${Math.round(height)}`;
   return [
+    `<g><title>${escapeSvg(value)}</title>`,
+    `<defs><clipPath id="${clipId}"><rect x="${x + 6}" y="${y}" width="${Math.max(1, layout.labelWidth - 12)}" height="${height}"/></clipPath></defs>`,
     rect(x, y, layout.labelWidth, height, background, LABEL_BORDER),
+    `<g clip-path="url(#${clipId})">`,
     text(value, x + 10, y + height / 2, {
       fill: color,
       size: Math.max(9, layout.fontSize)
-    })
+    }),
+    `</g></g>`
   ].join("");
+}
+
+function renderCoordinateBreak(x: number, y: number, height: number) {
+  return `<path d="M ${x - 2} ${y + height * 0.25} l 4 ${height * 0.2} M ${x - 2} ${y + height * 0.55} l 4 ${height * 0.2}" fill="none" stroke="#475569" stroke-width="1.5" stroke-linecap="round"/>`;
 }
 
 function renderCell(
@@ -116,9 +130,11 @@ function renderCoordinateRow(
   y: number
 ) {
   const coordinateLength = layout.coordinateMode === "reference"
-    ? Math.max(0, ...layout.columns.map((column) => column.referencePosition ?? 0))
-    : layout.alignment.alignmentLength ??
-      Math.max(0, ...layout.columns.map((column) => column.position));
+    ? layout.referenceSequence?.sequence.replace(/-/g, "").length ?? 0
+    : layout.alignment.alignmentLength ?? layout.columns.reduce(
+        (maximum, column) => Math.max(maximum, column.position),
+        0
+      );
   const parts = [
     renderLabel(
       layout,
@@ -131,14 +147,23 @@ function renderCoordinateRow(
 
   block.columns.forEach((column, index) => {
     const x = block.cellAreaX + index * layout.cellPitch;
+    const coordinateBreak =
+      index > 0 &&
+      column.position !== block.columns[index - 1].position + 1;
     parts.push(rect(x, y, layout.cellWidth, layout.cellHeight, LABEL_BACKGROUND));
     const coordinate = layout.coordinateMode === "reference"
       ? column.referencePosition ?? null
       : column.position;
+    const numericCoordinate = typeof coordinate === "number"
+      ? coordinate
+      : coordinate && /^\d+$/.test(coordinate)
+        ? Number(coordinate)
+        : null;
     const showMarker = coordinate !== null && (
-      coordinate === 1 ||
-      coordinate === coordinateLength ||
-      coordinate % layout.markerEvery === 0
+      (typeof coordinate === "string" && coordinate.includes("+")) ||
+      numericCoordinate === 1 ||
+      numericCoordinate === coordinateLength ||
+      (numericCoordinate !== null && numericCoordinate % layout.markerEvery === 0)
     );
 
     if (showMarker) {
@@ -149,6 +174,9 @@ function renderCoordinateRow(
           anchor: "middle"
         })
       );
+    }
+    if (coordinateBreak) {
+      parts.push(renderCoordinateBreak(x, y, layout.cellHeight));
     }
   });
 
@@ -214,6 +242,7 @@ function renderSequenceRow(
   block: MsaExportBlock,
   sequenceId: string,
   sequence: string,
+  rowKey: string | undefined,
   y: number,
   labelBackground = "#ffffff",
   labelColor = TEXT_COLOR
@@ -234,6 +263,34 @@ function renderSequenceRow(
         y
       )
     );
+    const annotationIndex = layout.annotations.findIndex((annotation) => {
+      const rowMatches = annotation.rowKey
+        ? annotation.rowKey === rowKey
+        : annotation.sequenceId
+          ? annotation.sequenceId === sequenceId
+          : true;
+      if (!rowMatches || annotation.start === null || annotation.end === null) return false;
+      const start = Math.min(annotation.start, annotation.end);
+      const end = Math.max(annotation.start, annotation.end);
+      return column.position >= start && column.position <= end;
+    });
+    if (annotationIndex >= 0) {
+      const annotation = layout.annotations[annotationIndex];
+      const stroke = annotation.category === "exclude-candidate"
+        ? "#be123c"
+        : annotation.category === "review"
+          ? "#b45309"
+          : "#0369a1";
+      parts.push(`<rect x="${x + 1}" y="${y + 1}" width="${Math.max(1, layout.cellWidth - 2)}" height="${Math.max(1, layout.cellHeight - 2)}" fill="none" stroke="${stroke}" stroke-width="1.5" stroke-dasharray="3 2"/>`);
+      if (column.position === Math.min(annotation.start!, annotation.end!)) {
+        parts.push(text(String(annotationIndex + 1), x + layout.cellWidth - 2, y + 4, {
+          fill: stroke,
+          size: Math.max(6, layout.fontSize - 4),
+          weight: 700,
+          anchor: "end"
+        }));
+      }
+    }
   });
 
   return parts.join("");
@@ -260,13 +317,16 @@ function renderBlock(
   }
 
   for (const row of layout.rows) {
-    const isReference = row.id === layout.referenceSequence?.id;
+    const isReference = row.rowKey && layout.referenceSequence?.rowKey
+      ? row.rowKey === layout.referenceSequence.rowKey
+      : row === layout.referenceSequence;
     parts.push(
       renderSequenceRow(
         layout,
         block,
         row.id,
         row.sequence,
+        row.rowKey,
         y,
         isReference ? "#fffbeb" : "#ffffff",
         isReference ? "#92400e" : TEXT_COLOR
@@ -282,7 +342,8 @@ function renderBlock(
         layout,
         block,
         labels.consensus,
-        layout.alignment.consensus,
+        layout.consensusSequence,
+        undefined,
         y + 2,
         CONSENSUS_LABEL_BACKGROUND,
         "#134e4a"
@@ -302,27 +363,43 @@ function renderLegend(layout: MsaExportLayout, labels: MsaExportLabels) {
   const items = layout.differenceMode
     ? [
         { label: labels.differences.match, style: differenceColorStyle("match") },
-        { label: labels.differences.mismatch, style: differenceColorStyle("mismatch") },
+        {
+          label: labels.differences.compatibleAmbiguity,
+          style: differenceColorStyle("compatibleAmbiguity")
+        },
+        {
+          label: labels.differences.substitution,
+          style: differenceColorStyle("substitution")
+        },
         { label: labels.differences.insertion, style: differenceColorStyle("insertion") },
-        { label: labels.differences.deletion, style: differenceColorStyle("deletion") }
+        { label: labels.differences.deletion, style: differenceColorStyle("deletion") },
+        {
+          label: labels.differences.unknown,
+          style: differenceColorStyle("unknown")
+        }
       ]
     : legendColorStyles(layout.colorScheme, labels);
   let x = layout.padding;
-  const y = layout.height - layout.padding - 30;
+  let y = layout.height - layout.padding - layout.legendHeight + 12;
   const parts = [
     `<g>`,
-    text(labels.legend, x, y + 12, {
+    text(labels.legend, x, y + 10, {
       fill: MUTED_TEXT_COLOR,
       size: 11,
       weight: 700
     })
   ];
-  x += 95;
+  y += 28;
 
   for (const item of items) {
+    const itemWidth = 30 + Math.min(140, Math.max(48, item.label.length * 8)) + 16;
+    if (x > layout.padding && x + itemWidth > layout.width - layout.padding) {
+      x = layout.padding;
+      y += 30;
+    }
     parts.push(rect(x, y, 22, 22, item.style.background, item.style.border));
     parts.push(text(item.label, x + 30, y + 11, { size: 11 }));
-    x += 30 + Math.min(110, Math.max(36, item.label.length * 8)) + 16;
+    x += itemWidth;
   }
 
   parts.push("</g>");
@@ -331,7 +408,8 @@ function renderLegend(layout: MsaExportLayout, labels: MsaExportLabels) {
 
 export function renderMsaExportToSvg(
   layout: MsaExportLayout,
-  labels: MsaExportLabels
+  labels: MsaExportLabels,
+  manifest?: MsaExportManifestV1
 ) {
   const background = layout.options.transparentBackground
     ? ""
@@ -339,10 +417,26 @@ export function renderMsaExportToSvg(
   const blocks = layout.blocks
     .map((block) => renderBlock(layout, block, labels))
     .join("");
+  const sourceLabel = manifest?.source.label ?? sanitizeManifestLabel(
+    layout.alignment.descriptor?.sourceName ?? layout.alignment.jobId,
+    "alignment"
+  );
+  const metadata = manifest ?? {
+    schema: MSA_EXPORT_MANIFEST_SCHEMA,
+    source: { label: sourceLabel },
+    scope: {
+      region: layout.canonicalRegion,
+      rowCount: layout.rows.length,
+      columnCount: layout.columns.length
+    }
+  };
 
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${layout.width}" height="${layout.height}" viewBox="0 0 ${layout.width} ${layout.height}" role="img">`,
-    `<style>text{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:0}</style>`,
+    `<title>${escapeSvg(`EasyMSA MSA export: ${sourceLabel}`)}</title>`,
+    `<desc>${escapeSvg(`${layout.rows.length} rows and ${layout.columns.length} alignment columns; ${layout.canonicalRegion} region.`)}</desc>`,
+    `<metadata id="easymsa-export-metadata" data-schema="${MSA_EXPORT_MANIFEST_SCHEMA}">${escapeSvg(JSON.stringify(metadata))}</metadata>`,
+    `<style>text{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-variant-ligatures:none;letter-spacing:0;text-rendering:geometricPrecision}rect,path{shape-rendering:geometricPrecision}</style>`,
     background,
     blocks,
     renderLegend(layout, labels),

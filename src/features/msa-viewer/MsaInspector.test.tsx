@@ -38,7 +38,7 @@ const content = {
   },
   reference: { id: "reference", sequence: "A-CG" },
   referencePosition: 1,
-  selection: { sequenceId: "sample", position: 2 }
+  selection: { rowKey: "sample", position: 2 }
 };
 
 describe("MsaInspector accessibility", () => {
@@ -63,7 +63,27 @@ describe("MsaInspector accessibility", () => {
       </LanguageProvider>
     );
 
-    fireEvent.keyDown(window, { key: "Escape" });
+    fireEvent.keyDown(document, { key: "Escape" });
     expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it("shows only neutral browsing context when reference analysis is unavailable", () => {
+    const { container } = render(
+      <LanguageProvider>
+        <MsaInspector
+          {...content}
+          docked
+          mobileOpen={false}
+          onClose={() => {}}
+          showReferenceContext={false}
+        />
+      </LanguageProvider>
+    );
+
+    expect(container.textContent).toMatch(/Neutral read-only browsing mode|中性只读浏览模式/);
+    expect(container.textContent).not.toContain("reference");
+    expect(container.textContent).not.toMatch(/Reference position|参考位置/);
+    expect(container.textContent).not.toMatch(/Base composition|碱基组成/);
+    expect(container.textContent).not.toMatch(/Mismatches|错配/);
   });
 });

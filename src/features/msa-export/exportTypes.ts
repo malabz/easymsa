@@ -1,17 +1,55 @@
 import type { MSAResult, MSASequence } from "../../lib/types/msa";
+import type { SerializableMsaViewerContext } from "../msa-viewer/viewerContext";
+import type { AnalysisScope } from "../msa-viewer/types";
+import type { ColumnStatsStoreV1 } from "../msa-viewer/types";
 import type {
   ConservationColorContext,
   MSAColorScheme
 } from "./exportColors";
 
-export type ExportFormat = "svg" | "png";
-export type ExportRegion = "visible" | "full" | "selection";
+export type ExportFormat = "svg" | "png" | "fasta";
+export type CanonicalExportRegion =
+  | "viewport"
+  | "selectedInterval"
+  | "filteredView"
+  | "fullAlignment";
+export type LegacyExportRegion = "visible" | "full" | "selection";
+/** @deprecated Existing dialog vocabulary; prefer CanonicalExportRegion. */
+export type ExportRegion = LegacyExportRegion;
+export type SupportedExportRegion = CanonicalExportRegion | LegacyExportRegion;
+export type ExportRegionV2 = CanonicalExportRegion;
 export type ExportLayoutMode = "single-line" | "wrapped";
+export type ExportBundleMode = "qc-bundle" | "bare";
+export type MsaExportPreset = "paper-svg" | "presentation-png" | "custom";
+export type MsaExportWrapMode = "auto-wrap" | "fixed-wrap" | "single-line";
+export type MsaExportRenderTheme = "publication-light" | "viewer";
 export type MsaExportTrackId = "conservation" | "gap" | "coverage" | "entropy";
 
-export type MsaExportOptions = {
+/**
+ * Keeps the pre-v1 dialog values working while giving manifests and future UI
+ * a single, unambiguous region vocabulary.  Legacy `full` intentionally maps
+ * to `filteredView`, because that is what the original exporter produced.
+ */
+export function normalizeExportRegion(
+  region: SupportedExportRegion
+): CanonicalExportRegion {
+  if (region === "visible") {
+    return "viewport";
+  }
+  if (region === "selection") {
+    return "selectedInterval";
+  }
+  if (region === "full") {
+    return "filteredView";
+  }
+  return region;
+}
+
+export type MsaExportOptions<
+  TRegion extends SupportedExportRegion = ExportRegion
+> = {
   format: ExportFormat;
-  region: ExportRegion;
+  region: TRegion;
   layoutMode: ExportLayoutMode;
   includeSequenceNames: boolean;
   includeCoordinates: boolean;
@@ -25,7 +63,20 @@ export type MsaExportOptions = {
   filename: string;
   wrapColumnCount: number;
   maxCanvasPixels: number;
+  maxCanvasDimension?: number;
+  maxSvgCells?: number;
+  maxSvgEstimatedBytes?: number;
+  bundleMode?: ExportBundleMode;
+  preset?: MsaExportPreset;
+  wrapMode?: MsaExportWrapMode;
+  renderTheme?: MsaExportRenderTheme;
+  targetContentWidth?: number;
 };
+
+export type CanonicalMsaExportOptions =
+  MsaExportOptions<CanonicalExportRegion>;
+export type SupportedMsaExportOptions =
+  MsaExportOptions<SupportedExportRegion>;
 
 export type MsaExportViewport = {
   scrollLeft: number;
@@ -46,8 +97,20 @@ export type MsaExportViewSettings = {
 };
 
 export type MsaExportColumnRange = {
-  start: number;
-  end: number;
+  start: number | null;
+  end: number | null;
+};
+
+export type MsaExportAnnotation = {
+  id: string;
+  type?: string;
+  category?: "note" | "review" | "exclude-candidate";
+  label: string;
+  rowKey?: string | null;
+  sequenceId?: string | null;
+  start: number | null;
+  end: number | null;
+  note?: string;
 };
 
 export type MsaExportConservationColumn = ConservationColorContext & {
@@ -55,7 +118,7 @@ export type MsaExportConservationColumn = ConservationColorContext & {
   gapFraction: number;
   dominantBase: string;
   coverage?: number;
-  entropy?: number;
+  entropy?: number | null;
   variation?: number;
   consensusBase?: string;
   ambiguityConsensus?: string;
@@ -64,7 +127,10 @@ export type MsaExportConservationColumn = ConservationColorContext & {
 export type MsaExportViewerState = {
   sequences: MSASequence[];
   visiblePositions: number[];
-  conservationColumns: MsaExportConservationColumn[];
+  /** Compact production model. Only resolved export positions are materialized. */
+  columnStore?: ColumnStatsStoreV1 | null;
+  /** @deprecated Explicit compatibility input used by legacy callers/tests. */
+  conservationColumns?: MsaExportConservationColumn[];
   colorScheme: MSAColorScheme;
   selectedRange: MsaExportColumnRange | null;
   viewSettings: MsaExportViewSettings;
@@ -72,14 +138,27 @@ export type MsaExportViewerState = {
   alignmentLength: number;
   activeTracks?: MsaExportTrackId[];
   consensusMode?: "majority" | "iupac";
+  /** Consensus produced by the active Worker analysis and current scope. */
+  consensusSequence?: string;
   coordinateMode?: "alignment" | "reference";
   differenceMode?: boolean;
   referenceSequenceId?: string | null;
+  referenceRowKey?: string | null;
+  analysisScope?: AnalysisScope;
+  analysisRowKeys?: string[];
+  viewerContext?: SerializableMsaViewerContext;
+  thresholds?: {
+    row?: Record<string, number | null>;
+    column?: Record<string, number | null>;
+  };
+  frontendVersion?: string | null;
+  buildSha?: string | null;
+  annotations?: MsaExportAnnotation[];
 };
 
 export type MsaExportColumn = {
   position: number;
-  referencePosition?: number | null;
+  referencePosition?: string | number | null;
   conservation?: MsaExportConservationColumn;
 };
 
@@ -92,9 +171,48 @@ export type MsaExportBlock = {
   cellAreaX: number;
 };
 
+export type ExportLimitKind =
+  | "png-pixels"
+  | "png-dimension"
+  | "svg-cells"
+  | "svg-estimated-bytes"
+  | null;
+
+/** Geometry-only result. It must be computable without reading column statistics. */
+export type ExportPreflightResult = {
+  canonicalRegion: CanonicalExportRegion;
+  rowCount: number;
+  columnCount: number;
+  blockCount: number;
+  blocksPerPage: number;
+  pageCount: number;
+  requiresPagination: boolean;
+  pageHeight: number;
+  totalHeight: number;
+  width: number;
+  height: number;
+  canvasWidth: number;
+  canvasHeight: number;
+  canvasPixels: number;
+  canvasMegapixels: number;
+  requestedScale: number;
+  resolvedScale: number;
+  scaleAdjusted: boolean;
+  renderedCellCount: number;
+  estimatedSvgBytes: number;
+  effectiveCanvasPixelLimit: number;
+  effectiveCanvasDimensionLimit: number;
+  effectiveSvgCellLimit: number;
+  effectiveSvgEstimatedByteLimit: number;
+  exportLimitExceeded: boolean;
+  exportLimitKind: ExportLimitKind;
+  limitReason: string | null;
+};
+
 export type MsaExportLayout = {
   alignment: MSAResult;
-  options: MsaExportOptions;
+  options: SupportedMsaExportOptions;
+  canonicalRegion: CanonicalExportRegion;
   rows: MSASequence[];
   columns: MsaExportColumn[];
   blocks: MsaExportBlock[];
@@ -116,12 +234,29 @@ export type MsaExportLayout = {
   canvasHeight: number;
   canvasPixels: number;
   canvasMegapixels: number;
+  renderScale: number;
+  requestedScale: number;
+  resolvedScale: number;
+  scaleAdjusted: boolean;
+  renderedCellCount: number;
+  estimatedSvgBytes: number;
+  effectiveCanvasPixelLimit: number;
+  effectiveCanvasDimensionLimit: number;
+  effectiveSvgCellLimit: number;
+  effectiveSvgEstimatedByteLimit: number;
+  exportLimitExceeded: boolean;
+  exportLimitKind: ExportLimitKind;
+  /** @deprecated Compatibility alias for the existing dialog and renderer. */
   exceedsCanvasLimit: boolean;
   limitReason: string | null;
   activeTracks: MsaExportTrackId[];
   coordinateMode: "alignment" | "reference";
   differenceMode: boolean;
   referenceSequence: MSASequence | null;
+  consensusSequence: string;
+  annotations: MsaExportAnnotation[];
+  pageIndex: number;
+  pageCount: number;
 };
 
 export type MsaExportLabels = {
@@ -137,7 +272,10 @@ export type MsaExportLabels = {
   differences: {
     match: string;
     mismatch: string;
+    substitution: string;
+    compatibleAmbiguity: string;
     insertion: string;
     deletion: string;
+    unknown: string;
   };
 };

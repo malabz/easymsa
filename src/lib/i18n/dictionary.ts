@@ -351,7 +351,7 @@ const zh = {
     pastePlaceholder: ">seq1\nATGCTAGC\n>seq2\nATG-TAGC",
     pasteStats: "字符数：{chars}，估计序列数：{count}",
     characterLimit: "上限 {limit} 字符",
-    inputHint: "独立查看器只在本地解析 FASTA；长度不一致时按原始序列浏览，不执行比对。",
+    inputHint: "独立查看器只在本地解析 FASTA；本地文件上限为 1 MiB，粘贴文本上限为 200,000 字符。长度不一致时按原始序列浏览，不执行比对。",
     viewPasted: "查看粘贴内容",
     matrix: "矩阵",
     source: "来源",
@@ -365,7 +365,14 @@ const zh = {
     rawSequenceView: "原始序列查看，未执行比对。",
     empty: "上传或粘贴 FASTA 后打开矩阵查看器。",
     readError: "无法读取该 FASTA 文件。",
-    fileTooLarge: "文件过大。请使用不超过 {limit} 字节的 FASTA 文件。"
+    fileTooLarge: "文件过大。请使用不超过 {limit} 字节的 FASTA 文件。",
+    inputErrors: {
+      decode: "无法将文件解码为 UTF-8 文本。",
+      empty: "FASTA 输入为空。",
+      invalid: "FASTA 格式无效；请检查 header 与序列内容。",
+      worker: "本地 FASTA 解析失败，请重试。",
+      protocol: "查看器解析组件版本不匹配，请刷新页面后重试。"
+    }
   },
   results: {
     title: "结果",
@@ -389,7 +396,7 @@ const zh = {
       averageIdentity: "平均一致性",
       gapPercentage: "缺口比例",
       averageConservation: "平均保守性",
-      averageEntropy: "平均 Shannon entropy",
+      averageEntropy: "平均归一化 entropy",
       variableColumns: "变异列数",
       averageCoverage: "平均覆盖率",
       gcContent: "GC 比例",
@@ -475,8 +482,144 @@ const zh = {
       noMatches: "没有匹配的序列。",
       noColumns: "当前列过滤没有匹配的列。",
       calculating: "正在后台计算大规模比对的保守性统计",
+      neutralTitle: "中性只读浏览模式",
+      neutralDescription: "当前输入仍可浏览、搜索名称并下载原始 FASTA，但不会显示核酸专属统计。",
       stageTwo: {
         advanced: "高级视图与导出",
+        commandBar: "MSA 科研工作区命令栏",
+        statusChips: "当前查看器与分析状态",
+        settings: "工作区设置",
+        moreTools: "更多工具",
+        closeSettings: "关闭设置",
+        settingsDescription: "配置视图、质量轨道、序列操作和导出；当前分析范围会持续显示在状态栏。",
+        settingsGroups: {
+          view: "视图",
+          location: "定位",
+          workspace: "工作区",
+          qc: "质量分析",
+          rows: "序列与批量操作",
+          export: "导出"
+        },
+        qc: "QC",
+        closeQc: "关闭 QC",
+        resizeDock: "调整侧边面板宽度",
+        exportWorkspace: "导出",
+        expandWorkspace: "展开工作区",
+        exitWorkspace: "退出工作区",
+        resetView: "重置视图",
+        viewMode: "矩阵显示模式",
+        labelWidth: "序列标签宽度",
+        minimap: "显示概览导航",
+        rangeSelectionMode: "触屏范围选择模式",
+        rangeSelectionHint: "关闭时单指用于平移，轻点用于选中；开启后拖动可选择连续区间。",
+        rangeStatsFailed: "区间统计计算失败，请重新选择区间后重试。",
+        rowActions: "{name} 行操作",
+        consensusTie: "多数 consensus 平票",
+        analysisScope: "分析范围",
+        analysisScopes: {
+          all: "全部行",
+          visible: "当前可见行",
+          selected: "明确选中行"
+        },
+        scopeChip: "分析：{scope}（{count} 行）",
+        clearScope: "恢复全部行分析",
+        referenceChip: "参考：{value}",
+        differenceChip: "参考差异视图",
+        disableDifference: "关闭参考差异视图",
+        columnFilterChip: "列过滤：{value}",
+        clearColumnFilter: "清除列过滤",
+        hiddenChip: "隐藏 {count} 行",
+        selectedRowsChip: "选中 {count} 行",
+        clearSelectedRows: "清除已选行",
+        rangeChip: "选区：{range}",
+        trackChip: "轨道：{value}",
+        hideTrack: "关闭 {value} 轨道",
+        motifMatchMode: "Motif 匹配规则",
+        motifMatchModes: {
+          strict: "严格匹配",
+          possible: "可能匹配"
+        },
+        motifStrandMode: "Motif 链方向",
+        motifStrandModes: {
+          forward: "仅正向链",
+          both: "搜索双链"
+        },
+        motifCoordinates: "{strand} 链 · 比对 {alignment} · 序列 {sequence}",
+        motifErrors: {
+          invalid: "Motif 包含非法字符：{characters}。只允许 DNA/RNA IUPAC 字符；空白会自动移除，gap 不允许。",
+          failed: "Motif 搜索失败，请修改查询后重试。"
+        },
+        analysisFailed: "比对分析失败，请重新载入该数据源后重试。",
+        selectAllVisible: "全选可见",
+        hideSelected: "隐藏选中",
+        pinSelected: "固定选中",
+        unpinSelected: "取消固定",
+        undoHide: "撤销隐藏",
+        qcPanel: {
+          title: "序列 QC",
+          reviewOnly: "自动结果仅作为 QC 候选供复核；不会自动删除序列或改变源比对。",
+          scope: "分析范围",
+          rows: "序列",
+          columns: "列",
+          candidates: "QC 候选",
+          search: "搜索序列名称",
+          sort: "序列排序",
+          ascending: "升序",
+          descending: "降序",
+          name: "名称",
+          length: "非 gap 长度",
+          gap: "缺口比例",
+          ambiguity: "模糊碱基比例",
+          gc: "GC 比例",
+          identity: "一致性",
+          comparisonTarget: "QC 比较对象",
+          explicitReference: "明确指定的参考序列",
+          scopeConsensus: "当前分析范围 consensus",
+          differences: "差异数",
+          review: "复核",
+          direction: "方向",
+          originalOrder: "原始顺序",
+          combinedFilters: "组合行筛选",
+          candidateRules: "QC 候选规则（留空表示关闭）",
+          columnRules: "自定义列筛选（修改后自动启用）",
+          minimumLength: "最小非 gap 长度",
+          maximumLength: "最大非 gap 长度",
+          maximumGap: "最大缺口比例",
+          maximumAmbiguity: "最大模糊碱基比例",
+          minimumGc: "最小 GC 比例",
+          maximumGc: "最大 GC 比例",
+          minimumIdentity: "最小一致性",
+          maximumDifferences: "最大差异数",
+          minimumConservation: "最小保守性",
+          minimumCoverage: "最小 coverage",
+          maximumEntropy: "最大归一化 entropy",
+          maximumColumnAmbiguity: "最大列模糊碱基比例",
+          status: "状态",
+          showingRows: "筛选后共有 {total} 行，当前显示前 {shown} 行。",
+          distributions: "序列级指标分布",
+          distributionSummary: "{metric}：{count} 个观测；最小 {min}，中位数 {median}，最大 {max}。"
+        },
+        annotationPanel: {
+          title: "QC 人工标记",
+          reviewOnly: "“排除候选”只是复核标记，不会改变分析范围或源比对。",
+          category: "类别",
+          sequenceRow: "序列行",
+          all: "全部",
+          allRows: "全部序列",
+          containsPosition: "包含比对位置",
+          previous: "上一条",
+          next: "下一条",
+          noMatches: "没有匹配标记",
+          newAnnotation: "新建标记",
+          selectTarget: "请先选择序列、列或区间",
+          optionalNote: "可选备注",
+          add: "添加",
+          delete: "删除",
+          updated: "更新于",
+          note: "备注",
+          review: "复核",
+          excludeCandidate: "排除候选"
+        },
         analysisTracks: "分析轨道",
         activeTracks: "显示轨道",
         reference: "参考序列",
@@ -503,11 +646,11 @@ const zh = {
         nextMotif: "下一个命中",
         motifResult: "命中 {current} / {total}",
         motifHits: "片段命中列表",
-        motifStoredLimit: "命中过多，仅加载前 {count} 个用于导航",
+        motifStoredLimit: "共命中 {total} 处；仅保留前 {stored} 处用于导航",
         searchingMotif: "正在搜索片段",
         canvasOverview: "Canvas 全局模式",
         domDetail: "DOM 细节模式",
-        shortcutHint: "方向键移动 · Shift 扩展范围 · 拖拽选择列区间",
+        shortcutHint: "方向键移动；Shift 扩展范围；空格选择序列；P 固定；R 设为参考；H 隐藏。",
         tracks: {
           conservation: "保守性",
           gap: "缺口比例",
@@ -517,7 +660,7 @@ const zh = {
         stats: {
           baseComposition: "碱基组成",
           gcContent: "GC 比例",
-          averageEntropy: "平均 entropy",
+          averageEntropy: "平均归一化 entropy",
           averageCoverage: "平均覆盖率",
           mismatches: "替换",
           insertions: "插入",
@@ -527,9 +670,81 @@ const zh = {
         },
         differences: {
           match: "与参考一致",
+          compatibleAmbiguity: "模糊码相容",
+          substitution: "确定性替换",
           mismatch: "替换",
           insertion: "相对参考插入",
-          deletion: "相对参考缺失"
+          deletion: "相对参考缺失",
+          empty: "双方均为空",
+          unknown: "未知字符",
+          unclassifiedSubstitution: "未分类替换"
+        }
+      },
+      scienceV2: {
+        semanticsVersion: "核酸统计语义 nucleotide-v2",
+        alphabets: {
+          dna: "DNA",
+          rna: "RNA",
+          nucleotide: "混合 T/U 核酸",
+          protein: "蛋白质",
+          unknown: "未知字母表"
+        },
+        alignmentModes: {
+          aligned: "等长核酸比对",
+          rawUnequal: "非等长原始序列",
+          neutral: "中性只读浏览"
+        },
+        warnings: {
+          duplicateHeaders: "检测到重复 FASTA header；各行仍通过内部 rowKey 独立操作。",
+          mixedTu: "同时检测到 T 和 U；显示保留原字符，统计时按统一核酸状态归一化。",
+          normalizedGaps: "规范化指纹已将句点（.）统一为 gap（-）并统一字符大小写。",
+          browserContentHash: "服务器结果只记录浏览器取得内容的规范化比对哈希，不代表服务端原文件哈希。"
+        },
+        neutralTitle: "中性只读浏览模式",
+        neutralDescription: "当前输入仍可浏览、搜索名称并下载原始 FASTA，但不会显示核酸专属统计。",
+        neutralReasons: {
+          protein: "检测到蛋白质特异残基；本轮不对蛋白质计算 GC、consensus、entropy、保守性或 Ti/Tv。",
+          unknown: "无法可靠判断序列字母表；为避免误导，已停用核酸专属统计。",
+          rawUnequal: "FASTA 序列长度不一致；尾部空白不会被解释为 gap、deletion 或低覆盖。",
+          invalidSymbols: "输入含非法字符；请修正输入后再运行核酸分析。"
+        },
+        scopeRows: "当前分析范围：{scope}，实际 {count} 行",
+        unavailable: "不可用",
+        metrics: {
+          coverage: "覆盖率",
+          informativeCoverage: "信息性覆盖率",
+          gapFraction: "缺口比例",
+          ambiguityFraction: "模糊碱基比例",
+          unknownFraction: "未知字符比例",
+          conservation: "保守性",
+          entropyBits: "Shannon entropy（bits）",
+          normalizedEntropy: "归一化 entropy",
+          gc: "GC 比例",
+          validComparisons: "有效比较数",
+          unknownComparisons: "未知比较数",
+          differenceRate: "差异率",
+          unclassifiedSubstitutions: "未分类替换"
+        },
+        formulas: {
+          coverage: "覆盖率 = 非 gap 行数 / 总行数。",
+          informativeCoverage: "信息性覆盖率 = 确定性 A/C/G/T(U) 行数 / 总行数。",
+          conservation: "保守性 = 最多确定性碱基计数 / 确定性碱基总数；无确定性碱基时不可用。",
+          entropy: "Entropy = -Σ p log₂(p)，仅使用确定性碱基；归一化 entropy = entropy / 2。",
+          gc: "GC = (G + C) / (A + C + G + T/U)，模糊码与 gap 不进入分母。",
+          variable: "变异列表示至少观察到两种确定性碱基；模糊码本身不制造变异。",
+          titv: "Ti/Tv 仅统计双方均为确定性单碱基的替换。",
+          differenceRate: "差异率 = substitution + insertion + deletion / 有效比较数；同时报告绝对计数。",
+          compatibleAmbiguity: "两个合法 IUPAC 集合有交集但不属于相同确定性单碱基时，记为模糊码相容。"
+        },
+        qc: {
+          candidate: "QC 候选",
+          needsReview: "需复核",
+          noAutomaticExclusion: "QC 结果不会自动删除序列或改变源比对。",
+          annotationCategories: {
+            note: "备注",
+            review: "复核",
+            excludeCandidate: "排除候选"
+          }
         }
       },
       zoomIn: "放大",
@@ -553,9 +768,17 @@ const zh = {
       exportSelectedRange: "导出选中区间",
       exportConsensusRange: "导出区间 consensus",
       imageExport: {
-        button: "导出图片",
-        title: "导出 MSA 图片",
-        description: "根据当前查看器状态导出 SVG 或 PNG，不截图页面。",
+        button: "导出 / QC bundle",
+        title: "导出 MSA 与 QC bundle",
+        description: "按统一的行列范围导出 FASTA、SVG 或 PNG；推荐同时保存 manifest 与行列映射。",
+        preset: "一键成品",
+        presets: {
+          paper: "论文矢量 SVG",
+          presentation: "汇报高清 PNG",
+          custom: "自定义",
+          paperHint: "可编辑矢量、自动换行，适合论文排版与长期归档。",
+          presentationHint: "高对比 3× PNG，适合 PPT、海报和图片分享。"
+        },
         format: "格式",
         svg: "SVG",
         png: "PNG",
@@ -563,12 +786,21 @@ const zh = {
         regions: {
           visible: "当前视窗",
           full: "全部可见数据",
-          selection: "选中区间"
+          selection: "选中区间",
+          viewport: "当前屏幕",
+          selectedInterval: "连续选中区间",
+          filteredView: "完整筛选视图",
+          fullAlignment: "原始完整比对"
         },
         layoutMode: "布局",
         layoutModes: {
           singleLine: "单行",
           wrapped: "换行"
+        },
+        wrapModes: {
+          auto: "自动换行",
+          fixed: "固定每行列数",
+          single: "保持单行"
         },
         wrapColumns: "每行列数",
         include: "包含内容",
@@ -582,13 +814,26 @@ const zh = {
         output: "输出",
         filename: "文件名",
         scale: "PNG 缩放",
+        scaleAdjusted: "为满足浏览器安全上限，实际导出倍率已从 {requested}× 调整为 {resolved}×。",
         background: "背景",
         transparentBackground: "透明背景",
         estimate: "预估",
         sizeEstimate: "{rows} 行 · {columns} 列 · {width}×{height} px",
+        fastaEstimate: "{rows} 行 · {columns} 个导出列",
         blockEstimate: "{count} 个区块",
+        pageEstimate: "将输出 {count} 个编号页面；每页重复名称、坐标和轨道。",
         pngEstimate: "PNG {width}×{height} px · {mp} MP",
         noSelectionHint: "先在矩阵中选择列区间，才能导出选中区间。",
+        preview: "导出缩略预览",
+        progress: "导出进度 {value}%",
+        cancelExport: "取消导出",
+        bundle: {
+          title: "复现信息",
+          qcBundle: "QC bundle（推荐）",
+          bare: "仅裸文件",
+          qcHint: "ZIP 同时保存主文件、manifest、行映射、列映射和已有 QC 标记。",
+          bareWarning: "仅导出主文件，不包含完整来源、筛选范围和行列映射。"
+        },
         export: "导出",
         exporting: "导出中",
         cancel: "取消",
@@ -596,6 +841,10 @@ const zh = {
           noData: "当前没有可导出的矩阵数据。",
           selectionRequired: "请先选择一个列区间。",
           limitExceeded: "PNG 尺寸超过安全上限。",
+          pngDimensionLimit: "PNG 将创建 {width} × {height} px 的画布，超过单边 {limit} px 的安全上限。",
+          pngPixelLimit: "PNG 将创建 {actual} MP 的画布，超过 {limit} MP 的安全上限。",
+          svgCellLimit: "SVG 将渲染 {actual} 个残基单元格，超过 {limit} 个的安全上限。",
+          svgByteLimit: "SVG 预计为 {actual} MB，超过 {limit} MB 的安全上限。",
           failed: "导出失败，请调整范围或格式后重试。"
         }
       },
@@ -628,7 +877,11 @@ const zh = {
       sort: {
         original: "原始顺序",
         name: "按名称",
-        length: "按长度"
+        length: "按长度",
+        gap: "按缺口比例",
+        ambiguity: "按模糊碱基比例",
+        gc: "按 GC 比例",
+        identity: "按参考一致性"
       },
       colorSchemes: {
         nucleotide: "按碱基",
@@ -639,7 +892,8 @@ const zh = {
         all: "全部列",
         variable: "变异列",
         conserved: "高保守列",
-        lowGap: "低缺口列"
+        lowGap: "低缺口列",
+        custom: "自定义条件"
       },
       legendLabels: {
         purine: "嘌呤",
@@ -1055,7 +1309,7 @@ const en: typeof zh = {
     pastePlaceholder: ">seq1\nATGCTAGC\n>seq2\nATG-TAGC",
     pasteStats: "Characters: {chars}, estimated sequences: {count}",
     characterLimit: "Limit {limit} characters",
-    inputHint: "The standalone viewer parses FASTA locally; unequal lengths are shown as raw sequences without running alignment.",
+    inputHint: "The standalone viewer parses FASTA locally: local files are limited to 1 MiB and pasted text to 200,000 characters. Unequal lengths are shown as raw sequences without running alignment.",
     viewPasted: "View Pasted FASTA",
     matrix: "Matrix",
     source: "Source",
@@ -1069,7 +1323,14 @@ const en: typeof zh = {
     rawSequenceView: "Raw sequence view; no alignment was performed.",
     empty: "Upload or paste FASTA to open the matrix viewer.",
     readError: "Could not read this FASTA file.",
-    fileTooLarge: "The file is too large. Use a FASTA file no larger than {limit} bytes."
+    fileTooLarge: "The file is too large. Use a FASTA file no larger than {limit} bytes.",
+    inputErrors: {
+      decode: "The file could not be decoded as UTF-8 text.",
+      empty: "The FASTA input is empty.",
+      invalid: "The FASTA format is invalid. Check headers and sequence content.",
+      worker: "Local FASTA parsing failed. Try again.",
+      protocol: "The viewer parser version does not match. Refresh the page and try again."
+    }
   },
   results: {
     title: "Results",
@@ -1093,7 +1354,7 @@ const en: typeof zh = {
       averageIdentity: "Average identity",
       gapPercentage: "Gap percentage",
       averageConservation: "Average conservation",
-      averageEntropy: "Average Shannon entropy",
+      averageEntropy: "Average normalized entropy",
       variableColumns: "Variable columns",
       averageCoverage: "Average coverage",
       gcContent: "GC content",
@@ -1179,8 +1440,144 @@ const en: typeof zh = {
       noMatches: "No matching sequences.",
       noColumns: "No columns match the current column filter.",
       calculating: "Calculating conservation statistics in the background",
+      neutralTitle: "Neutral read-only browsing mode",
+      neutralDescription: "You can still browse the input, search names, and download the original FASTA, but nucleotide-specific statistics are hidden.",
       stageTwo: {
         advanced: "Advanced view and export",
+        commandBar: "MSA research workspace command bar",
+        statusChips: "Current viewer and analysis state",
+        settings: "Workspace settings",
+        moreTools: "More tools",
+        closeSettings: "Close settings",
+        settingsDescription: "Configure the view, QC tracks, row actions, and export. The active analysis scope remains visible in the status bar.",
+        settingsGroups: {
+          view: "View",
+          location: "Locate",
+          workspace: "Workspace",
+          qc: "Quality analysis",
+          rows: "Sequences and batch actions",
+          export: "Export"
+        },
+        qc: "QC",
+        closeQc: "Close QC",
+        resizeDock: "Resize side panel",
+        exportWorkspace: "Export",
+        expandWorkspace: "Expand workspace",
+        exitWorkspace: "Exit workspace",
+        resetView: "Reset view",
+        viewMode: "Matrix display mode",
+        labelWidth: "Sequence label width",
+        minimap: "Show overview navigator",
+        rangeSelectionMode: "Touch range-selection mode",
+        rangeSelectionHint: "When off, one finger pans and a tap selects. Turn it on to drag a continuous range.",
+        rangeStatsFailed: "Range statistics failed. Select the interval again and retry.",
+        rowActions: "{name} row actions",
+        consensusTie: "Majority-consensus tie",
+        analysisScope: "Analysis scope",
+        analysisScopes: {
+          all: "All rows",
+          visible: "Visible rows",
+          selected: "Explicitly selected rows"
+        },
+        scopeChip: "Analysis: {scope} ({count} rows)",
+        clearScope: "Restore all-row analysis",
+        referenceChip: "Reference: {value}",
+        differenceChip: "Reference differences",
+        disableDifference: "Turn off reference differences",
+        columnFilterChip: "Column filter: {value}",
+        clearColumnFilter: "Clear column filter",
+        hiddenChip: "{count} rows hidden",
+        selectedRowsChip: "{count} rows selected",
+        clearSelectedRows: "Clear selected rows",
+        rangeChip: "Range: {range}",
+        trackChip: "Track: {value}",
+        hideTrack: "Hide {value} track",
+        motifMatchMode: "Motif match rule",
+        motifMatchModes: {
+          strict: "Strict match",
+          possible: "Possible match"
+        },
+        motifStrandMode: "Motif strand",
+        motifStrandModes: {
+          forward: "Forward only",
+          both: "Search both strands"
+        },
+        motifCoordinates: "{strand} strand · alignment {alignment} · sequence {sequence}",
+        motifErrors: {
+          invalid: "The motif contains invalid characters: {characters}. Use DNA/RNA IUPAC symbols only; whitespace is removed, but gaps are not allowed.",
+          failed: "Motif search failed. Revise the query and try again."
+        },
+        analysisFailed: "Alignment analysis failed. Reload this source and try again.",
+        selectAllVisible: "Select visible",
+        hideSelected: "Hide selected",
+        pinSelected: "Pin selected",
+        unpinSelected: "Unpin selected",
+        undoHide: "Undo hide",
+        qcPanel: {
+          title: "Sequence QC",
+          reviewOnly: "Automatic results are QC candidates for review only; rows are never removed and the source alignment is never changed automatically.",
+          scope: "Analysis scope",
+          rows: "Rows",
+          columns: "Columns",
+          candidates: "QC candidates",
+          search: "Search sequence names",
+          sort: "Sort rows",
+          ascending: "Ascending",
+          descending: "Descending",
+          name: "Name",
+          length: "Non-gap length",
+          gap: "Gap fraction",
+          ambiguity: "Ambiguity fraction",
+          gc: "GC fraction",
+          identity: "Identity",
+          comparisonTarget: "QC comparison target",
+          explicitReference: "Explicit reference sequence",
+          scopeConsensus: "Current analysis-scope consensus",
+          differences: "Differences",
+          review: "Review",
+          direction: "Direction",
+          originalOrder: "Original order",
+          combinedFilters: "Combined row filters",
+          candidateRules: "QC candidate rules (blank means disabled)",
+          columnRules: "Custom column filters (enabled when edited)",
+          minimumLength: "Minimum non-gap length",
+          maximumLength: "Maximum non-gap length",
+          maximumGap: "Maximum gap fraction",
+          maximumAmbiguity: "Maximum ambiguity fraction",
+          minimumGc: "Minimum GC fraction",
+          maximumGc: "Maximum GC fraction",
+          minimumIdentity: "Minimum identity",
+          maximumDifferences: "Maximum differences",
+          minimumConservation: "Minimum conservation",
+          minimumCoverage: "Minimum coverage",
+          maximumEntropy: "Maximum normalized entropy",
+          maximumColumnAmbiguity: "Maximum column ambiguity fraction",
+          status: "Status",
+          showingRows: "There are {total} filtered rows; showing the first {shown}.",
+          distributions: "Sequence-level metric distributions",
+          distributionSummary: "{metric}: {count} observations; minimum {min}, median {median}, maximum {max}."
+        },
+        annotationPanel: {
+          title: "QC annotations",
+          reviewOnly: "‘Exclude candidate’ is a review marker only; it never changes the analysis scope or source alignment.",
+          category: "Category",
+          sequenceRow: "Sequence row",
+          all: "All",
+          allRows: "All rows",
+          containsPosition: "Contains alignment position",
+          previous: "Previous",
+          next: "Next",
+          noMatches: "No matching annotations",
+          newAnnotation: "New annotation",
+          selectTarget: "Select a row, column, or interval first",
+          optionalNote: "Optional note",
+          add: "Add",
+          delete: "Delete",
+          updated: "Updated",
+          note: "Note",
+          review: "Review",
+          excludeCandidate: "Exclude candidate"
+        },
         analysisTracks: "Analysis tracks",
         activeTracks: "Visible tracks",
         reference: "Reference sequence",
@@ -1207,11 +1604,11 @@ const en: typeof zh = {
         nextMotif: "Next match",
         motifResult: "Match {current} / {total}",
         motifHits: "Motif match list",
-        motifStoredLimit: "Many matches found; navigation loads the first {count}",
+        motifStoredLimit: "{total} matches found; navigation retains the first {stored}",
         searchingMotif: "Searching motif",
         canvasOverview: "Canvas overview mode",
         domDetail: "DOM detail mode",
-        shortcutHint: "Arrow keys move · Shift extends · drag selects a column range",
+        shortcutHint: "Arrow keys move; Shift extends the range; Space selects the row; P pins; R sets the reference; H hides the row.",
         tracks: {
           conservation: "Conservation",
           gap: "Gap fraction",
@@ -1221,7 +1618,7 @@ const en: typeof zh = {
         stats: {
           baseComposition: "Base composition",
           gcContent: "GC content",
-          averageEntropy: "Average entropy",
+          averageEntropy: "Average normalized entropy",
           averageCoverage: "Average coverage",
           mismatches: "Substitutions",
           insertions: "Insertions",
@@ -1231,9 +1628,81 @@ const en: typeof zh = {
         },
         differences: {
           match: "Matches reference",
+          compatibleAmbiguity: "Compatible ambiguity",
+          substitution: "Canonical substitution",
           mismatch: "Substitution",
           insertion: "Insertion vs reference",
-          deletion: "Deletion vs reference"
+          deletion: "Deletion vs reference",
+          empty: "Both empty",
+          unknown: "Unknown symbol",
+          unclassifiedSubstitution: "Unclassified substitution"
+        }
+      },
+      scienceV2: {
+        semanticsVersion: "Nucleotide analysis semantics nucleotide-v2",
+        alphabets: {
+          dna: "DNA",
+          rna: "RNA",
+          nucleotide: "Mixed T/U nucleotide",
+          protein: "Protein",
+          unknown: "Unknown alphabet"
+        },
+        alignmentModes: {
+          aligned: "Equal-length nucleotide alignment",
+          rawUnequal: "Raw unequal-length sequences",
+          neutral: "Neutral read-only browsing"
+        },
+        warnings: {
+          duplicateHeaders: "Duplicate FASTA headers were detected; each row remains independently addressable through its internal rowKey.",
+          mixedTu: "Both T and U were detected. Original characters remain visible while statistics normalize them to one nucleotide state.",
+          normalizedGaps: "The normalized fingerprint converts dots (.) to gaps (-) and normalizes character case.",
+          browserContentHash: "Server results record only the normalized hash of content received by the browser; it is not a hash of the original server file."
+        },
+        neutralTitle: "Neutral read-only browsing mode",
+        neutralDescription: "You can still browse the input, search names, and download the original FASTA, but nucleotide-specific statistics are hidden.",
+        neutralReasons: {
+          protein: "Protein-specific residues were detected. GC, consensus, entropy, conservation, and Ti/Tv are not calculated for proteins in this release.",
+          unknown: "The sequence alphabet cannot be determined reliably. Nucleotide-specific statistics are disabled to avoid misleading results.",
+          rawUnequal: "FASTA rows have unequal lengths. Blank tails are not interpreted as gaps, deletions, or low coverage.",
+          invalidSymbols: "The input contains invalid symbols. Correct the input before running nucleotide analysis."
+        },
+        scopeRows: "Analysis scope: {scope}, {count} rows actually used",
+        unavailable: "Not available",
+        metrics: {
+          coverage: "Coverage",
+          informativeCoverage: "Informative coverage",
+          gapFraction: "Gap fraction",
+          ambiguityFraction: "Ambiguity fraction",
+          unknownFraction: "Unknown fraction",
+          conservation: "Conservation",
+          entropyBits: "Shannon entropy (bits)",
+          normalizedEntropy: "Normalized entropy",
+          gc: "GC fraction",
+          validComparisons: "Valid comparisons",
+          unknownComparisons: "Unknown comparisons",
+          differenceRate: "Difference rate",
+          unclassifiedSubstitutions: "Unclassified substitutions"
+        },
+        formulas: {
+          coverage: "Coverage = non-gap rows / total rows.",
+          informativeCoverage: "Informative coverage = canonical A/C/G/T(U) rows / total rows.",
+          conservation: "Conservation = dominant canonical count / canonical count; it is unavailable when no canonical base is observed.",
+          entropy: "Entropy = -Σ p log₂(p), using canonical bases only; normalized entropy = entropy / 2.",
+          gc: "GC = (G + C) / (A + C + G + T/U); ambiguity codes and gaps are excluded from the denominator.",
+          variable: "A variable column contains at least two observed canonical bases; ambiguity alone does not create variation.",
+          titv: "Ti/Tv includes only substitutions where both sides are canonical single bases.",
+          differenceRate: "Difference rate = substitutions + insertions + deletions / valid comparisons, with absolute counts reported alongside it.",
+          compatibleAmbiguity: "Two valid IUPAC sets with a non-empty intersection, but not the same canonical single base, are compatible ambiguity."
+        },
+        qc: {
+          candidate: "QC candidate",
+          needsReview: "Needs review",
+          noAutomaticExclusion: "QC results never delete rows or change the source alignment automatically.",
+          annotationCategories: {
+            note: "Note",
+            review: "Review",
+            excludeCandidate: "Exclude candidate"
+          }
         }
       },
       zoomIn: "Zoom in",
@@ -1257,9 +1726,17 @@ const en: typeof zh = {
       exportSelectedRange: "Export selected range",
       exportConsensusRange: "Export range consensus",
       imageExport: {
-        button: "Export image",
-        title: "Export MSA image",
-        description: "Render SVG or PNG from the current viewer state without taking a page screenshot.",
+        button: "Export / QC bundle",
+        title: "Export MSA and QC bundle",
+        description: "Export FASTA, SVG, or PNG from one exact row/column region; the recommended bundle also preserves the manifest and mappings.",
+        preset: "Ready-to-use output",
+        presets: {
+          paper: "Paper vector SVG",
+          presentation: "Presentation HD PNG",
+          custom: "Custom",
+          paperHint: "Editable vector output with automatic wrapping for papers and archival.",
+          presentationHint: "High-contrast 3× PNG for slides, posters, and sharing."
+        },
         format: "Format",
         svg: "SVG",
         png: "PNG",
@@ -1267,12 +1744,21 @@ const en: typeof zh = {
         regions: {
           visible: "Visible viewport",
           full: "All visible data",
-          selection: "Selected region"
+          selection: "Selected region",
+          viewport: "Current viewport",
+          selectedInterval: "Continuous selected interval",
+          filteredView: "Complete filtered view",
+          fullAlignment: "Original full alignment"
         },
         layoutMode: "Layout",
         layoutModes: {
           singleLine: "Single line",
           wrapped: "Wrapped"
+        },
+        wrapModes: {
+          auto: "Automatic wrapping",
+          fixed: "Fixed columns per line",
+          single: "Keep one line"
         },
         wrapColumns: "Columns per line",
         include: "Include",
@@ -1286,13 +1772,26 @@ const en: typeof zh = {
         output: "Output",
         filename: "Filename",
         scale: "PNG scale",
+        scaleAdjusted: "The output scale was adjusted from {requested}× to {resolved}× to stay within browser safety limits.",
         background: "Background",
         transparentBackground: "Transparent background",
         estimate: "Estimate",
         sizeEstimate: "{rows} rows · {columns} columns · {width}×{height} px",
+        fastaEstimate: "{rows} rows · {columns} exported columns",
         blockEstimate: "{count} blocks",
+        pageEstimate: "The bundle will contain {count} numbered pages with repeated labels, coordinates, and tracks.",
         pngEstimate: "PNG {width}×{height} px · {mp} MP",
         noSelectionHint: "Select a column range in the matrix before exporting the selected region.",
+        preview: "Export thumbnail preview",
+        progress: "Export progress {value}%",
+        cancelExport: "Cancel export",
+        bundle: {
+          title: "Reproducibility",
+          qcBundle: "QC bundle (recommended)",
+          bare: "Bare file only",
+          qcHint: "The ZIP includes the primary file, manifest, row map, column map, and available QC annotations.",
+          bareWarning: "A bare primary file omits complete provenance, filter scope, and row/column mappings."
+        },
         export: "Export",
         exporting: "Exporting",
         cancel: "Cancel",
@@ -1300,6 +1799,10 @@ const en: typeof zh = {
           noData: "There is no exportable matrix data.",
           selectionRequired: "Select a column range first.",
           limitExceeded: "PNG dimensions exceed the safety limit.",
+          pngDimensionLimit: "PNG would create a {width} × {height} px canvas, above the {limit} px single-dimension safety limit.",
+          pngPixelLimit: "PNG would create a {actual} MP canvas, above the {limit} MP safety limit.",
+          svgCellLimit: "SVG would render {actual} residue cells, above the {limit}-cell safety limit.",
+          svgByteLimit: "SVG is estimated at {actual} MB, above the {limit} MB safety limit.",
           failed: "Export failed. Adjust the region or format and try again."
         }
       },
@@ -1332,7 +1835,11 @@ const en: typeof zh = {
       sort: {
         original: "Original order",
         name: "Name",
-        length: "Length"
+        length: "Length",
+        gap: "Gap fraction",
+        ambiguity: "Ambiguity fraction",
+        gc: "GC fraction",
+        identity: "Reference identity"
       },
       colorSchemes: {
         nucleotide: "Nucleotide",
@@ -1343,7 +1850,8 @@ const en: typeof zh = {
         all: "All columns",
         variable: "Variable columns",
         conserved: "Conserved columns",
-        lowGap: "Low-gap columns"
+        lowGap: "Low-gap columns",
+        custom: "Custom conditions"
       },
       legendLabels: {
         purine: "Purine",

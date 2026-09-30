@@ -1,0 +1,25 @@
+name: Complete frontend validation
+description: Gate frontend delivery on unit and scientific tests, a production build, and cross-browser Viewer E2E tests.
+
+runs:
+  using: composite
+  steps:
+    - name: Install dependencies
+      shell: bash
+      run: npm ci
+
+    - name: Install Playwright browsers
+      shell: bash
+      run: npx playwright install --with-deps chromium firefox webkit
+
+    - name: Run unit and scientific regression tests
+      shell: bash
+      run: npm test
+
+    - name: Build frontend
+      shell: bash
+      run: npm run build
+
+    - name: Run Viewer E2E tests
+      shell: bash
+      run: npm run test:e2e

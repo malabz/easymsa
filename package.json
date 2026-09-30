@@ -8,13 +8,20 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run src --environment jsdom",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:e2e:routes": "playwright test e2e/routes.smoke.spec.ts",
+    "test:e2e:core": "playwright test e2e/viewer.core.spec.ts",
+    "test:e2e:mobile": "playwright test e2e/viewer.mobile.spec.ts e2e/viewer.touch.spec.ts",
+    "test:e2e:layout": "playwright test e2e/viewer.layout.spec.ts",
+    "test:e2e:visual": "playwright test e2e/viewer.visual.spec.ts",
+    "test:e2e:a11y": "playwright test e2e/viewer.a11y.spec.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
     "@tanstack/react-query": "^5.101.2",
     "@tanstack/react-virtual": "^3.14.6",
     "clsx": "^2.1.1",
+    "fflate": "^0.8.3",
     "lucide-react": "^0.468.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -24,6 +31,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.61.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",

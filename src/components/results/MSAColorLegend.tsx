@@ -26,6 +26,12 @@ function legendItems(
     gapEmpty: string;
   }
 ) {
+  if (scheme === "neutral") {
+    return [
+      { label: "Residue", title: "Residue", className: "bg-slate-100 text-slate-800 border-slate-200" },
+      { label: "-", title: labels.gapEmpty, className: "bg-zinc-100 text-zinc-500 border-zinc-200" }
+    ];
+  }
   if (scheme === "purinePyrimidine") {
     return [
       { label: "A / G", title: labels.purine, className: "bg-indigo-100 text-indigo-900 border-indigo-200" },
