@@ -7,7 +7,7 @@ const labels: Record<string, string> = {
   mafft: "MAFFT",
   mafft_fast: "MAFFT fast",
   halign3: "HAlign3",
-  fmalign2_mafft: "FMAlign2 + MAFFT",
+  fmalign2_mafft: "FMAlign2",
   fmalign2_halign3: "FMAlign2 + HAlign4"
 };
 const template = "Auto (actual: {value})";

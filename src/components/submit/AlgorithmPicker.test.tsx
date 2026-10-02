@@ -44,15 +44,15 @@ describe("AlgorithmPicker", () => {
     window.localStorage.clear();
   });
 
-  it("renders all six methods with the adaptive badge on auto", () => {
+  it("renders all five methods with the adaptive badge on auto", () => {
     renderPicker();
 
-    expect(screen.getAllByRole("radio")).toHaveLength(6);
+    expect(screen.getAllByRole("radio")).toHaveLength(5);
     expect(screen.getByRole("radio", { name: /Auto \(adaptive\)/ })).toBeChecked();
     expect(screen.getByText("Recommended · Adaptive")).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: /^HAlign4/ })).toBeInTheDocument();
-    expect(screen.getByRole("radio", { name: /FMAlign2 \+ MAFFT/ })).toBeInTheDocument();
-    expect(screen.getByRole("radio", { name: /FMAlign2 \+ HAlign4/ })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /^FMAlign2/ })).toBeInTheDocument();
+    expect(screen.queryByRole("radio", { name: /FMAlign2 \+ HAlign4/ })).not.toBeInTheDocument();
   });
 
   it("shows data-fit guidance and updates it when the method changes", () => {
@@ -63,7 +63,7 @@ describe("AlgorithmPicker", () => {
     fireEvent.click(screen.getByRole("radio", { name: /^HAlign4/ }));
     expect(screen.getByText(/Ultra-large, globally similar DNA\/RNA/i)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("radio", { name: /FMAlign2 \+ MAFFT/ }));
+    fireEvent.click(screen.getByRole("radio", { name: /^FMAlign2/ }));
     expect(screen.getByText(/Accelerated pipeline for large datasets/i)).toBeInTheDocument();
   });
 

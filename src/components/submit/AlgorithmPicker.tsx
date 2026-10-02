@@ -48,11 +48,6 @@ export function AlgorithmPicker({
       value: "fmalign2_mafft",
       label: t.algorithms.fmalign2_mafft,
       description: t.algorithmDescriptions.fmalign2_mafft
-    },
-    {
-      value: "fmalign2_halign3",
-      label: t.algorithms.fmalign2_halign3,
-      description: t.algorithmDescriptions.fmalign2_halign3
     }
   ];
 

@@ -144,15 +144,14 @@ const zh: DocsSection[] = [
             "任务名称用于识别任务，最长 64 个字符，不应包含路径字符或连续的 ..。",
             "通知邮箱可留空；填写后，任务完成或失败时会发送访问链接。",
             "Auto 是默认的自适应模式：后端根据序列数量、长度与相似性特征，在 minipoa、MAFFT、HAlign4 与 FMAlign2 之间选择，并在任务完成后显示实际使用的方法。",
-            "也可以手动选择 minipoa、MAFFT、HAlign4、FMAlign2 + MAFFT 或 FMAlign2 + HAlign4；服务不可用的算法会在页面中禁用。"
+            "也可以手动选择 minipoa、MAFFT、HAlign4、FMAlign2；服务不可用的算法会在页面中禁用。"
           ] },
           { type: "table", headers: ["算法", "建议用途", "适用数据"], rows: [
             ["Auto（自适应）", "后端自动选择；在 off 观察阶段当前通常选择 minipoa。", "DNA/RNA；约 50–10,000 条序列、长度中位数约 495–10,000。"],
             ["minipoa", "EasyMSA 快速工作流的默认实现。", "中等规模、序列相似度较高的数据集。"],
             ["MAFFT", "需要明确使用 MAFFT 或与既有 MAFFT 流程保持一致时。", "数百至数千条中等长度序列的通用场景。"],
             ["HAlign4", "面向超大规模 DNA/RNA 的原生高速比对，内存占用较高。", "超大规模且整体相似的 DNA/RNA。"],
-            ["FMAlign2 + MAFFT", "FMAlign2 框架内置 MAFFT 后端。", "大体量数据的加速管线。"],
-            ["FMAlign2 + HAlign4", "FMAlign2 框架内置 HAlign4 后端，适合大体量数据。", "超大规模且高相似的数据。"]
+            ["FMAlign2", "FMAlign2 框架内置 MAFFT 后端。", "大体量数据的加速管线。"]
           ] },
           { type: "paragraph", text: "高级设置中的算法参数只影响当前任务。所有输入都会在前端检查，并由后端再次验证；恢复服务器默认值会停止发送自定义 algorithm_params。" },
           { type: "table", headers: ["参数", "适用算法", "含义与范围"], rows: [
@@ -484,15 +483,14 @@ const en: DocsSection[] = [
             "The task name identifies the run, accepts up to 64 characters, and must not contain path characters or two consecutive periods (..).",
             "Notification email is optional; when provided, it receives an access link after completion or failure.",
             "Auto is the default adaptive mode: the backend chooses among minipoa, MAFFT, HAlign4, and FMAlign2 based on sequence count, length, and similarity, then reports the actual tool after completion.",
-            "minipoa, MAFFT, HAlign4, FMAlign2 + MAFFT, or FMAlign2 + HAlign4 can also be selected explicitly; unavailable algorithms are disabled in the page."
+            "minipoa, MAFFT, HAlign4, or FMAlign2 can also be selected explicitly; unavailable algorithms are disabled in the page."
           ] },
           { type: "table", headers: ["Algorithm", "Suggested use", "Data fit"], rows: [
             ["Auto (adaptive)", "Backend-driven selection; during the off observation phase it currently usually selects minipoa.", "DNA/RNA; roughly 50–10,000 sequences with median length about 495–10,000."],
             ["minipoa", "The default implementation for EasyMSA's fast workflow.", "Medium-sized datasets with closely related sequences."],
             ["MAFFT", "Use when MAFFT is explicitly required or consistency with an existing MAFFT workflow matters.", "General-purpose use with hundreds to thousands of medium-length sequences."],
             ["HAlign4", "Native high-speed alignment for ultra-large DNA/RNA datasets; higher memory usage.", "Ultra-large, globally similar DNA/RNA sets."],
-            ["FMAlign2 + MAFFT", "FMAlign2 framework with a built-in MAFFT backend.", "Accelerated pipeline for large datasets."],
-            ["FMAlign2 + HAlign4", "FMAlign2 framework with a built-in HAlign4 backend for large datasets.", "Ultra-large, high-similarity data."]
+            ["FMAlign2", "FMAlign2 framework with a built-in MAFFT backend.", "Accelerated pipeline for large datasets."]
           ] },
           { type: "paragraph", text: "Algorithm parameters in advanced settings apply to the current task only. Inputs are checked in the browser and validated again by the backend; restoring server defaults stops sending custom algorithm_params." },
           { type: "table", headers: ["Parameter", "Algorithms", "Meaning and range"], rows: [

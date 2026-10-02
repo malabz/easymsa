@@ -48,7 +48,7 @@ const zh = {
       mafft: "MAFFT",
       mafft_fast: "MAFFT 快速",
       halign3: "HAlign4",
-      fmalign2_mafft: "FMAlign2 + MAFFT",
+      fmalign2_mafft: "FMAlign2",
       fmalign2_halign3: "FMAlign2 + HAlign4"
     },
     algorithmAutoResolved: "自动选择（实际：{value}）"
@@ -120,7 +120,7 @@ const zh = {
       minipoa: "minipoa",
       mafft: "MAFFT",
       halign3: "HAlign4",
-      fmalign2_mafft: "FMAlign2 + MAFFT",
+      fmalign2_mafft: "FMAlign2",
       fmalign2_halign3: "FMAlign2 + HAlign4"
     },
     algorithmDescriptions: {
@@ -1008,7 +1008,7 @@ const en: typeof zh = {
       mafft: "MAFFT",
       mafft_fast: "MAFFT fast",
       halign3: "HAlign4",
-      fmalign2_mafft: "FMAlign2 + MAFFT",
+      fmalign2_mafft: "FMAlign2",
       fmalign2_halign3: "FMAlign2 + HAlign4"
     },
     algorithmAutoResolved: "Auto (actual: {value})"
@@ -1080,7 +1080,7 @@ const en: typeof zh = {
       minipoa: "minipoa",
       mafft: "MAFFT",
       halign3: "HAlign4",
-      fmalign2_mafft: "FMAlign2 + MAFFT",
+      fmalign2_mafft: "FMAlign2",
       fmalign2_halign3: "FMAlign2 + HAlign4"
     },
     algorithmDescriptions: {
