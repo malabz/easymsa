@@ -4,6 +4,7 @@ const zh = {
   nav: {
     home: "首页",
     submit: "提交任务",
+    realign: "重比对",
     viewer: "查看 MSA",
     lookup: "查询任务",
     docs: "使用文档",
@@ -311,6 +312,7 @@ const zh = {
       queued: "排队中",
       preprocessing: "正在预处理",
       aligning: "正在比对",
+      realigning: "正在重比对",
       packaging: "正在打包结果",
       completed: "已完成",
       failed: "失败"
@@ -962,6 +964,7 @@ const en: typeof zh = {
   nav: {
     home: "Home",
     submit: "Submit",
+    realign: "Realign",
     viewer: "Viewer",
     lookup: "Lookup",
     docs: "Docs",
@@ -1269,6 +1272,7 @@ const en: typeof zh = {
       queued: "Queued",
       preprocessing: "Preprocessing",
       aligning: "Aligning",
+      realigning: "Realigning",
       packaging: "Packaging results",
       completed: "Completed",
       failed: "Failed"

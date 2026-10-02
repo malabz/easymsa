@@ -56,3 +56,10 @@ describe("toFormData", () => {
     expect(formData.has("algorithm_params")).toBe(false);
   });
 });
+
+describe('optional realignment',()=>{
+ const request={jobName:'refine-test',inputMethod:'paste' as const,pastedSequence:'>a\nACGT\n>b\nACGA',language:'en' as const,algorithm:'auto' as const};
+ it('is omitted by default',()=>expect(toFormData(request).has('realign_enabled')).toBe(false));
+ it('uses local-first when enabled',()=>{const form=toFormData({...request,realignEnabled:true});expect(form.get('realign_enabled')).toBe('true');expect(form.get('realign_pattern')).toBe('1');});
+ it('preserves the global-first selection',()=>expect(toFormData({...request,realignEnabled:true,realignPattern:2}).get('realign_pattern')).toBe('2'));
+});

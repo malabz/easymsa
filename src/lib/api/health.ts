@@ -5,7 +5,9 @@ export type CoreHealthResponse = {
   service?: string;
 };
 
+export type RealignmentHealth = { enabled: boolean; available: boolean; version: string; maxSequences: number; maxColumns: number; maxCells: number };
 export type ToolHealthResponse = {
+  realignment?: RealignmentHealth;
   easymsaPrep?: {
     configured?: boolean;
     available?: boolean;
@@ -15,6 +17,7 @@ export type ToolHealthResponse = {
 };
 
 export type QueueHealthResponse = {
+  realignmentQueueLength?: number;
   queueName?: string;
   queueLength?: number;
 };
@@ -26,6 +29,9 @@ export type ResourceHealthResponse = {
 export type ServiceHealthStatus = "ready" | "degraded" | "offline";
 
 export type ServiceHealth = {
+  realignment?: RealignmentHealth;
+  realignmentQueueLength?: number | null;
+  coreReady?: boolean;
   status: ServiceHealthStatus;
   acceptingJobs: boolean;
   service?: string;
@@ -57,6 +63,9 @@ export function deriveServiceHealth(
   const acceptingJobs = coreReady && preprocessAvailable && automaticAlgorithmAvailable;
 
   return {
+    realignment: tools.realignment,
+    coreReady,
+    realignmentQueueLength: typeof queue.realignmentQueueLength === "number" ? queue.realignmentQueueLength : null,
     status: acceptingJobs ? "ready" : "degraded",
     acceptingJobs,
     service: core.service,

@@ -268,7 +268,7 @@ export function JobStatusPage() {
             <JobStatusCard job={job} token={access?.token ?? ""} />
             <JobLogPanel job={job} />
           </div>
-          <JobTimeline status={job.status} />
+          <JobTimeline refinementStatus={job.realignment?.status} status={job.status} realign={Boolean(job.realignment)} standalone={job.jobKind === "realignment"} />
         </div>
       ) : null}
     </PageContainer>

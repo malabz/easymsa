@@ -30,6 +30,8 @@ const ViewerPage = lazy(() =>
   import("./routes/ViewerPage").then((module) => ({ default: module.ViewerPage }))
 );
 
+const RealignPage = lazy(() => import("./routes/RealignPage").then(module => ({default: module.RealignPage})));
+
 function AppRoutes() {
   const location = useLocation();
   const { dictionary: d } = useLanguage();
@@ -44,6 +46,7 @@ function AppRoutes() {
       <Suspense fallback={<LoadingState label={d.common.loadingPage} />}>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/realign" element={<RealignPage />} />
           <Route path="/submit" element={<SubmitPage />} />
           <Route path="/viewer" element={<ViewerPage />} />
           <Route path="/lookup" element={<LookupPage />} />

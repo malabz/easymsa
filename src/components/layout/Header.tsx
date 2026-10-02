@@ -6,9 +6,12 @@ import { cn } from "../../lib/utils/cn";
 import { Button } from "../common/Button";
 import { LanguageToggle } from "./LanguageToggle";
 
+import { useServiceHealth } from "../../lib/query/useServiceHealth";
+
 const navItems = [
   { to: "/", key: "home" },
   { to: "/submit", key: "submit" },
+  { to: "/realign", key: "realign" },
   { to: "/viewer", key: "viewer" },
   { to: "/lookup", key: "lookup" },
   { to: "/docs", key: "docs" },
@@ -17,6 +20,7 @@ const navItems = [
 
 export function Header() {
   const { dictionary: d } = useLanguage();
+  const health = useServiceHealth();
   const [open, setOpen] = useState(false);
 
   const nav = (
@@ -24,7 +28,7 @@ export function Header() {
       aria-label={d.common.primaryNavigation}
       className="flex flex-col gap-1 md:flex-row md:items-center md:gap-0.5"
     >
-      {navItems.map((item) => (
+      {navItems.filter(item => item.key !== "realign" || health.data?.realignment?.enabled).map((item) => (
         <NavLink
           className={({ isActive }) =>
             cn(

@@ -1,3 +1,4 @@
+import { RealignmentNotice } from "./RealignmentNotice";
 import { AlertTriangle, ArrowRight, CheckCircle2, Clock3, Mail } from "lucide-react";
 import { ButtonLink } from "../common/Button";
 import {
@@ -75,7 +76,7 @@ export function JobStatusCard({ job, token }: { job: JobDetail; token: string })
   const preprocessText = d.job.preprocessSummary;
   const issueCounts = mergeCounts(preprocess.qcCounts, preprocess.warningCounts);
   const showPreprocessSummary =
-    Boolean(preprocess.status) ||
+    (Boolean(preprocess.status) && preprocess.status !== "not_applicable") ||
     Boolean(preprocess.summaryCounts) ||
     preprocess.summaryUnavailable;
   const hasAnyIssue = hasCounts(issueCounts);
@@ -91,6 +92,7 @@ export function JobStatusCard({ job, token }: { job: JobDetail; token: string })
         <CardDescription>{job.message ?? d.job.statusLabels[job.status]}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        <RealignmentNotice job={job} token={token} />
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <p className="text-xs font-medium uppercase text-slate-500">

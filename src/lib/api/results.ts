@@ -1,3 +1,4 @@
+import type { ResultStage } from "../types/job";
 import { apiUrl, parseApiError } from "./client";
 import { z } from "zod";
 import {
@@ -165,11 +166,12 @@ export async function adaptServerAlignment(
 export async function getResultSummary(
   jobId: string,
   token: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  stage: ResultStage = "final"
 ): Promise<ResultSummary> {
   const response = await fetch(
     apiUrl(
-      `/jobs/${jobPathSegment(jobId)}/results/summary?token=${encodeURIComponent(token)}`
+      `/jobs/${jobPathSegment(jobId)}/results/summary?token=${encodeURIComponent(token)}${stage === "final" ? "" : `&stage=${stage}`}`
     ),
     { signal }
   );
@@ -184,11 +186,12 @@ export async function getResultSummary(
 export async function getAlignmentResult(
   jobId: string,
   token: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  stage: ResultStage = "final"
 ): Promise<MSAResult> {
   const response = await fetch(
     apiUrl(
-      `/jobs/${jobPathSegment(jobId)}/results/alignment?token=${encodeURIComponent(token)}`
+      `/jobs/${jobPathSegment(jobId)}/results/alignment?token=${encodeURIComponent(token)}${stage === "final" ? "" : `&stage=${stage}`}`
     ),
     { signal }
   );
@@ -200,14 +203,14 @@ export async function getAlignmentResult(
   return adaptServerAlignment(await response.json());
 }
 
-export function getDownloadFiles(jobId: string, token: string): ResultFile[] {
+export function getDownloadFiles(jobId: string, token: string, stage: ResultStage = "final"): ResultFile[] {
   return [
     {
       name: "all_results.zip",
       description: "Compressed result archive from the EasyMSA server",
       size: "remote",
       href: apiUrl(
-        `/jobs/${jobPathSegment(jobId)}/download?token=${encodeURIComponent(token)}`
+        `/jobs/${jobPathSegment(jobId)}/download?token=${encodeURIComponent(token)}${stage === "final" ? "" : `&stage=${stage}`}`
       )
     },
     {
@@ -215,7 +218,7 @@ export function getDownloadFiles(jobId: string, token: string): ResultFile[] {
       description: "Gzip-compressed alignment FASTA",
       size: "remote",
       href: apiUrl(
-        `/jobs/${jobPathSegment(jobId)}/download/alignment/gz?token=${encodeURIComponent(token)}`
+        `/jobs/${jobPathSegment(jobId)}/download/alignment/gz?token=${encodeURIComponent(token)}${stage === "final" ? "" : `&stage=${stage}`}`
       )
     },
     {
@@ -223,7 +226,7 @@ export function getDownloadFiles(jobId: string, token: string): ResultFile[] {
       description: "Gzip alignment FASTA additionally compressed with xz",
       size: "remote",
       href: apiUrl(
-        `/jobs/${jobPathSegment(jobId)}/download/alignment/gz.xz?token=${encodeURIComponent(token)}`
+        `/jobs/${jobPathSegment(jobId)}/download/alignment/gz.xz?token=${encodeURIComponent(token)}${stage === "final" ? "" : `&stage=${stage}`}`
       )
     }
   ];

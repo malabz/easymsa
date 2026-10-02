@@ -1,4 +1,4 @@
-import { CheckCircle2, Circle, Loader2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Circle, Loader2 } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -7,6 +7,7 @@ import {
 } from "../common/Card";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import type { JobStatus } from "../../lib/types/job";
+import { realignText } from "../../lib/i18n/realignment";
 import { cn } from "../../lib/utils/cn";
 
 const steps: JobStatus[] = [
@@ -17,9 +18,10 @@ const steps: JobStatus[] = [
   "completed"
 ];
 
-export function JobTimeline({ status }: { status: JobStatus }) {
-  const { dictionary: d } = useLanguage();
-  const currentIndex = steps.indexOf(status);
+export function JobTimeline({ status, realign = false, standalone = false, refinementStatus }: { status: JobStatus; realign?: boolean; standalone?: boolean; refinementStatus?: string }) {
+  const visibleSteps = standalone ? ["queued", "realigning", "packaging", "completed"] as JobStatus[] : realign ? ["queued", "preprocessing", "aligning", "realigning", "packaging", "completed"] as JobStatus[] : steps;
+  const { dictionary: d, locale } = useLanguage();
+  const currentIndex = visibleSteps.indexOf(status);
 
   return (
     <Card>
@@ -28,10 +30,11 @@ export function JobTimeline({ status }: { status: JobStatus }) {
       </CardHeader>
       <CardContent>
         <ol className="space-y-4">
-          {steps.map((step, index) => {
-            const complete = index < currentIndex || status === "completed";
+          {visibleSteps.map((step, index) => {
+            const unsuccessful = step === "realigning" && (refinementStatus === "failed" || refinementStatus === "skipped");
+            const complete = !unsuccessful && (index < currentIndex || status === "completed");
             const current = index === currentIndex && status !== "completed";
-            const Icon = complete ? CheckCircle2 : current ? Loader2 : Circle;
+            const Icon = unsuccessful ? AlertTriangle : complete ? CheckCircle2 : current ? Loader2 : Circle;
 
             return (
               <li className="flex gap-3" key={step}>
@@ -40,7 +43,7 @@ export function JobTimeline({ status }: { status: JobStatus }) {
                     "mt-0.5 h-5 w-5 shrink-0",
                     complete && "text-emerald-700",
                     current && "animate-spin text-teal-700",
-                    !complete && !current && "text-slate-300"
+                    unsuccessful ? "text-amber-700" : !complete && !current && "text-slate-300"
                   )}
                 />
                 <div>
@@ -50,7 +53,7 @@ export function JobTimeline({ status }: { status: JobStatus }) {
                       complete || current ? "text-slate-900" : "text-slate-500"
                     )}
                   >
-                    {d.job.statusLabels[step]}
+                    {unsuccessful ? realignText[locale][refinementStatus === "skipped" ? "skipped" : "failed"] : d.job.statusLabels[step]}
                   </p>
                 </div>
               </li>

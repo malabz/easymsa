@@ -1,3 +1,4 @@
+import type { Locale } from "../i18n/dictionary";
 import { apiUrl, parseApiError } from "./client";
 import { createJobAccess, saveJobAccess } from "./tokens";
 import type {
@@ -18,6 +19,10 @@ export type CreateJobResponse = {
 export function toFormData(request: CreateJobRequest) {
   const formData = new FormData();
   formData.set("job_name", request.jobName);
+  if (request.realignEnabled) {
+    formData.set("realign_enabled", "true");
+    formData.set("realign_pattern", String(request.realignPattern ?? 1));
+  }
   formData.set("algorithm", request.algorithm ?? "auto");
   formData.set("language", request.language);
   formData.set("preprocess_mode", request.preprocessMode ?? "audit");
@@ -86,4 +91,18 @@ export async function getJobStatus(
   }
 
   return response.json();
+}
+
+export async function createRealignmentJob(file: File, jobName: string, pattern: number, language: Locale, email: string) {
+  const body = new FormData();
+  body.set("input_file", file);
+  body.set("job_name", jobName.trim());
+  body.set("realign_pattern", String(pattern));
+  body.set("language", language);
+  if (email.trim()) body.set("email", email.trim());
+  const response = await fetch(apiUrl("/realign/jobs"), { method: "POST", body });
+  if (!response.ok) throw await parseApiError(response, "Unable to submit realignment.");
+  const payload = await response.json() as CreateJobResponse;
+  if (payload.token) saveJobAccess(createJobAccess({jobId: payload.jobId, token: payload.token, statusUrl: payload.statusUrl, createdAt: payload.createdAt}));
+  return payload;
 }

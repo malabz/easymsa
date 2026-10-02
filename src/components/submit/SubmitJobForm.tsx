@@ -1,9 +1,10 @@
+import { RealignmentOptions } from "./RealignmentOptions";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDown, Loader2, SlidersHorizontal } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { z } from "zod";
+import { taskMetadataSchema } from "../../lib/submit/taskMetadata";
 import { createJob } from "../../lib/api/jobs";
 import { jobRoute } from "../../lib/api/tokens";
 import { useLanguage } from "../../lib/i18n/useLanguage";
@@ -35,13 +36,12 @@ type FormValues = {
   email: string;
 };
 
-const PUBLIC_JOB_NAME_MAX_LENGTH = 64;
-const PUBLIC_JOB_NAME_PATTERN = /^[\p{L}\p{N}_ .()（）-]+$/u;
-
 export function SubmitJobForm() {
   const { dictionary: d, locale } = useLanguage();
   const navigate = useNavigate();
   const [inputMethod, setInputMethod] = useState<InputMethod>("paste");
+  const [realignEnabled, setRealignEnabled] = useState(false);
+  const [realignPattern, setRealignPattern] = useState<1 | 2>(1);
   const [algorithm, setAlgorithm] = useState<AlignmentAlgorithm>("auto");
   const [algorithmParameterDraft, setAlgorithmParameterDraft] =
     useState<AlgorithmParameterDraft>({ ...DEFAULT_ALGORITHM_PARAMETER_DRAFT });
@@ -54,31 +54,10 @@ export function SubmitJobForm() {
   const [file, setFile] = useState<File | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const submissionInFlight = useRef(false);
   const serviceHealth = useServiceHealth();
 
-  const schema = useMemo(
-    () =>
-      z.object({
-        jobName: z
-          .string()
-          .trim()
-          .min(1, d.submit.errors.jobName)
-          .max(PUBLIC_JOB_NAME_MAX_LENGTH, d.submit.errors.jobNameLength)
-          .refine((value) => !value.includes(".."), d.submit.errors.jobNameUnsafe)
-          .refine(
-            (value) => PUBLIC_JOB_NAME_PATTERN.test(value),
-            d.submit.errors.jobNameUnsafe
-          ),
-        email: z
-          .string()
-          .trim()
-          .refine(
-            (value) => !value || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
-            d.submit.errors.email
-          )
-      }),
-    [d]
-  );
+  const schema = useMemo(() => taskMetadataSchema(d.submit.errors), [d]);
 
   const {
     register,
@@ -103,7 +82,7 @@ export function SubmitJobForm() {
     serviceHealth.isPending ||
     serviceHealth.isError ||
     serviceHealth.data?.acceptingJobs === false ||
-    selectedAlgorithmBlocked;
+    selectedAlgorithmBlocked || (realignEnabled && serviceHealth.data?.realignment?.enabled === true && !serviceHealth.data.realignment.available);
   const maxThreadPerJob = serviceHealth.data?.maxThreadPerJob ?? null;
 
   function handleAlgorithmParameterChange(value: AlgorithmParameterDraft) {
@@ -118,10 +97,11 @@ export function SubmitJobForm() {
   }
 
   async function onSubmit(values: FormValues) {
+    if (submissionInFlight.current || submissionBlocked) return;
     setFormError(null);
 
     const fastaValidation = validateFasta(pastedSequence);
-    const fileValidation = file ? validateInputFile(file) : null;
+    const fileValidation = file ? validateInputFile(file, "alignment", locale) : null;
 
     if (inputMethod === "paste" && !fastaValidation.valid) {
       setFormError(d.submit.errors.paste);
@@ -144,10 +124,13 @@ export function SubmitJobForm() {
       return;
     }
 
+    submissionInFlight.current = true;
     try {
       setSubmitting(true);
       const response = await createJob({
         jobName: values.jobName.trim(),
+        realignEnabled: realignEnabled && serviceHealth.data?.realignment?.enabled,
+        realignPattern,
         inputMethod,
         pastedSequence: inputMethod === "paste" ? pastedSequence : undefined,
         file: inputMethod === "upload" ? file ?? undefined : undefined,
@@ -171,6 +154,7 @@ export function SubmitJobForm() {
           : d.submit.errors.submitFailed
       );
     } finally {
+      submissionInFlight.current = false;
       setSubmitting(false);
     }
   }
@@ -322,8 +306,10 @@ export function SubmitJobForm() {
           id="input-panel-upload"
           role="tabpanel"
         >
-          <FileUploadCard file={file} onChange={setFile} />
+          <FileUploadCard file={file} disabled={submitting} onChange={next => { setFile(next); setFormError(null); }} />
         </div>
+
+        {serviceHealth.data?.realignment?.enabled && <RealignmentOptions limits={serviceHealth.data.realignment} enabled={realignEnabled} onEnabled={setRealignEnabled} pattern={realignPattern} onPattern={setRealignPattern} disabled={submitting} unavailable={!serviceHealth.data.realignment.available} />}
 
         {formError ? (
           <div className="rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800" role="alert">

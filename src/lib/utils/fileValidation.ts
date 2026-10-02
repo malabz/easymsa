@@ -48,23 +48,17 @@ export const ALLOWED_INPUT_EXTENSIONS = [
   ".tbz2"
 ] as const;
 
-export function validateInputFile(file: File): FileValidationResult {
+export const REALIGN_INPUT_EXTENSIONS = [".fa", ".fas", ".fasta", ".fna", ".aln"].flatMap(extension => [extension, `${extension}.gz`]);
+
+export function validateInputFile(file: File, variant: "alignment" | "realignment" = "alignment", locale: "zh" | "en" = "en"): FileValidationResult {
   const errors: string[] = [];
-  const name = file.name.toLowerCase();
-  const hasAllowedExtension = ALLOWED_INPUT_EXTENSIONS.some((extension) =>
-    name.endsWith(extension)
-  );
-
-  if (!hasAllowedExtension) {
-    errors.push("Unsupported file type.");
+  const allowed = variant === "realignment" ? REALIGN_INPUT_EXTENSIONS : ALLOWED_INPUT_EXTENSIONS;
+  if (!allowed.some(extension => file.name.toLowerCase().endsWith(extension))) {
+    errors.push(locale === "zh" ? "不支持此文件格式。" : "Unsupported file type.");
   }
-
+  if (file.size === 0) errors.push(locale === "zh" ? "文件为空，请重新选择。" : "The file is empty. Choose another file.");
   if (file.size > MAX_INPUT_FILE_SIZE_BYTES) {
-    errors.push("File exceeds the 100 MB size limit.");
+    errors.push(locale === "zh" ? "文件超过 100 MiB 大小限制。" : "File exceeds the 100 MiB size limit.");
   }
-
-  return {
-    valid: errors.length === 0,
-    errors
-  };
+  return { valid: errors.length === 0, errors };
 }

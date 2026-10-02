@@ -20,6 +20,8 @@ export type AlgorithmParameters = {
 
 export type CreateJobRequest = {
   jobName: string;
+  realignEnabled?: boolean;
+  realignPattern?: 1 | 2;
   inputMethod: InputMethod;
   pastedSequence?: string;
   file?: File;
@@ -35,6 +37,7 @@ export type JobStatus =
   | "queued"
   | "preprocessing"
   | "aligning"
+  | "realigning"
   | "packaging"
   | "completed"
   | "failed";
@@ -82,7 +85,20 @@ export type AlgorithmStatus = {
   resolvedName?: string | null;
 };
 
+export type RealignmentStatus = {
+  status: "queued" | "running" | "completed" | "failed" | "skipped";
+  pattern?: number;
+  version?: string;
+  durationSeconds?: number | null;
+  initialAvailable?: boolean;
+  refinedAvailable?: boolean;
+  failure?: ApiFailure | null;
+};
+export type ResultStage = "final" | "initial" | "refined";
+
 export type JobDetail = {
+  jobKind?: "alignment" | "realignment";
+  realignment?: RealignmentStatus | null;
   jobId: string;
   jobName: string | null;
   status: JobStatus;

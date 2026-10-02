@@ -146,3 +146,12 @@ describe("alignment preview adapter", () => {
     })).rejects.toBeInstanceOf(ServerAlignmentPayloadError);
   });
 });
+
+describe('result stage downloads',()=>{
+ it('preserves old defaults and selects explicit stages',async()=>{
+  const {getDownloadFiles}=await import('./results');
+  expect(getDownloadFiles('job','secret')[1].href).not.toContain('stage=');
+  expect(getDownloadFiles('job','secret','initial')[1].href).toContain('stage=initial');
+  expect(getDownloadFiles('job','secret','refined')[1].href).toContain('stage=refined');
+ });
+});

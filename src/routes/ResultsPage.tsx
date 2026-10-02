@@ -1,3 +1,7 @@
+import type { ResultStage } from "../lib/types/job";
+import { useJobStatus } from "../lib/query/useJobStatus";
+import { RealignmentNotice } from "../components/job/RealignmentNotice";
+import { realignText } from "../lib/i18n/realignment";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { RefreshCw } from "lucide-react";
@@ -28,16 +32,20 @@ const MSAViewer = lazy(() =>
 export function ResultsPage() {
   const { jobId: routeJobId } = useParams<{ jobId: string }>();
   const [searchParams] = useSearchParams();
-  const { dictionary: d } = useLanguage();
+  const { dictionary: d, locale } = useLanguage();
+  const t = realignText[locale];
+  const [stage, setStage] = useState<ResultStage>("final");
   const [activeTab, setActiveTab] = useState<ResultTab>("overview");
   const [access, setAccess] = useState<JobAccess | null>(null);
   const queryToken = searchParams.get("token");
   const jobId = routeJobId ? decodeURIComponent(routeJobId) : null;
-  const summaryQuery = useResultSummary(jobId ?? undefined, access?.token);
-  const alignmentQuery = useAlignmentResult(jobId ?? undefined, access?.token);
+  const jobQuery = useJobStatus(jobId ?? undefined, access?.token);
+  const refinement = jobQuery.data?.realignment;
+  const summaryQuery = useResultSummary(jobId ?? undefined, access?.token, stage);
+  const alignmentQuery = useAlignmentResult(jobId ?? undefined, access?.token, stage);
   const files = useMemo(
-    () => (jobId && access ? getDownloadFiles(jobId, access.token) : []),
-    [access?.token, jobId]
+    () => (jobId && access ? getDownloadFiles(jobId, access.token, stage) : []),
+    [access?.token, jobId, stage]
   );
 
   useEffect(() => {
@@ -83,6 +91,13 @@ export function ResultsPage() {
         <ResultTabs value={activeTab} onChange={setActiveTab} />
       </div>
 
+      {jobQuery.data && <RealignmentNotice job={jobQuery.data} token={access?.token ?? ""} />}
+      {refinement?.initialAvailable && <label className="flex flex-wrap items-center gap-3 text-sm font-medium">{t.resultVersion}
+        <select aria-label={t.resultVersion} className="rounded border p-2" value={stage} onChange={event => setStage(event.target.value as ResultStage)}>
+          <option value="final">{t.final}</option><option value="initial">{t.initial}</option>
+          {refinement.refinedAvailable && <option value="refined">{t.refined}</option>}
+        </select>
+      </label>}
       {error ? (
         <div className="space-y-4">
           <ErrorState message={error} />
