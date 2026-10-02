@@ -61,9 +61,19 @@ test("reference, scope, QC annotation, restoration, motif, minimap, and bundle e
   await expect(page.locator("textarea").first()).toHaveValue("review interval");
   await page.getByRole("button", { name: "Close QC" }).click();
 
-  await page.waitForFunction(() =>
-    window.localStorage.getItem("easymsa.viewer.workspaces.v1")?.includes("review interval") === true
-  );
+  // Annotation creation may be saved before closing QC. Wait for the latest
+  // debounced snapshot so restoring an open panel cannot make the next click close it.
+  await page.waitForFunction(() => {
+    const store = JSON.parse(window.localStorage.getItem("easymsa.viewer.workspaces.v1") ?? "null") as {
+      entries?: Record<string, {
+        snapshot: { view: { qcPanelOpen: boolean }; annotations: Array<{ text: string }> };
+      }>;
+    } | null;
+    return Object.values(store?.entries ?? {}).some(({ snapshot }) =>
+      snapshot.view.qcPanelOpen === false &&
+      snapshot.annotations.some((annotation) => annotation.text === "review interval")
+    );
+  });
   await page.reload();
   await page.getByLabel("Paste FASTA").fill(fasta);
   await page.getByRole("button", { name: "View pasted FASTA" }).click();
