@@ -1,3 +1,4 @@
+import { jobError } from "../../lib/i18n/jobErrors";
 import { RealignmentNotice } from "./RealignmentNotice";
 import { AlertTriangle, ArrowRight, CheckCircle2, Clock3, Mail } from "lucide-react";
 import { ButtonLink } from "../common/Button";
@@ -71,7 +72,7 @@ function CountList({
 }
 
 export function JobStatusCard({ job, token }: { job: JobDetail; token: string }) {
-  const { dictionary: d } = useLanguage();
+  const { dictionary: d, locale } = useLanguage();
   const preprocess = job.preprocess;
   const preprocessText = d.job.preprocessSummary;
   const issueCounts = mergeCounts(preprocess.qcCounts, preprocess.warningCounts);
@@ -127,7 +128,7 @@ export function JobStatusCard({ job, token }: { job: JobDetail; token: string })
 
         {job.failure || job.preprocess.errorMessage ? (
           <div className="rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
-            {job.failure?.message ?? job.preprocess.errorMessage}
+            {jobError(locale, job.failure?.code ?? job.preprocess.errorCode ?? undefined, job.failure?.message ?? job.preprocess.errorMessage ?? "")}
           </div>
         ) : null}
 

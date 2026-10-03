@@ -89,7 +89,13 @@ def serve():
     try:
         free_port(5173)
         free_port(18000)
-        node = shutil.which('node')
+        configured_node = os.environ.get('EASYMSA_NODE_BIN')
+        project_node = ROOT.parent / '.runtime' / 'node-v24.21.0-linux-x64' / 'bin' / 'node'
+        node = configured_node or (str(project_node) if project_node.is_file() else shutil.which('node'))
+        if node:
+            version = subprocess.check_output([node, '--version'], text=True).strip()
+            if not version.startswith('v24.'):
+                raise RuntimeError('EasyMSA requires Node.js 24 LTS. Set EASYMSA_NODE_BIN to its node executable.')
         if not node or not (ROOT / 'node_modules/vite/bin/vite.js').exists():
             raise RuntimeError('Node or installed frontend dependencies missing.')
         # Keep sensitive material on the Linux filesystem with restrictive permissions.

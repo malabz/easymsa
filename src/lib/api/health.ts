@@ -17,6 +17,8 @@ export type ToolHealthResponse = {
 };
 
 export type QueueHealthResponse = {
+  observedWorkers?: Record<string, number>;
+  recovery?: { enabled: boolean; lastSweepAt?: string; recovered?: number; errors?: number; lastErrorCode?: string | null };
   realignmentQueueLength?: number;
   queueName?: string;
   queueLength?: number;

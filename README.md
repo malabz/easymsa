@@ -117,3 +117,7 @@ RESEND_FROM_EMAIL="EasyMSA <noreply@mail.easymsa.cn>"
 
 `onboarding@resend.dev` is only suitable for Resend test mail and may deliver
 only to the Resend account owner's email.
+
+## Project runtime
+
+Use Node.js 24.21.0 (`.nvmrc`) for development and CI. Install the pinned dependencies with `npm ci`. The Windows/WSL launcher accepts `EASYMSA_NODE_BIN` pointing to a Node 24 executable and also detects the project-local runtime under `../.runtime/node-v24.21.0-linux-x64/bin/node`; it does not change the runtime of other projects. See [dependency audit](docs/dependency-audit-20261003.md) for the security update and retained build-time advisory.
