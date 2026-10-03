@@ -1,3 +1,4 @@
+import { ExampleInputLoader } from "../components/submit/ExampleInputLoader";
 import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -30,7 +31,7 @@ export function RealignPage() {
   const [error, setError] = useState<{code?: string; message: string} | null>(null);
   const inFlight = useRef(false);
   const schema = useMemo(() => taskMetadataSchema(d.submit.errors), [d]);
-  const { register, handleSubmit, formState: { errors } } = useForm<Values>({
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<Values>({
     resolver: zodResolver(schema), defaultValues: { jobName: "", email: "" }
   });
   const refinement = health.data?.realignment;
@@ -74,6 +75,7 @@ export function RealignPage() {
             </div>
             {!health.isPending && !ready && <Button variant="outline" size="sm" aria-label={d.common.retry} onClick={() => health.refetch()}><RefreshCw className="h-4 w-4" /></Button>}
           </div>
+          <ExampleInputLoader kind="realignment" disabled={busy} onLoad={next=>{setFile(next);setPattern(1);setError(null);setValue("jobName","Synthetic DNA refinement");}} />
           {refinement?.enabled && <>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">

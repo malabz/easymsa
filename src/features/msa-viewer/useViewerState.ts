@@ -41,7 +41,7 @@ export type ViewerStateOptions = {
   sourceFingerprint?: string;
   alignmentLength?: number;
   legacyJobId?: string;
-  sourceType?: "server-job" | "local-file" | "pasted";
+  sourceType?: "server-job" | "local-file" | "pasted" | "public-example";
   /** null explicitly disables persistence; omitted uses browser localStorage. */
   storage?: Storage | null;
 };
@@ -50,7 +50,7 @@ type ResolvedViewerSource = WorkspaceSourceIdentity & {
   signature: string;
   rowKeys: string[];
   rows: Array<{ id: string; rowKey: string }>;
-  sourceType: "server-job" | "local-file" | "pasted";
+  sourceType: "server-job" | "local-file" | "pasted" | "public-example";
   legacyJobId?: string;
   storage: Storage | null;
   persistenceEnabled: boolean;
@@ -105,6 +105,7 @@ function defaultViewerState(
 }
 
 function sourceKindFromDescriptor(descriptor?: AlignmentDescriptor) {
+  if (descriptor?.sourceKind === "example") return "public-example" as const;
   if (descriptor?.sourceKind === "local-file") {
     return "local-file" as const;
   }
@@ -146,7 +147,7 @@ export function resolveViewerSource(
   const descriptor = input.descriptor;
   const fingerprint = normalizeFingerprint(
     input.sourceFingerprint ??
-      descriptor?.alignmentSha256 ??
+      (descriptor?.sourceKind === "example" ? descriptor.sourceKey : descriptor?.alignmentSha256) ??
       descriptor?.sourceKey ??
       canonicalAlignmentSourceKey(input.rows)
   );

@@ -4,7 +4,7 @@ import { useLanguage } from "../../lib/i18n/useLanguage";
 
 export function PageMetadata() {
   const location = useLocation();
-  const { dictionary } = useLanguage();
+  const { dictionary, locale } = useLanguage();
 
   useEffect(() => {
     const labels: Array<[RegExp, string]> = [
@@ -15,6 +15,10 @@ export function PageMetadata() {
       [/^\/job\//, dictionary.job.title],
       [/^\/results\//, dictionary.common.viewResults],
       [/^\/docs/, dictionary.nav.docs],
+      [/^\/examples/, dictionary.nav.examples],
+      [/^\/license/, locale === "zh" ? "许可" : "License"],
+      [/^\/privacy/, locale === "zh" ? "隐私与本地存储" : "Privacy and storage"],
+      [/^\/realign/, dictionary.nav.realign],
       [/^\/about/, dictionary.nav.about]
     ];
     const label = labels.find(([pattern]) => pattern.test(location.pathname))?.[1];
@@ -28,7 +32,7 @@ export function PageMetadata() {
     if (description) {
       description.content = dictionary.home.subtitle;
     }
-  }, [dictionary, location.pathname]);
+  }, [dictionary, locale, location.pathname]);
 
   return null;
 }

@@ -15,6 +15,7 @@ export type DocsSectionId = (typeof DOCS_SECTION_IDS)[number];
 
 export type DocsBlock =
   | { type: "paragraph"; text: string }
+  | { type: "links"; items: Array<{label:string;to:string}> }
   | { type: "list"; items: string[] }
   | { type: "steps"; items: Array<{ title: string; body: string }> }
   | { type: "code"; label: string; language: string; code: string }
@@ -57,19 +58,84 @@ const zh: DocsSection[] = [
     summary: "从 FASTA 输入到查看和下载多序列比对结果。",
     keywords: ["开始", "流程", "提交", "结果"],
     articles: [
+{
+      "id": "linked-workflows",
+      "title": "三条完整使用流程",
+      "summary": "选择适合你的流程，从示例开始体验。",
+      "keywords": [
+            "ReAlign-N",
+            "MiniPOA",
+            "example",
+            "refinement",
+            "重比对",
+            "示例"
+      ],
+      "blocks": [
+            {
+                  "type": "steps",
+                  "items": [
+                        {
+                              "title": "普通比对",
+                              "body": "上传 FASTA 或载入示例，选择 Auto 或指定方法后提交。"
+                        },
+                        {
+                              "title": "比对后重比对",
+                              "body": "在普通提交页最后勾选 ReAlign-N；完成后切换初始、重比对与最终结果。优化失败、超限或跳过时保留初始结果，并显示原因。"
+                        },
+                        {
+                              "title": "独立重比对",
+                              "body": "上传等长的已比对 FASTA 或 FASTA.gz，默认先局部后全局。完成后可查看和下载各阶段结果。"
+                        }
+                  ]
+            },
+            {
+                  "type": "links",
+                  "items": [
+                        {
+                              "label": "普通示例输入与结果",
+                              "to": "/examples/alignment-small"
+                        },
+                        {
+                              "label": "重比对输入与结果",
+                              "to": "/examples/realignment-small"
+                        },
+                        {
+                              "label": "方法与引用",
+                              "to": "/about"
+                        },
+                        {
+                              "label": "隐私与记录管理",
+                              "to": "/privacy"
+                        },
+                        {
+                              "label": "许可与免费使用",
+                              "to": "/license"
+                        }
+                  ]
+            },
+            {
+                  "type": "paragraph",
+                  "text": "普通上传限制为 100 MiB；重比对还需同时满足 2,000 条序列、30,000 列和 1,000,000 字符，实际以服务返回值为准。独立重比对仅接受 ACGT- 或 ACGU-，拒绝混用 T/U 和简并字符。浏览器预览另有限制，完整结果以下载文件为准。"
+            },
+            {
+                  "type": "paragraph",
+                  "text": "结合保守性、gap 分布和区域统计，检查感兴趣的比对区域。结果文件保留 7 天，建议及时下载。请妥善保存恢复链接。"
+            }
+      ]
+},
       {
         id: "workflow",
         title: "四步完成一次比对",
-        summary: "准备输入、配置任务、等待运行并分析结果。",
+        summary: "准备输入、设置参数、提交任务、查看与下载。",
         keywords: ["工作流", "新手", "任务"],
         blocks: [
           {
             type: "steps",
             items: [
               { title: "准备 FASTA", body: "准备至少两条 DNA 或 RNA 序列，每条记录都包含以 > 开头的 header。" },
-              { title: "提交任务", body: "粘贴序列或上传文件；需要时选择算法和预处理模式。" },
-              { title: "保存任务凭证", body: "保存任务 ID、访问 token、恢复链接或访问 JSON，以便稍后继续查看。" },
-              { title: "解读与导出", body: "查看科研概览和 MSA 矩阵，并下载 FASTA、SVG、PNG 或服务端结果包。" }
+              { title: "设置参数", body: "选择 Auto 或指定方法，按需调整预处理和重比对设置。" },
+              { title: "提交任务", body: "提交后保存恢复链接或任务凭证，方便稍后查看进度与结果。" },
+              { title: "查看与下载", body: "查看科研概览和 MSA 矩阵，并下载 FASTA、SVG、PNG 或服务端结果包。" }
             ]
           },
           { type: "callout", tone: "tip", title: "只想查看已有 FASTA？", body: "使用独立 MSA 查看器可在浏览器本地打开文件。它不会把未比对序列自动执行比对。" }
@@ -82,7 +148,7 @@ const zh: DocsSection[] = [
         keywords: ["独立查看器", "恢复", "入口"],
         blocks: [
           { type: "table", headers: ["需求", "入口", "说明"], rows: [
-            ["执行新的 MSA", "提交任务", "由后端运行预处理与 minipoa 或 MAFFT。"],
+            ["执行新的 MSA", "提交任务", "运行预处理与所选比对方法。"],
             ["浏览本地 FASTA", "查看 MSA", "仅在本地解析和显示，不执行新的比对。"],
             ["继续已有任务", "查询任务", "使用保存的任务 ID、token 或访问 JSON。"]
           ] }
@@ -147,7 +213,7 @@ const zh: DocsSection[] = [
             "也可以手动选择 minipoa、MAFFT、HAlign4、FMAlign2；服务不可用的算法会在页面中禁用。"
           ] },
           { type: "table", headers: ["算法", "建议用途", "适用数据"], rows: [
-            ["Auto（自适应）", "后端自动选择；在 off 观察阶段当前通常选择 minipoa。", "DNA/RNA；约 50–10,000 条序列、长度中位数约 495–10,000。"],
+            ["Auto（自适应）", "后端根据输入特征选择方法，结果页显示实际算法。", "DNA/RNA；约 50–10,000 条序列、长度中位数约 495–10,000。"],
             ["minipoa", "EasyMSA 快速工作流的默认实现。", "中等规模、序列相似度较高的数据集。"],
             ["MAFFT", "需要明确使用 MAFFT 或与既有 MAFFT 流程保持一致时。", "数百至数千条中等长度序列的通用场景。"],
             ["HAlign4", "面向超大规模 DNA/RNA 的原生高速比对，内存占用较高。", "超大规模且整体相似的 DNA/RNA。"],
@@ -361,11 +427,11 @@ const zh: DocsSection[] = [
       },
       {
         id: "interpretation-caveats",
-        title: "解读边界",
-        summary: "统计用于探索与质量检查，不自动构成生物学结论。",
+        title: "结果解读建议",
+        summary: "结合统计轨迹、样本来源和分析目的检查感兴趣的区域。",
         keywords: ["注意", "抽样", "蛋白", "结论", "参考"],
         blocks: [
-          { type: "callout", tone: "warning", title: "结合实验设计解释", body: "高 entropy、gap 或 mismatch 可能来自真实变异、测序质量、方向问题、输入截断或比对错误。应结合样本来源和分析目的判断。" },
+          { type: "callout", tone: "tip", title: "检查感兴趣的区域", body: "从 entropy、gap 或 mismatch 较高的区域开始，结合样本来源检查序列差异、覆盖和方向。" },
           { type: "list", items: [
             "R/Y/S/W/K/M/B/D/H/V/N 计入 ambiguity，但不进入 conservation、entropy、GC、Ti/Tv 或确定性 consensus 的分母；ambiguity 本身不会制造变异列。",
             "蛋白质、非法字符、无法可靠判断的字母表和不等长 FASTA 不提供 GC、IUPAC、Ti/Tv、conservation 或 consensus。",
@@ -399,17 +465,82 @@ const en: DocsSection[] = [
     summary: "Go from FASTA input to inspecting and downloading an alignment.",
     keywords: ["start", "workflow", "submit", "results"],
     articles: [
+{
+      "id": "linked-workflows",
+      "title": "Three complete workflows",
+      "summary": "Choose a workflow and try an example.",
+      "keywords": [
+            "ReAlign-N",
+            "MiniPOA",
+            "example",
+            "refinement",
+            "重比对",
+            "示例"
+      ],
+      "blocks": [
+            {
+                  "type": "steps",
+                  "items": [
+                        {
+                              "title": "Ordinary alignment",
+                              "body": "Upload FASTA or load an example, choose Auto or a method, and submit."
+                        },
+                        {
+                              "title": "Alignment followed by refinement",
+                              "body": "Enable ReAlign-N at the end of the ordinary form. Switch between initial, refined and final results. Failed, oversized or skipped refinement retains the initial result with an explanation."
+                        },
+                        {
+                              "title": "Standalone refinement",
+                              "body": "Upload equal-length aligned FASTA or FASTA.gz. The default order is local then global. View and download each stage after completion."
+                        }
+                  ]
+            },
+            {
+                  "type": "links",
+                  "items": [
+                        {
+                              "label": "Alignment input and interactive result",
+                              "to": "/examples/alignment-small"
+                        },
+                        {
+                              "label": "Refinement input and interactive result",
+                              "to": "/examples/realignment-small"
+                        },
+                        {
+                              "label": "Methods and citations",
+                              "to": "/about"
+                        },
+                        {
+                              "label": "Privacy and storage controls",
+                              "to": "/privacy"
+                        },
+                        {
+                              "label": "Licensing and free access",
+                              "to": "/license"
+                        }
+                  ]
+            },
+            {
+                  "type": "paragraph",
+                  "text": "Ordinary uploads are limited to 100 MiB. Refinement must also satisfy 2,000 sequences, 30,000 columns and 1,000,000 cells together; live service values take precedence. Standalone refinement accepts ACGT- or ACGU- only, rejecting mixed T/U and ambiguous bases. Browser previews have separate limits; use downloads for complete results."
+            },
+            {
+                  "type": "paragraph",
+                  "text": "Use conservation, gap distribution and regional statistics to inspect regions of interest. Result files are retained for 7 days; download them promptly and keep your recovery link private."
+            }
+      ]
+},
       {
         id: "workflow",
         title: "Complete an alignment in four steps",
-        summary: "Prepare input, configure the task, wait for processing, and analyze results.",
+        summary: "Prepare input, configure settings, submit, and view or download results.",
         keywords: ["workflow", "beginner", "task"],
         blocks: [
           { type: "steps", items: [
             { title: "Prepare FASTA", body: "Prepare at least two DNA or RNA sequences, each with a header beginning with >." },
-            { title: "Submit a task", body: "Paste sequences or upload a file, then choose an algorithm and preprocessing mode if needed." },
-            { title: "Save access credentials", body: "Keep the task ID, access token, restore link, or access JSON so you can return later." },
-            { title: "Interpret and export", body: "Inspect the scientific overview and MSA matrix, then export FASTA, SVG, PNG, or the server result bundle." }
+            { title: "Configure settings", body: "Choose Auto or a method, then adjust preprocessing and refinement as needed." },
+            { title: "Submit a job", body: "Submit and save your recovery link or access credentials to return to progress and results later." },
+            { title: "View and download", body: "Inspect the scientific overview and MSA matrix, then export FASTA, SVG, PNG, or the server result bundle." }
           ] },
           { type: "callout", tone: "tip", title: "Only need to inspect an existing FASTA?", body: "The standalone MSA viewer opens a file locally in your browser. It does not align previously unaligned sequences." }
         ]
@@ -421,7 +552,7 @@ const en: DocsSection[] = [
         keywords: ["standalone viewer", "restore", "entry"],
         blocks: [
           { type: "table", headers: ["Goal", "Entry point", "What it does"], rows: [
-            ["Run a new MSA", "Submit", "Runs preprocessing and minipoa or MAFFT on the backend."],
+            ["Run a new MSA", "Submit", "Runs preprocessing and the selected alignment method."],
             ["Inspect local FASTA", "MSA Viewer", "Parses and displays data locally without running a new alignment."],
             ["Continue an existing task", "Task Lookup", "Uses a saved task ID, token, or access JSON."]
           ] }
@@ -486,7 +617,7 @@ const en: DocsSection[] = [
             "minipoa, MAFFT, HAlign4, or FMAlign2 can also be selected explicitly; unavailable algorithms are disabled in the page."
           ] },
           { type: "table", headers: ["Algorithm", "Suggested use", "Data fit"], rows: [
-            ["Auto (adaptive)", "Backend-driven selection; during the off observation phase it currently usually selects minipoa.", "DNA/RNA; roughly 50–10,000 sequences with median length about 495–10,000."],
+            ["Auto (adaptive)", "Backend selection from input features; the result records the actual method.", "DNA/RNA; roughly 50–10,000 sequences with median length about 495–10,000."],
             ["minipoa", "The default implementation for EasyMSA's fast workflow.", "Medium-sized datasets with closely related sequences."],
             ["MAFFT", "Use when MAFFT is explicitly required or consistency with an existing MAFFT workflow matters.", "General-purpose use with hundreds to thousands of medium-length sequences."],
             ["HAlign4", "Native high-speed alignment for ultra-large DNA/RNA datasets; higher memory usage.", "Ultra-large, globally similar DNA/RNA sets."],
@@ -700,11 +831,11 @@ const en: DocsSection[] = [
       },
       {
         id: "interpretation-caveats",
-        title: "Interpretation boundaries",
-        summary: "Statistics support exploration and quality control; they do not create biological conclusions automatically.",
+        title: "Interpreting results",
+        summary: "Use statistical tracks, sample provenance and analysis goals to inspect regions of interest.",
         keywords: ["caution", "sampling", "protein", "conclusion", "reference"],
         blocks: [
-          { type: "callout", tone: "warning", title: "Interpret in the context of study design", body: "High entropy, gaps, or mismatches may represent real variation, sequencing quality, orientation problems, truncated input, or alignment error. Evaluate them against sample provenance and analysis goals." },
+          { type: "callout", tone: "tip", title: "Inspect regions of interest", body: "Start with regions of high entropy, gaps or mismatches, then use sample provenance to examine sequence differences, coverage and orientation." },
           { type: "list", items: [
             "R/Y/S/W/K/M/B/D/H/V/N count as ambiguity but are excluded from conservation, entropy, GC, Ti/Tv, and determinate-consensus denominators; ambiguity alone does not create a variable column.",
             "Protein, illegal-symbol, uncertain-alphabet, and unequal-length FASTA inputs do not show GC, IUPAC, Ti/Tv, conservation, or consensus metrics.",
@@ -734,6 +865,7 @@ const en: DocsSection[] = [
 export const docsContent: Record<Locale, DocsSection[]> = { zh, en };
 
 function blockText(block: DocsBlock): string {
+  if (block.type === "links") return block.items.map(item=>item.label).join(" ");
   if (block.type === "paragraph") return block.text;
   if (block.type === "list") return block.items.join(" ");
   if (block.type === "steps") return block.items.map((item) => `${item.title} ${item.body}`).join(" ");

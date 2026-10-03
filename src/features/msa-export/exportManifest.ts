@@ -52,7 +52,7 @@ export type MsaExportManifestV1 = {
   };
   source: {
     label: string;
-    kind: "job" | "local-file" | "pasted" | "unknown";
+    kind: "job" | "local-file" | "pasted" | "example" | "unknown";
     jobId: string | null;
     sequenceCount: number;
     alignmentLength: number;
@@ -197,7 +197,7 @@ function safeSha256(value: string | null | undefined) {
 }
 
 function safeSourceKind(value: string | null | undefined) {
-  return value === "job" || value === "local-file" || value === "pasted"
+  return value === "job" || value === "local-file" || value === "pasted" || value === "example"
     ? value
     : "unknown";
 }

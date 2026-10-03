@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import {
   Check,
   ChevronDown,
@@ -71,6 +72,7 @@ function DocsCodeBlock({ block }: { block: Extract<DocsBlock, { type: "code" }> 
 }
 
 function DocsBlockView({ block }: { block: DocsBlock }) {
+  if(block.type === "links") return <div className="flex flex-wrap gap-4">{block.items.map(item=><Link className="text-sm font-medium text-teal-800 underline" key={item.to} to={item.to}>{item.label}</Link>)}</div>;
   if (block.type === "paragraph") {
     return <p className="text-sm leading-7 text-slate-600">{block.text}</p>;
   }

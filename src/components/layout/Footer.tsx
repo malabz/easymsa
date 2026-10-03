@@ -1,13 +1,29 @@
+import { Link } from "react-router-dom";
 import { useLanguage } from "../../lib/i18n/useLanguage";
-
 export function Footer() {
-  const { dictionary: d } = useLanguage();
-
+  const { locale } = useLanguage();
+  const zh = locale === "zh";
   return (
-    <footer className="border-t border-slate-200/80 bg-white/55">
-      <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-6 text-sm text-slate-600 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
-        <p className="font-medium text-slate-700">{d.footer.tagline}</p>
-        <p>{d.footer.note}</p>
+    <footer className="border-t border-slate-200 bg-white/60">
+      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-6 text-sm text-slate-600 lg:flex-row lg:items-center lg:justify-between">
+        <p>
+          {zh
+            ? "所有用途免费 · 无需注册 · EasyMSA 自有代码采用 MIT"
+            : "Free for all uses · No registration · Original EasyMSA code: MIT"}
+        </p>
+        <nav
+          aria-label={zh ? "网站说明" : "Site information"}
+          className="flex flex-wrap gap-4 text-teal-800 underline"
+        >
+          <Link to="/license">{zh ? "许可与第三方声明" : "Licenses"}</Link>
+          <Link to="/privacy">
+            {zh ? "隐私与本地存储" : "Privacy and storage"}
+          </Link>
+          <Link to="/examples">
+            {zh ? "交互式示例" : "Interactive examples"}
+          </Link>
+          <Link to="/docs">{zh ? "帮助" : "Help"}</Link>
+        </nav>
       </div>
     </footer>
   );

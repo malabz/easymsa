@@ -1,3 +1,4 @@
+import { reportStorageFailure } from "../../lib/storage";
 import { z } from "zod";
 
 export const WORKSPACE_SCHEMA = "easymsa-viewer-workspace/v1" as const;
@@ -208,7 +209,7 @@ export function migrateLegacyPreferences(
 export function migrateLegacyReference(
   storage: Storage,
   input: {
-    sourceType: "server-job" | "local-file" | "pasted";
+    sourceType: "server-job" | "local-file" | "pasted" | "public-example";
     legacyJobId?: string;
     rows: Array<{ id: string; rowKey: string }>;
   }
@@ -295,6 +296,7 @@ export function saveWorkspaceSnapshot(
     storage.setItem(WORKSPACE_STORAGE_KEY, JSON.stringify(trimStore(store)));
     return true;
   } catch {
+    reportStorageFailure();
     return false;
   }
 }

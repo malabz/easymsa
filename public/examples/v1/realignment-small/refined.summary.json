@@ -1,0 +1,23 @@
+{
+  "jobId": "example:realignment-small:v1:refined",
+  "algorithm": {
+    "name": "realign_n",
+    "resolvedName": "realign_n"
+  },
+  "summary": {
+    "preprocess": {
+      "mode": "audit",
+      "strictness": "normal"
+    },
+    "alignment": {
+      "sequenceCount": 20,
+      "alignmentLength": 510,
+      "gapPercentage": 1.92
+    },
+    "outputFiles": [
+      "alignment.fasta",
+      "alignment.fasta.gz",
+      "all_results.zip"
+    ]
+  }
+}

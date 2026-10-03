@@ -1,16 +1,14 @@
+import { ResultPanels } from "../components/results/ResultPanels";
 import type { ResultStage } from "../lib/types/job";
 import { useJobStatus } from "../lib/query/useJobStatus";
 import { RealignmentNotice } from "../components/job/RealignmentNotice";
 import { realignText } from "../lib/i18n/realignment";
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { RefreshCw } from "lucide-react";
 import { Button } from "../components/common/Button";
 import { ErrorState } from "../components/common/ErrorState";
-import { LoadingState } from "../components/common/LoadingState";
 import { PageContainer } from "../components/layout/PageContainer";
-import { DownloadPanel } from "../components/results/DownloadPanel";
-import { ResultOverview } from "../components/results/ResultOverview";
 import {
   ResultTabs,
   type ResultTab
@@ -25,9 +23,7 @@ import { useLanguage } from "../lib/i18n/useLanguage";
 import { useAlignmentResult, useResultSummary } from "../lib/query/useJobResults";
 import { createServerViewerContext } from "../features/msa-viewer/viewerContext";
 
-const MSAViewer = lazy(() =>
-  import("../components/results/MSAViewer").then((module) => ({ default: module.MSAViewer }))
-);
+
 
 export function ResultsPage() {
   const { jobId: routeJobId } = useParams<{ jobId: string }>();
@@ -115,58 +111,10 @@ export function ResultsPage() {
         </div>
       ) : null}
 
-      <section
-        aria-labelledby="result-tab-overview"
-        hidden={activeTab !== "overview"}
-        id="result-panel-overview"
-        role="tabpanel"
-      >
-        {activeTab === "overview" && summaryQuery.isPending && !error ? (
-          <LoadingState label={d.results.loading.overview} />
-        ) : null}
-        {activeTab === "overview" && summaryQuery.data ? (
-          <ResultOverview
-            alignment={alignmentQuery.data}
-            alignmentError={
-              alignmentQuery.error instanceof Error
-                ? alignmentQuery.error.message
-                : null
-            }
-            alignmentPending={alignmentQuery.isPending}
-            onOpenAlignment={() => setActiveTab("alignment")}
-            onOpenDownloads={() => setActiveTab("downloads")}
-            summary={summaryQuery.data}
-          />
-        ) : null}
-      </section>
-      <section
-        aria-labelledby="result-tab-alignment"
-        hidden={activeTab !== "alignment"}
-        id="result-panel-alignment"
-        role="tabpanel"
-      >
-        {activeTab === "alignment" && alignmentQuery.isPending && !error ? (
-          <LoadingState label={d.results.loading.alignment} />
-        ) : null}
-        {activeTab === "alignment" && alignmentQuery.data ? (
-          <Suspense fallback={<LoadingState label={d.results.loading.viewer} />}>
-            <MSAViewer
-              alignment={alignmentQuery.data}
-              context={summaryQuery.data
-                ? createServerViewerContext(summaryQuery.data, files)
-                : undefined}
-            />
-          </Suspense>
-        ) : null}
-      </section>
-      <section
-        aria-labelledby="result-tab-downloads"
-        hidden={activeTab !== "downloads"}
-        id="result-panel-downloads"
-        role="tabpanel"
-      >
-        {activeTab === "downloads" && access ? <DownloadPanel files={files} /> : null}
-      </section>
+      <ResultPanels activeTab={activeTab} setActiveTab={setActiveTab} summary={summaryQuery.data}
+        alignment={alignmentQuery.data} summaryPending={summaryQuery.isPending} alignmentPending={alignmentQuery.isPending}
+        alignmentError={alignmentQuery.error instanceof Error ? alignmentQuery.error.message : null} error={error}
+        files={access ? files : []} context={summaryQuery.data ? createServerViewerContext(summaryQuery.data, files) : undefined} />
     </PageContainer>
   );
 }

@@ -1,0 +1,206 @@
+[
+  {
+    "id": "alignment-small",
+    "version": "v1",
+    "kind": "alignment",
+    "stages": {
+      "final": {
+        "sequenceCount": 20,
+        "alignmentLength": 515,
+        "algorithm": {
+          "name": "minipoa",
+          "resolvedName": "minipoa"
+        }
+      }
+    },
+    "files": {
+      "README.txt": {
+        "sha256": "99e9cb24645b5e413ba3a1034157cf3d4c889dd8decaf85b5843ea2fd5421a51",
+        "bytes": 195
+      },
+      "clean.fasta": {
+        "sha256": "a80ea67890b1ffdc392c4c9608cac0dc01f6f54a67ff75537c4559415ae37f39",
+        "bytes": 10384
+      },
+      "final.alignment.json": {
+        "sha256": "1311dd46383e081474f828436afffe30f207aa14823012ab1320e9cbf2717ecf",
+        "bytes": 11642
+      },
+      "final.fasta": {
+        "sha256": "4d024fc7fe4e30bd2c8e2cab8354ee2fd09f2dab1bfdb27bcd372ba5655e5cae",
+        "bytes": 10580
+      },
+      "final.fasta.gz.bin": {
+        "sha256": "0a4f141988d8e8ba5dbf87aa109fcec7c08b948c7eb3c0c2e3f0ffb542b8d6d0",
+        "bytes": 1209
+      },
+      "final.fasta.gz.xz": {
+        "sha256": "a0794679cd32672fd3514d32615545c839e9a5f8cd062a47dee07609130ca670",
+        "bytes": 1272
+      },
+      "final.summary.json": {
+        "sha256": "aefebb613339b10d4236d8947f550e35a9487aad9f51fab6d7f7b77b96ecaaac",
+        "bytes": 439
+      },
+      "final.zip": {
+        "sha256": "7cc7147889bfb21d38f51af3e8c86bdd50d0a8399b90ea6eb733258e2300bf25",
+        "bytes": 6217
+      },
+      "id-map.json": {
+        "sha256": "0efaaf2b1e6fc127783e3934f1650c654643c6d7abc93e0871155aafda19947d",
+        "bytes": 1883
+      },
+      "input.fasta": {
+        "sha256": "890f3518de5e51975df334bc7738cff7122731da8b31f5e8bd1119162e3ae2c5",
+        "bytes": 10664
+      },
+      "input.fasta.gz.bin": {
+        "sha256": "f7870e09f77d7da1c820efdd98fee29fa106efc23f208a42c6b5dc6cf26f7608",
+        "bytes": 1226
+      },
+      "provenance.json": {
+        "sha256": "92b8cd63bde7f90218388dedc2f30a76a4fdf8b543b5e85fbde953684a72be07",
+        "bytes": 861
+      },
+      "LICENSE.txt": {
+        "sha256": "fdf7f0e8e81b428b95c67469902c6e19ae48fd96e226c4912dcdf2b5479b9be1",
+        "bytes": 1077
+      }
+    },
+    "sameInitialAndRefined": null
+  },
+  {
+    "id": "realignment-small",
+    "version": "v1",
+    "kind": "realignment",
+    "stages": {
+      "initial": {
+        "sequenceCount": 20,
+        "alignmentLength": 515,
+        "algorithm": {
+          "name": "minipoa",
+          "resolvedName": "minipoa"
+        }
+      },
+      "refined": {
+        "sequenceCount": 20,
+        "alignmentLength": 510,
+        "algorithm": {
+          "name": "realign_n",
+          "resolvedName": "realign_n"
+        }
+      },
+      "final": {
+        "sequenceCount": 20,
+        "alignmentLength": 510,
+        "algorithm": {
+          "name": "realign_n",
+          "resolvedName": "realign_n"
+        }
+      }
+    },
+    "files": {
+      "README.txt": {
+        "sha256": "99e9cb24645b5e413ba3a1034157cf3d4c889dd8decaf85b5843ea2fd5421a51",
+        "bytes": 195
+      },
+      "clean.fasta": {
+        "sha256": "6b1f71b9fdbdd870512cc63717a9066b317a886445d21c1a502385a9b4320bf2",
+        "bytes": 10264
+      },
+      "final.alignment.json": {
+        "sha256": "f54eda8901e3ca900186b4cef52c0ab6dfc3d3e088fe634ef90810be05138479",
+        "bytes": 11544
+      },
+      "final.fasta": {
+        "sha256": "1886597b40b9205c68a0394e984f5a64ce6be42e3a59ff30c4a0365c97bec7bc",
+        "bytes": 10460
+      },
+      "final.fasta.gz.bin": {
+        "sha256": "e746c188558b507b6c1f60096d7cb649444dab35a3dbea7f086095bb2071051e",
+        "bytes": 1202
+      },
+      "final.fasta.gz.xz": {
+        "sha256": "942f60575e92898a7fa5c46c0b7c9bb2f61448da630def945e631bee2be6ea55",
+        "bytes": 1264
+      },
+      "final.summary.json": {
+        "sha256": "df557b4fa70259b32bbd70131918fe405e2a62500d78511197522bed57673d49",
+        "bytes": 445
+      },
+      "final.zip": {
+        "sha256": "0d09b362fb55a47f23c43c77fcd88d2023cd7b457929424d4f2ffe586ff36846",
+        "bytes": 8721
+      },
+      "id-map.json": {
+        "sha256": "8944841efa3420b6af0e941516ddb981e4e1f45af660665734e94e1fb57c4b46",
+        "bytes": 1503
+      },
+      "initial.alignment.json": {
+        "sha256": "6348a397708453b361343248b6d893c726c5554800d5379ccf83018328ade997",
+        "bytes": 11646
+      },
+      "initial.fasta": {
+        "sha256": "20d7e50e2f4284a71da8698216bc8213bac68d8e1aeadc76748b1a4999ba9ca9",
+        "bytes": 10560
+      },
+      "initial.fasta.gz.bin": {
+        "sha256": "915dc2d4dc4f7b2d95bae2afda340512c72300cbf6372d1237cfb68b0c3e8794",
+        "bytes": 1205
+      },
+      "initial.fasta.gz.xz": {
+        "sha256": "9ac4f4119ddc9f94693cb0e3fdf016793fae0de70b0aa9649b885e29b7898ea8",
+        "bytes": 1268
+      },
+      "initial.summary.json": {
+        "sha256": "4f843e74a8991f24b823d74b68d0065bf62d98f6ae7b257e1e18845ea037ebcd",
+        "bytes": 443
+      },
+      "initial.zip": {
+        "sha256": "d8fed6a72b9fc435beefd09124ee5e76191d307a16d3f1d92e90517c72488b69",
+        "bytes": 8729
+      },
+      "input.fasta": {
+        "sha256": "4d024fc7fe4e30bd2c8e2cab8354ee2fd09f2dab1bfdb27bcd372ba5655e5cae",
+        "bytes": 10580
+      },
+      "input.fasta.gz.bin": {
+        "sha256": "0a4f141988d8e8ba5dbf87aa109fcec7c08b948c7eb3c0c2e3f0ffb542b8d6d0",
+        "bytes": 1209
+      },
+      "provenance.json": {
+        "sha256": "3e18b559aa52937f7748eec1bfd23911bbb626828212c415ce84cda875f77555",
+        "bytes": 1304
+      },
+      "refined.alignment.json": {
+        "sha256": "e0564249f306866ddd1463df7b04dfd7302138218231cd584cc25ec02d5b248e",
+        "bytes": 11546
+      },
+      "refined.fasta": {
+        "sha256": "1886597b40b9205c68a0394e984f5a64ce6be42e3a59ff30c4a0365c97bec7bc",
+        "bytes": 10460
+      },
+      "refined.fasta.gz.bin": {
+        "sha256": "e746c188558b507b6c1f60096d7cb649444dab35a3dbea7f086095bb2071051e",
+        "bytes": 1202
+      },
+      "refined.fasta.gz.xz": {
+        "sha256": "942f60575e92898a7fa5c46c0b7c9bb2f61448da630def945e631bee2be6ea55",
+        "bytes": 1264
+      },
+      "refined.summary.json": {
+        "sha256": "a650644210dccb62523cd40236056845a6156c8d329d87ab5258e5212578ba82",
+        "bytes": 447
+      },
+      "refined.zip": {
+        "sha256": "6cf6192b2a2ee7249142d6fd5bf3d13e48d6b5f8ab33c02766a3f5e811e9fa85",
+        "bytes": 8726
+      },
+      "LICENSE.txt": {
+        "sha256": "fdf7f0e8e81b428b95c67469902c6e19ae48fd96e226c4912dcdf2b5479b9be1",
+        "bytes": 1077
+      }
+    },
+    "sameInitialAndRefined": false
+  }
+]

@@ -1,0 +1,23 @@
+{
+  "jobId": "example:alignment-small:v1:final",
+  "algorithm": {
+    "name": "minipoa",
+    "resolvedName": "minipoa"
+  },
+  "summary": {
+    "preprocess": {
+      "mode": "audit",
+      "strictness": "normal"
+    },
+    "alignment": {
+      "sequenceCount": 20,
+      "alignmentLength": 515,
+      "gapPercentage": 2.87
+    },
+    "outputFiles": [
+      "alignment.fasta",
+      "alignment.fasta.gz",
+      "all_results.zip"
+    ]
+  }
+}

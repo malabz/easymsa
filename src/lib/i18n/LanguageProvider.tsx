@@ -27,7 +27,8 @@ function getInitialLocale(): Locale {
     return "en";
   }
 
-  const saved = window.localStorage.getItem(STORAGE_KEY);
+  let saved: string | null = null;
+  try { saved = window.localStorage.getItem(STORAGE_KEY); } catch { /* Language remains usable without persistence. */ }
   if (saved === "zh" || saved === "en") {
     return saved;
   }
@@ -39,7 +40,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [locale, setLocale] = useState<Locale>(getInitialLocale);
 
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, locale);
+    try { window.localStorage.setItem(STORAGE_KEY, locale); } catch { /* Keep in-memory preference. */ }
     document.documentElement.lang = locale === "zh" ? "zh-CN" : "en";
   }, [locale]);
 

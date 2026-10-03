@@ -5,6 +5,7 @@ const zh = {
     home: "首页",
     submit: "提交任务",
     realign: "重比对",
+    examples: "示例",
     viewer: "查看 MSA",
     lookup: "查询任务",
     docs: "使用文档",
@@ -59,17 +60,17 @@ const zh = {
   },
   home: {
     eyebrow: "面向 DNA / RNA 的在线比对工作台",
-    title: "easymsa：友好的多序列比对可视化工具",
+    title: "核酸多序列比对与重比对",
     subtitle:
       "上传或粘贴 FASTA 序列，提交任务，查看比对结果并下载结果文件。",
     intro:
-      "easymsa 面向小规模多序列比对结果浏览，提供清晰的提交流程、任务状态追踪和可读的 MSA 可视化界面。",
+      "上传 DNA 或 RNA 序列，自动选择比对方法，在线浏览并下载结果。",
     restoreJob: "恢复已有任务",
     workflowTitle: "三步完成分析",
     workflow: [
       {
         title: "提交",
-        text: "粘贴 FASTA 或上传文件，创建真实后端任务。"
+        text: "粘贴 FASTA 或上传文件，提交比对任务。"
       },
       {
         title: "运行",
@@ -113,7 +114,7 @@ const zh = {
     selectedAlgorithmUnavailable: "当前选择的比对算法不可用，请在高级设置中改选可用算法。",
     algorithm: "比对方法",
     algorithmHint:
-      "自动模式由后端根据序列数量、长度与相似性特征，在 minipoa、MAFFT、HAlign4 与 FMAlign2 之间选择；也可以直接指定方法。",
+      "Auto 根据序列特征自动选择比对方法，也可手动指定。",
     adaptiveBadge: "推荐 · 自适应",
     algorithms: {
       auto: "自动选择（自适应）",
@@ -441,7 +442,7 @@ const zh = {
         description: "基于完整可视化比对在 Worker 中计算，不使用抽样数据。",
         calculating: "正在后台计算比对质量统计",
         failed: "比对预览无法加载，因此暂时不能计算科研统计；预处理和输出产物信息仍然有效。",
-        truncated: "该比对超过当前预览上限。为避免用抽样数据产生误导，本页不推断保守性、entropy 或碱基组成。",
+        truncated: "该比对超过预览上限，完整结果可下载。",
         empty: "当前没有可用于计算科研统计的比对序列。",
         qualityProfile: "全长质量轨道",
         qualityChartLabel: "比对全长保守性、缺口比例和 Shannon entropy 质量轨道",
@@ -952,9 +953,9 @@ const zh = {
     title: "关于 easymsa",
     subtitle: "一个面向 DNA/RNA 多序列比对的 Web 工具。",
     project:
-      "本项目用于提交真实后端比对任务、恢复任务状态并查看小规模多序列比对结果。",
-    version: "当前版本：自动模式（当前 minipoa）+ minipoa/MAFFT 后端任务 + MSA viewer。",
-    citation: "引用：发表使用结果时，请根据任务实际使用的算法引用 minipoa 或 MAFFT 的论文与软件。",
+      "提供核酸比对与重比对、任务恢复和交互式结果查看。",
+    version: "当前版本：自适应 Auto、MiniPOA、MAFFT、HAlign4、FMAlign2、可选 ReAlign-N 与交互结果。",
+    citation: "引用：发表研究时，建议引用实际使用的方法及软件。",
     contact: "联系：问题与建议请通过 GitHub Issues 提交。",
     repository: "GitHub repository：https://github.com/malabz/easymsa"
   }
@@ -965,6 +966,7 @@ const en: typeof zh = {
     home: "Home",
     submit: "Submit",
     realign: "Realign",
+    examples: "Examples",
     viewer: "Viewer",
     lookup: "Lookup",
     docs: "Docs",
@@ -1019,17 +1021,17 @@ const en: typeof zh = {
   },
   home: {
     eyebrow: "Online alignment workspace for DNA / RNA",
-    title: "easymsa: A Friendly MSA Visualization Tool",
+    title: "Nucleotide alignment and refinement",
     subtitle:
       "Upload or paste FASTA sequences, submit a job, view alignment results, and download output files.",
     intro:
-      "easymsa focuses on small-scale multiple sequence alignment browsing, with a clear submission flow, job status tracking, and readable MSA visualization.",
+      "Upload DNA or RNA sequences, automatically select an alignment method, and explore and download your results.",
     restoreJob: "Restore Existing Job",
     workflowTitle: "Analyze in three steps",
     workflow: [
       {
         title: "Submit",
-        text: "Paste FASTA or upload a file to create a real backend job."
+        text: "Paste FASTA or upload a file to submit an alignment job."
       },
       {
         title: "Run",
@@ -1073,7 +1075,7 @@ const en: typeof zh = {
     selectedAlgorithmUnavailable: "The selected alignment algorithm is unavailable. Choose an available algorithm in advanced settings.",
     algorithm: "Alignment method",
     algorithmHint:
-      "Auto lets the backend choose among minipoa, MAFFT, HAlign4, and FMAlign2 based on sequence count, length, and similarity; you can also pick a method directly.",
+      "Auto selects an alignment method based on sequence features. You can also choose a method manually.",
     adaptiveBadge: "Recommended · Adaptive",
     algorithms: {
       auto: "Auto (adaptive)",
@@ -1401,7 +1403,7 @@ const en: typeof zh = {
         description: "Calculated in a Worker from the complete visualized alignment without sampling.",
         calculating: "Calculating alignment quality statistics in the background",
         failed: "The alignment preview could not be loaded, so scientific statistics are unavailable. Preprocessing and output artifact details remain valid.",
-        truncated: "This alignment exceeds the current preview limits. To avoid misleading sampled results, conservation, entropy, and base composition are not inferred.",
+        truncated: "This alignment exceeds the preview limits. Download the complete result.",
         empty: "No alignment sequences are available for scientific statistics.",
         qualityProfile: "Full-length quality tracks",
         qualityChartLabel: "Full-length conservation, gap fraction, and Shannon entropy tracks",
@@ -1912,9 +1914,9 @@ const en: typeof zh = {
     title: "About easymsa",
     subtitle: "A web tool for DNA/RNA multiple sequence alignment.",
     project:
-      "This project submits real backend alignment jobs, restores job status, and visualizes small-scale MSA results.",
-    version: "Current version: Auto mode (currently minipoa) + minipoa/MAFFT backend jobs + MSA viewer.",
-    citation: "Citation: when publishing results, cite the paper and software for the algorithm actually used, minipoa or MAFFT.",
+      "This project offers server alignment and refinement, task recovery and interactive results.",
+    version: "Current version: adaptive Auto selection, MiniPOA, MAFFT, HAlign4, FMAlign2, optional ReAlign-N and interactive results.",
+    citation: "Citation: when publishing research, please cite the methods and software used.",
     contact: "Contact: submit questions and suggestions through GitHub Issues.",
     repository: "GitHub repository: https://github.com/malabz/easymsa"
   }

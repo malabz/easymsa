@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "exampleId": "realignment-small",
+  "version": "v1",
+  "kind": "realignment",
+  "source": "Synthetic teaching DNA; not a biological benchmark",
+  "seed": 20261002,
+  "generator": "scripts/prepare-public-examples.py",
+  "parameters": {
+    "realign_pattern": "1"
+  },
+  "collectionElapsedSeconds": 1.333,
+  "taskElapsedSeconds": null,
+  "preprocessingNote": "Standalone refinement preserves aligned input; ordinary preprocessing is not applicable.",
+  "tools": {
+    "MiniPOA": "1.0",
+    "ReAlign-N": "01a602e-easymsa.1",
+    "MAFFT": "7.526",
+    "easymsa-prep": "4bb04fb"
+  },
+  "realignment": {
+    "status": "completed",
+    "pattern": 1,
+    "version": "01a602e-easymsa.1",
+    "durationSeconds": 0.032
+  },
+  "stages": {
+    "initial": {
+      "sequenceCount": 20,
+      "alignmentLength": 515,
+      "algorithm": {
+        "name": "minipoa",
+        "resolvedName": "minipoa"
+      }
+    },
+    "refined": {
+      "sequenceCount": 20,
+      "alignmentLength": 510,
+      "algorithm": {
+        "name": "realign_n",
+        "resolvedName": "realign_n"
+      }
+    },
+    "final": {
+      "sequenceCount": 20,
+      "alignmentLength": 510,
+      "algorithm": {
+        "name": "realign_n",
+        "resolvedName": "realign_n"
+      }
+    }
+  },
+  "sameInitialAndRefined": false
+}

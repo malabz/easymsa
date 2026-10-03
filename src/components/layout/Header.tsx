@@ -14,6 +14,7 @@ const navItems = [
   { to: "/realign", key: "realign" },
   { to: "/viewer", key: "viewer" },
   { to: "/lookup", key: "lookup" },
+  { to: "/examples", key: "examples" },
   { to: "/docs", key: "docs" },
   { to: "/about", key: "about" }
 ] as const;
@@ -26,7 +27,7 @@ export function Header() {
   const nav = (
     <nav
       aria-label={d.common.primaryNavigation}
-      className="flex flex-col gap-1 md:flex-row md:items-center md:gap-0.5"
+      className="flex flex-col gap-1 lg:flex-row lg:items-center lg:gap-0.5"
     >
       {navItems.filter(item => item.key !== "realign" || health.data?.realignment?.enabled).map((item) => (
         <NavLink
@@ -59,12 +60,12 @@ export function Header() {
           <span className="text-base font-semibold tracking-tight text-slate-950">easymsa</span>
         </NavLink>
 
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden items-center gap-2 lg:flex">
           {nav}
           <LanguageToggle />
         </div>
 
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="flex items-center gap-2 lg:hidden">
           <LanguageToggle />
           <Button
             aria-expanded={open}
@@ -80,7 +81,7 @@ export function Header() {
       </div>
 
       {open ? (
-        <div className="border-t border-slate-200 bg-white px-4 py-3 md:hidden">
+        <div className="border-t border-slate-200 bg-white px-4 py-3 lg:hidden">
           {nav}
         </div>
       ) : null}

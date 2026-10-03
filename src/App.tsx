@@ -1,3 +1,4 @@
+import { StorageNotice } from "./components/common/StorageNotice";
 import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
@@ -32,6 +33,10 @@ const ViewerPage = lazy(() =>
 
 const RealignPage = lazy(() => import("./routes/RealignPage").then(module => ({default: module.RealignPage})));
 
+const ExamplesPage = lazy(() => import("./routes/ExamplesPage").then(m => ({default:m.ExamplesPage})));
+const LicensePage = lazy(() => import("./routes/LicensePage").then(m => ({default:m.LicensePage})));
+const PrivacyPage = lazy(() => import("./routes/PrivacyPage").then(m => ({default:m.PrivacyPage})));
+
 function AppRoutes() {
   const location = useLocation();
   const { dictionary: d } = useLanguage();
@@ -53,6 +58,10 @@ function AppRoutes() {
           <Route path="/job/:jobId" element={<JobStatusPage />} />
           <Route path="/results/:jobId" element={<ResultsPage />} />
           <Route path="/docs" element={<DocsPage />} />
+          <Route path="/examples" element={<ExamplesPage />} />
+          <Route path="/examples/:exampleId" element={<ExamplesPage />} />
+          <Route path="/license" element={<LicensePage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
@@ -74,6 +83,7 @@ export function App() {
       </a>
       <PageMetadata />
       <Header />
+      <StorageNotice />
       <main className="flex-1" id="main-content" tabIndex={-1}>
         <AppRoutes />
       </main>

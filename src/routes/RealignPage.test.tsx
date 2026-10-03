@@ -6,7 +6,8 @@ import {LanguageProvider} from '../lib/i18n/LanguageProvider';
 const mocks=vi.hoisted(()=>({submit:vi.fn(),navigate:vi.fn(),refetch:vi.fn(),health:{} as any}));
 vi.mock('../lib/query/useServiceHealth',()=>({useServiceHealth:()=>mocks.health}));
 vi.mock('../lib/api/jobs',()=>({createRealignmentJob:mocks.submit}));
-vi.mock('react-router-dom',()=>({useNavigate:()=>mocks.navigate}));
+vi.mock('react-router-dom',async()=>({...await vi.importActual('react-router-dom'),useNavigate:()=>mocks.navigate}));
+import {MemoryRouter} from 'react-router-dom';
 import {RealignPage} from './RealignPage';
 import {EasyMsaApiError} from '../lib/api/client';
 const aligned=new File(['>a\nAC-G\n>b\nACCG\n'],'aligned.fa');
@@ -15,7 +16,7 @@ beforeEach(()=>{
  mocks.health={isPending:false,isError:false,refetch:mocks.refetch,data:{coreReady:true,realignment:{enabled:true,available:true,maxSequences:2000,maxColumns:30000,maxCells:1000000},queueLength:99,realignmentQueueLength:2}};
 });
 afterEach(cleanup);
-const show=()=>render(<LanguageProvider><RealignPage/></LanguageProvider>);
+const show=()=>render(<MemoryRouter><LanguageProvider><RealignPage/></LanguageProvider></MemoryRouter>);
 async function validForm(){const user=userEvent.setup();await user.type(screen.getByLabelText('Job name'),'valid-task');await user.upload(screen.getByLabelText('Aligned FASTA file'),aligned);return user;}
 it('shows dedicated queue, default order, and waits for a valid file',()=>{
  show();expect(screen.getByRole('button',{name:'Submit Realignment'})).toBeDisabled();expect(screen.queryByText(/99/)).not.toBeInTheDocument();

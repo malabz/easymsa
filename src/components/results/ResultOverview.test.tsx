@@ -130,7 +130,7 @@ describe("ResultOverview", () => {
     });
 
     expect(screen.getByText("Preprocessing overview")).toBeInTheDocument();
-    expect(screen.getByText(/exceeds the current preview limits/)).toBeInTheDocument();
+    expect(screen.getByText(/exceeds the preview limits/)).toBeInTheDocument();
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
   });
 

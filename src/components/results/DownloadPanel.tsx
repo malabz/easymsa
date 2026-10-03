@@ -29,7 +29,7 @@ export function DownloadPanel({ files }: { files: ResultFile[] }) {
               <p className="mt-1 text-sm text-slate-600">{file.description}</p>
               <p className="mt-1 text-xs text-slate-500">{file.size}</p>
             </div>
-            <ExternalButtonLink download href={file.href}>
+            <ExternalButtonLink download={file.name} href={file.href}>
               <Download className="h-4 w-4" />
               {d.common.download}
             </ExternalButtonLink>

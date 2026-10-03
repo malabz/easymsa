@@ -1,3 +1,5 @@
+import { ExampleInputLoader } from "./ExampleInputLoader";
+import { loadExampleInput } from "../../lib/examples";
 import { RealignmentOptions } from "./RealignmentOptions";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDown, Loader2, SlidersHorizontal } from "lucide-react";
@@ -21,7 +23,6 @@ import type {
   PreprocessMode
 } from "../../lib/types/job";
 import { validateFasta } from "../../lib/utils/fasta";
-import { EXAMPLE_FASTA } from "../../lib/utils/exampleFasta";
 import { validateInputFile } from "../../lib/utils/fileValidation";
 import { Button } from "../common/Button";
 import { ServiceStatus } from "../common/ServiceStatus";
@@ -71,6 +72,12 @@ export function SubmitJobForm() {
       email: ""
     }
   });
+
+  function loadExample(file: File) {
+    setInputMethod("upload");setFile(file);setAlgorithm("minipoa");setPreprocessMode("audit");
+    setRealignEnabled(false);setRealignPattern(1);setAlgorithmParameterDraft({...DEFAULT_ALGORITHM_PARAMETER_DRAFT});
+    setAlgorithmParameterError(null);setFormError(null);setValue("jobName", "Synthetic DNA example");
+  }
 
   function algorithmUnavailable(value: AlignmentAlgorithm) {
     const availability = serviceHealth.data?.algorithms[value];
@@ -163,6 +170,7 @@ export function SubmitJobForm() {
     <section className="rounded-2xl border border-slate-200/80 bg-white/70 p-5 shadow-sm sm:p-7">
       <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
         <ServiceStatus />
+        <ExampleInputLoader kind="alignment" disabled={submitting} onLoad={loadExample} />
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <label className="text-sm font-medium text-slate-800" htmlFor="jobName">
@@ -292,9 +300,7 @@ export function SubmitJobForm() {
           <PasteSequenceInput
             onChange={setPastedSequence}
             onLoadExample={() => {
-              setPastedSequence(EXAMPLE_FASTA);
-              setValue("jobName", d.submit.exampleJobName, { shouldValidate: true });
-              setFormError(null);
+              void loadExampleInput("alignment-small").then(({file})=>loadExample(file)).catch(()=>setFormError(locale === "zh" ? "无法载入示例文件。" : "Unable to load example file."));
             }}
             value={pastedSequence}
           />

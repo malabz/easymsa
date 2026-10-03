@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "exampleId": "alignment-small",
+  "version": "v1",
+  "kind": "alignment",
+  "source": "Synthetic teaching DNA; not a biological benchmark",
+  "seed": 20261002,
+  "generator": "scripts/prepare-public-examples.py",
+  "parameters": {
+    "algorithm": "minipoa",
+    "preprocess_mode": "audit"
+  },
+  "collectionElapsedSeconds": 1.656,
+  "taskElapsedSeconds": 0.031,
+  "preprocessingNote": "Audit assigns normalized IDs; id-map.json records the original-to-clean mapping.",
+  "tools": {
+    "MiniPOA": "1.0",
+    "ReAlign-N": "01a602e-easymsa.1",
+    "MAFFT": "7.526",
+    "easymsa-prep": "4bb04fb"
+  },
+  "realignment": {},
+  "stages": {
+    "final": {
+      "sequenceCount": 20,
+      "alignmentLength": 515,
+      "algorithm": {
+        "name": "minipoa",
+        "resolvedName": "minipoa"
+      }
+    }
+  },
+  "sameInitialAndRefined": null
+}

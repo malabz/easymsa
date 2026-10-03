@@ -7,7 +7,7 @@ export type SequenceAlphabet =
 
 export type AlignmentMode = "aligned" | "rawUnequal" | "neutral";
 
-export type AlignmentSourceKind = "job" | "local-file" | "pasted";
+export type AlignmentSourceKind = "job" | "local-file" | "pasted" | "example";
 
 export type AlignmentDescriptor = {
   sourceKey: string;

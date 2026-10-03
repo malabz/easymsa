@@ -11,3 +11,6 @@ test-results
 CODEX_TASK_easymsa.md
 .env.example
 AI_PROJECT_SUMMARY.md
+
+# Python helper bytecode
+__pycache__/

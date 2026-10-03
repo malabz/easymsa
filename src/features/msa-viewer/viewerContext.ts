@@ -1,6 +1,6 @@
 import type { ResultFile, ResultSummary } from "../../lib/types/result";
 
-export type MsaViewerSourceType = "server-job" | "local-file" | "pasted";
+export type MsaViewerSourceType = "server-job" | "local-file" | "pasted" | "public-example";
 
 /**
  * Provenance that is already available to the browser. This intentionally

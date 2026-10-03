@@ -1,0 +1,21 @@
+{
+  "recordedOn": "2026-10-02",
+  "source": "SHA-256 of deployed executables sampled over the authorized SSH connection",
+  "MiniPOA": {
+    "version": "1.0",
+    "sha256": "9b4f181e8190e9663d99e2e880749bf006b242b9ec92e8816021ac1cb9d0b6d7"
+  },
+  "ReAlign-N": {
+    "version": "01a602e-easymsa.1",
+    "sha256": "65e7e5cca2901ecc7f95be40e4a08ee122b40d18f0521e8c6c9b6b6bd1138dc6"
+  },
+  "global_realignment": {
+    "version": "01a602e-easymsa.1",
+    "sha256": "4e2644cde68c5ee8f28d264cd453f7f027fb0c512400558d16618f53c80a3cd7"
+  },
+  "MAFFT": {
+    "version": "7.526",
+    "sha256": "3e8acb5eba7da18a137a3ef7fd77438379cd51b7aaa03f7d4eed650849b8c0ea",
+    "artifact": "mafft launcher script"
+  }
+}

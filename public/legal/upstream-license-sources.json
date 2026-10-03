@@ -1,0 +1,22 @@
+[
+  {
+    "tool": "MiniPOA",
+    "url": "https://github.com/NCl3-lhd/minipoa/blob/main/LICENSE",
+    "branch": "main"
+  },
+  {
+    "tool": "HAlign4",
+    "url": "https://github.com/malabz/HAlign-4/blob/main/LICENSE",
+    "branch": "main"
+  },
+  {
+    "tool": "FMAlign2",
+    "url": "https://github.com/malabz/FMAlign2/blob/master/LICENSE",
+    "branch": "master"
+  },
+  {
+    "tool": "ReAlign-N",
+    "url": "https://github.com/malabz/ReAlign-N/blob/main/LICENSE",
+    "branch": "main"
+  }
+]

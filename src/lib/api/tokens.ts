@@ -1,3 +1,5 @@
+import { browserStorage, reportStorageFailure } from "../storage";
+
 const STORAGE_KEY = "easymsa.jobAccess.v1";
 const LEGACY_STORAGE_KEY = "easymsa.jobTokens";
 
@@ -11,7 +13,7 @@ export type JobAccess = {
 };
 
 function canUseStorage() {
-  return typeof window !== "undefined" && Boolean(window.localStorage);
+  return Boolean(browserStorage());
 }
 
 function isJobAccess(value: unknown): value is JobAccess {
@@ -96,11 +98,11 @@ export function readJobAccessRecords(): JobAccess[] {
 }
 
 function writeJobAccessRecords(records: JobAccess[]) {
-  if (!canUseStorage()) {
-    return;
-  }
-
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+  try {
+    const storage = browserStorage();
+    if (!storage) { reportStorageFailure(); return; }
+    storage.setItem(STORAGE_KEY, JSON.stringify(records));
+  } catch { reportStorageFailure(); }
 }
 
 export function createJobAccess({
