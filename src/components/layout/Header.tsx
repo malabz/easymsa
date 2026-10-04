@@ -54,9 +54,7 @@ export function Header() {
     <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
       <div className="mx-auto flex min-h-16 max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-2 sm:px-6 lg:px-8">
         <NavLink className="flex items-center gap-2" to="/">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-teal-600 to-slate-900 font-mono text-xs font-bold text-white shadow-sm">
-            MSA
-          </span>
+          <img src={`${import.meta.env.BASE_URL}brand/easymsa-mark.svg`} width={36} height={36} className="h-9 w-9" alt="" />
           <span className="text-base font-semibold tracking-tight text-slate-950">easymsa</span>
         </NavLink>
 

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useLanguage } from "../../lib/i18n/useLanguage";
+import { homeContent } from "../../lib/homeContent";
 
 export function PageMetadata() {
   const location = useLocation();
@@ -30,7 +31,7 @@ export function PageMetadata() {
       'meta[name="description"]'
     );
     if (description) {
-      description.content = dictionary.home.subtitle;
+      description.content = homeContent[locale].intro;
     }
   }, [dictionary, locale, location.pathname]);
 

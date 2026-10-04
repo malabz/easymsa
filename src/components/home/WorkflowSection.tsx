@@ -1,40 +1,24 @@
-import { CheckCircle2, CircleDot, Eye } from "lucide-react";
+import { ArrowRight, Download } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useLanguage } from "../../lib/i18n/useLanguage";
-
-const icons = [CircleDot, CheckCircle2, Eye];
+import { homeContent } from "../../lib/homeContent";
+import { exampleUrl } from "../../lib/examples";
 
 export function WorkflowSection() {
-  const { dictionary: d } = useLanguage();
-
+  const { locale } = useLanguage();
+  const copy = homeContent[locale];
   return (
-    <section className="py-12">
-      <div className="mb-6 flex items-end justify-between gap-4">
-        <h2 className="text-2xl font-semibold text-slate-950">
-          {d.home.workflowTitle}
-        </h2>
-      </div>
-      <div className="grid gap-5 md:grid-cols-3">
-        {d.home.workflow.map((item, index) => {
-          const Icon = icons[index];
-          return (
-            <div
-              className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-teal-200 hover:shadow-soft"
-              key={item.title}
-            >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-teal-100 bg-teal-50 text-teal-800 transition group-hover:bg-teal-100">
-                <Icon className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-slate-950">
-                  {item.title}
-                </h3>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  {item.text}
-                </p>
-              </div>
-            </div>
-          );
-        })}
+    <section className="home-section" id="home-workflow" tabIndex={-1} aria-labelledby="home-workflow-title">
+      <p className="home-eyebrow">01 / WORKFLOW</p>
+      <h2 id="home-workflow-title">{copy.workflowTitle}</h2>
+      <div className="home-workflow">
+        {copy.steps.map((step, index) => <article key={step.title}>
+          <span className="home-step-number" aria-hidden="true">0{index + 1}</span>
+          <h3>{step.title}</h3><p>{step.text}</p>
+          {index === 0
+            ? <a className="home-text-link" download="easymsa-example.fasta" href={exampleUrl({ id: "alignment-small", version: "v1" }, "input.fasta")}>{step.link}<Download size={16} aria-hidden="true" /></a>
+            : <Link className="home-text-link" to={index === 1 ? "/submit" : "/lookup"}>{step.link}<ArrowRight size={16} aria-hidden="true" /></Link>}
+        </article>)}
       </div>
     </section>
   );
