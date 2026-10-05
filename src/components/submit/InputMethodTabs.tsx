@@ -1,4 +1,5 @@
 import { FileUp, TextCursorInput } from "lucide-react";
+import { useRef } from "react";
 import type { InputMethod } from "../../lib/types/job";
 import { cn } from "../../lib/utils/cn";
 import { useLanguage } from "../../lib/i18n/useLanguage";
@@ -16,14 +17,15 @@ export function InputMethodTabs({
   onChange: (method: InputMethod) => void;
 }) {
   const { dictionary: d } = useLanguage();
+  const buttons = useRef<Array<HTMLButtonElement | null>>([]);
 
   return (
     <div
       aria-label={d.submit.inputMethod}
-      className="grid gap-2 rounded-lg border border-slate-200 bg-white/55 p-1 sm:grid-cols-2"
+      className="input-tabs grid gap-2 rounded-lg border border-slate-200 bg-white/55 p-1 sm:grid-cols-2"
       role="tablist"
     >
-      {methods.map((method) => {
+      {methods.map((method, index) => {
         const Icon = method.icon;
         const selected = value === method.value;
 
@@ -31,6 +33,15 @@ export function InputMethodTabs({
           <button
             aria-controls={`input-panel-${method.value}`}
             aria-selected={selected}
+            tabIndex={selected ? 0 : -1}
+            ref={node => { buttons.current[index] = node; }}
+            onKeyDown={event => {
+              if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+              event.preventDefault();
+              const target = event.key === "Home" ? 0 : event.key === "End" ? methods.length - 1
+                : (index + (event.key === "ArrowRight" ? 1 : -1) + methods.length) % methods.length;
+              onChange(methods[target].value); buttons.current[target]?.focus();
+            }}
             className={cn(
               "flex h-11 items-center justify-center gap-2 rounded-md px-3 text-sm font-medium transition",
               selected

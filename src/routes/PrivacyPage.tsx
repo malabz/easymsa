@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { forgetWork } from "../lib/workspace";
 import { Link } from "react-router-dom";
 import { PageContainer } from "../components/layout/PageContainer";
 import { Button } from "../components/common/Button";
@@ -14,6 +15,7 @@ export function PrivacyPage() {
   const [confirm, setConfirm] = useState<"tasks" | "viewer" | null>(null);
   const [message, setMessage] = useState("");
   function clear() {
+    if (confirm === "tasks") { forgetWork("job"); forgetWork("result"); }
     const ok = clearOwnStorage(
       confirm === "tasks" ? TASK_STORAGE_KEYS : VIEWER_STORAGE_KEYS,
     );

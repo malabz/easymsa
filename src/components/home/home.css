@@ -106,8 +106,6 @@
 .home-cover .home-scroll:hover { color: #115e59; background: #d5e9e1; border-color: #97c2b5; }
 .alignment-animation { --cell: clamp(12px, 2.1vw, 30px); --space: clamp(3px, .6vw, 8px); --pitch: calc(var(--cell) + var(--space)); width: min(100%, 760px); padding: 0 28px; }
 .alignment-animation-caption { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 24px; font-size: 13px; color: #64748b; letter-spacing: .025em; }
-.alignment-animation-toggle { display: inline-grid; place-items: center; min-width: 32px; min-height: 32px; color: #64748b; border-radius: 50%; }
-.alignment-animation-toggle:hover { background: #e5f1ef; color: #0f766e; }
 .alignment-animation-matrix { width: max-content; margin-inline: auto; display: flex; flex-direction: column; gap: 9px; }
 .alignment-animation-row { display: flex; gap: var(--space); }
 .alignment-base { --base-fill: #d8e9e4; --base-ink: #356c60; display: grid; place-items: center; flex: 0 0 var(--cell); width: var(--cell); height: var(--cell); border-radius: 5px; background: var(--base-fill); color: var(--base-ink); font: 500 clamp(9px, 1.1vw, 15px)/1 ui-monospace, SFMono-Regular, Consolas, monospace; animation: sequence-align 8s cubic-bezier(.45, 0, .2, 1) infinite both; animation-delay: var(--row-delay, 0s); }
@@ -156,7 +154,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
   /* This explicitly requested demo overrides index.css's important global clamp.
-     Keep the exception scoped to its cells; retain a slower pace and pause control. */
+     Keep the exception scoped to its cells and retain the requested slower pace. */
   .alignment-animation .alignment-base {
     animation-duration: 12s !important;
     animation-iteration-count: infinite !important;

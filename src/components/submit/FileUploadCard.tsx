@@ -27,10 +27,12 @@ export function FileUploadCard({
   file,
   onChange,
   variant = "alignment",
-  disabled = false
+  disabled = false,
+  compact = false
 }: {
   variant?: "alignment" | "realignment";
   disabled?: boolean;
+  compact?: boolean;
   file: File | null;
   onChange: (file: File | null) => void;
 }) {
@@ -68,9 +70,9 @@ export function FileUploadCard({
     <div className="space-y-4">
       <div
         className={cn(
-          "rounded-lg border border-dashed bg-white/60 p-6 text-center transition",
+          compact ? "work-file" : "rounded-lg border border-dashed bg-white/60 p-6 text-center transition",
           dragActive
-            ? "border-teal-500 bg-teal-50"
+            ? "is-dragging border-teal-500 bg-teal-50"
             : "border-slate-300 hover:border-teal-400"
         )}
         onDragEnter={(event) => {
@@ -97,15 +99,16 @@ export function FileUploadCard({
           ref={inputRef}
           type="file"
         />
-        <UploadCloud className="mx-auto mb-3 h-9 w-9 text-teal-700" />
+        {compact && file ? <FileText className="h-10 w-10 text-teal-700" aria-hidden="true" /> : <UploadCloud className="mx-auto mb-3 h-9 w-9 text-teal-700" />}
         <h3 className="text-base font-semibold text-slate-950">
-          {dragActive ? d.submit.uploadDrop : realignment ? t.uploadTitle : d.submit.uploadTitle}
+          {dragActive ? d.submit.uploadDrop : compact && file ? <span className="work-file-name">{file.name}</span> : realignment ? t.uploadTitle : d.submit.uploadTitle}
         </h3>
         <p id={`${inputId}-hint`} className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-600">
-          {realignment ? t.uploadDescription : d.submit.uploadDescription}
+          {compact && file ? formatFileSize(file.size) : realignment ? t.uploadDescription : d.submit.uploadDescription}
         </p>
+        <div className={compact ? "work-file-actions" : undefined}>
         <Button
-          className="mt-5"
+          className={compact ? undefined : "mt-5"}
           disabled={disabled}
           onClick={() => inputRef.current?.click()}
           variant="outline"
@@ -113,9 +116,13 @@ export function FileUploadCard({
           <FileText className="h-4 w-4" />
           {file ? t.replaceFile : d.submit.uploadBrowse}
         </Button>
+        {compact && file && <Button variant="ghost" disabled={disabled} onClick={() => { if (inputRef.current) inputRef.current.value = ""; onChange(null); }}><X size={15} />{d.common.remove}</Button>}
+        </div>
       </div>
 
-      {file ? (
+      {compact ? <p id={`${inputId}-feedback`} aria-live="polite" className={validation && !validation.valid ? "work-error" : "work-hint"}>
+        {file ? validation?.valid ? (realignment ? t.fileSelected : d.submit.uploadValid) : <span role="alert">{validation?.errors.join(" ")}</span> : null}
+      </p> : file ? (
         <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white/55 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-white/80 text-teal-700">

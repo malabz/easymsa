@@ -20,10 +20,12 @@ import {
 import { useLanguage } from "../lib/i18n/useLanguage";
 import { useJobStatus } from "../lib/query/useJobStatus";
 import { copyText } from "../lib/utils/clipboard";
+import { useRememberWork } from "../lib/workspace";
 
 type CopyTarget = "jobId" | "token" | "restoreLink" | "json";
 
 export function JobStatusPage() {
+  useRememberWork("job");
   const { jobId: routeJobId } = useParams<{ jobId: string }>();
   const [searchParams] = useSearchParams();
   const { dictionary: d } = useLanguage();

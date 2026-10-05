@@ -7,6 +7,11 @@ import { LanguageProvider } from "./lib/i18n/LanguageProvider";
 import { queryClient } from "./lib/query/queryClient";
 import "./index.css";
 
+// Local asset production only: render text at native double density.
+if (import.meta.env.DEV && new URLSearchParams(window.location.search).get("demo-capture") === "2") {
+  document.documentElement.style.zoom = "2";
+}
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>

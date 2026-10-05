@@ -321,12 +321,17 @@ const zh = {
   },
   lookup: {
     title: "恢复任务",
-    subtitle: "输入任务 ID 和访问 token，或上传任务凭证 JSON，继续查看任务状态和结果。",
+    subtitle: "从当前浏览器已保存的任务中，继续查看进度和结果。",
     cachedTitle: "已缓存任务",
     cachedDescription:
       "这些任务凭证只保存在当前浏览器。删除缓存不会影响服务器任务。",
     cachedEmpty:
-      "暂无缓存任务。你仍可以手动输入任务 ID 和 token，或上传任务凭证 JSON。",
+      "当前浏览器还没有保存的任务。可使用下方的任务凭证恢复。",
+    cachedOrder: "最近创建的任务在前",
+    otherMethods: "其他恢复方式",
+    otherMethodsHint: "任务 ID 与凭证 · JSON 文件",
+    importHint: "也可导入之前下载的任务凭证。",
+    importJson: "导入凭证 JSON",
     cachedRestore: "恢复",
     cachedDelete: "删除缓存",
     cachedCreatedAt: "创建时间",
@@ -1282,12 +1287,17 @@ const en: typeof zh = {
   },
   lookup: {
     title: "Restore Job",
-    subtitle: "Enter the job ID and access token, or upload a job access JSON, to continue checking status and results.",
+    subtitle: "Resume a saved job from this browser to view its progress and results.",
     cachedTitle: "Cached jobs",
     cachedDescription:
       "These job credentials are stored only in this browser. Deleting a cache entry does not affect the server job.",
     cachedEmpty:
-      "No cached jobs yet. You can still enter a job ID and token manually, or upload a job access JSON.",
+      "No jobs saved in this browser yet. Use your job credentials below to restore one.",
+    cachedOrder: "Newest first",
+    otherMethods: "Other recovery options",
+    otherMethodsHint: "Job ID and token · JSON file",
+    importHint: "Or import a previously downloaded credentials file.",
+    importJson: "Import credentials JSON",
     cachedRestore: "Restore",
     cachedDelete: "Delete cache",
     cachedCreatedAt: "Created",

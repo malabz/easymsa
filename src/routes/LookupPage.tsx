@@ -1,4 +1,4 @@
-import { Trash2, Upload } from "lucide-react";
+import { ArrowRight, ChevronDown, History, Trash2, Upload } from "lucide-react";
 import { type ChangeEvent, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/common/Button";
@@ -12,6 +12,7 @@ import {
   validateJobAccess
 } from "../lib/api/tokens";
 import { useLanguage } from "../lib/i18n/useLanguage";
+import { forgetJobWork } from "../lib/workspace";
 
 function sortCachedAccess(records: JobAccess[]) {
   return [...records]
@@ -22,33 +23,34 @@ function sortCachedAccess(records: JobAccess[]) {
     .slice(0, 50);
 }
 
-function formatCreatedAt(createdAt: string) {
+function formatCreatedAt(createdAt: string, locale: string) {
   const date = new Date(createdAt);
-
-  if (Number.isNaN(date.getTime())) {
-    return "-";
-  }
-
-  return date.toLocaleString();
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleString(locale === "zh" ? "zh-CN" : "en-GB", {
+    year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
+  });
 }
 
-function shortToken(token: string) {
-  return token.length <= 12 ? token : `...${token.slice(-8)}`;
-}
+type RecoveryError = "missingFields" | "invalidJson" | "readJsonFailed";
 
 export function LookupPage() {
-  const { dictionary: d } = useLanguage();
+  const { dictionary: d, locale } = useLanguage();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const jobIdRef = useRef<HTMLInputElement | null>(null);
+  const tokenRef = useRef<HTMLInputElement | null>(null);
   const [jobId, setJobId] = useState("");
   const [token, setToken] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<RecoveryError | null>(null);
   const [cachedAccess, setCachedAccess] = useState<JobAccess[]>(() =>
     sortCachedAccess(readJobAccessRecords())
   );
+  const [otherMethodsOpen, setOtherMethodsOpen] = useState(cachedAccess.length === 0);
 
   function refreshCachedAccess() {
-    setCachedAccess(sortCachedAccess(readJobAccessRecords()));
+    const records = sortCachedAccess(readJobAccessRecords());
+    setCachedAccess(records);
+    if (records.length === 0) setOtherMethodsOpen(true);
   }
 
   function restore(nextJobId: string, nextToken: string) {
@@ -56,7 +58,10 @@ export function LookupPage() {
     const trimmedToken = nextToken.trim();
 
     if (!trimmedJobId || !trimmedToken) {
-      setError(d.lookup.missingFields);
+      setOtherMethodsOpen(true);
+      setError("missingFields");
+      if (!trimmedJobId) jobIdRef.current?.focus();
+      else tokenRef.current?.focus();
       return;
     }
 
@@ -65,6 +70,7 @@ export function LookupPage() {
   }
 
   function removeCachedAccess(access: JobAccess) {
+    forgetJobWork(access.jobId, access.token);
     deleteJobAccess(access.jobId, access.token);
     setError(null);
     refreshCachedAccess();
@@ -73,180 +79,160 @@ export function LookupPage() {
   async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     event.target.value = "";
+    if (!file) return;
 
-    if (!file) {
-      return;
-    }
-
+    setOtherMethodsOpen(true);
     try {
       const parsed = JSON.parse(await file.text());
       const access = validateJobAccess(parsed);
-
       if (!access) {
-        setError(d.lookup.invalidJson);
+        setError("invalidJson");
         return;
       }
-
       saveJobAccess(access);
       refreshCachedAccess();
       setError(null);
       navigate(jobRoute(access.jobId, access.token));
     } catch {
-      setError(d.lookup.readJsonFailed);
+      setError("readJsonFailed");
     }
   }
 
   return (
-    <PageContainer className="space-y-8">
-      <div className="max-w-3xl space-y-3">
-        <h1 className="text-4xl font-semibold text-slate-950">{d.lookup.title}</h1>
-        <p className="text-lg leading-8 text-slate-600">
-          {d.lookup.subtitle}
-        </p>
+    <PageContainer className="workflow-page lookup-page">
+      <div className="work-heading">
+        <div>
+          <h1>{d.lookup.title}</h1>
+          <p>{d.lookup.subtitle}</p>
+        </div>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <section className="rounded-lg border border-slate-200/80 bg-white/70 p-6">
-          <h2 className="text-xl font-semibold text-slate-950">
-            {d.lookup.manualTitle}
+      <section aria-labelledby="cached-jobs-heading" className="lookup-saved">
+        <div className="lookup-section-heading">
+          <h2 id="cached-jobs-heading">
+            <History aria-hidden="true" size={19} />
+            {d.lookup.cachedTitle}
+            <span className="lookup-count">{cachedAccess.length}</span>
           </h2>
-          <p className="mt-2 text-sm leading-6 text-slate-600">
-            {d.lookup.manualDescription}
-          </p>
-          <div className="mt-5 space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-800" htmlFor="jobId">
-                {d.lookup.jobId}
-              </label>
+          {cachedAccess.length > 0 && <span className="work-hint">{d.lookup.cachedOrder}</span>}
+        </div>
+
+        {cachedAccess.length > 0 ? (
+          <div className="lookup-list">
+            <div aria-hidden="true" className="lookup-column-labels">
+              <span>{d.lookup.jobId}</span>
+              <span>{d.lookup.cachedCreatedAt}</span>
+              <span />
+            </div>
+            <ul aria-labelledby="cached-jobs-heading" className="lookup-rows">
+              {cachedAccess.map((access) => (
+                <li className="lookup-row" key={access.jobId + ":" + access.token}>
+                  <div className="lookup-job-id" title={access.jobId}>
+                    <span className="sr-only">{d.lookup.jobId}: </span>
+                    {access.jobId}
+                  </div>
+                  <div className="lookup-created">
+                    <span className="lookup-created-label">{d.lookup.cachedCreatedAt}: </span>
+                    <time dateTime={access.createdAt}>{formatCreatedAt(access.createdAt, locale)}</time>
+                  </div>
+                  <div className="lookup-row-actions">
+                    <Button
+                      aria-label={d.lookup.cachedRestore + ": " + access.jobId}
+                      onClick={() => restore(access.jobId, access.token)}
+                      size="sm"
+                    >
+                      {d.lookup.cachedRestore}
+                      <ArrowRight aria-hidden="true" size={15} />
+                    </Button>
+                    <Button
+                      aria-label={d.lookup.cachedDelete + ": " + access.jobId}
+                      className="lookup-delete"
+                      onClick={() => removeCachedAccess(access)}
+                      size="sm"
+                      title={d.lookup.cachedDelete}
+                      variant="ghost"
+                    >
+                      <Trash2 aria-hidden="true" size={16} />
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <p className="lookup-empty">{d.lookup.cachedEmpty}</p>
+        )}
+        <p className="work-hint lookup-storage-note">{d.lookup.cachedDescription}</p>
+      </section>
+
+      <section aria-labelledby="other-recovery-heading" className="lookup-alternatives">
+        <h2 id="other-recovery-heading">
+          <button
+            aria-controls="other-recovery-content"
+            aria-expanded={otherMethodsOpen}
+            className="lookup-alternatives-toggle"
+            onClick={() => setOtherMethodsOpen((open) => !open)}
+            type="button"
+          >
+            <span>{d.lookup.otherMethods}</span>
+            <span className="lookup-alternatives-hint">{d.lookup.otherMethodsHint}</span>
+            <ChevronDown aria-hidden="true" className={otherMethodsOpen ? "is-open" : ""} size={18} />
+          </button>
+        </h2>
+        <div hidden={!otherMethodsOpen} id="other-recovery-content">
+          <form
+            aria-label={d.lookup.manualTitle}
+            className="lookup-manual"
+            onSubmit={(event) => { event.preventDefault(); restore(jobId, token); }}
+          >
+            <div className="work-field">
+              <label className="work-label" htmlFor="jobId">{d.lookup.jobId}</label>
               <input
+                aria-describedby={error === "missingFields" ? "lookup-error" : undefined}
+                aria-invalid={error === "missingFields" && !jobId.trim() || undefined}
+                autoCapitalize="none"
                 autoComplete="off"
-                className="h-10 w-full rounded-md border border-slate-300 bg-white/80 px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                className="work-control"
                 id="jobId"
-                onChange={(event) => setJobId(event.target.value)}
+                onChange={(event) => { setJobId(event.target.value); setError(null); }}
+                ref={jobIdRef}
+                spellCheck={false}
                 value={jobId}
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-800" htmlFor="token">
-                {d.lookup.token}
-              </label>
+            <div className="work-field">
+              <label className="work-label" htmlFor="token">{d.lookup.token}</label>
               <input
+                aria-describedby={error === "missingFields" ? "lookup-error" : undefined}
+                aria-invalid={error === "missingFields" && !token.trim() || undefined}
                 autoComplete="off"
-                className="h-10 w-full rounded-md border border-slate-300 bg-white/80 px-3 font-mono text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                className="work-control"
                 id="token"
-                onChange={(event) => setToken(event.target.value)}
-                value={token}
+                onChange={(event) => { setToken(event.target.value); setError(null); }}
+                ref={tokenRef}
                 type="password"
+                value={token}
               />
             </div>
-            <Button onClick={() => restore(jobId, token)} type="button">
-              {d.lookup.restore}
-            </Button>
-          </div>
-        </section>
-
-        <section className="rounded-lg border border-slate-200/80 bg-white/70 p-6">
-          <h2 className="text-xl font-semibold text-slate-950">
-            {d.lookup.uploadTitle}
-          </h2>
-          <p className="mt-2 text-sm leading-6 text-slate-600">
-            {d.lookup.uploadDescription}
-          </p>
-          <div className="mt-5 space-y-4">
+            <Button type="submit">{d.lookup.restore}</Button>
+          </form>
+          <div className="lookup-import">
             <input
               accept="application/json,.json"
+              aria-label={d.lookup.uploadTitle}
               className="hidden"
               onChange={handleFileChange}
               ref={fileInputRef}
               type="file"
             />
-            <Button
-              onClick={() => fileInputRef.current?.click()}
-              type="button"
-              variant="outline"
-            >
-              <Upload className="h-4 w-4" />
-              {d.lookup.chooseJson}
+            <Button onClick={() => fileInputRef.current?.click()} size="sm" variant="outline">
+              <Upload aria-hidden="true" size={15} />
+              {d.lookup.importJson}
             </Button>
+            <span className="work-hint">{d.lookup.importHint}</span>
           </div>
-        </section>
-      </div>
-
-      {error ? (
-        <div className="rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800" role="alert">
-          {error}
+          {error && <p className="work-error lookup-error" id="lookup-error" role="alert">{d.lookup[error]}</p>}
         </div>
-      ) : null}
-
-      <section className="rounded-lg border border-slate-200/80 bg-white/70 p-6">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h2 className="text-xl font-semibold text-slate-950">
-              {d.lookup.cachedTitle}
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              {d.lookup.cachedDescription}
-            </p>
-          </div>
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
-            {cachedAccess.length}/50
-          </span>
-        </div>
-
-        {cachedAccess.length > 0 ? (
-          <div className="mt-5 overflow-hidden rounded-lg border border-slate-200">
-            <div className="divide-y divide-slate-200">
-              {cachedAccess.map((access) => (
-                <div
-                  className="grid gap-4 bg-white/80 p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center"
-                  key={`${access.jobId}:${access.token}`}
-                >
-                  <div className="min-w-0 space-y-2">
-                    <div className="truncate font-medium text-slate-950">
-                      {access.jobId}
-                    </div>
-                    <dl className="grid gap-2 text-xs text-slate-600 sm:grid-cols-2">
-                      <div>
-                        <dt className="font-medium text-slate-500">
-                          {d.lookup.cachedCreatedAt}
-                        </dt>
-                        <dd>{formatCreatedAt(access.createdAt)}</dd>
-                      </div>
-                      <div>
-                        <dt className="font-medium text-slate-500">
-                          {d.lookup.cachedToken}
-                        </dt>
-                        <dd className="font-mono">{shortToken(access.token)}</dd>
-                      </div>
-                    </dl>
-                  </div>
-                  <div className="flex flex-wrap gap-2 md:justify-end">
-                    <Button
-                      onClick={() => restore(access.jobId, access.token)}
-                      size="sm"
-                      type="button"
-                    >
-                      {d.lookup.cachedRestore}
-                    </Button>
-                    <Button
-                      onClick={() => removeCachedAccess(access)}
-                      size="sm"
-                      type="button"
-                      variant="outline"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      {d.lookup.cachedDelete}
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className="mt-5 rounded-md border border-dashed border-slate-300 bg-slate-50/70 px-4 py-5 text-sm text-slate-600">
-            {d.lookup.cachedEmpty}
-          </div>
-        )}
       </section>
     </PageContainer>
   );

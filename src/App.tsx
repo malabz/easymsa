@@ -8,6 +8,8 @@ import { Header } from "./components/layout/Header";
 import { PageMetadata } from "./components/layout/PageMetadata";
 import { useLanguage } from "./lib/i18n/useLanguage";
 import { HomePage } from "./routes/HomePage";
+import { WorkReturnBar } from "./components/layout/WorkReturnBar";
+import "./components/layout/workspace.css";
 
 const AboutPage = lazy(() =>
   import("./routes/AboutPage").then((module) => ({ default: module.AboutPage }))
@@ -85,6 +87,7 @@ export function App() {
       <Header />
       <StorageNotice />
       <main className="flex-1" id="main-content" tabIndex={-1}>
+        <WorkReturnBar />
         <AppRoutes />
       </main>
       <Footer />

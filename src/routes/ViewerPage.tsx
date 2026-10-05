@@ -1,5 +1,5 @@
-import { FileText, Upload } from "lucide-react";
-import { type ChangeEvent, useMemo, useRef, useState } from "react";
+import { CheckCircle2, FilePlus2, FileText, Loader2, Upload } from "lucide-react";
+import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "../components/common/Button";
 import { PageContainer } from "../components/layout/PageContainer";
 import { MSAViewer } from "../components/results/MSAViewer";
@@ -10,7 +10,11 @@ import {
   MsaInputError
 } from "../features/msa-viewer/inputWorkerProtocol";
 import { useAlignmentInput } from "../features/msa-viewer/useAlignmentInput";
-import { createLocalViewerContext } from "../features/msa-viewer/viewerContext";
+import { Link } from "react-router-dom";
+import { loadExamples, loadExampleResult } from "../lib/examples";
+import { workspaceText } from "../lib/i18n/workspace";
+import { useDraftState, useRememberWork } from "../lib/workspace";
+import { createLocalViewerContext, type MsaViewerContext } from "../features/msa-viewer/viewerContext";
 import {
   estimateFastaSequenceCount,
   MAX_FASTA_CHARACTERS,
@@ -18,14 +22,19 @@ import {
 } from "../lib/utils/fasta";
 
 export function ViewerPage() {
-  const { dictionary: d } = useLanguage();
+  const { dictionary: d, locale } = useLanguage();
+  const t = workspaceText[locale];
+  useRememberWork("viewer");
+  const [examplePending, setExamplePending] = useState(false);
+  const [exampleContext, setExampleContext] = useDraftState<MsaViewerContext | null>("viewer:context", null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const loadGenerationRef = useRef(0);
   const { cancel: cancelInput, processInput } = useAlignmentInput();
-  const [pastedFasta, setPastedFasta] = useState("");
-  const [sourceName, setSourceName] = useState(d.viewerPage.uploadedSource);
-  const [alignment, setAlignment] = useState<MSAResult | null>(null);
+  const [pastedFasta, setPastedFasta] = useDraftState("viewer:paste", "");
+  const [sourceName, setSourceName] = useDraftState("viewer:name", d.viewerPage.uploadedSource);
+  const [alignment, setAlignment] = useDraftState<MSAResult | null>("viewer:alignment", null);
   const [error, setError] = useState<string | null>(null);
+  useEffect(() => () => { loadGenerationRef.current += 1; }, []);
   const pastedCharacterCount = pastedFasta.length;
   const pastedSequenceCount = useMemo(
     () => estimateFastaSequenceCount(pastedFasta),
@@ -49,9 +58,11 @@ export function ViewerPage() {
     name: string,
     request: Parameters<typeof processInput>[0]
   ) {
+    setExamplePending(false);
     try {
       const nextAlignment = await processInput(request);
       if (generation === loadGenerationRef.current) {
+        setExampleContext(null);
         setSourceName(name);
         setAlignment(nextAlignment);
         setError(null);
@@ -94,6 +105,7 @@ export function ViewerPage() {
 
     const generation = loadGenerationRef.current + 1;
     loadGenerationRef.current = generation;
+    setExamplePending(false);
     cancelInput();
 
     if (file.size > MAX_LOCAL_FASTA_BYTES) {
@@ -144,15 +156,40 @@ export function ViewerPage() {
   }
 
   function resetViewer() {
+    setExamplePending(false);
     loadGenerationRef.current += 1;
     cancelInput();
     setAlignment(null);
+    setExampleContext(null);
     setError(null);
   }
 
+  async function loadSample() {
+    const generation = ++loadGenerationRef.current;
+    cancelInput(); setExamplePending(true); setError(null);
+    try {
+      const example = (await loadExamples()).find(item => item.id === "alignment-small");
+      if (!example) throw new Error("EXAMPLE_UNAVAILABLE");
+      const result = await loadExampleResult(example, "final");
+      if (generation !== loadGenerationRef.current) return;
+      setAlignment(result.alignment); setExampleContext(result.context);
+      setSourceName("alignment-small.fasta");
+    } catch {
+      if (generation === loadGenerationRef.current) setError(t.exampleFailed);
+    } finally {
+      if (generation === loadGenerationRef.current) setExamplePending(false);
+    }
+  }
+
   const inputPanel = (
-    <section className="mx-auto max-w-3xl rounded-lg border border-slate-200/80 bg-white/70 p-5">
-      <h2 className="text-lg font-semibold text-slate-950">{d.viewerPage.input}</h2>
+    <section className="work-viewer-input">
+      <div className="work-input-heading">
+        <h2>{d.viewerPage.input}</h2>
+        <button type="button" className="work-link" disabled={examplePending} onClick={() => void loadSample()}>
+          {examplePending ? <Loader2 size={15} className="animate-spin" /> : <FilePlus2 size={15} />}
+          {examplePending ? t.exampleLoading : t.sample}
+        </button>
+      </div>
       <div className="mt-4 space-y-4">
         <input
           accept=".fa,.fasta,.fna,.faa,.txt,text/plain"
@@ -182,7 +219,7 @@ export function ViewerPage() {
             placeholder={d.viewerPage.pastePlaceholder}
             value={pastedFasta}
           />
-          <div className="rounded border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600">
+          <div className="text-xs leading-5 text-slate-600">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span>{pasteStatsText}</span>
               <span className={pastedTooLarge ? "font-medium text-rose-700" : "text-slate-500"}>
@@ -210,8 +247,8 @@ export function ViewerPage() {
 
   if (alignment) {
     return (
-      <PageContainer className="space-y-5">
-        <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 lg:flex-row lg:items-end lg:justify-between">
+      <PageContainer className="workflow-page space-y-5">
+        <div className="work-heading">
           <div className="min-w-0 space-y-2">
             <h1 className="text-3xl font-semibold text-slate-950">
               {d.viewerPage.title}
@@ -222,10 +259,10 @@ export function ViewerPage() {
                 : d.viewerPage.rawSequenceView}
             </p>
           </div>
-          <Button onClick={resetViewer} type="button" variant="outline">
+          <div className="work-heading-actions"><Link className="work-link" to="/docs">{t.help}</Link><Button onClick={resetViewer} type="button" variant="outline">
             <Upload className="h-4 w-4" />
             {d.viewerPage.newFasta}
-          </Button>
+          </Button></div>
         </div>
 
         <div className="grid gap-3 border-b border-slate-200 pb-5 text-sm text-slate-700 sm:grid-cols-2 lg:grid-cols-4">
@@ -255,9 +292,10 @@ export function ViewerPage() {
           </div>
         </div>
 
+        {exampleContext && <p role="status" className="work-feedback"><CheckCircle2 size={16} />{t.exampleLoaded}</p>}
         <MSAViewer
           alignment={alignment}
-          context={createLocalViewerContext(
+          context={exampleContext ?? createLocalViewerContext(
             alignment.descriptor?.sourceKind === "pasted" ? "pasted" : "local-file",
             sourceName
           )}
@@ -267,12 +305,10 @@ export function ViewerPage() {
   }
 
   return (
-    <PageContainer className="space-y-8">
-      <div className="max-w-3xl space-y-3">
-        <h1 className="text-4xl font-semibold text-slate-950">{d.viewerPage.title}</h1>
-        <p className="text-lg leading-8 text-slate-600">
-          {d.viewerPage.subtitle}
-        </p>
+    <PageContainer className="workflow-page">
+      <div className="work-heading">
+        <div><h1>{d.viewerPage.title}</h1><p>{d.viewerPage.subtitle}</p></div>
+        <Link className="work-link" to="/docs">{t.help}</Link>
       </div>
 
       {inputPanel}

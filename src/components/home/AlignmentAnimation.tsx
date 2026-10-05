@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { Pause, Play } from "lucide-react";
 import type { Locale } from "../../lib/i18n/dictionary";
 
 // Illustrative alignment: each row keeps its nucleotide identity as gaps open.
@@ -14,7 +13,6 @@ const offsets = [1, 2, -1, 0, 1.5];
 
 export function AlignmentAnimation({ locale }: { locale: Locale }) {
   const root = useRef<HTMLDivElement>(null);
-  const [paused, setPaused] = useState(false);
   const [active, setActive] = useState(true);
   const zh = locale === "zh";
 
@@ -35,12 +33,9 @@ export function AlignmentAnimation({ locale }: { locale: Locale }) {
   }, []);
 
   return (
-    <div className="alignment-animation" ref={root} data-paused={paused || !active}>
+    <div className="alignment-animation" ref={root} data-paused={!active}>
       <div className="alignment-animation-caption">
         <span>{zh ? "从序列，到对齐。" : "Sequences, brought into alignment."}</span>
-        <button className="alignment-animation-toggle" type="button" onClick={() => setPaused(value => !value)} aria-label={paused ? (zh ? "播放对齐动画" : "Play alignment animation") : (zh ? "暂停对齐动画" : "Pause alignment animation")}>
-          {paused ? <Play size={14} aria-hidden="true" /> : <Pause size={14} aria-hidden="true" />}
-        </button>
       </div>
       <div className="alignment-animation-matrix" role="img" aria-label={zh ? "五行核酸序列逐步对齐，显示共同位置和缺口" : "Five nucleotide sequences align into shared columns with gaps"}>
         {rows.map((row, rowIndex) => {

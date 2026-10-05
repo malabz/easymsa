@@ -1,0 +1,28 @@
+export const workspaceText = {
+  zh: {
+    input: "序列输入", settings: "任务设置", summary: "任务概要", sample: "载入示例",
+    auditHint: "检查并保留输入序列。", filterHint: "过滤标记的问题序列。",
+    exampleLoaded: "示例已载入 · 合成 DNA · 20 条序列", exampleResult: "查看示例结果",
+    exampleLoading: "正在载入…", exampleFailed: "无法载入示例，请重试。",
+    exampleReplace: "当前输入将被示例替换。", replace: "替换输入", cancel: "取消",
+    emailHint: "任务完成后发送通知与恢复链接。", inputPending: "等待序列输入",
+    fileReady: "文件已选择", pasteReady: "条序列", help: "使用帮助", methods: "方法说明",
+    inputHelp: "支持 FASTA 及压缩文件，最大 100 MiB。", saved: "本标签页内保留草稿",
+    returnTo: "继续之前的工作", submit: "返回提交任务", realign: "返回重比对", result: "返回比对结果", viewer: "返回查看器", job: "返回任务进度",
+    example: "返回示例结果", loadedViewer: "示例已载入", localOnly: "在浏览器中查看，无需提交任务。",
+    compactIntro: "上传或粘贴核酸序列，设置参数后提交。", newInput: "更换输入",
+  },
+  en: {
+    input: "Sequence input", settings: "Job settings", summary: "Job summary", sample: "Load example",
+    auditHint: "Check and retain input sequences.", filterHint: "Remove flagged sequences.",
+    exampleLoaded: "Example loaded · Synthetic DNA · 20 sequences", exampleResult: "View example result",
+    exampleLoading: "Loading…", exampleFailed: "Unable to load the example. Please retry.",
+    exampleReplace: "The example will replace your current input.", replace: "Replace input", cancel: "Cancel",
+    emailHint: "Receive a notification and recovery link on completion.", inputPending: "Waiting for sequence input",
+    fileReady: "File selected", pasteReady: "sequences", help: "Help", methods: "About methods",
+    inputHelp: "FASTA and compressed files, up to 100 MiB.", saved: "Draft kept in this tab",
+    returnTo: "Continue your work", submit: "Back to submission", realign: "Back to realignment", result: "Back to results", viewer: "Back to viewer", job: "Back to job status",
+    example: "Back to example results", loadedViewer: "Example loaded", localOnly: "Explore in your browser. No job submission needed.",
+    compactIntro: "Upload or paste nucleotide sequences, choose settings, and submit.", newInput: "Change input",
+  },
+} as const;

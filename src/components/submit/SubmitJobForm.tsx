@@ -1,11 +1,13 @@
 import { ExampleInputLoader } from "./ExampleInputLoader";
-import { loadExampleInput } from "../../lib/examples";
+import { TaskMetadataFields } from "./TaskMetadataFields";
+import { workspaceText } from "../../lib/i18n/workspace";
+import { clearDraft, forgetWork, readDraft, useDraftMetadata, useDraftState, useRememberWork } from "../../lib/workspace";
 import { RealignmentOptions } from "./RealignmentOptions";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ChevronDown, Loader2, SlidersHorizontal } from "lucide-react";
+import { CheckCircle2, ChevronDown, FileText, Loader2, SlidersHorizontal } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { taskMetadataSchema } from "../../lib/submit/taskMetadata";
 import { createJob } from "../../lib/api/jobs";
 import { jobRoute } from "../../lib/api/tokens";
@@ -25,7 +27,6 @@ import type {
 import { validateFasta } from "../../lib/utils/fasta";
 import { validateInputFile } from "../../lib/utils/fileValidation";
 import { Button } from "../common/Button";
-import { ServiceStatus } from "../common/ServiceStatus";
 import { AlgorithmParameterFields } from "./AlgorithmParameterFields";
 import { AlgorithmPicker } from "./AlgorithmPicker";
 import { FileUploadCard } from "./FileUploadCard";
@@ -40,19 +41,22 @@ type FormValues = {
 export function SubmitJobForm() {
   const { dictionary: d, locale } = useLanguage();
   const navigate = useNavigate();
-  const [inputMethod, setInputMethod] = useState<InputMethod>("paste");
-  const [realignEnabled, setRealignEnabled] = useState(false);
-  const [realignPattern, setRealignPattern] = useState<1 | 2>(1);
-  const [algorithm, setAlgorithm] = useState<AlignmentAlgorithm>("auto");
+  const t = workspaceText[locale];
+  useRememberWork("submit");
+  const [exampleLoaded, setExampleLoaded] = useDraftState("submit:example", false);
+  const [inputMethod, setInputMethod] = useDraftState<InputMethod>("submit:inputMethod", "paste");
+  const [realignEnabled, setRealignEnabled] = useDraftState("submit:realignEnabled", false);
+  const [realignPattern, setRealignPattern] = useDraftState<1 | 2>("submit:realignPattern", 1);
+  const [algorithm, setAlgorithm] = useDraftState<AlignmentAlgorithm>("submit:algorithm", "auto");
   const [algorithmParameterDraft, setAlgorithmParameterDraft] =
-    useState<AlgorithmParameterDraft>({ ...DEFAULT_ALGORITHM_PARAMETER_DRAFT });
+    useDraftState<AlgorithmParameterDraft>("submit:params", { ...DEFAULT_ALGORITHM_PARAMETER_DRAFT });
   const [algorithmParameterError, setAlgorithmParameterError] = useState<{
     field: "thread" | "mafftMaxiterate";
     error: AlgorithmParameterError;
   } | null>(null);
-  const [preprocessMode, setPreprocessMode] = useState<PreprocessMode>("audit");
-  const [pastedSequence, setPastedSequence] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+  const [preprocessMode, setPreprocessMode] = useDraftState<PreprocessMode>("submit:preprocess", "audit");
+  const [pastedSequence, setPastedSequence] = useDraftState("submit:paste", "");
+  const [file, setFile] = useDraftState<File | null>("submit:file", null);
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const submissionInFlight = useRef(false);
@@ -64,16 +68,17 @@ export function SubmitJobForm() {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors }
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      jobName: "",
-      email: ""
-    }
+    defaultValues: readDraft("submit:metadata", { jobName: "", email: "" })
   });
 
+  useDraftMetadata("submit:metadata", watch);
+
   function loadExample(file: File) {
+    setExampleLoaded(true);
     setInputMethod("upload");setFile(file);setAlgorithm("minipoa");setPreprocessMode("audit");
     setRealignEnabled(false);setRealignPattern(1);setAlgorithmParameterDraft({...DEFAULT_ALGORITHM_PARAMETER_DRAFT});
     setAlgorithmParameterError(null);setFormError(null);setValue("jobName", "Synthetic DNA example");
@@ -88,6 +93,7 @@ export function SubmitJobForm() {
   const submissionBlocked =
     serviceHealth.isPending ||
     serviceHealth.isError ||
+    serviceHealth.data?.coreReady === false ||
     serviceHealth.data?.acceptingJobs === false ||
     selectedAlgorithmBlocked || (realignEnabled && serviceHealth.data?.realignment?.enabled === true && !serviceHealth.data.realignment.available);
   const maxThreadPerJob = serviceHealth.data?.maxThreadPerJob ?? null;
@@ -149,6 +155,8 @@ export function SubmitJobForm() {
         preprocessMode
       });
 
+      clearDraft("submit");
+      forgetWork("submit");
       navigate(
         response.token
           ? jobRoute(response.jobId, response.token)
@@ -166,176 +174,79 @@ export function SubmitJobForm() {
     }
   }
 
+  const sequenceCount = useMemo(() => validateFasta(pastedSequence).sequenceCount, [pastedSequence]);
+  const summaryInput = inputMethod === "upload" ? file?.name || t.inputPending
+    : pastedSequence.trim() ? `${sequenceCount} ${t.pasteReady}` : t.inputPending;
+
   return (
-    <section className="rounded-2xl border border-slate-200/80 bg-white/70 p-5 shadow-sm sm:p-7">
-      <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-        <ServiceStatus />
-        <ExampleInputLoader kind="alignment" disabled={submitting} onLoad={loadExample} />
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-800" htmlFor="jobName">
-              {d.submit.jobName}
-            </label>
-            <input
-              className="h-10 w-full rounded-md border border-slate-300 bg-white/80 px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
-              id="jobName"
-              aria-describedby={errors.jobName ? "jobName-error" : undefined}
-              aria-invalid={Boolean(errors.jobName)}
-              placeholder={d.submit.jobNamePlaceholder}
-              {...register("jobName")}
-            />
-            {errors.jobName ? (
-              <p className="text-sm text-rose-700" id="jobName-error" role="alert">{errors.jobName.message}</p>
-            ) : null}
+    <form onSubmit={handleSubmit(onSubmit)} noValidate aria-busy={submitting}>
+      <fieldset disabled={submitting} className="work-grid">
+        <legend className="sr-only">{d.submit.title}</legend>
+        <div className="work-input">
+          <div className="work-input-heading">
+            <h2>{t.input}</h2>
+            <ExampleInputLoader kind="alignment" disabled={submitting} hasInput={Boolean(file || pastedSequence.trim())}
+              onLoad={loadExample} />
           </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-800" htmlFor="email">
-              {d.submit.email}{" "}
-              <span className="font-normal text-slate-500">
-                ({d.common.optional})
-              </span>
-            </label>
-            <input
-              className="h-10 w-full rounded-md border border-slate-300 bg-white/80 px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
-              id="email"
-              aria-describedby={errors.email ? "email-error" : "email-hint"}
-              aria-invalid={Boolean(errors.email)}
-              placeholder={d.submit.emailPlaceholder}
-              type="email"
-              {...register("email")}
-            />
-            {errors.email ? (
-              <p className="text-sm text-rose-700" id="email-error" role="alert">{errors.email.message}</p>
-            ) : (
-              <p className="text-xs leading-5 text-slate-500" id="email-hint">
-                {d.submit.emailHint}
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <p className="text-sm font-medium text-slate-800">
-            {d.submit.inputMethod}
-          </p>
           <InputMethodTabs value={inputMethod} onChange={handleMethodChange} />
-        </div>
-
-        <details className="group rounded-xl border border-slate-200 bg-slate-50/70">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 text-sm font-semibold text-slate-800">
-            <span className="flex items-center gap-2">
-              <SlidersHorizontal className="h-4 w-4 text-teal-700" />
-              {d.submit.advancedSettings}
-              <span className="font-normal text-slate-500">
-                · {d.submit.algorithms[algorithm]} / {d.submit.preprocessModes[preprocessMode]}
-              </span>
-            </span>
-            <ChevronDown className="h-4 w-4 transition group-open:rotate-180" />
-          </summary>
-          <div className="space-y-5 border-t border-slate-200 p-4">
-            <div className="grid gap-2 sm:grid-cols-[12rem_1fr] sm:items-start">
-              <p className="text-sm font-medium text-slate-800 sm:pt-2.5" id="alignmentAlgorithmLabel">
-                {d.submit.algorithm}
-              </p>
-              <div className="space-y-2">
-                <AlgorithmPicker
-                  isDisabled={algorithmUnavailable}
-                  labelledBy="alignmentAlgorithmLabel"
-                  onChange={(value) => {
-                    setAlgorithm(value);
-                    setAlgorithmParameterError(null);
-                    setFormError(null);
-                  }}
-                  value={algorithm}
-                />
-                <p className="text-xs leading-5 text-slate-500">{d.submit.algorithmHint}</p>
-              </div>
-            </div>
-
-            <AlgorithmParameterFields
-              algorithm={algorithm}
-              error={algorithmParameterError}
-              maxThreadPerJob={maxThreadPerJob}
-              onChange={handleAlgorithmParameterChange}
-              onReset={() => {
-                setAlgorithmParameterDraft({ ...DEFAULT_ALGORITHM_PARAMETER_DRAFT });
-                setAlgorithmParameterError(null);
-                setFormError(null);
-              }}
-              value={algorithmParameterDraft}
-            />
-
-            <div className="grid gap-3 sm:grid-cols-[12rem_1fr]">
-              <p className="text-sm font-medium text-slate-800 sm:pt-2.5" id="preprocessModeLabel">
-                {d.submit.preprocessMode}
-              </p>
-              <div aria-labelledby="preprocessModeLabel" className="grid gap-2 sm:grid-cols-2" role="radiogroup">
-                {(["audit", "filter"] as const).map((mode) => {
-                  const selected = preprocessMode === mode;
-                  return (
-                    <button
-                      aria-checked={selected}
-                      className={`rounded-md border px-3 py-2 text-left text-sm transition ${selected ? "border-teal-600 bg-teal-50 text-slate-950 ring-1 ring-teal-100" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"}`}
-                      key={mode}
-                      onClick={() => setPreprocessMode(mode)}
-                      role="radio"
-                      type="button"
-                    >
-                      <span className="block font-medium">{d.submit.preprocessModes[mode]}</span>
-                      <span className="mt-1 block text-xs leading-5 text-slate-500">{d.submit.preprocessModeDescriptions[mode]}</span>
-                    </button>
-                  );
-                })}
-              </div>
+          <div aria-labelledby="input-tab-paste" hidden={inputMethod !== "paste"} id="input-panel-paste" role="tabpanel">
+            <div className="work-paste">
+              <PasteSequenceInput value={pastedSequence} onChange={value => { setPastedSequence(value); setExampleLoaded(false); setFormError(null); }} />
             </div>
           </div>
-        </details>
-
-        <div
-          aria-labelledby="input-tab-paste"
-          hidden={inputMethod !== "paste"}
-          id="input-panel-paste"
-          role="tabpanel"
-        >
-          <PasteSequenceInput
-            onChange={setPastedSequence}
-            onLoadExample={() => {
-              void loadExampleInput("alignment-small").then(({file})=>loadExample(file)).catch(()=>setFormError(locale === "zh" ? "无法载入示例文件。" : "Unable to load example file."));
-            }}
-            value={pastedSequence}
-          />
-        </div>
-
-        <div
-          aria-labelledby="input-tab-upload"
-          hidden={inputMethod !== "upload"}
-          id="input-panel-upload"
-          role="tabpanel"
-        >
-          <FileUploadCard file={file} disabled={submitting} onChange={next => { setFile(next); setFormError(null); }} />
-        </div>
-
-        {serviceHealth.data?.realignment?.enabled && <RealignmentOptions limits={serviceHealth.data.realignment} enabled={realignEnabled} onEnabled={setRealignEnabled} pattern={realignPattern} onPattern={setRealignPattern} disabled={submitting} unavailable={!serviceHealth.data.realignment.available} />}
-
-        {formError ? (
-          <div className="rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800" role="alert">
-            {formError}
+          <div aria-labelledby="input-tab-upload" hidden={inputMethod !== "upload"} id="input-panel-upload" role="tabpanel">
+            <FileUploadCard compact file={file} disabled={submitting}
+              onChange={value => { setFile(value); setExampleLoaded(false); setFormError(null); }} />
           </div>
-        ) : null}
-
-        {selectedAlgorithmBlocked ? (
-          <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900" role="alert">
-            {d.submit.selectedAlgorithmUnavailable}
+          {exampleLoaded && inputMethod === "upload" && file && <div className="work-feedback" role="status">
+            <CheckCircle2 size={16} aria-hidden="true" /><span>{t.exampleLoaded}</span>
+            <Link to="/examples/alignment-small">{t.exampleResult}</Link>
+          </div>}
+          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+            <p className="work-hint">{t.inputHelp}</p>
+            <Link className="work-link" to="/docs">{t.help}</Link>
           </div>
-        ) : null}
-
-        <div className="flex justify-end">
-          <Button disabled={submitting || submissionBlocked} type="submit">
-            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            {submitting ? d.submit.submitting : d.common.submit}
-          </Button>
         </div>
-      </form>
-    </section>
+        <div className="work-settings" aria-label={t.settings}>
+          <TaskMetadataFields register={register} errors={errors} disabled={submitting} />
+          <div className="work-field">
+            <p id="alignmentAlgorithmLabel" className="work-label">{d.submit.algorithm}</p>
+            <AlgorithmPicker compact value={algorithm} labelledBy="alignmentAlgorithmLabel" isDisabled={algorithmUnavailable}
+              onChange={value => { setAlgorithm(value); setAlgorithmParameterError(null); setFormError(null); }} />
+          </div>
+          <div className="work-field">
+            <p id="preprocessModeLabel" className="work-label">{d.submit.preprocessMode}</p>
+            <div className="work-radios" role="radiogroup" aria-labelledby="preprocessModeLabel">
+              {(["audit", "filter"] as const).map(mode => <label key={mode}>
+                <input type="radio" name="preprocessMode" value={mode} checked={preprocessMode === mode} onChange={() => setPreprocessMode(mode)} />
+                <span>{d.submit.preprocessModes[mode]}<small>{mode === "audit" ? t.auditHint : t.filterHint}</small></span>
+              </label>)}
+            </div>
+          </div>
+          <details className="work-parameters" open={algorithmParameterError ? true : undefined}>
+            <summary><span><SlidersHorizontal size={15} />{d.submit.algorithmParameters.title}</span><ChevronDown size={15} /></summary>
+            <AlgorithmParameterFields algorithm={algorithm} error={algorithmParameterError}
+              maxThreadPerJob={maxThreadPerJob} value={algorithmParameterDraft} onChange={handleAlgorithmParameterChange}
+              onReset={() => { setAlgorithmParameterDraft({ ...DEFAULT_ALGORITHM_PARAMETER_DRAFT }); setAlgorithmParameterError(null); setFormError(null); }} />
+          </details>
+          {serviceHealth.data?.realignment?.enabled && <RealignmentOptions limits={serviceHealth.data.realignment}
+            enabled={realignEnabled} onEnabled={setRealignEnabled} pattern={realignPattern} onPattern={setRealignPattern}
+            disabled={submitting} unavailable={!serviceHealth.data.realignment.available} />}
+        </div>
+      </fieldset>
+      {formError && <p className="work-error py-3" role="alert">{formError}</p>}
+      {selectedAlgorithmBlocked && <p className="text-sm text-amber-900 py-3" role="alert">{d.submit.selectedAlgorithmUnavailable}</p>}
+      <div className="work-actionbar">
+        <div className="work-summary">
+          <strong><FileText size={16} />{t.summary}</strong>
+          <span className="max-w-64 truncate" title={summaryInput}>{summaryInput}</span>
+          <span>{algorithm === "minipoa" ? "MiniPOA" : d.submit.algorithms[algorithm]} · {d.submit.preprocessModes[preprocessMode]}</span>
+        </div>
+        <Button disabled={submitting || submissionBlocked} type="submit">
+          {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+          {submitting ? d.submit.submitting : d.common.submit}
+        </Button>
+      </div>
+    </form>
   );
 }

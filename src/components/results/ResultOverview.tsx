@@ -114,7 +114,7 @@ function MetricCard({
   value: string;
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/40">
+    <div className="metric-item rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/40">
       <p className="flex items-center gap-2 text-sm font-medium text-slate-600">
         <Icon className="h-4 w-4 text-teal-700" />
         {label}
@@ -194,7 +194,7 @@ function OutputFiles({
   );
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <section className="overview-section rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
           <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-950">
@@ -358,8 +358,8 @@ export function ResultOverview({
   }
 
   return (
-    <div className="space-y-6">
-      <section className="overflow-hidden rounded-2xl border border-teal-200 bg-gradient-to-br from-teal-50 via-white to-cyan-50 p-6 shadow-sm sm:p-8">
+    <div className="result-overview space-y-6">
+      <section className="overview-intro overflow-hidden rounded-2xl border border-teal-200 bg-gradient-to-br from-teal-50 via-white to-cyan-50 p-6 shadow-sm sm:p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-3xl space-y-3">
             <p className="inline-flex items-center gap-2 rounded-full bg-teal-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-teal-800">
@@ -395,7 +395,7 @@ export function ResultOverview({
           </h3>
           <p className="mt-1 text-sm text-slate-600">{t.summary.description}</p>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+        <div className="overview-metrics grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
           {metrics.map((metric) => <MetricCard {...metric} key={metric.key} />)}
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
@@ -412,7 +412,7 @@ export function ResultOverview({
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[0.78fr_1.22fr]">
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <section className="overview-section rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           <div className="space-y-1">
             <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-950">
               <Workflow className="h-5 w-5 text-teal-700" />
@@ -460,7 +460,7 @@ export function ResultOverview({
           ) : null}
         </section>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <section className="overview-section rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           <div className="space-y-1">
             <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-950">
               <FlaskConical className="h-5 w-5 text-teal-700" />

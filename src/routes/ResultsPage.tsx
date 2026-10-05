@@ -10,8 +10,7 @@ import { Button } from "../components/common/Button";
 import { ErrorState } from "../components/common/ErrorState";
 import { PageContainer } from "../components/layout/PageContainer";
 import {
-  ResultTabs,
-  type ResultTab
+  ResultTabs
 } from "../components/results/ResultTabs";
 import { getDownloadFiles } from "../lib/api/results";
 import {
@@ -22,6 +21,8 @@ import {
 import { useLanguage } from "../lib/i18n/useLanguage";
 import { useAlignmentResult, useResultSummary } from "../lib/query/useJobResults";
 import { createServerViewerContext } from "../features/msa-viewer/viewerContext";
+import { useRememberWork, useResultLocation } from "../lib/workspace";
+import { workspaceText } from "../lib/i18n/workspace";
 
 
 
@@ -30,8 +31,8 @@ export function ResultsPage() {
   const [searchParams] = useSearchParams();
   const { dictionary: d, locale } = useLanguage();
   const t = realignText[locale];
-  const [stage, setStage] = useState<ResultStage>("final");
-  const [activeTab, setActiveTab] = useState<ResultTab>("overview");
+  const { stage, setStage, tab: activeTab, setTab: setActiveTab } = useResultLocation();
+  useRememberWork("result");
   const [access, setAccess] = useState<JobAccess | null>(null);
   const queryToken = searchParams.get("token");
   const jobId = routeJobId ? decodeURIComponent(routeJobId) : null;
@@ -75,25 +76,27 @@ export function ResultsPage() {
   const error = accessError ?? activeError;
 
   return (
-    <PageContainer className="space-y-8">
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-        <div className="max-w-3xl space-y-3">
-          <h1 className="text-4xl font-semibold text-slate-950">{d.results.title}</h1>
-          <p className="text-lg leading-8 text-slate-600">{d.results.subtitle}</p>
+    <PageContainer className="workflow-page">
+      <div className="work-heading">
+        <div>
+          <h1>{d.results.title}</h1>
           {jobId ? (
             <p className="font-mono text-sm text-slate-500">{jobId}</p>
           ) : null}
         </div>
-        <ResultTabs value={activeTab} onChange={setActiveTab} />
+        <Link className="work-link" to="/docs">{workspaceText[locale].help}</Link>
       </div>
 
       {jobQuery.data && <RealignmentNotice job={jobQuery.data} token={access?.token ?? ""} />}
+      <div className="work-result-toolbar">
+      <ResultTabs value={activeTab} onChange={setActiveTab} />
       {refinement?.initialAvailable && <label className="flex flex-wrap items-center gap-3 text-sm font-medium">{t.resultVersion}
         <select aria-label={t.resultVersion} className="rounded border p-2" value={stage} onChange={event => setStage(event.target.value as ResultStage)}>
           <option value="final">{t.final}</option><option value="initial">{t.initial}</option>
           {refinement.refinedAvailable && <option value="refined">{t.refined}</option>}
         </select>
       </label>}
+      </div>
       {error ? (
         <div className="space-y-4">
           <ErrorState message={error} />
@@ -111,10 +114,10 @@ export function ResultsPage() {
         </div>
       ) : null}
 
-      <ResultPanels activeTab={activeTab} setActiveTab={setActiveTab} summary={summaryQuery.data}
+      <div className="work-result-body"><ResultPanels activeTab={activeTab} setActiveTab={setActiveTab} summary={summaryQuery.data}
         alignment={alignmentQuery.data} summaryPending={summaryQuery.isPending} alignmentPending={alignmentQuery.isPending}
         alignmentError={alignmentQuery.error instanceof Error ? alignmentQuery.error.message : null} error={error}
-        files={access ? files : []} context={summaryQuery.data ? createServerViewerContext(summaryQuery.data, files) : undefined} />
+        files={access ? files : []} context={summaryQuery.data ? createServerViewerContext(summaryQuery.data, files) : undefined} /></div>
     </PageContainer>
   );
 }

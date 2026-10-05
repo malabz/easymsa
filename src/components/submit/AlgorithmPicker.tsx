@@ -7,13 +7,15 @@ type AlgorithmPickerProps = {
   isDisabled: (value: AlignmentAlgorithm) => boolean;
   onChange: (value: AlignmentAlgorithm) => void;
   labelledBy?: string;
+  compact?: boolean;
 };
 
 export function AlgorithmPicker({
   value,
   isDisabled,
   onChange,
-  labelledBy
+  labelledBy,
+  compact = false
 }: AlgorithmPickerProps) {
   const { dictionary: d } = useLanguage();
   const t = d.submit;
@@ -52,6 +54,13 @@ export function AlgorithmPicker({
   ];
 
   const selectedOption = options.find((option) => option.value === value);
+
+  if (compact) return <div className="work-field">
+    <select className="work-control" value={value} aria-label={labelledBy ? undefined : t.algorithm} aria-labelledby={labelledBy} onChange={event => onChange(event.target.value as AlignmentAlgorithm)}>
+      {options.map(option => <option key={option.value} value={option.value} disabled={isDisabled(option.value)}>{option.value === "minipoa" ? "MiniPOA" : option.label}</option>)}
+    </select>
+    <p className="work-hint">{selectedOption?.description}</p>
+  </div>;
 
   return (
     <div className="space-y-2">

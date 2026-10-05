@@ -1,12 +1,10 @@
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import { cn } from "../../lib/utils/cn";
 import { Button } from "../common/Button";
 import { LanguageToggle } from "./LanguageToggle";
-
-import { useServiceHealth } from "../../lib/query/useServiceHealth";
 
 const navItems = [
   { to: "/", key: "home" },
@@ -14,14 +12,14 @@ const navItems = [
   { to: "/realign", key: "realign" },
   { to: "/viewer", key: "viewer" },
   { to: "/lookup", key: "lookup" },
-  { to: "/examples", key: "examples" },
   { to: "/docs", key: "docs" },
   { to: "/about", key: "about" }
 ] as const;
 
 export function Header() {
+  const { pathname } = useLocation();
+  const workspace = /^\/(submit|realign|results|viewer|examples|lookup)(\/|$)/.test(pathname);
   const { dictionary: d } = useLanguage();
-  const health = useServiceHealth();
   const [open, setOpen] = useState(false);
 
   const nav = (
@@ -29,7 +27,7 @@ export function Header() {
       aria-label={d.common.primaryNavigation}
       className="flex flex-col gap-1 lg:flex-row lg:items-center lg:gap-0.5"
     >
-      {navItems.filter(item => item.key !== "realign" || health.data?.realignment?.enabled).map((item) => (
+      {navItems.map((item) => (
         <NavLink
           className={({ isActive }) =>
             cn(
@@ -52,7 +50,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
-      <div className="mx-auto flex min-h-16 max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-2 sm:px-6 lg:px-8">
+      <div className={cn("mx-auto flex min-h-16 max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-2 sm:px-6 lg:px-8", workspace && "workspace-navigation")}>
         <NavLink className="flex items-center gap-2" to="/">
           <img src={`${import.meta.env.BASE_URL}brand/easymsa-mark.svg`} width={36} height={36} className="h-9 w-9" alt="" />
           <span className="text-base font-semibold tracking-tight text-slate-950">easymsa</span>

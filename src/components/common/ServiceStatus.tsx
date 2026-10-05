@@ -4,7 +4,7 @@ import { useServiceHealth } from "../../lib/query/useServiceHealth";
 import { cn } from "../../lib/utils/cn";
 import { Button } from "./Button";
 
-export function ServiceStatus({ compact = false }: { compact?: boolean }) {
+export function ServiceStatus({ compact = false, inline = false }: { compact?: boolean; inline?: boolean }) {
   const { dictionary: d } = useLanguage();
   const health = useServiceHealth();
 
@@ -39,6 +39,12 @@ export function ServiceStatus({ compact = false }: { compact?: boolean }) {
     }
   }[status];
   const Icon = config.Icon;
+
+  if (inline) return <div className="work-status" data-status={status} role="status">
+    <Icon size={15} aria-hidden="true" />{config.label}
+    {health.data?.queueLength != null && !health.isError && <span>· {d.common.queueJobs.replace("{count}", String(health.data.queueLength))}</span>}
+    {status !== "ready" && <button type="button" aria-label={d.common.retry} onClick={() => health.refetch()}><RefreshCw size={14} /></button>}
+  </div>;
 
   if (compact) {
     return (

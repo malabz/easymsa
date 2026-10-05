@@ -20,7 +20,7 @@ export function RealignmentOptions({ enabled = true, onEnabled, pattern, onPatte
     : `Up to ${limits.maxSequences.toLocaleString()} sequences, ${limits.maxColumns.toLocaleString()} columns, and ${limits.maxCells.toLocaleString()} alignment characters. ACGT or ACGU with gaps (-); ambiguous bases are unsupported.`) : t.limits;
 
   return (
-    <section className="space-y-3 rounded-xl border border-teal-200 bg-teal-50/50 p-4">
+    <section className="realign-options space-y-3 rounded-xl border border-teal-200 bg-teal-50/50 p-4">
       {!onEnabled && <h2 className="text-sm font-semibold text-slate-800">{t.inputRequirements}</h2>}
       {onEnabled && <label className="flex items-start gap-3 font-medium text-slate-900">
         <input type="checkbox" id="realignEnabled" className="mt-1 h-4 w-4 shrink-0 accent-teal-700 focus-visible:ring-2 focus-visible:ring-teal-600" checked={enabled} disabled={unavailable || disabled} onChange={event => onEnabled(event.target.checked)} />

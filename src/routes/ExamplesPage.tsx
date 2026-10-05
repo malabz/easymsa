@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
-import { useState } from "react";
+import { useRememberWork, useResultLocation } from "../lib/workspace";
 import { PageContainer } from "../components/layout/PageContainer";
 import { ButtonLink } from "../components/common/Button";
 import { LoadingState } from "../components/common/LoadingState";
 import { ErrorState } from "../components/common/ErrorState";
 import { ResultPanels } from "../components/results/ResultPanels";
-import { ResultTabs, type ResultTab } from "../components/results/ResultTabs";
+import { ResultTabs } from "../components/results/ResultTabs";
 import {
   exampleTitle,
   exampleUrl,
@@ -29,16 +29,15 @@ export function ExamplesPage() {
   });
   const example = query.data?.find((e) => e.id === exampleId);
   return (
-    <PageContainer className="space-y-8">
-      <div className="max-w-3xl space-y-3">
-        <h1 className="text-4xl font-semibold text-slate-950">
-          {zh ? "交互式示例" : "Interactive examples"}
-        </h1>
-        <p className="text-lg leading-8 text-slate-600">
+    <PageContainer className="workflow-page">
+      <div className="work-heading">
+        <div><h1>{example ? exampleTitle(example, locale) : zh ? "交互式示例" : "Interactive examples"}</h1>
+        {!example && <p>
           {zh
             ? "使用示例体验比对结果浏览、阶段切换与下载。"
             : "Explore alignment results, switch between stages, and download example files."}
-        </p>
+        </p>}</div>
+        {example && <Link className="work-link" to="/examples">{zh ? "所有示例" : "All examples"}</Link>}
       </div>
       {query.isPending ? (
         <LoadingState />
@@ -67,7 +66,7 @@ export function ExamplesPage() {
           {query.data?.map((e) => (
             <section
               key={e.id}
-              className="space-y-5 rounded-2xl border bg-white p-6 shadow-sm"
+              className="space-y-4 border-t border-slate-200 py-5"
             >
               <h2 className="text-2xl font-semibold">
                 {exampleTitle(e, locale)}
@@ -91,7 +90,7 @@ export function ExamplesPage() {
           ))}
         </div>
       )}
-      <p className="text-sm leading-7 text-slate-600">
+      <p className="work-hint mt-5">
         {zh
           ? "示例使用合成 DNA，由 MiniPOA 和 ReAlign-N 计算，随网站版本长期提供。"
           : "These synthetic DNA examples were computed with MiniPOA and ReAlign-N and remain available with the website."}
@@ -99,14 +98,14 @@ export function ExamplesPage() {
     </PageContainer>
   );
 }
-export function ExampleActions({ example }: { example: PublicExample }) {
+export function ExampleActions({ example, showView = true }: { example: PublicExample; showView?: boolean }) {
   const { locale } = useLanguage();
   const zh = locale === "zh";
   return (
     <div className="flex flex-wrap items-center gap-4 text-sm">
-      <ButtonLink to={`/examples/${example.id}`}>
+      {showView && <ButtonLink to={`/examples/${example.id}`}>
         {zh ? "查看示例结果" : "View example results"}
-      </ButtonLink>
+      </ButtonLink>}
       <a className={link} href={exampleUrl(example, "input.fasta")} download>
         {zh ? "下载输入 FASTA" : "Download input FASTA"}
       </a>
@@ -131,8 +130,8 @@ export function ExampleActions({ example }: { example: PublicExample }) {
 function ExampleResult({ example }: { example: PublicExample }) {
   const { locale } = useLanguage();
   const zh = locale === "zh";
-  const [stage, setStage] = useState<ResultStage>("final");
-  const [tab, setTab] = useState<ResultTab>("overview");
+  const { stage, setStage, tab, setTab } = useResultLocation();
+  useRememberWork("example");
   const query = useQuery({
     queryKey: ["public-example", example.id, example.version, stage],
     queryFn: ({ signal }) => loadExampleResult(example, stage, signal),
@@ -145,16 +144,10 @@ function ExampleResult({ example }: { example: PublicExample }) {
       : "Example files are missing or failed integrity verification. Please reload."
     : null;
   return (
-    <div className="space-y-6">
-      <Link className={link} to="/examples">
-        ← {zh ? "所有示例" : "All examples"}
-      </Link>
-      <h2 className="text-2xl font-semibold">
-        {exampleTitle(example, locale)}
-      </h2>
-      <ExampleActions example={example} />
+    <div className="space-y-4">
+      <ExampleActions example={example} showView={false} />
       {example.kind === "realignment" && (
-        <section className="space-y-3 rounded-xl border border-teal-200 bg-teal-50 p-4 text-teal-950">
+        <section className="flex flex-wrap gap-x-4 gap-y-1 border-l-2 border-teal-700 pl-3 text-xs leading-6 text-slate-600">
           <p>
             {zh
               ? "ReAlign-N · 先局部后全局。最终结果为重比对结果。"
@@ -178,7 +171,8 @@ function ExampleResult({ example }: { example: PublicExample }) {
           </a>
         </section>
       )}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="work-result-toolbar">
+        <ResultTabs value={tab} onChange={setTab} />
         <label className="flex items-center gap-3 text-sm font-medium">
           {zh ? "结果版本" : "Result version"}
           <select
@@ -196,10 +190,9 @@ function ExampleResult({ example }: { example: PublicExample }) {
             ))}
           </select>
         </label>
-        <ResultTabs value={tab} onChange={setTab} />
       </div>
       {error && <ErrorState message={error} />}
-      <ResultPanels
+      <div className="work-result-body"><ResultPanels
         key={`${example.id}:${example.version}:${stage}`}
         activeTab={tab}
         setActiveTab={setTab}
@@ -210,7 +203,7 @@ function ExampleResult({ example }: { example: PublicExample }) {
         summaryPending={query.isPending}
         alignmentPending={query.isPending}
         error={error}
-      />
+      /></div>
       <div className="flex flex-wrap gap-4 text-sm">
         <a
           className={link}
