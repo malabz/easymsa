@@ -284,11 +284,12 @@ function trimStore(store: WorkspaceStore) {
 
 export function saveWorkspaceSnapshot(
   storage: Storage,
-  snapshot: MsaWorkspaceSnapshotV1
+  snapshot: MsaWorkspaceSnapshotV1,
+  storageKey = snapshot.source.fingerprint
 ) {
   const valid = workspaceSnapshotSchema.parse(snapshot);
   const store = readStore(storage);
-  store.entries[valid.source.fingerprint] = {
+  store.entries[storageKey] = {
     snapshot: valid,
     touchedAt: valid.updatedAt
   };
@@ -306,6 +307,17 @@ export function loadWorkspaceSnapshot(
   fingerprint: string
 ): MsaWorkspaceSnapshotV1 | null {
   return readStore(storage).entries[fingerprint]?.snapshot ?? null;
+}
+
+/** Move an unscoped legacy entry once; subsequent jobs/stages start independently. */
+export function claimLegacyWorkspaceSnapshot(storage: Storage, fingerprint: string, storageKey: string) {
+  const store = readStore(storage);
+  const entry = store.entries[fingerprint];
+  if (!entry) return null;
+  store.entries[storageKey] = entry;
+  delete store.entries[fingerprint];
+  try { storage.setItem(WORKSPACE_STORAGE_KEY, JSON.stringify(trimStore(store))); } catch { return null; }
+  return entry.snapshot;
 }
 
 export function exportWorkspaceSnapshot(snapshot: MsaWorkspaceSnapshotV1) {

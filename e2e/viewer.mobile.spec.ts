@@ -12,7 +12,7 @@ test.beforeEach(async ({ page }) => {
 
 test("trusted taps select DOM and Canvas cells, operate the minimap, and open a trapped bottom sheet", async ({ page }, testInfo) => {
   await loadNamedFixture(page, "detail-touch");
-  await page.getByRole("button", { name: "Expand workspace", exact: true }).click();
+  await page.getByRole("button", { name: "Full screen", exact: true }).click();
   await settleBrowser(page);
   const status = page.locator("[data-msa-status='true']");
   await page.locator("[data-msa-scroll-viewport='true']").evaluate((element) => {
@@ -46,13 +46,13 @@ test("trusted taps select DOM and Canvas cells, operate the minimap, and open a 
   });
   await expect(status).toHaveAttribute("data-msa-selected-position", expectedPosition ?? "1");
 
-  await page.getByRole("button", { name: "Close analysis inspector" }).tap();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   const settingsButton = page.getByRole("button", { name: "Workspace settings" });
   await settingsButton.tap();
-  const sheet = page.getByRole("dialog", { name: "Workspace settings" });
+  const sheet = page.getByRole("dialog", { name: "View" });
   await expect(sheet).toBeVisible();
   await expect(sheet).toHaveAttribute("data-overlay-variant", "bottom-sheet");
-  await expect(page.locator("[data-msa-settings-dock='true']")).toHaveCount(0);
+  await expect(sheet.locator("[data-msa-settings-dock='true']")).toBeVisible();
   expect(await sheet.evaluate((surface) => surface.contains(document.activeElement))).toBe(true);
   for (let index = 0; index < 10; index += 1) await page.keyboard.press("Tab");
   expect(await sheet.evaluate((surface) => surface.contains(document.activeElement))).toBe(true);
@@ -77,7 +77,7 @@ test("trusted taps select DOM and Canvas cells, operate the minimap, and open a 
   }
 
   await page.getByLabel("Matrix display mode").selectOption("overview");
-  await page.getByRole("button", { name: "Close settings" }).tap();
+  await page.getByRole("button", { name: "Close panel" }).tap();
   await expect(settingsButton).toBeFocused();
   const canvas = page.locator("canvas[data-msa-canvas='true']");
   await expect(canvas).toBeVisible();
@@ -90,7 +90,7 @@ test("trusted taps select DOM and Canvas cells, operate the minimap, and open a 
   });
   await expect(status).not.toHaveAttribute("data-msa-selected-position", "");
 
-  await page.getByRole("button", { name: "Close analysis inspector" }).tap();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   const navigator = page.getByRole("slider", { name: /Alignment overview navigator/ });
   const navigatorBox = await locatorBox(navigator);
   await navigator.tap({

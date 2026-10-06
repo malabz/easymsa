@@ -247,54 +247,12 @@ export function ViewerPage() {
 
   if (alignment) {
     return (
-      <PageContainer className="workflow-page space-y-5">
-        <div className="work-heading">
-          <div className="min-w-0 space-y-2">
-            <h1 className="text-3xl font-semibold text-slate-950">
-              {d.viewerPage.title}
-            </h1>
-            <p className="max-w-4xl text-sm leading-6 text-slate-600">
-              {isLengthConsistent
-                ? d.viewerPage.equalLength
-                : d.viewerPage.rawSequenceView}
-            </p>
-          </div>
-          <div className="work-heading-actions"><Link className="work-link" to="/docs">{t.help}</Link><Button onClick={resetViewer} type="button" variant="outline">
-            <Upload className="h-4 w-4" />
-            {d.viewerPage.newFasta}
-          </Button></div>
-        </div>
-
-        <div className="grid gap-3 border-b border-slate-200 pb-5 text-sm text-slate-700 sm:grid-cols-2 lg:grid-cols-4">
-          <div>
-            <p className="text-xs font-medium uppercase text-slate-500">{d.viewerPage.source}</p>
-            <p className="mt-1 break-all font-mono text-slate-900">{sourceName}</p>
-          </div>
-          <div>
-            <p className="text-xs font-medium uppercase text-slate-500">{d.viewerPage.sequences}</p>
-            <p className="mt-1 font-mono text-slate-900">
-              {alignment.sequences.length.toLocaleString()}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs font-medium uppercase text-slate-500">{d.viewerPage.longestLength}</p>
-            <p className="mt-1 font-mono text-slate-900">
-              {(alignment.alignmentLength ?? 0).toLocaleString()}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs font-medium uppercase text-slate-500">{d.viewerPage.lengthStatus}</p>
-            <p className="mt-1 text-slate-900">
-              {isLengthConsistent
-                ? d.viewerPage.equalLength
-                : d.viewerPage.rawSequenceView}
-            </p>
-          </div>
-        </div>
-
-        {exampleContext && <p role="status" className="work-feedback"><CheckCircle2 size={16} />{t.exampleLoaded}</p>}
+      <PageContainer className="msa-viewer-loaded">
         <MSAViewer
           alignment={alignment}
+          sourceName={sourceName}
+          example={Boolean(exampleContext)}
+          onReplaceInput={resetViewer}
           context={exampleContext ?? createLocalViewerContext(
             alignment.descriptor?.sourceKind === "pasted" ? "pasted" : "local-file",
             sourceName

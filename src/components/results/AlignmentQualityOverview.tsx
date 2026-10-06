@@ -20,34 +20,24 @@ function drawTrack(
   width: number,
   height: number
 ) {
-  context.fillStyle = "#f8fafc";
-  context.fillRect(0, top, width, height);
-  context.strokeStyle = "#e2e8f0";
+  context.strokeStyle = track.color;
+  context.lineWidth = 1.4;
   context.beginPath();
-  context.moveTo(0, top + height - 0.5);
-  context.lineTo(width, top + height - 0.5);
-  context.stroke();
-
-  context.fillStyle = track.color;
+  let started = false;
   for (let x = 0; x < width; x += 1) {
     const start = Math.floor((x / width) * columnStore.length);
-    const end = Math.max(
-      start + 1,
-      Math.floor(((x + 1) / width) * columnStore.length)
-    );
-    let total = 0;
-    let observed = 0;
+    const end = Math.max(start + 1, Math.floor(((x + 1) / width) * columnStore.length));
+    let total = 0, observed = 0;
     for (let index = start; index < Math.min(end, columnStore.length); index += 1) {
-      const next = columnMetricAtIndex(columnStore, index, track.metric);
-      if (next === null) continue;
-      total += next;
-      observed += 1;
+      const value = columnMetricAtIndex(columnStore, index, track.metric);
+      if (value !== null) { total += value; observed += 1; }
     }
-    if (!observed) continue;
-    const value = Math.max(0, Math.min(1, total / observed));
-    const barHeight = Math.max(1, Math.round(value * (height - 5)));
-    context.fillRect(x, top + height - barHeight, 1, barHeight);
+    if (!observed) { started = false; continue; }
+    const y = top + height * (1 - Math.max(0, Math.min(1, total / observed)));
+    if (started) context.lineTo(x + 28, y); else context.moveTo(x + 28, y);
+    started = true;
   }
+  context.stroke();
 }
 
 export function AlignmentQualityOverview({ columnStore }: { columnStore: ColumnStatsStoreV1 }) {
@@ -73,8 +63,8 @@ export function AlignmentQualityOverview({ columnStore }: { columnStore: ColumnS
         return;
       }
 
-      const cssWidth = Math.max(320, Math.round(canvas.clientWidth || 960));
-      const cssHeight = 156;
+      const cssWidth = Math.max(1, Math.round(canvas.clientWidth || 960));
+      const cssHeight = Math.max(80, Math.round(canvas.clientHeight || 124));
       const pixelRatio = Math.max(1, window.devicePixelRatio || 1);
       canvas.width = Math.round(cssWidth * pixelRatio);
       canvas.height = Math.round(cssHeight * pixelRatio);
@@ -98,18 +88,16 @@ export function AlignmentQualityOverview({ columnStore }: { columnStore: ColumnS
           metric: "entropy"
         }
       ];
-      const gap = 8;
-      const trackHeight = (cssHeight - gap * (tracks.length - 1)) / tracks.length;
-      tracks.forEach((track, index) => {
-        drawTrack(
-          context,
-          columnStore,
-          track,
-          index * (trackHeight + gap),
-          cssWidth,
-          trackHeight
-        );
+      const plotHeight = cssHeight - 10;
+      context.font = "10px sans-serif";
+      [1, 0.5, 0].forEach(value => {
+        const y = 5 + (1 - value) * plotHeight;
+        context.fillStyle = "#64748b";
+        context.fillText(value.toFixed(1), 0, Math.min(cssHeight - 1, y + 3));
+        context.strokeStyle = "#e2e8f0";
+        context.beginPath(); context.moveTo(28, y); context.lineTo(cssWidth - 5, y); context.stroke();
       });
+      tracks.forEach(track => drawTrack(context!, columnStore, track, 5, cssWidth - 33, plotHeight));
     };
 
     draw();
@@ -122,40 +110,18 @@ export function AlignmentQualityOverview({ columnStore }: { columnStore: ColumnS
     return () => window.removeEventListener("resize", draw);
   }, [columnStore, d.results.viewer.stageTwo.tracks]);
 
-  const summary = t.qualityChartSummary.replace(
-    "{columns}",
-    columnStore.length.toLocaleString()
-  );
-
-  return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h4 className="text-sm font-semibold text-slate-900">{t.qualityProfile}</h4>
-        <div aria-hidden="true" className="flex flex-wrap gap-3 text-xs text-slate-600">
-          <span className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-sm bg-teal-700" />
-            {d.results.viewer.stageTwo.tracks.conservation}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-sm bg-rose-600" />
-            {d.results.viewer.stageTwo.tracks.gap}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-sm bg-violet-700" />
-            {d.results.viewer.stageTwo.tracks.entropy}
-          </span>
-        </div>
+  const summary = t.qualityChartSummary.replace("{columns}", columnStore.length.toLocaleString());
+  return <section className="overview-quality">
+    <div className="overview-section-line">
+      <h3>{t.qualityProfile}</h3>
+      <div className="quality-legend" aria-hidden="true">
+        <span><i className="bg-teal-700" />{d.results.viewer.stageTwo.tracks.conservation}</span>
+        <span><i className="bg-rose-600" />{d.results.viewer.stageTwo.tracks.gap}</span>
+        <span><i className="bg-violet-700" />{d.results.viewer.stageTwo.tracks.entropy}</span>
       </div>
-      <canvas
-        aria-describedby={descriptionId}
-        aria-label={t.qualityChartLabel}
-        className="h-[156px] w-full rounded-lg border border-slate-200 bg-slate-50"
-        ref={canvasRef}
-        role="img"
-      >
-        {summary}
-      </canvas>
-      <p className="sr-only" id={descriptionId}>{summary}</p>
     </div>
-  );
+    <canvas ref={canvasRef} role="img" aria-label={t.qualityChartLabel} aria-describedby={descriptionId}>{summary}</canvas>
+    <div className="quality-axis" aria-hidden="true"><span>1</span><span>{Math.round(columnStore.length / 2).toLocaleString()}</span><span>{columnStore.length.toLocaleString()}</span></div>
+    <p className="sr-only" id={descriptionId}>{summary}</p>
+  </section>;
 }

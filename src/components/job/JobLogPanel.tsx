@@ -180,7 +180,7 @@ function buildEvents(
   return events;
 }
 
-export function JobLogPanel({ job }: { job: JobDetail }) {
+export function JobLogPanel({ job, compact = false }: { job: JobDetail; compact?: boolean }) {
   const { dictionary: d } = useLanguage();
   const logs = buildEvents(
     job,
@@ -189,6 +189,12 @@ export function JobLogPanel({ job }: { job: JobDetail }) {
     d.common.algorithmAutoResolved
   );
 
+  if (compact) return <ol className="job-event-list" aria-label={d.job.logs}>
+    {logs.map((log, index) => <li key={`${index}:${log.text}`}>
+      <span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+      {log.multiline ? <pre className="min-w-0">{log.text}</pre> : <p className="min-w-0 break-words">{log.text}</p>}
+    </li>)}
+  </ol>;
   return (
     <Card>
       <CardHeader>

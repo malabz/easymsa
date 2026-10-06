@@ -40,7 +40,8 @@ export type MsaSettingsDockProps = {
   onToggleTrack: (track: MsaTrackId) => void;
   onUndoHide?: () => void;
   onUnpinSelected?: () => void;
-  presentation?: "dock" | "sheet";
+  presentation?: "dock" | "sheet" | "content";
+  workspaceActions?: ReactNode;
   selectedRowCount: number;
   state: ViewerState;
   totalSequenceCount: number;
@@ -76,13 +77,13 @@ function SettingsContent({
 }: Omit<MsaSettingsDockProps, "isOpen" | "onClose" | "presentation">) {
   const { dictionary: d } = useLanguage();
   const t = d.results.viewer.stageTwo;
-  const groupClass = "space-y-3 rounded-lg border border-slate-200 bg-slate-50/70 p-3";
-  const legendClass = "text-xs font-semibold uppercase tracking-wide text-slate-500";
+  const groupClass = "msa-view-group";
+
 
   return (
-    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-      <fieldset className={groupClass}>
-        <legend className={legendClass}>{t.settingsGroups.view}</legend>
+    <div className="msa-view-settings">
+      <details className={groupClass} open>
+        <summary>{t.settingsGroups.view}</summary><div>
         <label className="block space-y-1 text-xs font-medium text-slate-600">
           <span>{t.viewMode}</span>
           <select
@@ -199,10 +200,10 @@ function SettingsContent({
           <Columns3 aria-hidden="true" className="h-4 w-4" />
           {d.results.viewer.density[state.density]}
         </button>
-      </fieldset>
+      </div></details>
 
-      <fieldset className={groupClass}>
-        <legend className={legendClass}>{t.settingsGroups.qc}</legend>
+      <details className={groupClass}>
+        <summary>{t.settingsGroups.qc}</summary><div>
         {analysisDisabled ? (
           <p className="text-xs leading-5 text-slate-600">
             {d.results.viewer.scienceV2.neutralDescription}
@@ -242,10 +243,10 @@ function SettingsContent({
             .replace("{total}", alignmentLength.toLocaleString())}
           </p>
         </>}
-      </fieldset>
+      </div></details>
 
-      <fieldset className={groupClass}>
-        <legend className={legendClass}>{t.settingsGroups.rows}</legend>
+      <details className={groupClass}>
+        <summary>{t.settingsGroups.rows}</summary><div>
         <label className="block space-y-1 text-xs font-medium text-slate-600">
           <span>{d.results.viewer.sortBy}</span>
           <select
@@ -279,18 +280,20 @@ function SettingsContent({
             <Rows3 aria-hidden="true" className="h-4 w-4" />
             {t.selectAllVisible}
           </Button>
-          <Button className="min-h-11" disabled={!selectedRowCount || !onHideSelected} onClick={onHideSelected} size="sm" variant="outline">
+          {selectedRowCount > 0 && <>
+          <Button className="min-h-11" disabled={!onHideSelected} onClick={onHideSelected} size="sm" variant="outline">
             <Eye aria-hidden="true" className="h-4 w-4" />
             {t.hideSelected}
           </Button>
-          <Button className="min-h-11" disabled={!selectedRowCount || !onPinSelected} onClick={onPinSelected} size="sm" variant="outline">
+          <Button className="min-h-11" disabled={!onPinSelected} onClick={onPinSelected} size="sm" variant="outline">
             <Pin aria-hidden="true" className="h-4 w-4" />
             {t.pinSelected}
           </Button>
-          <Button className="min-h-11" disabled={!selectedRowCount || !onUnpinSelected} onClick={onUnpinSelected} size="sm" variant="outline">
+          <Button className="min-h-11" disabled={!onUnpinSelected} onClick={onUnpinSelected} size="sm" variant="outline">
             <PinOff aria-hidden="true" className="h-4 w-4" />
             {t.unpinSelected}
           </Button>
+          </>}
           <Button className="min-h-11" disabled={!hiddenCount} onClick={onShowAll} size="sm" variant="ghost">
             <Eye aria-hidden="true" className="h-4 w-4" />
             {d.results.viewer.showAll}
@@ -300,35 +303,9 @@ function SettingsContent({
             {t.undoHide}
           </Button>
         </div>
-      </fieldset>
+      </div></details>
 
-      <fieldset className={groupClass}>
-        <legend className={legendClass}>{t.settingsGroups.export}</legend>
-        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
-          <Button className="min-h-11" disabled={!canExport} onClick={onExportImage} size="sm" variant="outline">
-            <ImageDown aria-hidden="true" className="h-4 w-4" />
-            {d.results.viewer.imageExport.button}
-          </Button>
-          <Button className="min-h-11" disabled={!canExport} onClick={onExportVisible} size="sm" variant="outline">
-            <Download aria-hidden="true" className="h-4 w-4" />
-            {d.results.viewer.exportVisible}
-          </Button>
-          <Button className="min-h-11" disabled={!state.selectedRange} onClick={onExportSelectedRange} size="sm" variant="outline">
-            <Download aria-hidden="true" className="h-4 w-4" />
-            {d.results.viewer.exportSelectedRange}
-          </Button>
-          {!analysisDisabled ? (
-            <Button className="min-h-11" disabled={!state.selectedRange} onClick={onExportConsensusRange} size="sm" variant="outline">
-              <Download aria-hidden="true" className="h-4 w-4" />
-              {d.results.viewer.exportConsensusRange}
-            </Button>
-          ) : null}
-          <Button className="min-h-11" disabled={!canExportSelectedRows} onClick={onExportSelectedRows} size="sm" variant="outline">
-            <Download aria-hidden="true" className="h-4 w-4" />
-            {t.exportSelectedRows}
-          </Button>
-        </div>
-      </fieldset>
+
     </div>
   );
 }
@@ -336,6 +313,8 @@ function SettingsContent({
 export function MsaSettingsDock(props: MsaSettingsDockProps) {
   const { dictionary: d } = useLanguage();
   const t = d.results.viewer.stageTwo;
+
+  if (props.presentation === "content") return <div data-msa-settings-dock="true"><SettingsContent {...props} />{props.workspaceActions}</div>;
 
   if (props.presentation === "sheet") {
     return (

@@ -14,6 +14,7 @@ import type {
 import {
   DEFAULT_QC_THRESHOLDS,
   loadWorkspaceSnapshot,
+  claimLegacyWorkspaceSnapshot,
   migrateLegacyPreferences,
   migrateLegacyReference,
   type MsaWorkspaceSnapshotV1,
@@ -36,6 +37,7 @@ export const DEFAULT_VIEWER_PREFERENCES: ViewerPreferences = {
 };
 
 export type ViewerStateOptions = {
+  workspaceScope?: string;
   descriptor?: AlignmentDescriptor;
   rows: MSASequence[];
   sourceFingerprint?: string;
@@ -167,7 +169,8 @@ export function resolveViewerSource(
     fingerprint,
     sequenceCount,
     alignmentLength,
-    signature: `${fingerprint}:${sequenceCount}:${alignmentLength}`,
+    signature: `${input.workspaceScope ?? ""}:${fingerprint}:${sequenceCount}:${alignmentLength}`,
+    storageKey: input.workspaceScope ? `${input.workspaceScope}:${fingerprint}` : undefined,
     rowKeys: rows.map((row) => row.rowKey),
     rows,
     sourceType: input.sourceType ?? sourceKindFromDescriptor(descriptor),
@@ -183,7 +186,8 @@ function loadInitialViewerState(source: ResolvedViewerSource): ViewerState {
     : {};
   let state = defaultViewerState(preferences);
   const snapshot = source.storage
-    ? loadWorkspaceSnapshot(source.storage, source.fingerprint)
+    ? loadWorkspaceSnapshot(source.storage, source.storageKey ?? source.fingerprint) ??
+      (source.storageKey ? claimLegacyWorkspaceSnapshot(source.storage, source.fingerprint, source.storageKey) : null)
     : null;
 
   if (
@@ -305,7 +309,7 @@ export function viewerReducer(state: ViewerState, action: ViewerAction): ViewerS
   if (action.type === "select") {
     return {
       ...state,
-      inspectorOpen: action.openInspector ?? true,
+      inspectorOpen: action.openInspector ?? state.inspectorOpen,
       selection: action.selection,
       selectedRange: action.range
     };
@@ -491,10 +495,11 @@ export function useViewerState(input: string | ViewerStateOptions) {
   const sourceIdentity = useMemo<WorkspaceSourceIdentity>(
     () => ({
       fingerprint: source.fingerprint,
+      storageKey: source.storageKey,
       sequenceCount: source.sequenceCount,
       alignmentLength: source.alignmentLength
     }),
-    [source.alignmentLength, source.fingerprint, source.sequenceCount]
+    [source.alignmentLength, source.fingerprint, source.sequenceCount, source.storageKey]
   );
   const validRowKeySignature = source.rowKeys.join("\u0000");
   const validRowKeys = useMemo(

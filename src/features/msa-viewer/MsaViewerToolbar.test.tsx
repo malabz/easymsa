@@ -78,175 +78,63 @@ describe("MsaViewerToolbar", () => {
     window.localStorage.setItem("easymsa.locale", "en");
   });
 
-  it("uses a non-sticky command bar and disables selected scope without selected rows", () => {
+  function motif() {
+    fireEvent.change(screen.getByLabelText("Search and navigation type"), { target: { value: "motif" } });
+    fireEvent.click(screen.getByLabelText("Motif options and results"));
+  }
+  it("starts with one search input and only View, Analyze, zoom and Export entries", () => {
     const { container } = renderToolbar();
-
-    const toolbar = container.querySelector("[data-msa-toolbar='true']");
-    expect(toolbar).not.toBeNull();
-    expect(toolbar?.className).not.toContain("sticky");
-    expect(toolbar?.className).not.toContain("top-2");
-    expect(toolbar?.className).not.toContain("z-40");
-    expect(container.querySelector("details")).toBeNull();
-    expect(
-      (screen.getByRole("option", { name: "Explicitly selected rows" }) as HTMLOptionElement)
-        .disabled
-    ).toBe(true);
-  });
-
-  it("publishes motif rule changes and shows strand plus both coordinate systems", () => {
-    const match: MotifMatch = {
-      alignmentEnd: 14,
-      alignmentStart: 12,
-      positions: [12, 13, 14],
-      rowKey: "row:duplicate:2",
-      sequenceEnd: 9,
-      sequenceId: "duplicate",
-      sequenceStart: 7,
-      start: 12,
-      strand: "-"
-    };
-    const { shared } = renderToolbar({
-      propOverrides: {
-        motifMatchCount: 1,
-        motifMatches: [match],
-        selectedRowCount: 1
-      },
-      statePatch: { selectedRowKeys: new Set(["row:duplicate:2"]) }
-    });
-
-    fireEvent.change(screen.getByLabelText("Motif match rule"), {
-      target: { value: "possible" }
-    });
-    fireEvent.change(screen.getByLabelText("Motif strand"), {
-      target: { value: "both" }
-    });
-
-    expect(shared.onPatch).toHaveBeenCalledWith({
-      activeMotifIndex: 0,
-      motifMatchMode: "possible"
-    });
-    expect(shared.onPatch).toHaveBeenCalledWith({
-      activeMotifIndex: 0,
-      motifStrandMode: "both"
-    });
-    expect(
-      screen.getByRole("option", {
-        name: /duplicate · - strand · alignment 12-14 · sequence 7-9/
-      })
-    ).not.toBeNull();
-    expect(
-      (screen.getByRole("option", { name: "Explicitly selected rows" }) as HTMLOptionElement)
-        .disabled
-    ).toBe(false);
-  });
-
-  it("keeps active scientific state visible and each chip has an explicit clear action", () => {
-    const clearFilter = vi.fn();
-    const showAll = vi.fn();
-    const toggleTrack = vi.fn();
-    const { shared } = renderToolbar({
-      propOverrides: {
-        hiddenCount: 2,
-        onClearColumnFilter: clearFilter,
-        onShowAll: showAll,
-        onToggleTrack: toggleTrack,
-        referenceLabel: "reference header",
-        selectedRowCount: 2,
-        visibleSequenceCount: 1
-      },
-      statePatch: {
-        analysisScope: "visible",
-        columnFilter: "conserved",
-        differenceMode: true,
-        hiddenRowKeys: new Set(["row:2", "row:3"]),
-        referenceRowKey: "row:1",
-        selectedRange: { start: 4, end: 9 },
-        selectedRowKeys: new Set(["row:1", "row:2"])
-      }
-    });
-
-    expect(screen.getByText("Analysis: Visible rows (1 rows)")).not.toBeNull();
-    expect(screen.getByText("Reference: reference header")).not.toBeNull();
-    expect(screen.getByText("Range: 4-9")).not.toBeNull();
-
-    fireEvent.click(screen.getByRole("button", { name: "Clear column filter" }));
-    fireEvent.click(screen.getByRole("button", { name: "Show all" }));
-    fireEvent.click(screen.getByRole("button", { name: "Hide Conservation track" }));
-
-    expect(clearFilter).toHaveBeenCalledTimes(1);
-    expect(showAll).toHaveBeenCalledTimes(1);
-    expect(toggleTrack).toHaveBeenCalledWith("conservation");
-    expect(shared.onPatch).not.toHaveBeenCalledWith({ columnFilter: "all" });
-  });
-
-  it("exposes batch actions in the settings dock", () => {
-    const selectAll = vi.fn();
-    const hide = vi.fn();
-    const pin = vi.fn();
-    const unpin = vi.fn();
-    const undo = vi.fn();
-    renderToolbar({
-      propOverrides: {
-        canUndoHide: true,
-        hiddenCount: 1,
-        onHideSelected: hide,
-        onPinSelected: pin,
-        onSelectAllVisible: selectAll,
-        onUndoHide: undo,
-        onUnpinSelected: unpin,
-        selectedRowCount: 2,
-        settingsPresentation: "dock"
-      },
-      statePatch: {
-        lastHiddenRowKeys: ["row:3"],
-        selectedRowKeys: new Set(["row:1", "row:2"]),
-        settingsOpen: true
-      }
-    });
-
-    fireEvent.click(screen.getByRole("button", { name: "Select visible" }));
-    fireEvent.click(screen.getByRole("button", { name: "Hide selected" }));
-    fireEvent.click(screen.getByRole("button", { name: "Pin selected" }));
-    fireEvent.click(screen.getByRole("button", { name: "Unpin selected" }));
-    fireEvent.click(screen.getByRole("button", { name: "Undo hide" }));
-
-    expect(selectAll).toHaveBeenCalledTimes(1);
-    expect(hide).toHaveBeenCalledTimes(1);
-    expect(pin).toHaveBeenCalledTimes(1);
-    expect(unpin).toHaveBeenCalledTimes(1);
-    expect(undo).toHaveBeenCalledTimes(1);
-  });
-
-  it("shows motif validation failures without silently reporting a successful search", () => {
-    renderToolbar({ propOverrides: { motifValidationError: "Gaps are not valid in a motif." } });
-    expect(screen.getByRole("alert").textContent).toContain("Gaps are not valid in a motif.");
-  });
-
-  it("removes nucleotide-only controls and tracks in neutral browsing mode", () => {
-    renderToolbar({
-      propOverrides: {
-        analysisDisabled: true,
-        neutralReason: "Unequal row lengths are shown without padding.",
-        settingsPresentation: "dock"
-      },
-      statePatch: {
-        columnFilter: "conserved",
-        differenceMode: true,
-        referenceRowKey: "row:1",
-        selectedRange: { start: 2, end: 4 },
-        settingsOpen: true
-      }
-    });
-
+    expect(screen.getAllByRole("searchbox")).toHaveLength(1);
     expect(screen.queryByLabelText("Motif match rule")).toBeNull();
-    expect(screen.queryByLabelText("Analysis scope")).toBeNull();
-    expect(screen.queryByRole("button", { name: "QC" })).toBeNull();
+    expect(screen.getByRole("button", {name:"Workspace settings"}).getAttribute("aria-expanded")).toBe("false");
+    expect(screen.getByRole("button", {name:"Analysis inspector"}).getAttribute("aria-expanded")).toBe("false");
+    expect(container.querySelector("details")?.hasAttribute("open")).toBe(false);
     expect(screen.queryByText(/^Track:/)).toBeNull();
-    expect(screen.queryByLabelText("Reference position")).toBeNull();
+  });
+  it("switches between name, motif and position without losing their values", () => {
+    const { shared } = renderToolbar({statePatch:{search:"row",motifQuery:"ACG"},propOverrides:{jumpPosition:"12"}});
+    expect((screen.getByRole("searchbox") as HTMLInputElement).value).toBe("row");
+    motif();
+    expect((screen.getByRole("searchbox") as HTMLInputElement).value).toBe("ACG");
+    fireEvent.change(screen.getByLabelText("Search and navigation type"),{target:{value:"position"}});
+    expect((screen.getByRole("spinbutton") as HTMLInputElement).value).toBe("12");
+    fireEvent.keyDown(screen.getByRole("spinbutton"),{key:"Enter"});
+    expect(shared.onJump).toHaveBeenCalled();
+  });
+  it("publishes motif rules and both coordinate systems", () => {
+    const match: MotifMatch={sequenceId:"duplicate",rowKey:"row:2",start:12,positions:[12,13,14],alignmentStart:12,alignmentEnd:14,sequenceStart:7,sequenceEnd:9,strand:"-"};
+    const { shared }=renderToolbar({propOverrides:{motifMatchCount:1,motifMatches:[match]}});
+    motif();
+    fireEvent.change(screen.getByLabelText("Motif match rule"),{target:{value:"possible"}});
+    fireEvent.change(screen.getByLabelText("Motif strand"),{target:{value:"both"}});
+    expect(shared.onPatch).toHaveBeenCalledWith({motifMatchMode:"possible",activeMotifIndex:0});
+    expect(shared.onPatch).toHaveBeenCalledWith({motifStrandMode:"both",activeMotifIndex:0});
+    expect(screen.getByRole("option",{name:/duplicate · - strand · alignment 12-14 · sequence 7-9/})).not.toBeNull();
+  });
+  it("opens View exclusively and Analyze only on explicit activation", () => {
+    const onOpenInspector=vi.fn();
+    const {shared}=renderToolbar({propOverrides:{onOpenInspector}});
+    fireEvent.click(screen.getByRole("button",{name:"Workspace settings"}));
+    expect(shared.onPatch).toHaveBeenCalledWith({settingsOpen:true,inspectorOpen:false,qcPanelOpen:false});
+    fireEvent.click(screen.getByRole("button",{name:"Analysis inspector"}));
+    expect(onOpenInspector).toHaveBeenCalledOnce();
+  });
+  it("gathers exports in a menu and disables absent selections", () => {
+    const {container, shared}=renderToolbar();
+    fireEvent.click(container.querySelector(".msa-export-menu summary")!);
+    expect((screen.getByRole("button",{name:"Export selected rows"}) as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(screen.getByRole("button",{name:"Export visible FASTA"}));
+    expect(shared.onExportVisible).toHaveBeenCalledOnce();
+    expect(container.querySelector("details")?.hasAttribute("open")).toBe(false);
+  });
+  it("shows motif errors in the search options", () => {
+    renderToolbar({propOverrides:{motifValidationError:"Gaps are not valid in a motif."}});
+    motif(); expect(screen.getByRole("alert").textContent).toContain("Gaps are not valid");
+  });
+  it("keeps neutral browsing information and excludes nucleotide controls", () => {
+    renderToolbar({propOverrides:{analysisDisabled:true,neutralReason:"Unequal row lengths are shown without padding."}});
+    expect(screen.queryByRole("option",{name:"Sequence motif"})).toBeNull();
     expect(screen.queryByText("Export consensus range")).toBeNull();
-    expect(screen.queryByText(/^Reference:/)).toBeNull();
-    expect(screen.getByRole("status").textContent).toContain(
-      "Unequal row lengths are shown without padding."
-    );
+    expect(screen.getByRole("status").textContent).toContain("Unequal row lengths");
   });
 });

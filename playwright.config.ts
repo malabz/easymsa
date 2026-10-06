@@ -54,7 +54,7 @@ export default defineConfig({
     },
     {
       name: "core-chromium",
-      testMatch: /viewer\.core\.spec\.ts/,
+      testMatch: /viewer\.(core|workbench)\.spec\.ts/,
       use: {
         ...devices["Desktop Chrome"],
         viewport: { width: 1280, height: 800 }
@@ -62,7 +62,7 @@ export default defineConfig({
     },
     {
       name: "core-firefox",
-      testMatch: /viewer\.core\.spec\.ts/,
+      testMatch: /viewer\.(core|workbench)\.spec\.ts/,
       use: {
         ...devices["Desktop Firefox"],
         viewport: { width: 1280, height: 800 }
@@ -70,7 +70,7 @@ export default defineConfig({
     },
     {
       name: "core-webkit",
-      testMatch: /viewer\.core\.spec\.ts/,
+      testMatch: /viewer\.(core|workbench)\.spec\.ts/,
       use: {
         ...devices["Desktop Safari"],
         viewport: { width: 1280, height: 800 }

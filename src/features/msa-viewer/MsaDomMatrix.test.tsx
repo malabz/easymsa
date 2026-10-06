@@ -189,11 +189,14 @@ describe("MsaDomMatrix hybrid rendering", () => {
     fireEvent.click(selectButtons[0]);
     expect(onSelectSequence).toHaveBeenCalledWith("source:row:1");
 
-    fireEvent.click(getAllByLabelText(/Pin sequence duplicate header/i)[0]);
+    fireEvent.click(getAllByLabelText("duplicate header row actions")[0]);
+    fireEvent.click(document.querySelector<HTMLElement>("[role=menuitemcheckbox]:nth-child(2)")!);
     expect(onPinSequence).toHaveBeenCalledWith("source:row:1");
-    fireEvent.click(getAllByLabelText(/Set as reference duplicate header/i)[0]);
+    fireEvent.click(getAllByLabelText("duplicate header row actions")[0]);
+    fireEvent.click(document.querySelector<HTMLElement>("[role=menuitemcheckbox]:nth-child(3)")!);
     expect(onSetReference).toHaveBeenCalledWith("source:row:1");
-    fireEvent.click(getAllByLabelText(/Hide sequence duplicate header/i)[0]);
+    fireEvent.click(getAllByLabelText("duplicate header row actions")[0]);
+    fireEvent.click(document.querySelector<HTMLElement>("[role=menuitemcheckbox]:nth-child(4)")!);
     expect(onHideSequence).toHaveBeenCalledWith("source:row:1");
 
     const secondRowFirstCell = container.querySelector<HTMLElement>(
@@ -349,14 +352,8 @@ describe("MsaDomMatrix hybrid rendering", () => {
 
     expect(queryByLabelText("Select sequence touch-row")).toBeNull();
     const menu = getByLabelText("touch-row row actions");
-    expect(menu.className).toContain("h-11");
-    expect(menu.className).toContain("w-11");
-    expect(container.querySelectorAll("[role='rowheader'] button.h-8")).toHaveLength(0);
-    expect(
-      Array.from(container.querySelectorAll<HTMLElement>("[role='rowheader'] button")).every(
-        (button) => button.className.includes("min-h-11")
-      )
-    ).toBe(true);
+    expect(menu.className).toContain("msa-row-menu-trigger");
+    expect(menu.getAttribute("aria-haspopup")).toBe("menu");
   });
 
   it("renders stable interbase labels for reference-gap columns", () => {

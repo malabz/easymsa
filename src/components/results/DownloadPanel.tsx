@@ -3,7 +3,7 @@ import { ExternalButtonLink } from "../common/Button";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import type { ResultFile } from "../../lib/types/result";
 
-export function DownloadPanel({ files }: { files: ResultFile[] }) {
+export function DownloadPanel({ files, artifacts = [] }: { files: ResultFile[]; artifacts?: string[] }) {
   const { dictionary: d } = useLanguage();
 
   return (
@@ -36,6 +36,12 @@ export function DownloadPanel({ files }: { files: ResultFile[] }) {
           </div>
         ))}
       </div>
+      {artifacts.length > 0 && <details className="border-t border-slate-200 pt-3 text-sm">
+        <summary className="cursor-pointer font-medium text-slate-700">{d.results.overview.outputs.title} · {artifacts.length}</summary>
+        <ul className="mt-3 grid gap-2 font-mono text-xs text-slate-600 sm:grid-cols-2">
+          {artifacts.map(file => <li className="break-all" key={file}>{file}</li>)}
+        </ul>
+      </details>}
     </section>
   );
 }

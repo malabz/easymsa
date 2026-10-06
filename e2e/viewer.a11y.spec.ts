@@ -7,7 +7,7 @@ import {
   prepareViewerPage,
   proteinFixture,
   rawUnequalFixture,
-  setViewMode
+  setViewMode, openExport, openQc
 } from "./helpers/viewer-fixtures";
 
 async function expectAxeClean(page: Page, state: string) {
@@ -37,18 +37,18 @@ test("axe covers input, detail, Canvas, settings, Inspector, QC, export, and imm
 
   await page.getByRole("button", { name: "Workspace settings" }).click();
   await expectAxeClean(page, "settings");
-  await page.getByRole("button", { name: "Close settings" }).click();
+  await page.getByRole("button", { name: "Close panel" }).click();
 
   await page.locator("[data-msa-sequence-cell='true']").first().click();
   await page.getByRole("button", { name: "Analysis inspector", exact: true }).click();
   await expectAxeClean(page, "inspector");
-  await page.getByRole("button", { name: "Close analysis inspector" }).click();
+  await page.getByRole("button", { name: "Close panel" }).click();
 
-  await page.getByRole("button", { name: "QC", exact: true }).click();
+  await openQc(page);
   await expectAxeClean(page, "qc");
-  await page.getByRole("button", { name: "Close QC" }).click();
+  await page.getByRole("button", { name: "Close panel" }).click();
 
-  await page.getByRole("button", { name: "Export / QC bundle" }).click();
+  await openExport(page);
   await expectAxeClean(page, "export-normal");
   await page.getByRole("button", { name: "PNG", exact: true }).click();
   await page.getByRole("button", { name: "Original full alignment", exact: true }).click();
@@ -57,9 +57,9 @@ test("axe covers input, detail, Canvas, settings, Inspector, QC, export, and imm
   await expectAxeClean(page, "export-over-limit");
   await page.getByRole("dialog").locator("footer").getByRole("button", { name: "Cancel", exact: true }).click();
 
-  await page.getByRole("button", { name: "Expand workspace" }).click();
+  await page.getByRole("button", { name: "Full screen" }).click();
   await expectAxeClean(page, "immersive");
-  await page.getByRole("button", { name: "Exit workspace" }).click();
+  await page.getByRole("button", { name: "Exit full screen" }).click();
 
   await setViewMode(page, "overview");
   await expect(page.locator("canvas[data-msa-canvas='true']")).toBeVisible();
@@ -74,7 +74,7 @@ test("axe and semantics cover protein neutral and raw-unequal modes", async ({ p
   await expect(page.getByText(/^(GC content|Ti\/Tv|Conservation)$/)).toHaveCount(0);
   await expectAxeClean(page, "protein-neutral");
 
-  await page.getByRole("button", { name: "New FASTA" }).click();
+  await page.getByRole("button", { name: "Change file" }).click();
   await loadViewerFasta(page, rawUnequalFixture());
   await expect(page.locator("[data-msa-status='true']"))
     .toHaveAttribute("data-msa-analysis-status", "disabled");

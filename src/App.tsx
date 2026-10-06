@@ -74,9 +74,10 @@ function AppRoutes() {
 
 export function App() {
   const { dictionary: d } = useLanguage();
+  const { pathname } = useLocation();
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className={`flex min-h-screen flex-col${pathname === "/submit" ? " submission-shell" : ""}`}>
       <a
         className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-lg transition focus:translate-y-0"
         href="#main-content"

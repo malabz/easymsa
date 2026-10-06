@@ -95,7 +95,7 @@ describe("MsaViewerRoot scientific workspace", () => {
       { id: "sample", rowKey: "row:sample", sequence: "AGGT" }
     ]));
 
-    await waitFor(() => expect(screen.getByText(/Analysis: All rows \(2 rows\)/)).not.toBeNull());
+    await waitFor(() => expect(screen.getByText("All rows · 2")).not.toBeNull());
     const accessibility = await axe.run(container, {
       rules: { "color-contrast": { enabled: false } }
     });
@@ -120,11 +120,12 @@ describe("MsaViewerRoot scientific workspace", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Workspace settings" }));
     expect(screen.queryByText("Export consensus range")).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Close settings" }));
+    fireEvent.click(screen.getByRole("button", { name: "Close panel" }));
     fireEvent.click(screen.getByRole("button", { name: "Analysis inspector" }));
     expect(screen.queryByText(/^Reference$/)).toBeNull();
     expect(screen.queryByText("Reference position")).toBeNull();
 
+    fireEvent.click(document.querySelector(".msa-export-menu summary")!);
     fireEvent.click(screen.getByRole("button", { name: "Export / QC bundle" }));
     expect(screen.queryByLabelText("Active analysis tracks")).toBeNull();
     expect(screen.queryByLabelText("Consensus")).toBeNull();
@@ -138,7 +139,7 @@ describe("MsaViewerRoot scientific workspace", () => {
     ], { warnings: ["duplicate_headers"] }));
 
     expect(screen.getByText(/Duplicate headers detected/)).not.toBeNull();
-    await waitFor(() => expect(screen.getByText(/Analysis: All rows \(2 rows\)/)).not.toBeNull());
+    await waitFor(() => expect(screen.getByText("All rows · 2")).not.toBeNull());
   });
 
   it("enters and exits the CSS immersive workspace without the Fullscreen API", () => {
@@ -149,9 +150,9 @@ describe("MsaViewerRoot scientific workspace", () => {
     const shell = document.querySelector("[data-msa-workspace-shell='true']") as HTMLElement;
     expect(shell.getAttribute("data-msa-workspace-mode")).toBe("embedded");
 
-    fireEvent.click(screen.getByRole("button", { name: "Expand workspace" }));
+    fireEvent.click(screen.getByRole("button", { name: "Full screen" }));
     expect(shell.getAttribute("data-msa-workspace-mode")).toBe("immersive");
-    fireEvent.click(screen.getAllByRole("button", { name: "Exit workspace" })[0]);
+    fireEvent.click(screen.getAllByRole("button", { name: "Exit full screen" })[0]);
     expect(shell.getAttribute("data-msa-workspace-mode")).toBe("embedded");
   });
 });

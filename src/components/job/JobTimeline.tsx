@@ -18,18 +18,12 @@ const steps: JobStatus[] = [
   "completed"
 ];
 
-export function JobTimeline({ status, realign = false, standalone = false, refinementStatus }: { status: JobStatus; realign?: boolean; standalone?: boolean; refinementStatus?: string }) {
+export function JobTimeline({ status, realign = false, standalone = false, refinementStatus, compact = false }: { status: JobStatus; realign?: boolean; standalone?: boolean; refinementStatus?: string; compact?: boolean }) {
   const visibleSteps = standalone ? ["queued", "realigning", "packaging", "completed"] as JobStatus[] : realign ? ["queued", "preprocessing", "aligning", "realigning", "packaging", "completed"] as JobStatus[] : steps;
   const { dictionary: d, locale } = useLanguage();
   const currentIndex = visibleSteps.indexOf(status);
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">{d.job.timeline}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ol className="space-y-4">
+  const timeline = <ol aria-label={d.job.timeline} className={compact ? "workspace-timeline" : "space-y-4"}>
           {visibleSteps.map((step, index) => {
             const unsuccessful = step === "realigning" && (refinementStatus === "failed" || refinementStatus === "skipped");
             const complete = !unsuccessful && (index < currentIndex || status === "completed");
@@ -37,7 +31,7 @@ export function JobTimeline({ status, realign = false, standalone = false, refin
             const Icon = unsuccessful ? AlertTriangle : complete ? CheckCircle2 : current ? Loader2 : Circle;
 
             return (
-              <li className="flex gap-3" key={step}>
+              <li aria-current={current ? "step" : undefined} className="flex gap-3" key={step}>
                 <Icon
                   className={cn(
                     "mt-0.5 h-5 w-5 shrink-0",
@@ -59,8 +53,6 @@ export function JobTimeline({ status, realign = false, standalone = false, refin
               </li>
             );
           })}
-        </ol>
-      </CardContent>
-    </Card>
-  );
+        </ol>;
+  return compact ? timeline : <Card><CardHeader><CardTitle className="text-lg">{d.job.timeline}</CardTitle></CardHeader><CardContent>{timeline}</CardContent></Card>;
 }

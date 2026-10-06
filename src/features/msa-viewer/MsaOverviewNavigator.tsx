@@ -151,8 +151,8 @@ export function MsaOverviewNavigator({
 
   const viewportLabel = `${visibleInterval.start.toLocaleString()}–${visibleInterval.end.toLocaleString()} / ${alignmentLength.toLocaleString()}`;
   return (
-    <div className="px-3 py-2">
-      <div className="mb-1 flex items-center justify-between gap-3 text-xs text-slate-500">
+    <div className="msa-navigator">
+      <div className="msa-navigator-caption">
         <span className="font-semibold uppercase tracking-wide">{d.results.viewer.stageTwo.overviewNavigator}</span>
         <span aria-live="polite">{viewportLabel}</span>
       </div>
@@ -163,7 +163,7 @@ export function MsaOverviewNavigator({
         aria-valuemin={1}
         aria-valuenow={visibleInterval.start}
         aria-valuetext={viewportLabel}
-        className="h-12 w-full cursor-ew-resize rounded-md border border-slate-200 outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+        className="cursor-ew-resize outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
         onKeyDown={(event) => {
           const step = Math.max(1, Math.round((visibleInterval.end - visibleInterval.start + 1) / 2));
           if (event.key === "ArrowLeft" || event.key === "ArrowRight") {

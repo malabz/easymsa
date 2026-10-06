@@ -10,6 +10,23 @@ import {
 afterEach(() => vi.useRealTimers());
 
 describe("viewer workspace state conversion", () => {
+  it("ignores old panel flags while restoring the scientific view", () => {
+    const base = createInitialViewerState({rows: [{id:"a",rowKey:"a",sequence:"AC"}],storage:null,sourceFingerprint:"matrix-first"});
+    const snapshot = viewerStateToSnapshot({...base, zoomLevel:1.4, selection:{rowKey:"a",position:2}, selectedRange:{start:1,end:2}},
+      {fingerprint:"matrix-first",sequenceCount:1,alignmentLength:2});
+    snapshot.view.settingsOpen = true; snapshot.view.inspectorOpen = true; snapshot.view.qcPanelOpen = true;
+    const restored = viewerStateFromSnapshot(base,snapshot,["a"]);
+    expect(restored).toMatchObject({settingsOpen:false,inspectorOpen:false,qcPanelOpen:false,zoomLevel:1.4,selection:{rowKey:"a",position:2}});
+  });
+  it("flushes the latest selection when the viewer closes before the debounce", () => {
+    vi.useFakeTimers();
+    const state = createInitialViewerState({rows:[{id:"a",rowKey:"a",sequence:"AC"}],storage:null,sourceFingerprint:"flush-state"});
+    localStorage.clear();
+    const {unmount}=renderHook(() => useWorkspacePersistence({state:{...state,zoomLevel:1.2},source:{fingerprint:"flush-state",sequenceCount:1,alignmentLength:2},
+      storage:localStorage,onRestore:()=>undefined}));
+    unmount();
+    expect(JSON.parse(localStorage.getItem("easymsa.viewer.workspaces.v1")!).entries["flush-state"].snapshot.view.zoomLevel).toBe(1.2);
+  });
   it("serializes rowKey identity and restores matching rows", () => {
     const base = createInitialViewerState({
       rows: [

@@ -8,7 +8,8 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { RefreshCw } from "lucide-react";
 import { Button } from "../components/common/Button";
 import { ErrorState } from "../components/common/ErrorState";
-import { PageContainer } from "../components/layout/PageContainer";
+import { AnalysisWorkspace } from "../components/layout/AnalysisWorkspace";
+import { ResultSidebar } from "../components/results/ResultSidebar";
 import {
   ResultTabs
 } from "../components/results/ResultTabs";
@@ -75,27 +76,21 @@ export function ResultsPage() {
       : null;
   const error = accessError ?? activeError;
 
-  return (
-    <PageContainer className="workflow-page">
-      <div className="work-heading">
-        <div>
-          <h1>{d.results.title}</h1>
-          {jobId ? (
-            <p className="font-mono text-sm text-slate-500">{jobId}</p>
-          ) : null}
-        </div>
-        <Link className="work-link" to="/docs">{workspaceText[locale].help}</Link>
-      </div>
-
-      {jobQuery.data && <RealignmentNotice job={jobQuery.data} token={access?.token ?? ""} />}
-      <div className="work-result-toolbar">
-      <ResultTabs value={activeTab} onChange={setActiveTab} />
-      {refinement?.initialAvailable && <label className="flex flex-wrap items-center gap-3 text-sm font-medium">{t.resultVersion}
+  const stageControl = refinement?.initialAvailable && refinement.refinedAvailable && <label className="flex flex-wrap items-center gap-3 text-sm font-medium">{t.resultVersion}
         <select aria-label={t.resultVersion} className="rounded border p-2" value={stage} onChange={event => setStage(event.target.value as ResultStage)}>
           <option value="final">{t.final}</option><option value="initial">{t.initial}</option>
           {refinement.refinedAvailable && <option value="refined">{t.refined}</option>}
         </select>
-      </label>}
+      </label>;
+
+  return (
+    <AnalysisWorkspace sidebar={<ResultSidebar title={jobQuery.data?.jobName ?? d.results.title} summary={summaryQuery.data} job={jobQuery.data} onDownload={() => setActiveTab("downloads")} />} >
+      <div className="analysis-heading"><h1>{jobQuery.data?.jobName ?? d.results.title}</h1>
+        <Link className="work-link" to="/docs">{workspaceText[locale].help}</Link>
+      </div>
+      <div className="analysis-toolbar">
+      <ResultTabs value={activeTab} onChange={setActiveTab} />
+      {activeTab !== "alignment" && stageControl}
       </div>
       {error ? (
         <div className="space-y-4">
@@ -114,10 +109,12 @@ export function ResultsPage() {
         </div>
       ) : null}
 
-      <div className="work-result-body"><ResultPanels activeTab={activeTab} setActiveTab={setActiveTab} summary={summaryQuery.data}
+      <div className="analysis-panels">
+      {jobQuery.data && <div className="analysis-notice"><RealignmentNotice job={jobQuery.data} token={access?.token ?? ""} /></div>}
+      <ResultPanels workspaceScope={`job:${jobId}:${stage}`} sourceName={jobQuery.data?.jobName ?? d.results.title} headerActions={stageControl} onRetry={() => alignmentQuery.refetch()} activeTab={activeTab} setActiveTab={setActiveTab} summary={summaryQuery.data}
         alignment={alignmentQuery.data} summaryPending={summaryQuery.isPending} alignmentPending={alignmentQuery.isPending}
         alignmentError={alignmentQuery.error instanceof Error ? alignmentQuery.error.message : null} error={error}
         files={access ? files : []} context={summaryQuery.data ? createServerViewerContext(summaryQuery.data, files) : undefined} /></div>
-    </PageContainer>
+    </AnalysisWorkspace>
   );
 }

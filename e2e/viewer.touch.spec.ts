@@ -54,7 +54,7 @@ test("CDP trusted touch validates pan, explicit range drag, and Viewer-owned pin
     "Chromium CDP touch is intentionally not presented as WebKit gesture coverage.");
 
   await loadNamedFixture(page, "overview-touch");
-  await page.getByRole("button", { name: "Expand workspace", exact: true }).click();
+  await page.getByRole("button", { name: "Full screen", exact: true }).click();
   await settleBrowser(page);
   await setViewMode(page, "overview");
   const cdp = await page.context().newCDPSession(page);
@@ -80,8 +80,8 @@ test("CDP trusted touch validates pan, explicit range drag, and Viewer-owned pin
   });
   await openSettings(page);
   await page.getByRole("checkbox", { name: /Touch range-selection mode/ }).check();
-  await page.getByRole("button", { name: "Close settings" }).click();
-  await expect(page.getByRole("dialog", { name: "Workspace settings" })).toBeHidden();
+  await page.getByRole("button", { name: "Close panel" }).click();
+  await expect(page.getByRole("dialog", { name: "View" })).toBeHidden();
   await settleBrowser(page);
   await expect(status).toHaveAttribute("data-msa-range-mode", "range");
 
@@ -100,7 +100,7 @@ test("CDP trusted touch validates pan, explicit range drag, and Viewer-owned pin
 
   await openSettings(page);
   await page.getByRole("checkbox", { name: /Touch range-selection mode/ }).uncheck();
-  await page.getByRole("button", { name: "Close settings" }).click();
+  await page.getByRole("button", { name: "Close panel" }).click();
   const zoomBefore = Number(await status.getAttribute("data-msa-zoom"));
   const viewportScaleBefore = await page.evaluate(() => window.visualViewport?.scale ?? 1);
   const centerX = box.x + box.width * 0.5;

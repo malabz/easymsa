@@ -2,6 +2,8 @@ export const workspaceText = {
   zh: {
     input: "序列输入", settings: "任务设置", summary: "任务概要", sample: "载入示例",
     auditHint: "检查并保留输入序列。", filterHint: "过滤标记的问题序列。",
+    automaticAudit: "提交后自动检查并保留输入序列。",
+    advanced: "高级设置", automaticFilter: "提交后检查并过滤标记的问题序列。",
     exampleLoaded: "示例已载入 · 合成 DNA · 20 条序列", exampleResult: "查看示例结果",
     exampleLoading: "正在载入…", exampleFailed: "无法载入示例，请重试。",
     exampleReplace: "当前输入将被示例替换。", replace: "替换输入", cancel: "取消",
@@ -15,6 +17,8 @@ export const workspaceText = {
   en: {
     input: "Sequence input", settings: "Job settings", summary: "Job summary", sample: "Load example",
     auditHint: "Check and retain input sequences.", filterHint: "Remove flagged sequences.",
+    automaticAudit: "Input sequences are checked and retained automatically.",
+    advanced: "Advanced settings", automaticFilter: "Input sequences are checked and flagged sequences are filtered.",
     exampleLoaded: "Example loaded · Synthetic DNA · 20 sequences", exampleResult: "View example result",
     exampleLoading: "Loading…", exampleFailed: "Unable to load the example. Please retry.",
     exampleReplace: "The example will replace your current input.", replace: "Replace input", cancel: "Cancel",

@@ -1,3 +1,4 @@
+import "./msa-workspace.css";
 import { X } from "lucide-react";
 import {
   useLayoutEffect,
@@ -19,6 +20,8 @@ export type MsaWorkspaceMode = "embedded" | "immersive";
 type MsaWorkspaceShellBaseProps = {
   className?: string;
   commandBar: ReactNode;
+  sourceBar?: ReactNode;
+  onCloseTransient?: () => boolean;
   dock?: ReactNode;
   dockClassName?: string;
   dockCloseLabel?: string;
@@ -57,6 +60,8 @@ export type MsaWorkspaceShellProps =
 export function MsaWorkspaceShell({
   className,
   commandBar,
+  sourceBar,
+  onCloseTransient,
   dock,
   dockClassName,
   dockCloseLabel,
@@ -78,6 +83,8 @@ export function MsaWorkspaceShell({
   ...modeProps
 }: MsaWorkspaceShellProps) {
   const shellRef = useRef<HTMLDivElement>(null);
+  const closeTransientRef = useRef(onCloseTransient);
+  closeTransientRef.current = onCloseTransient;
   const onExitImmersiveRef = useRef<(() => void) | null>(null);
   const embeddedScrollRef = useRef({ x: 0, y: 0 });
   const immersive = mode === "immersive";
@@ -125,6 +132,17 @@ export function MsaWorkspaceShell({
   }, [mode, modeProps]);
 
   useLayoutEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (immersive || event.key !== "Escape" || event.defaultPrevented || !shellRef.current?.contains(event.target as Node)) return;
+      const menu = shellRef.current.querySelector<HTMLDetailsElement>("details[data-msa-popup][open]");
+      if (menu) { menu.open = false; menu.querySelector<HTMLElement>("summary")?.focus(); event.preventDefault(); }
+      else if (closeTransientRef.current?.()) event.preventDefault();
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [immersive]);
+
+  useLayoutEffect(() => {
     if (!immersive) {
       return;
     }
@@ -139,7 +157,7 @@ export function MsaWorkspaceShell({
     (initialFocusRef?.current ?? shellRef.current)?.focus({ preventScroll: true });
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") {
+      if (event.key !== "Escape" || event.defaultPrevented) {
         return;
       }
 
@@ -151,13 +169,16 @@ export function MsaWorkspaceShell({
         return;
       }
 
+      const openMenu = shellRef.current?.querySelector<HTMLDetailsElement>("details[data-msa-popup][open], details[data-msa-row-menu][open]");
+      if (openMenu) { openMenu.open = false; openMenu.querySelector<HTMLElement>("summary")?.focus(); event.preventDefault(); return; }
+      if (closeTransientRef.current?.()) { event.preventDefault(); return; }
       event.preventDefault();
       onExitImmersiveRef.current?.();
     };
 
-    document.addEventListener("keydown", handleKeyDown, true);
+    document.addEventListener("keydown", handleKeyDown);
     return () => {
-      document.removeEventListener("keydown", handleKeyDown, true);
+      document.removeEventListener("keydown", handleKeyDown);
       releaseBackgroundInert();
       releaseBodyScroll();
       const focusTarget = returnFocusRef?.current ?? focusedBeforeOpen;
@@ -189,14 +210,14 @@ export function MsaWorkspaceShell({
       const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
       const top = Math.max(0, shell.getBoundingClientRect().top);
       const fixedHeight = Array.from(shell.children).reduce((height, element) => {
-        if (element.matches("header, footer, [data-msa-workspace-navigator]")) {
+        if (element.matches("header, footer, [data-msa-workspace-navigator], [data-msa-source]")) {
           return height + element.getBoundingClientRect().height;
         }
         return height;
       }, 0);
       shell.style.setProperty(
         "--msa-embedded-height",
-        `${Math.max(512, Math.ceil(fixedHeight + 194), Math.floor(viewportHeight - top - 16))}px`
+        `${Math.max(420, Math.ceil(fixedHeight + 240), Math.floor(viewportHeight - top - (document.querySelector("#root > div > footer")?.getBoundingClientRect().height ?? 0)))}px`
       );
     };
     const updateHeight = () => {
@@ -210,7 +231,7 @@ export function MsaWorkspaceShell({
       : new ResizeObserver(updateHeight);
     if (shell.parentElement) resizeObserver?.observe(shell.parentElement);
     Array.from(shell.children).forEach((element) => {
-      if (element.matches("header, footer, [data-msa-workspace-navigator]")) {
+      if (element.matches("header, footer, [data-msa-workspace-navigator], [data-msa-source]")) {
         resizeObserver?.observe(element);
       }
     });
@@ -233,10 +254,10 @@ export function MsaWorkspaceShell({
     <section
       aria-label={workspaceLabel}
       className={cn(
-        "flex min-h-0 w-full flex-col overflow-hidden bg-slate-50",
+        "msa-workspace flex min-h-0 w-full flex-col overflow-hidden bg-slate-50 outline-none",
         immersive
           ? "fixed inset-0 z-[60] !m-0 h-[100dvh] w-screen"
-          : "relative h-[var(--msa-embedded-height,calc(100dvh-1rem))] min-h-[512px] rounded-xl border border-slate-200 shadow-sm",
+          : "relative h-[var(--msa-embedded-height,calc(100dvh-1rem))] min-h-[420px]",
         className
       )}
       data-msa-workspace-mode={mode}
@@ -254,7 +275,8 @@ export function MsaWorkspaceShell({
       ref={shellRef}
       tabIndex={-1}
     >
-      <header className="relative z-30 flex shrink-0 items-start gap-2 border-b border-slate-200 bg-white/95 p-2 shadow-sm backdrop-blur">
+      {sourceBar && <div className="shrink-0" data-msa-source="true">{sourceBar}</div>}
+      <header className="relative z-30 shrink-0 border-b border-slate-200 bg-white">
         <div className="min-w-0 flex-1">{commandBar}</div>
       </header>
 
@@ -267,7 +289,7 @@ export function MsaWorkspaceShell({
         </div>
       )}
 
-      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+      <div className="relative z-0 flex min-h-0 flex-1 flex-col lg:flex-row">
         <div
           aria-label={matrixLabel}
           className={cn(
@@ -307,14 +329,14 @@ export function MsaWorkspaceShell({
             {onDockClose && dockCloseLabel ? (
               <button
                 aria-label={dockCloseLabel}
-                className="sticky right-2 top-2 z-10 ml-auto mr-2 mt-2 flex h-11 w-11 items-center justify-center rounded-md bg-white text-slate-500 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+                className="sticky right-1 top-1 z-10 ml-auto mr-1 mt-1 flex h-9 w-9 items-center justify-center rounded text-slate-500 bg-white hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
                 onClick={onDockClose}
                 type="button"
               >
                 <X aria-hidden="true" className="h-4 w-4" />
               </button>
             ) : null}
-            <div className={cn(onDockClose && dockCloseLabel ? "-mt-12 pt-12" : "")}>
+            <div className={cn(onDockClose && dockCloseLabel ? "-mt-10 pt-2" : "")}>
               {dock}
             </div>
           </aside>

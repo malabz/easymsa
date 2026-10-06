@@ -28,6 +28,7 @@ import {
 import { buildReferenceCoordinateMap, classifyDifference } from "./analysis";
 import { rowKeyForSequence } from "./alignmentModel";
 import { differenceColorClass } from "./differenceColors";
+import { MsaRowMenu } from "./MsaRowMenu";
 import { MsaCanvasMatrix } from "./MsaCanvasMatrix";
 import { MsaStatisticTrack } from "./MsaStatisticTrack";
 import {
@@ -859,100 +860,16 @@ export function MsaDomMatrix({
                       </button>
                     ) : null}
                     <span className="min-w-0 flex-1 truncate" title={sequence.id}>{sequence.id}</span>
-                    {settings.showCharacters && !coarsePointer ? (
-                      <div className="hidden items-center sm:flex">
-                        <button
-                          aria-label={`${isPinned ? d.results.viewer.stageTwo.unpinSequence : d.results.viewer.stageTwo.pinSequence} ${sequence.id}`}
-                          aria-pressed={isPinned}
-                          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded text-slate-400 hover:bg-slate-100 hover:text-slate-900"
-                          disabled={isReference}
-                          onClick={() => onPinSequence(rowKey)}
-                          tabIndex={-1}
-                          type="button"
-                        >
-                          {isPinned ? <PinOff className="h-3.5 w-3.5" /> : <Pin className="h-3.5 w-3.5" />}
-                        </button>
-                        {referenceActionsEnabled ? (
-                          <button
-                            aria-label={`${d.results.viewer.stageTwo.setReference} ${sequence.id}`}
-                            aria-pressed={isReference}
-                            className={cn(
-                              "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded hover:bg-amber-100",
-                              isReference ? "text-amber-700" : "text-slate-400"
-                            )}
-                            onClick={() => onSetReference(rowKey)}
-                            tabIndex={-1}
-                            type="button"
-                          >
-                            <Flag className="h-3.5 w-3.5" />
-                          </button>
-                        ) : null}
-                        <button
-                          aria-label={`${d.results.viewer.hideSequence} ${sequence.id}`}
-                          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded text-slate-400 hover:bg-slate-100 hover:text-slate-900"
-                          disabled={isReference}
-                          onClick={() => onHideSequence(rowKey)}
-                          tabIndex={-1}
-                          type="button"
-                        >
-                          <EyeOff className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    ) : null}
-                    {settings.showCharacters ? <details className={cn(
-                      "relative shrink-0",
-                      settings.showCharacters && !coarsePointer ? "sm:hidden" : ""
-                    )}>
-                      <summary
-                        aria-label={d.results.viewer.stageTwo.rowActions.replace("{name}", sequence.id)}
-                        className="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded text-slate-500 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 [&::-webkit-details-marker]:hidden"
-                        tabIndex={-1}
-                      >
-                        <MoreHorizontal className="h-4 w-4" />
-                      </summary>
-                      <div className="absolute right-0 top-full z-50 grid min-w-44 overflow-hidden rounded-lg border border-slate-200 bg-white p-1 shadow-xl">
-                        <button
-                          aria-pressed={isSelected}
-                          className="min-h-11 rounded px-3 text-left text-xs hover:bg-slate-100"
-                          onClick={() => onSelectSequence(rowKey)}
-                          tabIndex={-1}
-                          type="button"
-                        >
-                          {d.results.viewer.stageTwo.selectSequence}
-                        </button>
-                        <button
-                          aria-pressed={isPinned}
-                          className="min-h-11 rounded px-3 text-left text-xs hover:bg-slate-100 disabled:opacity-40"
-                          disabled={isReference}
-                          onClick={() => onPinSequence(rowKey)}
-                          tabIndex={-1}
-                          type="button"
-                        >
-                          {isPinned ? d.results.viewer.stageTwo.unpinSequence : d.results.viewer.stageTwo.pinSequence}
-                        </button>
-                        {referenceActionsEnabled ? (
-                          <button
-                            aria-pressed={isReference}
-                            className="min-h-11 rounded px-3 text-left text-xs hover:bg-amber-50"
-                            onClick={() => onSetReference(rowKey)}
-                            tabIndex={-1}
-                            type="button"
-                          >
-                            {d.results.viewer.stageTwo.setReference}
-                          </button>
-                        ) : null}
-                        <button
-                          className="min-h-11 rounded px-3 text-left text-xs hover:bg-slate-100 disabled:opacity-40"
-                          disabled={isReference}
-                          onClick={() => onHideSequence(rowKey)}
-                          tabIndex={-1}
-                          type="button"
-                        >
-                          {d.results.viewer.hideSequence}
-                        </button>
-                      </div>
-                    </details> : null}
-                  </div>
+                    {isPinned && <Pin size={12} className="shrink-0 text-teal-700" aria-label={d.results.viewer.stageTwo.pinSequence}/>}
+                    {isReference && <Flag size={12} className="shrink-0 text-amber-700" aria-label={d.results.viewer.stageTwo.setReference}/>}
+                    {settings.showCharacters && <MsaRowMenu label={d.results.viewer.stageTwo.rowActions.replace("{name}", sequence.id)}
+                      actions={[
+                        {label:d.results.viewer.stageTwo.selectSequence,active:isSelected,run:() => onSelectSequence(rowKey)},
+                        {label:isPinned ? d.results.viewer.stageTwo.unpinSequence : d.results.viewer.stageTwo.pinSequence,active:isPinned,disabled:isReference,run:() => onPinSequence(rowKey)},
+                        ...(referenceActionsEnabled ? [{label:d.results.viewer.stageTwo.setReference,active:isReference,run:() => onSetReference(rowKey)}] : []),
+                        {label:d.results.viewer.hideSequence,disabled:isReference,run:() => onHideSequence(rowKey)}
+                      ]}/>}
+         </div>
                   <div className="flex items-center px-3" style={{ height: settings.rowHeight }}>
                     {settings.showCharacters ? (
                       <SequenceCells

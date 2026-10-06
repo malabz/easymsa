@@ -4,8 +4,8 @@ import { workspaceText } from "../../lib/i18n/workspace";
 import { clearDraft, forgetWork, readDraft, useDraftMetadata, useDraftState, useRememberWork } from "../../lib/workspace";
 import { RealignmentOptions } from "./RealignmentOptions";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle2, ChevronDown, FileText, Loader2, SlidersHorizontal } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { CheckCircle2, ChevronDown, FileText, Loader2, ShieldCheck, SlidersHorizontal } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { taskMetadataSchema } from "../../lib/submit/taskMetadata";
@@ -42,6 +42,9 @@ export function SubmitJobForm() {
   const { dictionary: d, locale } = useLanguage();
   const navigate = useNavigate();
   const t = workspaceText[locale];
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [preprocessMode, setPreprocessMode] = useDraftState<PreprocessMode>("submit:advanced:preprocess", "audit");
+  const settingsRef = useRef<HTMLDivElement>(null);
   useRememberWork("submit");
   const [exampleLoaded, setExampleLoaded] = useDraftState("submit:example", false);
   const [inputMethod, setInputMethod] = useDraftState<InputMethod>("submit:inputMethod", "paste");
@@ -54,7 +57,6 @@ export function SubmitJobForm() {
     field: "thread" | "mafftMaxiterate";
     error: AlgorithmParameterError;
   } | null>(null);
-  const [preprocessMode, setPreprocessMode] = useDraftState<PreprocessMode>("submit:preprocess", "audit");
   const [pastedSequence, setPastedSequence] = useDraftState("submit:paste", "");
   const [file, setFile] = useDraftState<File | null>("submit:file", null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -68,18 +70,54 @@ export function SubmitJobForm() {
     register,
     handleSubmit,
     setValue,
+    getValues,
     watch,
     formState: { errors }
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
+    shouldFocusError: false,
     defaultValues: readDraft("submit:metadata", { jobName: "", email: "" })
   });
 
   useDraftMetadata("submit:metadata", watch);
 
+  function revealSetting(id: string) {
+    const panel = settingsRef.current;
+    const target = panel?.querySelector<HTMLElement>(`#${id}`);
+    if (!panel || !target) return;
+    target.focus({ preventScroll: true });
+    panel.scrollTop += target.getBoundingClientRect().top - panel.getBoundingClientRect().top - 20;
+    if (window.matchMedia("(max-width: 1023px)").matches) target.scrollIntoView({ block: "center" });
+  }
+
+  useEffect(() => {
+    if (!algorithmParameterError) return;
+    if (!advancedOpen) { setAdvancedOpen(true); return; }
+    const frame = requestAnimationFrame(() => revealSetting(algorithmParameterError.field === "thread" ? "algorithmThread" : "mafftMaxiterate"));
+    return () => cancelAnimationFrame(frame);
+  }, [algorithmParameterError, advancedOpen]);
+
+  useEffect(() => {
+    if (!formError || algorithmParameterError) return;
+    const frame = requestAnimationFrame(() => revealSetting("submission-error"));
+    return () => cancelAnimationFrame(frame);
+  }, [formError, algorithmParameterError]);
+
+  function suggestName(input: HTMLInputElement) {
+    if (getValues("jobName").trim()) return false;
+    const now = new Date();
+    const pad = (value: number) => String(value).padStart(2, "0");
+    const date = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}`;
+    const time = `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+    setValue("jobName", `${locale === "zh" ? "比对任务" : "Alignment"}-${date}-${time}`, { shouldDirty: true, shouldValidate: true });
+    requestAnimationFrame(() => { if (document.activeElement === input) input.select(); });
+    return true;
+  }
+
   function loadExample(file: File) {
     setExampleLoaded(true);
-    setInputMethod("upload");setFile(file);setAlgorithm("minipoa");setPreprocessMode("audit");
+    setInputMethod("upload");setFile(file);setAlgorithm("minipoa");
+    setPreprocessMode("audit");
     setRealignEnabled(false);setRealignPattern(1);setAlgorithmParameterDraft({...DEFAULT_ALGORITHM_PARAMETER_DRAFT});
     setAlgorithmParameterError(null);setFormError(null);setValue("jobName", "Synthetic DNA example");
   }
@@ -179,7 +217,7 @@ export function SubmitJobForm() {
     : pastedSequence.trim() ? `${sequenceCount} ${t.pasteReady}` : t.inputPending;
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate aria-busy={submitting}>
+    <form className="submission-form" onSubmit={handleSubmit(onSubmit, invalid => revealSetting(invalid.jobName ? "jobName" : "email"))} noValidate aria-busy={submitting}>
       <fieldset disabled={submitting} className="work-grid">
         <legend className="sr-only">{d.submit.title}</legend>
         <div className="work-input">
@@ -202,45 +240,49 @@ export function SubmitJobForm() {
             <CheckCircle2 size={16} aria-hidden="true" /><span>{t.exampleLoaded}</span>
             <Link to="/examples/alignment-small">{t.exampleResult}</Link>
           </div>}
-          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
-            <p className="work-hint">{t.inputHelp}</p>
-            <Link className="work-link" to="/docs">{t.help}</Link>
+          <div className="submission-input-notes">
+            <div className="submission-input-help">
+              <Link className="work-link" to="/docs">{t.help}</Link>
+            </div>
+            <p className="submission-audit-note"><ShieldCheck size={14} aria-hidden="true" />{preprocessMode === "audit" ? t.automaticAudit : t.automaticFilter}</p>
           </div>
         </div>
-        <div className="work-settings" aria-label={t.settings}>
-          <TaskMetadataFields register={register} errors={errors} disabled={submitting} />
+        <div className="work-settings" aria-label={t.settings} ref={settingsRef}>
+          <h2 className="submission-settings-heading">{t.settings}</h2>
+          <div className="submission-metadata">
+            <TaskMetadataFields register={register} errors={errors} disabled={submitting} onSuggestName={suggestName} />
+          </div>
           <div className="work-field">
             <p id="alignmentAlgorithmLabel" className="work-label">{d.submit.algorithm}</p>
             <AlgorithmPicker compact value={algorithm} labelledBy="alignmentAlgorithmLabel" isDisabled={algorithmUnavailable}
               onChange={value => { setAlgorithm(value); setAlgorithmParameterError(null); setFormError(null); }} />
           </div>
-          <div className="work-field">
-            <p id="preprocessModeLabel" className="work-label">{d.submit.preprocessMode}</p>
-            <div className="work-radios" role="radiogroup" aria-labelledby="preprocessModeLabel">
-              {(["audit", "filter"] as const).map(mode => <label key={mode}>
-                <input type="radio" name="preprocessMode" value={mode} checked={preprocessMode === mode} onChange={() => setPreprocessMode(mode)} />
-                <span>{d.submit.preprocessModes[mode]}<small>{mode === "audit" ? t.auditHint : t.filterHint}</small></span>
-              </label>)}
+          <details className="work-parameters" open={advancedOpen} onToggle={event => setAdvancedOpen(event.currentTarget.open)}>
+            <summary><span><SlidersHorizontal size={15} />{t.advanced}</span><ChevronDown size={15} /></summary>
+            <div className="submission-preprocess work-field">
+              <label className="work-label" htmlFor="preprocessMode">{d.submit.preprocessMode}</label>
+              <select className="work-control" id="preprocessMode" value={preprocessMode} onChange={event => setPreprocessMode(event.target.value as PreprocessMode)}>
+                <option value="audit">{d.submit.preprocessModes.audit}</option>
+                <option value="filter">{d.submit.preprocessModes.filter}</option>
+              </select>
+              <p className="work-hint">{preprocessMode === "audit" ? t.auditHint : t.filterHint}</p>
             </div>
-          </div>
-          <details className="work-parameters" open={algorithmParameterError ? true : undefined}>
-            <summary><span><SlidersHorizontal size={15} />{d.submit.algorithmParameters.title}</span><ChevronDown size={15} /></summary>
             <AlgorithmParameterFields algorithm={algorithm} error={algorithmParameterError}
               maxThreadPerJob={maxThreadPerJob} value={algorithmParameterDraft} onChange={handleAlgorithmParameterChange}
-              onReset={() => { setAlgorithmParameterDraft({ ...DEFAULT_ALGORITHM_PARAMETER_DRAFT }); setAlgorithmParameterError(null); setFormError(null); }} />
+              onReset={() => { setPreprocessMode("audit"); setAlgorithmParameterDraft({ ...DEFAULT_ALGORITHM_PARAMETER_DRAFT }); setAlgorithmParameterError(null); setFormError(null); }} />
           </details>
           {serviceHealth.data?.realignment?.enabled && <RealignmentOptions limits={serviceHealth.data.realignment}
             enabled={realignEnabled} onEnabled={setRealignEnabled} pattern={realignPattern} onPattern={setRealignPattern}
             disabled={submitting} unavailable={!serviceHealth.data.realignment.available} />}
+          {formError && <p id="submission-error" tabIndex={-1} className="work-error py-2" role="alert">{formError}</p>}
+          {selectedAlgorithmBlocked && <p className="text-sm text-amber-900 py-2" role="alert">{d.submit.selectedAlgorithmUnavailable}</p>}
         </div>
       </fieldset>
-      {formError && <p className="work-error py-3" role="alert">{formError}</p>}
-      {selectedAlgorithmBlocked && <p className="text-sm text-amber-900 py-3" role="alert">{d.submit.selectedAlgorithmUnavailable}</p>}
       <div className="work-actionbar">
         <div className="work-summary">
           <strong><FileText size={16} />{t.summary}</strong>
           <span className="max-w-64 truncate" title={summaryInput}>{summaryInput}</span>
-          <span>{algorithm === "minipoa" ? "MiniPOA" : d.submit.algorithms[algorithm]} · {d.submit.preprocessModes[preprocessMode]}</span>
+          <span>{algorithm === "minipoa" ? "MiniPOA" : d.submit.algorithms[algorithm]}</span>
         </div>
         <Button disabled={submitting || submissionBlocked} type="submit">
           {submitting && <Loader2 className="h-4 w-4 animate-spin" />}

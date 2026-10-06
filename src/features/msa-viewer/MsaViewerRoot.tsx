@@ -6,6 +6,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type ReactNode,
   type ChangeEvent
 } from "react";
 import { EmptyState } from "../../components/common/EmptyState";
@@ -40,7 +41,9 @@ import { MsaDomMatrix } from "./MsaDomMatrix";
 import { MsaInspector } from "./MsaInspector";
 import { MsaOverviewNavigator } from "./MsaOverviewNavigator";
 import { MsaQcPanel } from "./MsaQcPanel";
-import { MsaViewerToolbar } from "./MsaViewerToolbar";
+import { MsaWorkspaceHeader } from "./MsaWorkspaceHeader";
+import { MsaSettingsDock } from "./MsaSettingsDock";
+import { MsaViewerToolbar, type MsaViewerToolbarProps } from "./MsaViewerToolbar";
 import { MsaWorkspaceShell } from "./MsaWorkspaceShell";
 import {
   DEFAULT_ROW_QC_FILTERS,
@@ -208,10 +211,17 @@ function rowMetric(row: ReturnType<typeof useMsaAnalysis>["rowQc"][number] | und
 
 export function MsaViewerRoot({
   alignment: sourceAlignment,
-  context
+  context, sourceName, workspaceScope, presentation = "embedded", onReturn, onReplaceInput, headerActions, example = false
 }: {
   alignment: MSAResult;
   context?: MsaViewerContext;
+  sourceName?: string;
+  workspaceScope?: string;
+  presentation?: "embedded" | "immersive";
+  onReturn?: () => void;
+  onReplaceInput?: () => void;
+  headerActions?: ReactNode;
+  example?: boolean;
 }) {
   const { dictionary: d, locale } = useLanguage();
   const mobile = useMobileLayout();
@@ -225,6 +235,7 @@ export function MsaViewerRoot({
     exportWorkspace,
     importWorkspace
   } = useViewerState({
+    workspaceScope,
     descriptor,
     rows: alignment.sequences,
     alignmentLength,
@@ -601,7 +612,7 @@ export function MsaViewerRoot({
       : next.position;
     dispatch({
       type: "select",
-      openInspector: !(mobile && state.rangeSelectionMode),
+      openInspector: state.inspectorOpen,
       selection: next,
       range: { start: Math.min(anchor, next.position), end: Math.max(anchor, next.position) }
     });
@@ -610,7 +621,7 @@ export function MsaViewerRoot({
   function handleRangeSelect(rowKey: string, start: number, end: number) {
     dispatch({
       type: "select",
-      openInspector: !(mobile && state.rangeSelectionMode),
+      openInspector: state.inspectorOpen,
       selection: { rowKey, position: end },
       range: { start, end }
     });
@@ -656,7 +667,7 @@ export function MsaViewerRoot({
       type: "patch",
       patch: {
         activeMotifIndex: index,
-        inspectorOpen: true,
+        inspectorOpen: state.inspectorOpen,
         selection: { rowKey: match.rowKey, position: match.start },
         selectedRange: { start: Number.isFinite(start) ? start : match.start, end: end || match.start }
       }
@@ -925,8 +936,8 @@ export function MsaViewerRoot({
       base={selectedBase}
       columnStats={selectedColumnStats}
       columnSummary={columnSummary}
-      docked={!mobile}
-      mobileOpen={mobile && state.inspectorOpen && (!canAnalyze || !state.qcPanelOpen)}
+      docked
+      mobileOpen={false}
       onClose={() => patchState({ inspectorOpen: false })}
       range={state.selectedRange}
       rangeError={rangeAnalysis.error ? d.results.viewer.stageTwo.rangeStatsFailed : null}
@@ -985,34 +996,103 @@ export function MsaViewerRoot({
     </div>
   );
 
-  if (alignment.truncated) {
-    const count = alignment.sequenceCount ?? descriptor.sequenceCount;
-    const length = alignment.alignmentLength ?? descriptor.alignmentLength;
-    return (
-      <section className="rounded-xl border border-amber-200 bg-amber-50 p-5" role="status">
-        <h2 className="font-semibold text-amber-950">
-          {locale === "zh" ? "该结果超过浏览器预览上限" : "This result exceeds the browser preview limits"}
-        </h2>
-        <p className="mt-2 text-sm leading-6 text-amber-900">
-          {alignment.message ?? (locale === "zh"
-            ? `结果包含 ${count.toLocaleString()} 条序列、${length.toLocaleString()} 列；当前上限保持为 1 MB、500 条序列和 10,000 列。`
-            : `The result contains ${count.toLocaleString()} rows and ${length.toLocaleString()} columns. Current limits remain 1 MB, 500 rows, and 10,000 columns.`)}
-        </p>
-        {context?.downloads?.fullResultHref ? (
-          <a className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg bg-amber-900 px-4 text-sm font-semibold text-white" href={context.downloads.fullResultHref}>
-            <Download className="h-4 w-4" />
-            {locale === "zh" ? "下载完整结果" : "Download full result"}
-          </a>
-        ) : null}
-      </section>
-    );
-  }
-
   const rangeText = selectedRangeLabel(state.selectedRange);
   const canExport = displayedSequences.length > 0 && visiblePositions.length > 0;
   const qcPanelOpen = canAnalyze && state.qcPanelOpen;
-  const dockOpen = !mobile && (qcPanelOpen || state.inspectorOpen);
-  const dockContent = qcPanelOpen ? qcWorkspace : inspector;
+  const immersive = presentation === "immersive" || state.immersive;
+  const panelOpen = state.settingsOpen || qcPanelOpen || state.inspectorOpen;
+  const dockOpen = !mobile && panelOpen;
+  const closePanel = () => {
+    const label = state.settingsOpen ? d.results.viewer.stageTwo.settings : d.results.viewer.stageTwo.inspector;
+    patchState({ settingsOpen: false, inspectorOpen: false, qcPanelOpen: false });
+    window.requestAnimationFrame(() => {
+      document.querySelectorAll<HTMLButtonElement>("[data-msa-command-bar] button").forEach(button => {
+        if (button.getAttribute("aria-label") === label) button.focus();
+      });
+    });
+  };
+  const exitWorkspace = () => onReturn ? onReturn() : patchState({ immersive: false });
+  const sourceBar = <MsaWorkspaceHeader title={sourceName ?? descriptor.sourceName ?? alignment.jobId ?? "MSA"}
+    sequences={alignment.sequenceCount ?? alignment.sequences.length} columns={alignmentLength}
+    immersive={immersive} onReturn={onReturn} onToggle={() => patchState({ immersive: !state.immersive })}
+    onReplace={onReplaceInput} extra={headerActions} example={example} />;
+  const controls: MsaViewerToolbarProps = {
+    actualScopeRowCount: analysis.scopeRowCount,
+    alignmentLength: alignmentLength,
+    analysisDisabled: !canAnalyze,
+    canExport: canExport,
+    canExportSelectedRows: state.selectedRowKeys.size > 0 && visiblePositions.length > 0,
+    canUndoHide: state.lastHiddenRowKeys.length > 0,
+    hiddenCount: state.hiddenRowKeys.size,
+    isSearchingMotif: analysis.isSearchingMotif,
+    jumpPosition: jumpPosition,
+    motifMatchCount: motifMatchCount,
+    motifMatches: displayedMotifMatches,
+    motifMatchesTruncated: analysis.motifMatchesTruncated,
+    motifValidationError: motifValidationError,
+    neutralReason: neutralReason,
+    onClearReference: () => setReference(state.referenceRowKey ?? ""),
+    onExportConsensusRange: exportConsensusRange,
+    onExportImage: imageExport.openDialog,
+    onExportSelectedRange: exportRangeFasta,
+    onExportSelectedRows: exportSelectedRows,
+    onExportVisible: exportVisibleFasta,
+    onHideSelected: () => dispatch({ type: "batchRows", operation: "hide", rowKeys: state.selectedRowKeys }),
+    onJump: jumpToPosition,
+    onJumpPositionChange: setJumpPosition,
+    onMotifNavigate: navigateMotif,
+    onMotifSelect: selectMotif,
+    onOpenInspector: () => patchState({ inspectorOpen: true, qcPanelOpen: false }),
+    onOpenQc: () => patchState({ qcPanelOpen: !state.qcPanelOpen, inspectorOpen: false }),
+    onPatch: patchState,
+    onPinSelected: () => dispatch({ type: "batchRows", operation: "pin", rowKeys: state.selectedRowKeys }),
+    onResetView: () => dispatch({ type: "resetView" }),
+    onSelectAllVisible: () => dispatch({ type: "selectAllVisible", rowKeys: displayedRowKeys }),
+    onShowAll: () => dispatch({ type: "showAllRows" }),
+    onToggleTrack: (track) => dispatch({ type: "toggleTrack", track }),
+    onToggleWorkspace: () => patchState({ immersive: !state.immersive }),
+    onUndoHide: () => dispatch({ type: "undoLastHide" }),
+    onUnpinSelected: () => dispatch({ type: "batchRows", operation: "unpin", rowKeys: state.selectedRowKeys }),
+    onZoom: changeZoom,
+    referenceLabel: state.referenceRowKey ? rowLabels.get(state.referenceRowKey) : null,
+    selectedRowCount: state.selectedRowKeys.size,
+    state: state,
+    totalSequenceCount: alignment.sequences.length,
+    visibleColumnCount: visiblePositions.length,
+    visibleSequenceCount: displayedSequences.length,
+    fullResultHref: context?.downloads?.fullResultHref,
+  };
+  const workspaceActions = <div className="msa-view-settings">
+    <details className="msa-view-group"><summary>{locale === "zh" ? "分析范围与工作区" : "Analysis scope and workspace"}</summary><div>
+      {canAnalyze && <label className="block text-sm">{d.results.viewer.stageTwo.analysisScope}
+        <select className="h-11 w-full rounded border px-2" aria-label={d.results.viewer.stageTwo.analysisScope} value={state.analysisScope}
+          onChange={e => patchState({ analysisScope: e.target.value as ViewerState["analysisScope"] })}>
+          {(["all", "visible", "selected"] as const).map(scope => <option key={scope} value={scope}
+            disabled={scope === "selected" && !state.selectedRowKeys.size}>{d.results.viewer.stageTwo.analysisScopes[scope]}</option>)}
+        </select>
+      </label>}
+      <button type="button" className="min-h-11 text-left text-teal-800" onClick={exportWorkspaceFile}>{locale === "zh" ? "导出工作区状态" : "Export workspace state"}</button>
+      <button type="button" className="min-h-11 text-left text-teal-800" onClick={() => workspaceFileRef.current?.click()}>{locale === "zh" ? "导入状态" : "Import state"}</button>
+      <button type="button" className="min-h-11 text-left text-teal-800" onClick={() => dispatch({ type: "resetView" })}>{d.results.viewer.stageTwo.resetView}</button>
+    </div></details>
+    {canAnalyze && <details className="msa-view-group"><summary>{d.results.viewer.legend}</summary><div>
+      {state.differenceMode && reference ? <DifferenceLegend /> : <MSAColorLegend scheme={state.colorScheme}/>}
+    </div></details>}
+  </div>;
+  const dockContent = <div id="msa-shared-panel">
+    {state.settingsOpen ? <>
+      <h2 className="px-3 py-2 font-semibold">{locale === "zh" ? "视图" : "View"}</h2>
+      <MsaSettingsDock {...controls} isOpen onClose={closePanel} presentation="content" workspaceActions={workspaceActions}/>
+    </> : <>
+      <div className="msa-panel-tabs" role="tablist" aria-label={locale === "zh" ? "分析工具" : "Analysis tools"}>
+        <button role="tab" aria-selected={!qcPanelOpen} aria-controls="msa-analysis-detail" type="button"
+          onClick={() => patchState({ inspectorOpen: true, qcPanelOpen: false })}>{locale === "zh" ? "选区详情" : "Selection"}</button>
+        <button role="tab" aria-selected={qcPanelOpen} aria-controls="msa-analysis-detail" type="button" disabled={!canAnalyze}
+          onClick={() => patchState({ inspectorOpen: false, qcPanelOpen: true })}>{locale === "zh" ? "质量检查" : "Quality checks"}</button>
+      </div>
+      <div id="msa-analysis-detail" role="tabpanel">{qcPanelOpen ? qcWorkspace : inspector}</div>
+    </>}
+  </div>;
   const liveStatus = state.selection
     ? `${rowLabels.get(state.selection.rowKey) ?? state.selection.rowKey}; ${d.results.viewer.position} ${state.selection.position}; ${selectedReferencePosition ?? ""}; ${selectedBase || d.results.viewer.emptyCell}; ${canAnalyze ? d.results.viewer.stageTwo.analysisScopes[state.analysisScope] : d.results.viewer.scienceV2.neutralTitle}; ${rangeText}`
     : `${d.results.viewer.noSelection}; ${canAnalyze ? `${d.results.viewer.stageTwo.analysisScopes[state.analysisScope]}; ${analysis.scopeRowCount}` : d.results.viewer.scienceV2.neutralTitle}`;
@@ -1063,7 +1143,9 @@ export function MsaViewerRoot({
   );
   const statusBar = (
     <div
-      className="flex min-h-11 flex-nowrap items-center justify-between gap-2 overflow-x-auto px-3 py-2 text-xs text-slate-600 lg:flex-wrap lg:overflow-visible"
+      className="msa-status"
+      tabIndex={0}
+      aria-label={locale === "zh" ? "当前查看与分析状态" : "Current viewer and analysis state"}
       data-msa-analysis-status={analysis.status}
       data-msa-range-mode={state.rangeSelectionMode ? "range" : "pan"}
       data-msa-selected-row-key={state.selection?.rowKey ?? ""}
@@ -1073,142 +1155,64 @@ export function MsaViewerRoot({
       data-msa-view-mode={state.viewMode}
       data-msa-zoom={state.zoomLevel.toFixed(2)}
     >
-      <div className="flex shrink-0 flex-nowrap items-center gap-x-4 gap-y-1 lg:flex-wrap">
-        {state.selection ? (
-          <span>
-            {d.results.viewer.selectedPosition}: <b>{state.selection.position}</b>
-            {selectedReferencePosition ? ` / ${selectedReferencePosition}` : ""}
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1.5">
-            <MousePointer2 className="h-3.5 w-3.5 text-teal-700" />
-            {d.results.viewer.noSelection}
-          </span>
-        )}
-        <span>{canAnalyze
-          ? d.results.viewer.scienceV2.scopeRows
-              .replace("{scope}", d.results.viewer.stageTwo.analysisScopes[state.analysisScope])
-              .replace("{count}", analysis.scopeRowCount.toLocaleString())
-          : d.results.viewer.scienceV2.neutralTitle}</span>
-        <span>{d.results.viewer.visibleColumns
-          .replace("{shown}", visiblePositions.length.toLocaleString())
-          .replace("{total}", alignmentLength.toLocaleString())}</span>
-        {descriptor.warnings.includes("duplicate_headers") ? (
-          <span className="font-medium text-amber-700">
-            {locale === "zh" ? "检测到重复 header；各行仍按内部 rowKey 独立操作。" : "Duplicate headers detected; rows remain independently addressable by rowKey."}
-          </span>
-        ) : null}
-        {descriptor.warnings.includes("mixed_t_u_alphabet") ? (
-          <span className="font-medium text-amber-700">
-            {locale === "zh" ? "检测到 T/U 混合；显示保留原字符，统计按统一核酸状态处理。" : "Mixed T/U detected; display is preserved and metrics use one normalized nucleotide state."}
-          </span>
-        ) : null}
-        {workspaceMessage ? <span role="status">{workspaceMessage}</span> : null}
+      <div className="flex shrink-0 items-center gap-3">
+        <span>{state.selection ? `${d.results.viewer.position} ${state.selection.position}` : locale === "zh" ? "未选择" : "No selection"}</span>
+        {rangeText && <span>{locale === "zh" ? "选区" : "Range"}: {rangeText}</span>}
+        <span>{canAnalyze ? `${d.results.viewer.stageTwo.analysisScopes[state.analysisScope]} · ${analysis.scopeRowCount}` : d.results.viewer.scienceV2.neutralTitle}</span>
+        <span>{displayedSequences.length}/{alignment.sequences.length} {locale === "zh" ? "行" : "rows"} · {visiblePositions.length}/{alignmentLength} {locale === "zh" ? "列" : "columns"}</span>
+        {(state.search || state.hiddenRowKeys.size > 0 || state.columnFilter !== "all") && <button type="button" className="text-teal-800 underline"
+          onClick={() => { dispatch({ type: "showAllRows" }); patchState({search: "", columnFilter: "all"}); }}>{locale === "zh" ? "清除筛选" : "Clear filters"}</button>}
+        {state.selectedRowKeys.size > 0 && <span>{state.selectedRowKeys.size} {locale === "zh" ? "行已选" : "rows selected"}</span>}
+        {state.motifQuery && <button type="button" title={state.motifQuery} onClick={() => patchState({ motifQuery: "", activeMotifIndex: 0 })}>
+          {locale === "zh" ? "清除片段搜索" : "Clear motif search"}
+        </button>}
+        {state.hiddenRowKeys.size > 0 && <span>{locale === "zh" ? "隐藏" : "Hidden"}: {state.hiddenRowKeys.size}</span>}
+        {state.referenceRowKey && <span className="max-w-36 truncate" title={rowLabels.get(state.referenceRowKey)}>{locale === "zh" ? "参考" : "Reference"}: {rowLabels.get(state.referenceRowKey)}</span>}
+        {descriptor.warnings.includes("duplicate_headers") && <span title={locale === "zh" ? "同名序列按独立记录处理" : "Rows with duplicate names remain independently addressable"}>{locale === "zh" ? "存在同名序列" : "Duplicate headers detected"}</span>}
+        {workspaceMessage && <span role="status">{workspaceMessage}</span>}
       </div>
-      <div className="flex shrink-0 flex-nowrap items-center gap-1 lg:flex-wrap">
-        {state.lastHiddenRowKeys.length ? (
-          <button className="inline-flex min-h-11 items-center gap-1 rounded px-2 hover:bg-slate-100" onClick={() => dispatch({ type: "undoLastHide" })} type="button">
-            <RotateCcw className="h-3.5 w-3.5" />
-            {d.results.viewer.stageTwo.undoHide}
-          </button>
-        ) : null}
-        <input
-          accept=".easymsa-view.json,application/json"
-          aria-label={locale === "zh" ? "导入工作区状态文件" : "Import workspace state file"}
-          className="hidden"
-          onChange={importWorkspaceFile}
-          ref={workspaceFileRef}
-          type="file"
-        />
-        <details className="relative">
-          <summary className="flex min-h-11 cursor-pointer list-none items-center rounded px-2 hover:bg-slate-100 [&::-webkit-details-marker]:hidden">
-            {locale === "zh" ? "工作区状态" : "Workspace state"}
-          </summary>
-          <div className="absolute bottom-full right-0 z-50 mb-2 grid min-w-48 rounded-xl border border-slate-200 bg-white p-1 shadow-xl">
-            <button className="min-h-11 rounded px-3 text-left hover:bg-slate-100" onClick={exportWorkspaceFile} type="button">
-              {locale === "zh" ? "导出工作区状态" : "Export workspace state"}
-            </button>
-            <button className="min-h-11 rounded px-3 text-left hover:bg-slate-100" onClick={() => workspaceFileRef.current?.click()} type="button">
-              {locale === "zh" ? "导入状态" : "Import state"}
-            </button>
-          </div>
-        </details>
-        {canAnalyze ? (
-          <details className="relative">
-            <summary className="flex min-h-11 cursor-pointer list-none items-center rounded px-2 hover:bg-slate-100 [&::-webkit-details-marker]:hidden">
-              {d.results.viewer.legend}
-            </summary>
-            <div className="absolute bottom-full right-0 z-50 mb-2 min-w-72 rounded-xl border border-slate-200 bg-white shadow-xl">
-              {state.differenceMode && reference ? <DifferenceLegend /> : <MSAColorLegend scheme={state.colorScheme} />}
-            </div>
-          </details>
-        ) : null}
-        {state.selection ? (
-          <button className="inline-flex min-h-11 items-center gap-1 rounded px-2 hover:bg-slate-100" onClick={() => dispatch({ type: "clearSelection" })} type="button">
-            <X className="h-3.5 w-3.5" />
-            {d.results.viewer.clearSelection}
-          </button>
-        ) : null}
+      <div className="flex shrink-0 items-center gap-2">
+        {state.lastHiddenRowKeys.length > 0 && <button type="button" onClick={() => dispatch({ type:"undoLastHide" })}>{d.results.viewer.stageTwo.undoHide}</button>}
+        {state.selection && <button type="button" onClick={() => dispatch({ type:"clearSelection" })}>{d.results.viewer.clearSelection}</button>}
       </div>
       <span aria-live="polite" className="sr-only" role="status">{liveStatus}</span>
     </div>
   );
 
+  if (alignment.truncated) {
+    const count = alignment.sequenceCount ?? descriptor.sequenceCount;
+    const length = alignmentLength;
+    return <MsaWorkspaceShell sourceBar={sourceBar} commandBar={null} matrixLabel={d.results.viewer.matrixNavigation}
+      workspaceLabel="MSA" matrix={      <section className="rounded-xl border border-amber-200 bg-amber-50 p-5" role="status">
+        <h2 className="font-semibold text-amber-950">
+          {locale === "zh" ? "该结果超过浏览器预览上限" : "This result exceeds the browser preview limits"}
+        </h2>
+        <p className="mt-2 text-sm leading-6 text-amber-900">
+          {alignment.message ?? (locale === "zh"
+            ? `结果包含 ${count.toLocaleString()} 条序列、${length.toLocaleString()} 列；当前上限保持为 1 MB、500 条序列和 10,000 列。`
+            : `The result contains ${count.toLocaleString()} rows and ${length.toLocaleString()} columns. Current limits remain 1 MB, 500 rows, and 10,000 columns.`)}
+        </p>
+        {context?.downloads?.fullResultHref ? (
+          <a className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg bg-amber-900 px-4 text-sm font-semibold text-white" href={context.downloads.fullResultHref}>
+            <Download className="h-4 w-4" />
+            {locale === "zh" ? "下载完整结果" : "Download full result"}
+          </a>
+        ) : null}
+      </section>}
+      {...(immersive ? {mode: "immersive" as const, exitImmersiveLabel: d.results.viewer.stageTwo.exitWorkspace, onExitImmersive: exitWorkspace} : {mode: "embedded" as const})}/>;
+  }
+
   return (
     <>
       <MsaWorkspaceShell
+        sourceBar={sourceBar}
+        onCloseTransient={() => { if (panelOpen) { closePanel(); return true; } return false; }}
         commandBar={(
-          <MsaViewerToolbar
-            actualScopeRowCount={analysis.scopeRowCount}
-            alignmentLength={alignmentLength}
-            analysisDisabled={!canAnalyze}
-            canExport={canExport}
-            canExportSelectedRows={state.selectedRowKeys.size > 0 && visiblePositions.length > 0}
-            canUndoHide={state.lastHiddenRowKeys.length > 0}
-            hiddenCount={state.hiddenRowKeys.size}
-            isSearchingMotif={analysis.isSearchingMotif}
-            jumpPosition={jumpPosition}
-            motifMatchCount={motifMatchCount}
-            motifMatches={displayedMotifMatches}
-            motifMatchesTruncated={analysis.motifMatchesTruncated}
-            motifValidationError={motifValidationError}
-            neutralReason={neutralReason}
-            onClearReference={() => setReference(state.referenceRowKey ?? "")}
-            onExportConsensusRange={exportConsensusRange}
-            onExportImage={imageExport.openDialog}
-            onExportSelectedRange={exportRangeFasta}
-            onExportSelectedRows={exportSelectedRows}
-            onExportVisible={exportVisibleFasta}
-            onHideSelected={() => dispatch({ type: "batchRows", operation: "hide", rowKeys: state.selectedRowKeys })}
-            onJump={jumpToPosition}
-            onJumpPositionChange={setJumpPosition}
-            onMotifNavigate={navigateMotif}
-            onMotifSelect={selectMotif}
-            onOpenInspector={() => patchState({ inspectorOpen: true, qcPanelOpen: false })}
-            onOpenQc={() => patchState({ qcPanelOpen: !state.qcPanelOpen, inspectorOpen: false })}
-            onPatch={patchState}
-            onPinSelected={() => dispatch({ type: "batchRows", operation: "pin", rowKeys: state.selectedRowKeys })}
-            onResetView={() => dispatch({ type: "resetView" })}
-            onSelectAllVisible={() => dispatch({ type: "selectAllVisible", rowKeys: displayedRowKeys })}
-            onShowAll={() => dispatch({ type: "showAllRows" })}
-            onToggleTrack={(track) => dispatch({ type: "toggleTrack", track })}
-            onToggleWorkspace={() => patchState({ immersive: !state.immersive })}
-            onUndoHide={() => dispatch({ type: "undoLastHide" })}
-            onUnpinSelected={() => dispatch({ type: "batchRows", operation: "unpin", rowKeys: state.selectedRowKeys })}
-            onZoom={changeZoom}
-            referenceLabel={state.referenceRowKey ? rowLabels.get(state.referenceRowKey) : null}
-            selectedRowCount={state.selectedRowKeys.size}
-            state={state}
-            totalSequenceCount={alignment.sequences.length}
-            visibleColumnCount={visiblePositions.length}
-            visibleSequenceCount={displayedSequences.length}
-          />
+<MsaViewerToolbar {...controls} />
         )}
         dock={dockContent}
-        dockCloseLabel={qcPanelOpen
-          ? d.results.viewer.stageTwo.closeQc
-          : d.results.viewer.stageTwo.closeInspector}
-        dockLabel={qcPanelOpen ? d.results.viewer.stageTwo.qc : d.results.viewer.stageTwo.inspector}
+        dockCloseLabel={locale === "zh" ? "关闭面板" : "Close panel"}
+        dockLabel={state.settingsOpen ? d.results.viewer.stageTwo.settings : d.results.viewer.stageTwo.inspector}
         dockOpen={dockOpen}
         dockResizeLabel={d.results.viewer.stageTwo.resizeDock}
         dockWidth={state.inspectorWidth}
@@ -1224,30 +1228,26 @@ export function MsaViewerRoot({
             scrollRef={scrollRef}
           />
         )}
-        onDockClose={() => patchState({ inspectorOpen: false, qcPanelOpen: false })}
+        onDockClose={closePanel}
         onDockWidthChange={(inspectorWidth) => patchState({ inspectorWidth })}
         statusBar={statusBar}
         workspaceLabel={canAnalyze
           ? (locale === "zh" ? "MSA 科研 QC 工作区" : "MSA scientific QC workspace")
           : (locale === "zh" ? "MSA 中性矩阵浏览工作区" : "MSA neutral matrix browser")}
-        {...(state.immersive
+        {...(immersive
           ? {
               mode: "immersive" as const,
               exitImmersiveLabel: d.results.viewer.stageTwo.exitWorkspace,
-              onExitImmersive: () => patchState({ immersive: false })
+              onExitImmersive: exitWorkspace
             }
           : { mode: "embedded" as const })}
       />
 
-      {mobile ? inspector : null}
-      <OverlayDialog
-        closeLabel={d.results.viewer.stageTwo.closeQc}
-        isOpen={mobile && qcPanelOpen}
-        onClose={() => patchState({ qcPanelOpen: false })}
-        title={locale === "zh" ? "QC 与人工标记" : "QC and annotations"}
-        variant="bottom-sheet"
-      >
-        {qcWorkspace}
+      <input accept=".easymsa-view.json,application/json" aria-label={locale === "zh" ? "导入工作区状态文件" : "Import workspace state file"}
+        className="hidden" onChange={importWorkspaceFile} ref={workspaceFileRef} type="file"/>
+      <OverlayDialog closeLabel={locale === "zh" ? "关闭面板" : "Close panel"} isOpen={mobile && panelOpen} onClose={closePanel}
+        title={state.settingsOpen ? (locale === "zh" ? "视图" : "View") : (locale === "zh" ? "分析" : "Analyze")} variant="bottom-sheet">
+        {dockContent}
       </OverlayDialog>
 
       {analysis.status === "error" ? (

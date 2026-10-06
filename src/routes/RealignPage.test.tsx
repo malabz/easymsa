@@ -8,11 +8,12 @@ vi.mock('../lib/query/useServiceHealth',()=>({useServiceHealth:()=>mocks.health}
 vi.mock('../lib/api/jobs',()=>({createRealignmentJob:mocks.submit}));
 vi.mock('react-router-dom',async()=>({...await vi.importActual('react-router-dom'),useNavigate:()=>mocks.navigate}));
 import {MemoryRouter} from 'react-router-dom';
+import {clearDraft} from '../lib/workspace';
 import {RealignPage} from './RealignPage';
 import {EasyMsaApiError} from '../lib/api/client';
 const aligned=new File(['>a\nAC-G\n>b\nACCG\n'],'aligned.fa');
 beforeEach(()=>{
- vi.clearAllMocks();localStorage.setItem('easymsa.locale','en');
+ clearDraft("realign"); vi.clearAllMocks();localStorage.setItem('easymsa.locale','en');
  mocks.health={isPending:false,isError:false,refetch:mocks.refetch,data:{coreReady:true,realignment:{enabled:true,available:true,maxSequences:2000,maxColumns:30000,maxCells:1000000},queueLength:99,realignmentQueueLength:2}};
 });
 afterEach(cleanup);
@@ -20,7 +21,7 @@ const show=()=>render(<MemoryRouter><LanguageProvider><RealignPage/></LanguagePr
 async function validForm(){const user=userEvent.setup();await user.type(screen.getByLabelText('Job name'),'valid-task');await user.upload(screen.getByLabelText('Aligned FASTA file'),aligned);return user;}
 it('shows dedicated queue, default order, and waits for a valid file',()=>{
  show();expect(screen.getByRole('button',{name:'Submit Realignment'})).toBeDisabled();expect(screen.queryByText(/99/)).not.toBeInTheDocument();
- expect(screen.getByText(/2/,{selector:'p.text-xs'})).toBeVisible();
+ expect(screen.getByText(/2 jobs/)).toBeVisible();
  expect(document.querySelector('#realignPattern')).toHaveValue('1');expect(document.querySelector('details')).not.toHaveAttribute('open');
 });
 it('validates task name and email before posting',async()=>{
@@ -31,7 +32,7 @@ it('validates task name and email before posting',async()=>{
 it('keeps values after failure and clears the old error on replacement',async()=>{
  mocks.submit.mockRejectedValueOnce(new EasyMsaApiError({code:'REALIGN_UNALIGNED_INPUT',message:'Unequal alignment rows.'}));
  show();const user=await validForm();await user.click(screen.getByRole('button',{name:'Submit Realignment'}));
- expect(await screen.findByRole('alert')).toHaveTextContent('Unequal alignment rows.');expect(screen.getByLabelText('Job name')).toHaveValue('valid-task');expect(screen.getByText('aligned.fa')).toBeVisible();
+ expect(await screen.findByRole('alert')).toHaveTextContent('Unequal alignment rows.');expect(screen.getByLabelText('Job name')).toHaveValue('valid-task');expect(screen.getAllByText('aligned.fa')[0]).toBeVisible();
  await user.upload(screen.getByLabelText('Aligned FASTA file'),new File(['>a\nAC\n>b\nAC\n'],'another.fa'));expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 });
 it('posts once while busy and navigates after success',async()=>{

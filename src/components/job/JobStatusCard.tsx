@@ -1,4 +1,5 @@
 import { jobError } from "../../lib/i18n/jobErrors";
+import { realignText } from "../../lib/i18n/realignment";
 import { RealignmentNotice } from "./RealignmentNotice";
 import { AlertTriangle, ArrowRight, CheckCircle2, Clock3, Mail } from "lucide-react";
 import { ButtonLink } from "../common/Button";
@@ -69,6 +70,22 @@ function CountList({
       ))}
     </div>
   );
+}
+
+export function JobPreprocessDetails({ job }: { job: JobDetail }) {
+  const { dictionary: d, locale } = useLanguage();
+  const p = job.preprocess;
+  const t = d.job.preprocessSummary;
+  if (p.status === "not_applicable") return <p>{realignText[locale].preprocessNotApplicable}</p>;
+  if (!p.summaryCounts || p.summaryUnavailable) return <p>{t.unavailable}</p>;
+  return <div>
+    <p className="mb-4 text-slate-500">{p.mode === "filter" ? t.modeFilter : t.modeAudit}</p>
+    <div className="job-preprocess-details">
+      <section><h3>{t.possibleIssues}</h3><CountList values={mergeCounts(p.qcCounts, p.warningCounts)} emptyText={t.noIssues} labels={t.labels} /></section>
+      <section><h3>{t.removalReasons}</h3><CountList values={p.removalCounts} emptyText={t.noRemovals} labels={t.labels} /></section>
+      <section><h3>{t.cleaningActions}</h3><CountList values={p.cleaningCounts} emptyText={t.noCleaning} labels={t.labels} /></section>
+    </div>
+  </div>;
 }
 
 export function JobStatusCard({ job, token }: { job: JobDetail; token: string }) {

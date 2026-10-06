@@ -125,7 +125,7 @@ const zh = {
       fmalign2_halign3: "FMAlign2 + HAlign4"
     },
     algorithmDescriptions: {
-      auto: "后端根据输入特征自动选择合适的方法，并在完成后显示实际使用的工具。",
+      auto: "根据序列特征自动选择合适的比对方法。",
       minipoa: "快速部分有序比对，适合较大的近缘序列集。",
       mafft: "经典多序列比对，提供多种模式与迭代参数。",
       halign3: "面向超大规模 DNA/RNA 的原生高速比对，内存占用较高。",
@@ -1091,7 +1091,7 @@ const en: typeof zh = {
       fmalign2_halign3: "FMAlign2 + HAlign4"
     },
     algorithmDescriptions: {
-      auto: "The backend selects a suitable method from input features and shows the actual tool after completion.",
+      auto: "Automatically selects a suitable method based on sequence features.",
       minipoa: "Fast partial-order alignment for larger, closely related sequence sets.",
       mafft: "Classic multiple sequence alignment with multiple modes and iteration parameters.",
       halign3: "Native high-speed alignment for ultra-large DNA/RNA datasets; higher memory usage.",

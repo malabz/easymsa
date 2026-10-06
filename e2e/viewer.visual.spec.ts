@@ -18,31 +18,28 @@ test("fixed Linux Chromium workspace baselines", async ({ page }, testInfo) => {
   const width = page.viewportSize()?.width ?? 0;
 
   await expect(shell).toHaveScreenshot("embedded.png");
-  await page.getByRole("button", { name: "Expand workspace" }).click();
+  await page.getByRole("button", { name: "Full screen" }).click();
   await settleBrowser(page);
   await expect(shell).toHaveScreenshot("immersive.png");
-  await page.getByRole("button", { name: "Exit workspace" }).click();
+  await page.getByRole("button", { name: "Exit full screen" }).click();
 
   if (width === 390 || width === 768) {
     await page.getByRole("button", { name: "Workspace settings" }).click();
-    await expect(page.getByRole("dialog", { name: "Workspace settings" }))
+    await expect(page.getByRole("dialog", { name: "View" }))
       .toHaveScreenshot("settings-sheet.png");
     await page.keyboard.press("Escape");
   }
 
   if (width === 390 || width === 1280 || width === 1920) {
     await page.locator("[data-msa-sequence-cell='true']").first().click();
-    if (width === 390) {
-      await page.getByRole("button", { name: "Close analysis inspector" }).click();
-    }
     await page.getByRole("button", { name: "Analysis inspector", exact: true }).click();
     if (width === 390) {
-      await expect(page.getByRole("dialog", { name: "Analysis inspector", exact: true }))
+      await expect(page.getByRole("dialog", { name: "Analyze", exact: true }))
         .toHaveScreenshot("inspector-sheet.png");
       await page.keyboard.press("Escape");
     } else {
       await expect(shell).toHaveScreenshot("inspector-dock.png");
-      await page.getByRole("button", { name: "Close analysis inspector" }).click();
+      await page.getByRole("button", { name: "Close panel" }).click();
     }
   }
 

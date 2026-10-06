@@ -8,7 +8,7 @@ export function SubmitPage() {
   const { dictionary: d, locale } = useLanguage();
 
   return (
-    <PageContainer className="workflow-page">
+    <PageContainer className="workflow-page submission-page">
       <div className="work-heading">
         <div><h1>{d.submit.title}</h1><p>{workspaceText[locale].compactIntro}</p></div>
         <ServiceStatus inline />

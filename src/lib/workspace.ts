@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type Dispatch, type SetStateAction } from "react";
-import { useLocation, useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams, useNavigate } from "react-router-dom";
 import type { UseFormWatch } from "react-hook-form";
 import type { ResultStage } from "./types/job";
 import type { ResultTab } from "../components/results/ResultTabs";
@@ -70,6 +70,8 @@ export function useWorkEntries() {
 
 export function useResultLocation() {
   const [params, setParams] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
   const requestedStage = params.get("stage");
   const requestedTab = params.get("tab");
   const stage: ResultStage = requestedStage === "initial" || requestedStage === "refined" ? requestedStage : "final";
@@ -77,5 +79,15 @@ export function useResultLocation() {
   function update(name: string, value: string) {
     setParams(previous => { const next = new URLSearchParams(previous); next.set(name, value); return next; }, { replace: true, preventScrollReset: true });
   }
-  return { stage, setStage: (value: ResultStage) => update("stage", value), tab, setTab: (value: ResultTab) => update("tab", value) };
+  function setTab(value: ResultTab) {
+    const next = new URLSearchParams(params); next.set("tab", value);
+    if (value === "alignment" && tab !== "alignment") {
+      setParams(next, { preventScrollReset: true, state: { msaEntryStage: stage, msaEntryPath: location.pathname, msaEntryTab: tab } });
+    } else if (tab === "alignment" && value === "overview" && location.state?.msaEntryTab === "overview" && location.state?.msaEntryPath === location.pathname && location.state?.msaEntryStage === stage) {
+      navigate(-1);
+    } else {
+      setParams(next, { replace: true, preventScrollReset: true });
+    }
+  }
+  return { stage, setStage: (value: ResultStage) => update("stage", value), tab, setTab };
 }

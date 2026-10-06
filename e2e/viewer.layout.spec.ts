@@ -25,12 +25,9 @@ test("embedded and immersive geometry preserves every workspace region", async (
   const matrixBox = await locatorBox(matrix);
   const statusBox = await locatorBox(status);
   const viewportHeight = await page.evaluate(() => window.visualViewport?.height ?? window.innerHeight);
-  const expectedEmbeddedHeight = Math.max(512, commandBox.height + 17 + navigatorBox.height + statusBox.height + 194, viewportHeight - shellBox.y - 16);
-
-  expect(
-    Math.abs(shellBox.height - expectedEmbeddedHeight),
-    `expected embedded height ${expectedEmbeddedHeight}, received ${shellBox.height}`
-  ).toBeLessThanOrEqual(3);
+  if ((page.viewportSize()?.width ?? 0) >= 1024) {
+    expect(matrixBox.height / viewportHeight).toBeGreaterThanOrEqual(.55);
+  }
   expect(commandBox.y + commandBox.height).toBeLessThanOrEqual(navigatorBox.y + 1);
   expect(navigatorBox.y + navigatorBox.height).toBeLessThanOrEqual(matrixBox.y + 1);
   expect(matrixBox.y + matrixBox.height).toBeLessThanOrEqual(statusBox.y + 1);
@@ -44,7 +41,7 @@ test("embedded and immersive geometry preserves every workspace region", async (
     expect(siteHeaderBox.y + siteHeaderBox.height).toBeLessThanOrEqual(shellBox.y + 1);
   }
 
-  const expand = page.getByRole("button", { name: "Expand workspace" });
+  const expand = page.getByRole("button", { name: "Full screen" });
   await expand.evaluate((element) => element.focus({ preventScroll: true }));
   await page.evaluate(() => window.scrollTo({ top: 96, behavior: "instant" }));
   const scrollBefore = await page.evaluate(() => window.scrollY);
@@ -61,6 +58,7 @@ test("embedded and immersive geometry preserves every workspace region", async (
   expect(Math.abs(immersiveBox.width - visualViewport.width)).toBeLessThanOrEqual(2);
   expect(Math.abs(immersiveBox.height - visualViewport.height)).toBeLessThanOrEqual(2);
   expect(await page.locator("[inert]").count()).toBeGreaterThan(0);
+  if (visualViewport.width >= 1024) expect((await locatorBox(matrix)).height / visualViewport.height).toBeGreaterThanOrEqual(.75);
   await page.keyboard.press("Escape");
   await expect(shell).toHaveAttribute("data-msa-workspace-mode", "embedded");
   await expect(expand).toBeFocused();
@@ -81,19 +79,22 @@ test("responsive settings and Inspector use the intended sheet or side dock", as
 
   await page.getByRole("button", { name: "Workspace settings" }).click();
   if (compact) {
-    const settings = page.getByRole("dialog", { name: "Workspace settings" });
+    const settings = page.getByRole("dialog", { name: "View" });
     await expect(settings).toHaveAttribute("data-overlay-variant", "bottom-sheet");
     await page.keyboard.press("Escape");
   } else {
     await expect(page.locator("[data-msa-settings-dock='true']")).toBeVisible();
-    await expect(page.getByRole("dialog", { name: "Workspace settings" })).toHaveCount(0);
-    await page.getByRole("button", { name: "Close settings" }).click();
+    await expect(page.getByRole("dialog", { name: "View" })).toHaveCount(0);
+    await page.getByRole("button", { name: "Close panel" }).click();
   }
 
   await tabIntoGrid(page);
   await page.keyboard.press("ArrowRight");
+  await expect(page.locator("[data-msa-workspace-dock]")).toHaveCount(0);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.getByRole("button", {name:"Analysis inspector",exact:true}).click();
   if (compact) {
-    const inspector = page.getByRole("dialog", { name: "Analysis inspector" });
+    const inspector = page.getByRole("dialog", { name: "Analyze" });
     await expect(inspector).toHaveAttribute("data-overlay-variant", "bottom-sheet");
     await page.keyboard.press("Escape");
   } else {

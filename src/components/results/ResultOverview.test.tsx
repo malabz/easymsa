@@ -46,6 +46,7 @@ const canvasContext = {
   beginPath: vi.fn(),
   clearRect: vi.fn(),
   fillRect: vi.fn(),
+  fillText: vi.fn(),
   lineTo: vi.fn(),
   moveTo: vi.fn(),
   setTransform: vi.fn(),
@@ -96,11 +97,10 @@ describe("ResultOverview", () => {
   });
 
   it("renders the complete scientific dashboard and navigation actions", async () => {
-    const { container, onOpenAlignment, onOpenDownloads } = renderOverview();
+    const { container, onOpenDownloads } = renderOverview();
 
-    expect(screen.getByRole("heading", { name: "Scientific alignment overview" })).toBeInTheDocument();
-    expect(screen.getByText("preprocess/result.json")).toBeInTheDocument();
-    expect(screen.getByText("output/alignment.fasta")).toBeInTheDocument();
+    expect(screen.getByText("Number of sequences")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /files · Downloads/ })).toHaveLength(3);
     expect(screen.queryByText("Average identity")).not.toBeInTheDocument();
 
     const chart = await screen.findByRole("img", {
@@ -108,9 +108,7 @@ describe("ResultOverview", () => {
     });
     expect(chart).toHaveAccessibleDescription(/all 4 alignment positions/);
 
-    fireEvent.click(screen.getByRole("button", { name: "Open alignment matrix" }));
-    fireEvent.click(screen.getAllByRole("button", { name: "Download results" })[0]);
-    expect(onOpenAlignment).toHaveBeenCalledOnce();
+    fireEvent.click(screen.getAllByRole("button", { name: /files · Downloads/ })[0]);
     expect(onOpenDownloads).toHaveBeenCalledOnce();
 
     const accessibility = await axe.run(container, {
@@ -129,7 +127,7 @@ describe("ResultOverview", () => {
       }
     });
 
-    expect(screen.getByText("Preprocessing overview")).toBeInTheDocument();
+    expect(screen.getByText("Number of sequences")).toBeInTheDocument();
     expect(screen.getByText(/exceeds the preview limits/)).toBeInTheDocument();
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
   });

@@ -153,15 +153,15 @@ export async function loadNamedFixture(page: Page, name: ViewerFixtureName) {
 
 export async function openSettings(page: Page) {
   await page.getByRole("button", { name: "Workspace settings" }).click();
-  const dialog = page.getByRole("dialog", { name: "Workspace settings" });
+  const dialog = page.getByRole("dialog", { name: "View", exact: true });
   const dock = page.locator("[data-msa-settings-dock='true']");
-  await expect(dialog.or(dock)).toBeVisible();
+  await expect(dock).toBeVisible();
   return dialog.isVisible().then((visible) => visible ? dialog : dock);
 }
 
 export async function closeSettings(page: Page) {
-  await page.getByRole("button", { name: "Close settings" }).click();
-  await expect(page.getByRole("dialog", { name: "Workspace settings" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Close panel" }).click();
+  await expect(page.getByRole("dialog", { name: "View", exact: true })).toHaveCount(0);
   await expect(page.locator("[data-msa-settings-dock='true']")).toHaveCount(0);
   await settleBrowser(page);
 }
@@ -186,7 +186,7 @@ export async function runRowAction(
     return;
   }
   await page.getByLabel(`${rowName} row actions`).click();
-  await page.getByRole("button", { name: menuActionName, exact: true }).click();
+  await page.getByRole("menuitemcheckbox", { name: menuActionName, exact: true }).click();
 }
 
 export async function tabIntoGrid(page: Page) {
@@ -213,4 +213,22 @@ export async function locatorBox(locator: Locator) {
   const box = await locator.boundingBox();
   if (!box) throw new Error("Expected locator to have measurable geometry.");
   return box;
+}
+export async function openMotif(page: Page) {
+  await page.getByLabel("Search and navigation type").selectOption("motif");
+  await page.getByLabel("Motif options and results").click();
+}
+export async function openExport(page: Page) {
+  await page.locator(".msa-export-menu > summary").click();
+  await page.getByRole("button", { name: "Export / QC bundle" }).click();
+}
+export async function openQc(page: Page) {
+  await page.getByRole("button", { name: "Analysis inspector", exact: true }).click();
+  await page.getByRole("tab", { name: "Quality checks", exact: true }).click();
+}
+export async function chooseScope(page: Page, scope: string) {
+  await openSettings(page);
+  await page.getByText("Analysis scope and workspace", { exact:true }).click();
+  await page.getByLabel("Analysis scope",{exact:true}).selectOption(scope);
+  await closeSettings(page);
 }

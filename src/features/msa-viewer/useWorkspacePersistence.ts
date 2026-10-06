@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import type { ViewerState } from "./types";
 import {
   ANALYSIS_SEMANTICS,
@@ -13,6 +13,7 @@ import {
 
 export type WorkspaceSourceIdentity = {
   fingerprint: string;
+  storageKey?: string;
   sequenceCount: number;
   alignmentLength: number;
 };
@@ -36,7 +37,7 @@ export function viewerStateToSnapshot(
   return {
     schema: WORKSPACE_SCHEMA,
     analysisSemantics: ANALYSIS_SEMANTICS,
-    source,
+    source: { fingerprint: source.fingerprint, sequenceCount: source.sequenceCount, alignmentLength: source.alignmentLength },
     view: {
       activeTracks: [...state.activeTracks],
       analysisScope: state.analysisScope,
@@ -62,11 +63,11 @@ export function viewerStateToSnapshot(
         : null,
       selectedRange: state.selectedRange,
       viewport: state.viewport,
-      inspectorOpen: state.inspectorOpen,
+      inspectorOpen: false,
       inspectorWidth: state.inspectorWidth,
       minimapCollapsed: state.minimapCollapsed,
-      settingsOpen: state.settingsOpen,
-      qcPanelOpen: state.qcPanelOpen,
+      settingsOpen: false,
+      qcPanelOpen: false,
       labelWidth: state.labelWidth
     },
     thresholds: state.qcThresholds,
@@ -130,7 +131,7 @@ export function viewerStateFromSnapshot(
     density: snapshot.view.density,
     differenceMode: snapshot.view.differenceMode,
     hiddenRowKeys,
-    inspectorOpen: snapshot.view.inspectorOpen,
+    inspectorOpen: false,
     inspectorWidth: snapshot.view.inspectorWidth,
     labelWidth: snapshot.view.labelWidth,
     minimapCollapsed: snapshot.view.minimapCollapsed,
@@ -138,14 +139,14 @@ export function viewerStateFromSnapshot(
     motifQuery: snapshot.view.motifQuery,
     motifStrandMode: snapshot.view.motifStrandMode,
     pinnedRowKeys: new Set(snapshot.view.pinnedRowKeys.filter(include)),
-    qcPanelOpen: snapshot.view.qcPanelOpen,
+    qcPanelOpen: false,
     qcThresholds: snapshot.thresholds ?? DEFAULT_QC_THRESHOLDS,
     referenceRowKey,
     search: snapshot.view.search,
     selectedRange,
     selectedRowKeys,
     selection,
-    settingsOpen: snapshot.view.settingsOpen,
+    settingsOpen: false,
     sortMode: snapshot.view.sortMode,
     viewport: snapshot.view.viewport,
     viewMode: snapshot.view.viewMode,
@@ -176,13 +177,24 @@ export function useWorkspacePersistence({
   debounceMs = 300,
   onRestore
 }: UseWorkspacePersistenceOptions) {
+  const latest = useRef({ state, source, storage, enabled });
+  latest.current = { state, source, storage, enabled };
+  useEffect(() => {
+    const flush = () => {
+      const current = latest.current;
+      if (!current.enabled || !current.storage) return;
+      try { saveWorkspaceSnapshot(current.storage, viewerStateToSnapshot(current.state, current.source), current.source.storageKey); } catch { /* Optional browser storage. */ }
+    };
+    window.addEventListener("pagehide", flush);
+    return () => { window.removeEventListener("pagehide", flush); flush(); };
+  }, []);
   useEffect(() => {
     if (!enabled || !storage) {
       return;
     }
     const timeout = window.setTimeout(() => {
       try {
-        saveWorkspaceSnapshot(storage, viewerStateToSnapshot(state, source));
+        saveWorkspaceSnapshot(storage, viewerStateToSnapshot(state, source), source.storageKey);
       } catch {
         // Storage/schema failures must never make the alignment unreadable.
       }

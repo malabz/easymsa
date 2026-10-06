@@ -7,6 +7,8 @@ import { LoadingState } from "../components/common/LoadingState";
 import { ErrorState } from "../components/common/ErrorState";
 import { ResultPanels } from "../components/results/ResultPanels";
 import { ResultTabs } from "../components/results/ResultTabs";
+import { AnalysisWorkspace } from "../components/layout/AnalysisWorkspace";
+import { ResultSidebar } from "../components/results/ResultSidebar";
 import {
   exampleTitle,
   exampleUrl,
@@ -28,16 +30,16 @@ export function ExamplesPage() {
     retry: 1,
   });
   const example = query.data?.find((e) => e.id === exampleId);
+  if (example) return <ExampleResult key={`${example.id}:${example.version}`} example={example} />;
   return (
     <PageContainer className="workflow-page">
       <div className="work-heading">
-        <div><h1>{example ? exampleTitle(example, locale) : zh ? "交互式示例" : "Interactive examples"}</h1>
-        {!example && <p>
+        <div><h1>{zh ? "交互式示例" : "Interactive examples"}</h1>
+        <p>
           {zh
             ? "使用示例体验比对结果浏览、阶段切换与下载。"
             : "Explore alignment results, switch between stages, and download example files."}
-        </p>}</div>
-        {example && <Link className="work-link" to="/examples">{zh ? "所有示例" : "All examples"}</Link>}
+        </p></div>
       </div>
       {query.isPending ? (
         <LoadingState />
@@ -56,11 +58,6 @@ export function ExamplesPage() {
             {zh ? "返回示例目录" : "Back to examples"}
           </Link>
         </>
-      ) : example ? (
-        <ExampleResult
-          key={`${example.id}:${example.version}`}
-          example={example}
-        />
       ) : (
         <div className="grid gap-6 lg:grid-cols-2">
           {query.data?.map((e) => (
@@ -143,25 +140,45 @@ function ExampleResult({ example }: { example: PublicExample }) {
       ? "示例文件缺失或完整性校验失败，请重新加载。"
       : "Example files are missing or failed integrity verification. Please reload."
     : null;
+  const stageControl = Object.keys(example.stages).length > 1 ? (<label>
+          {zh ? "结果版本" : "Result version"}
+          <select aria-label={zh ? "结果版本" : "Result version"} value={stage} onChange={e => setStage(e.target.value as ResultStage)}>
+            {Object.keys(example.stages).map(s => <option key={s} value={s}>{zh ? { final: "最终", initial: "初始", refined: "重比对" }[s] : s}</option>)}
+          </select>
+        </label>) : null;
   return (
-    <div className="space-y-4">
-      <ExampleActions example={example} showView={false} />
+    <AnalysisWorkspace sidebar={<ResultSidebar
+      title={exampleTitle(example, locale)}
+      summary={query.data?.summary}
+      onDownload={() => setTab("downloads")}
+      links={<ExampleActions example={example} showView={false} />}
+      note={<>
+        <p>{zh ? "合成 DNA · 公开示例" : "Synthetic DNA · Public example"}</p>
+        <a href={exampleUrl(example, "provenance.json")} download>{zh ? "生成记录" : "Provenance"}</a>
+        {" · "}<a href={exampleUrl(example, "hashes.json")} download>SHA256</a>
+      </>}
+    />}>
+      <div className="analysis-heading">
+        <h1>{exampleTitle(example, locale)}</h1>
+        <Link className="work-link" to="/examples">{zh ? "所有示例" : "All examples"}</Link>
+      </div>
+      <div className="analysis-toolbar">
+        <ResultTabs value={tab} onChange={setTab} />
+        {tab !== "alignment" && stageControl}
+      </div>
+      <div className="analysis-panels">
       {example.kind === "realignment" && (
         <section className="flex flex-wrap gap-x-4 gap-y-1 border-l-2 border-teal-700 pl-3 text-xs leading-6 text-slate-600">
           <p>
             {zh
-              ? "ReAlign-N · 先局部后全局。最终结果为重比对结果。"
-              : "ReAlign-N · Local then global. The final result is the refined alignment."}
+              ? "ReAlign-N · 先局部后全局 · 最终采用重比对结果。"
+              : "ReAlign-N · Local → global · Final: refined alignment."}
           </p>
-          <p>
-            {example.sameInitialAndRefined
-              ? zh
+          {example.sameInitialAndRefined && <p>
+            {zh
                 ? "重比对结果与初始比对一致。"
-                : "The refined alignment is identical to the initial alignment."
-              : zh
-                ? "切换结果版本，比较初始比对与重比对结果。"
-                : "Switch result versions to compare the initial and refined alignments."}
-          </p>
+                : "The refined alignment is identical to the initial alignment."}
+          </p>}
           <a
             className={link}
             download="initial.fasta.gz"
@@ -171,28 +188,9 @@ function ExampleResult({ example }: { example: PublicExample }) {
           </a>
         </section>
       )}
-      <div className="work-result-toolbar">
-        <ResultTabs value={tab} onChange={setTab} />
-        <label className="flex items-center gap-3 text-sm font-medium">
-          {zh ? "结果版本" : "Result version"}
-          <select
-            aria-label={zh ? "结果版本" : "Result version"}
-            className="rounded border p-2"
-            value={stage}
-            onChange={(e) => setStage(e.target.value as ResultStage)}
-          >
-            {Object.keys(example.stages).map((s) => (
-              <option key={s} value={s}>
-                {zh
-                  ? { final: "最终", initial: "初始", refined: "重比对" }[s]
-                  : s}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
       {error && <ErrorState message={error} />}
-      <div className="work-result-body"><ResultPanels
+      <ResultPanels
+        sourceName={exampleTitle(example, locale)} headerActions={stageControl} onRetry={() => query.refetch()}
         key={`${example.id}:${example.version}:${stage}`}
         activeTab={tab}
         setActiveTab={setTab}
@@ -203,22 +201,8 @@ function ExampleResult({ example }: { example: PublicExample }) {
         summaryPending={query.isPending}
         alignmentPending={query.isPending}
         error={error}
-      /></div>
-      <div className="flex flex-wrap gap-4 text-sm">
-        <a
-          className={link}
-          href={exampleUrl(example, "provenance.json")}
-          download
-        >
-          {zh ? "生成记录与参数" : "Provenance and parameters"}
-        </a>
-        <a className={link} href={exampleUrl(example, "hashes.json")} download>
-          SHA-256
-        </a>
-        <Link className={link} to="/docs">
-          {zh ? "指标解释与帮助" : "Metrics and help"}
-        </Link>
+      />
       </div>
-    </div>
+    </AnalysisWorkspace>
   );
 }

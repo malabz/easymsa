@@ -4,9 +4,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Button } from "../components/common/Button";
 import { ErrorState } from "../components/common/ErrorState";
 import { LoadingState } from "../components/common/LoadingState";
-import { JobLogPanel } from "../components/job/JobLogPanel";
-import { JobStatusCard } from "../components/job/JobStatusCard";
-import { JobTimeline } from "../components/job/JobTimeline";
+import { JobWorkspace } from "../components/job/JobWorkspace";
 import { PageContainer } from "../components/layout/PageContainer";
 import {
   accessDownloadFilename,
@@ -28,7 +26,7 @@ export function JobStatusPage() {
   useRememberWork("job");
   const { jobId: routeJobId } = useParams<{ jobId: string }>();
   const [searchParams] = useSearchParams();
-  const { dictionary: d } = useLanguage();
+  const { dictionary: d, locale } = useLanguage();
   const [access, setAccess] = useState<JobAccess | null>(null);
   const [showSensitiveAccess, setShowSensitiveAccess] = useState(false);
   const [copyTarget, setCopyTarget] = useState<CopyTarget | null>(null);
@@ -101,178 +99,53 @@ export function JobStatusPage() {
         ? jobQuery.error.message
         : null;
 
-  return (
-    <PageContainer className="space-y-8">
-      <div className="max-w-3xl space-y-3">
-        <h1 className="text-4xl font-semibold text-slate-950">{d.job.title}</h1>
-        <p className="text-lg leading-8 text-slate-600">{d.job.subtitle}</p>
-        {job && job.status !== "completed" && job.status !== "failed" ? (
-          <p className="flex items-center gap-2 text-sm text-slate-500" aria-live="polite">
-            {jobQuery.isFetching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-            {jobQuery.isFetching ? d.job.updating : d.job.polling}
-          </p>
-        ) : null}
+  const errorContent = error ? <div className="space-y-3 mb-3">
+    <ErrorState message={error} />
+    <div className="flex flex-wrap items-center gap-3">
+      {!missingAccess && jobId && <Button onClick={() => jobQuery.refetch()} size="sm" variant="outline"><RefreshCw size={15} />{d.common.retry}</Button>}
+      <Link className="work-link" to="/lookup">{d.job.lookupLink}</Link>
+    </div>
+  </div> : null;
+
+  if (!job) return <PageContainer className="workflow-page">
+    <div className="work-heading"><h1>{d.job.title}</h1></div>
+    {errorContent ?? <LoadingState label={d.job.loadingStatus} />}
+  </PageContainer>;
+
+  return <JobWorkspace job={job} token={access?.token ?? ""}
+    polling={job.status !== "completed" && job.status !== "failed" ? <span className="work-hint flex items-center gap-2" aria-live="polite">
+      {jobQuery.isFetching && <Loader2 size={13} className="animate-spin" />}
+      {jobQuery.isFetching ? d.job.updating : d.job.polling}
+    </span> : undefined}
+    error={errorContent}
+    recoveryActions={openCredentials => access ? <section className="job-recovery-actions">
+      <p>{locale === "zh" ? "可关闭页面，稍后恢复任务。" : "You can close this page and restore the job later."}</p>
+      <Button variant="outline" onClick={() => copyAccessText("restoreLink", restoreLink)}><Copy size={15} />{copyTarget === "restoreLink" ? d.common.copied : d.job.access.copyRestoreLink}</Button>
+      <Button variant="outline" onClick={downloadAccessJson}><Download size={15} />{d.job.access.downloadJson}</Button>
+      <Button variant="ghost" onClick={openCredentials}><Eye size={15} />{locale === "zh" ? "查看凭证" : "View credentials"}</Button>
+      {copyError && <p className="text-rose-700" role="alert">{copyError}</p>}
+      <span className="sr-only" role="status">{copyTarget ? d.common.copied : ""}</span>
+    </section> : null}
+    credentials={access ? <div className="job-credentials">
+      <p className="work-hint">{d.job.access.description}</p>
+      <section><h3>{d.job.access.jobIdLabel}</h3><code>{access.jobId}</code>
+        <Button size="sm" variant="outline" onClick={() => copyAccessText("jobId", access.jobId)}><Copy size={14} />{copyTarget === "jobId" ? d.common.copied : d.job.access.copyJobId}</Button>
+      </section>
+      <section><h3>{d.job.access.tokenLabel}</h3><code>{showSensitiveAccess ? access.token : maskedToken}</code>
+        <p className="work-hint mb-2">{d.job.access.tokenHelp}</p>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" onClick={() => copyAccessText("token", access.token)}><Copy size={14} />{copyTarget === "token" ? d.common.copied : d.job.access.copyToken}</Button>
+          <Button size="sm" variant="ghost" aria-pressed={showSensitiveAccess} onClick={() => setShowSensitiveAccess(value => !value)}>{showSensitiveAccess ? <EyeOff size={14} /> : <Eye size={14} />}{showSensitiveAccess ? d.job.access.hideToken : d.job.access.showToken}</Button>
+        </div>
+      </section>
+      <section><h3>{d.job.access.restoreLinkLabel}</h3><code>{showSensitiveAccess ? restoreLink : maskedRestoreLink}</code>
+        <Button size="sm" variant="outline" onClick={() => copyAccessText("restoreLink", restoreLink)}><Copy size={14} />{copyTarget === "restoreLink" ? d.common.copied : d.job.access.copyRestoreLink}</Button>
+      </section>
+      <div className="flex flex-wrap gap-2">
+        <Button size="sm" variant="outline" onClick={() => copyAccessText("json", accessJson)}><Copy size={14} />{copyTarget === "json" ? d.common.copied : d.job.access.copyJson}</Button>
+        <Button size="sm" variant="outline" onClick={downloadAccessJson}><Download size={14} />{d.job.access.downloadJson}</Button>
       </div>
-
-      {error ? (
-        <div className="space-y-4">
-          <ErrorState message={error} />
-          <div className="flex flex-wrap items-center gap-3">
-            {!missingAccess && jobId ? (
-              <Button onClick={() => jobQuery.refetch()} size="sm" variant="outline">
-                <RefreshCw className="h-4 w-4" />
-                {d.common.retry}
-              </Button>
-            ) : null}
-            <Link className="text-sm font-medium text-teal-800 underline" to="/lookup">
-              {d.job.lookupLink}
-            </Link>
-          </div>
-        </div>
-      ) : null}
-      {!job && !error ? <LoadingState label={d.job.loadingStatus} /> : null}
-
-      {job ? (
-        <div className="grid gap-5 lg:grid-cols-[1fr_22rem]">
-          <div className="space-y-5">
-            {access ? (
-              <section className="rounded-lg border border-slate-200/80 bg-white/70 p-5">
-                <div className="space-y-5">
-                  <div className="space-y-2">
-                    <h2 className="text-xl font-semibold text-slate-950">
-                      {d.job.access.title}
-                    </h2>
-                    <p className="text-sm leading-6 text-slate-600">
-                      {d.job.access.description}
-                    </p>
-                  </div>
-
-                  {copyError ? (
-                    <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
-                      {copyError}
-                    </div>
-                  ) : null}
-
-                  <div className="space-y-3">
-                    <div className="rounded-md border border-slate-200 bg-white/70 p-4">
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                        <div className="min-w-0">
-                          <p className="text-xs font-medium uppercase text-slate-500">
-                            {d.job.access.jobIdLabel}
-                          </p>
-                          <p className="mt-1 break-all font-mono text-sm text-slate-900">
-                            {access.jobId}
-                          </p>
-                          <p className="mt-2 text-xs leading-5 text-slate-500">
-                            {d.job.access.jobIdHelp}
-                          </p>
-                        </div>
-                        <Button
-                          onClick={() => copyAccessText("jobId", access.jobId)}
-                          size="sm"
-                          type="button"
-                          variant="outline"
-                        >
-                          <Copy className="h-4 w-4" />
-                          {copyTarget === "jobId" ? d.common.copied : d.job.access.copyJobId}
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="rounded-md border border-slate-200 bg-white/70 p-4">
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                        <div className="min-w-0">
-                          <p className="text-xs font-medium uppercase text-slate-500">
-                            {d.job.access.tokenLabel}
-                          </p>
-                          <p className="mt-1 break-all font-mono text-sm text-slate-900">
-                            {showSensitiveAccess ? access.token : maskedToken}
-                          </p>
-                          <p className="mt-2 text-xs leading-5 text-slate-500">
-                            {d.job.access.tokenHelp}
-                          </p>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          <Button
-                            aria-pressed={showSensitiveAccess}
-                            onClick={() => setShowSensitiveAccess((value) => !value)}
-                            size="sm"
-                            type="button"
-                            variant="ghost"
-                          >
-                            {showSensitiveAccess ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                            {showSensitiveAccess ? d.job.access.hideToken : d.job.access.showToken}
-                          </Button>
-                          <Button
-                            onClick={() => copyAccessText("token", access.token)}
-                            size="sm"
-                            type="button"
-                            variant="outline"
-                          >
-                            <Copy className="h-4 w-4" />
-                            {copyTarget === "token" ? d.common.copied : d.job.access.copyToken}
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="rounded-md border border-slate-200 bg-white/70 p-4">
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                        <div className="min-w-0">
-                          <p className="text-xs font-medium uppercase text-slate-500">
-                            {d.job.access.restoreLinkLabel}
-                          </p>
-                          <p className="mt-1 break-all font-mono text-sm text-slate-900">
-                            {showSensitiveAccess ? restoreLink : maskedRestoreLink}
-                          </p>
-                          <p className="mt-2 text-xs leading-5 text-slate-500">
-                            {d.job.access.restoreLinkHelp}
-                          </p>
-                        </div>
-                        <Button
-                          onClick={() => copyAccessText("restoreLink", restoreLink)}
-                          size="sm"
-                          type="button"
-                          variant="outline"
-                        >
-                          <Copy className="h-4 w-4" />
-                          {copyTarget === "restoreLink"
-                            ? d.common.copied
-                            : d.job.access.copyRestoreLink}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      onClick={() => copyAccessText("json", accessJson)}
-                      size="sm"
-                      type="button"
-                      variant="outline"
-                    >
-                      <Copy className="h-4 w-4" />
-                      {copyTarget === "json" ? d.common.copied : d.job.access.copyJson}
-                    </Button>
-                    <Button
-                      onClick={downloadAccessJson}
-                      size="sm"
-                      type="button"
-                      variant="outline"
-                    >
-                      <Download className="h-4 w-4" />
-                      {d.job.access.downloadJson}
-                    </Button>
-                  </div>
-                </div>
-              </section>
-            ) : null}
-            <JobStatusCard job={job} token={access?.token ?? ""} />
-            <JobLogPanel job={job} />
-          </div>
-          <JobTimeline refinementStatus={job.realignment?.status} status={job.status} realign={Boolean(job.realignment)} standalone={job.jobKind === "realignment"} />
-        </div>
-      ) : null}
-    </PageContainer>
-  );
+      {copyError && <p role="alert" className="text-rose-700">{copyError}</p>}
+    </div> : null}
+  />;
 }

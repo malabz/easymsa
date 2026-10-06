@@ -1,4 +1,6 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, type ReactNode } from "react";
+import { MsaWorkspaceShell } from "../../features/msa-viewer/MsaWorkspaceShell";
+import { MsaWorkspaceHeader } from "../../features/msa-viewer/MsaWorkspaceHeader";
 import { LoadingState } from "../common/LoadingState";
 import { DownloadPanel } from "./DownloadPanel";
 import { ResultOverview } from "./ResultOverview";
@@ -21,6 +23,7 @@ export function ResultPanels({
   error,
   files,
   context,
+  sourceName, workspaceScope, headerActions, onRetry,
 }: {
   activeTab: ResultTab;
   setActiveTab: (tab: ResultTab) => void;
@@ -32,8 +35,22 @@ export function ResultPanels({
   error?: string | null;
   files: ResultFile[];
   context?: MsaViewerContext;
+  sourceName?: string;
+  workspaceScope?: string;
+  headerActions?: ReactNode;
+  onRetry?: () => void;
 }) {
-  const { dictionary: d } = useLanguage();
+  const { dictionary: d, locale } = useLanguage();
+  const onReturn = () => setActiveTab("overview");
+  const message = error ?? alignmentError;
+  const pendingWorkspace = <MsaWorkspaceShell mode="immersive" exitImmersiveLabel={locale === "zh" ? "返回结果" : "Back to results"}
+    onExitImmersive={onReturn} workspaceLabel="MSA" matrixLabel={d.results.viewer.matrixNavigation}
+    sourceBar={<MsaWorkspaceHeader title={sourceName ?? d.results.title} immersive onReturn={onReturn} extra={headerActions}/>}
+    commandBar={null}
+    matrix={<div className="msa-load-message">{message ? <>
+      <p role="alert">{message}</p>
+      {onRetry && <button type="button" className="text-teal-800 underline" onClick={onRetry}>{d.common.retry}</button>}
+    </> : <LoadingState label={d.results.loading.alignment}/>}</div>}/>;
   return (
     <>
       <section
@@ -62,16 +79,13 @@ export function ResultPanels({
         id="result-panel-alignment"
         role="tabpanel"
       >
-        {activeTab === "alignment" && alignmentPending && !error ? (
-          <LoadingState label={d.results.loading.alignment} />
-        ) : null}
-        {activeTab === "alignment" && alignment ? (
-          <Suspense
-            fallback={<LoadingState label={d.results.loading.viewer} />}
-          >
-            <MSAViewer alignment={alignment} context={context} />
-          </Suspense>
-        ) : null}
+        {activeTab === "alignment" && (
+          alignment && !message ? <Suspense fallback={pendingWorkspace}>
+            <MSAViewer key={workspaceScope ?? alignment.descriptor?.sourceKey ?? alignment.jobId} workspaceScope={workspaceScope}
+              alignment={alignment} context={context} sourceName={sourceName} presentation="immersive"
+              onReturn={onReturn} headerActions={headerActions}/>
+          </Suspense> : pendingWorkspace
+        )}
       </section>
       <section
         aria-labelledby="result-tab-downloads"
@@ -79,7 +93,7 @@ export function ResultPanels({
         id="result-panel-downloads"
         role="tabpanel"
       >
-        {activeTab === "downloads" ? <DownloadPanel files={files} /> : null}
+        {activeTab === "downloads" ? <DownloadPanel files={files} artifacts={summary?.outputFiles} /> : null}
       </section>
     </>
   );

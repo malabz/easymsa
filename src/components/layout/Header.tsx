@@ -18,7 +18,7 @@ const navItems = [
 
 export function Header() {
   const { pathname } = useLocation();
-  const workspace = /^\/(submit|realign|results|viewer|examples|lookup)(\/|$)/.test(pathname);
+  const workspace = /^\/(submit|realign|results|viewer|examples|lookup|jobs?)(\/|$)/.test(pathname);
   const { dictionary: d } = useLanguage();
   const [open, setOpen] = useState(false);
 

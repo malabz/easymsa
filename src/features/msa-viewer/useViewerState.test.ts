@@ -37,7 +37,7 @@ describe("viewerReducer", () => {
     expect(pinned.pinnedRowKeys.has("duplicate")).toBe(false);
     expect(selected.selection?.rowKey).toBe("row-2");
     expect(selected.selectedRange).toEqual({ start: 2, end: 4 });
-    expect(selected.inspectorOpen).toBe(true);
+    expect(selected.inspectorOpen).toBe(false);
   });
 
   it("preserves range selection without opening an interrupting inspector", () => {
@@ -100,6 +100,20 @@ describe("viewerReducer", () => {
 });
 
 describe("useViewerState source isolation", () => {
+  it("isolates identical content by job/stage while accepting matching legacy workspace files", () => {
+    const first = renderHook(() => useViewerState({rows,sourceFingerprint:"same-content",workspaceScope:"job:first:initial"}));
+    act(() => first.result.current.dispatch({type:"patch",patch:{zoomLevel:1.5,settingsOpen:true}}));
+    const file = first.result.current.exportWorkspace();
+    first.unmount();
+    const second = renderHook(() => useViewerState({rows,sourceFingerprint:"same-content",workspaceScope:"job:second:final"}));
+    expect(second.result.current.state.zoomLevel).toBe(1);
+    act(() => { expect(second.result.current.importWorkspace(file).ok).toBe(true); });
+    expect(second.result.current.state.zoomLevel).toBe(1.5);
+    expect(second.result.current.state.settingsOpen).toBe(false);
+    second.unmount();
+    const restored=renderHook(() => useViewerState({rows,sourceFingerprint:"same-content",workspaceScope:"job:first:initial"}));
+    expect(restored.result.current.state.zoomLevel).toBe(1.5);
+  });
   it("switches fingerprints before exposing stale row state", () => {
     const { result, rerender } = renderHook(
       ({ fingerprint }) => useViewerState({
