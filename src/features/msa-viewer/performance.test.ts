@@ -5,7 +5,7 @@ import {
   columnStatsStoreByteLength
 } from "./columnStatsStore";
 import {
-  calculateMsaAnalysisPayloadV3,
+  calculateMsaAnalysisPayloadV4,
   MSA_ANALYSIS_PROTOCOL_VERSION
 } from "./workerProtocol";
 
@@ -27,7 +27,7 @@ describe("large MSA structural performance guard", () => {
             : bases[(position + index * ((position % 7) + 1)) % 4]
         ).join("")
       }));
-      const analysis = calculateMsaAnalysisPayloadV3({
+      const analysis = calculateMsaAnalysisPayloadV4({
         protocolVersion: MSA_ANALYSIS_PROTOCOL_VERSION,
         type: "analyze",
         generation: 1,
@@ -48,7 +48,7 @@ describe("large MSA structural performance guard", () => {
       expect(analysis.overviewBins).toHaveLength(512);
       expect(columnMetricAtIndex(analysis.columnStore, 0, "conservation")).toBeLessThan(1);
       expect(columnMetricAtIndex(analysis.columnStore, 9_999, "coverage")).toBe(1);
-      expect(columnStatsStoreByteLength(analysis.columnStore)).toBeLessThan(400_000);
+      expect(columnStatsStoreByteLength(analysis.columnStore)).toBe(530_000);
       expect(overviewSettings.showCharacters).toBe(false);
       expect(overviewSettings.cellWidth).toBeLessThan(10);
     },

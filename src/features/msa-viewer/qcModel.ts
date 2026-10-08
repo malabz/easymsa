@@ -1,7 +1,7 @@
 import type {
   ColumnPositionView,
   ColumnStats,
-  ColumnStatsStoreV1,
+  ColumnStatsStoreV2,
   RowQcStats
 } from "./types";
 import { COLUMN_STATS_FLAGS } from "./types";
@@ -226,7 +226,7 @@ export function filterColumnsForQc(
 }
 
 function columnStoreValue(
-  store: ColumnStatsStoreV1,
+  store: ColumnStatsStoreV2,
   index: number,
   key: "conservation" | "gap" | "coverage" | "entropy" | "ambiguity"
 ) {
@@ -251,7 +251,7 @@ function columnStoreValue(
 }
 
 export function filterColumnPositionViewForQc(
-  store: ColumnStatsStoreV1,
+  store: ColumnStatsStoreV2,
   mode: "all" | "variable" | "conserved" | "lowGap" | "custom",
   thresholds: QcThresholds["column"]
 ): ColumnPositionView {

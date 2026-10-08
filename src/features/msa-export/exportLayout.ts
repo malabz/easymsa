@@ -1,4 +1,5 @@
 import type { MSAResult, MSASequence } from "../../lib/types/msa";
+import { frequencyLetters } from "../msa-viewer/frequencyLogo";
 import { rowKeyForSequence } from "../msa-viewer/alignmentModel";
 import { buildReferenceCoordinateMap } from "../msa-viewer/analysis";
 import { columnStatsAtPosition } from "../msa-viewer/columnStatsStore";
@@ -37,37 +38,38 @@ function visibleColumnSlice(
   cellPitch: number,
   labelWidth: number
 ) {
-  if (!viewport || positions.length <= DEFAULT_VISIBLE_COLUMN_COUNT) {
+  if (!viewport) {
     return positions.slice(0, DEFAULT_VISIBLE_COLUMN_COUNT);
   }
 
   const matrixScrollLeft = Math.max(
     0,
-    viewport.scrollLeft - labelWidth - MATRIX_SIDE_PADDING
+    viewport.scrollLeft
   );
-  const viewportWidth = Math.max(1, viewport.clientWidth - labelWidth);
+  const viewportWidth = Math.max(1, viewport.clientWidth - labelWidth - MATRIX_SIDE_PADDING);
   const startIndex = clamp(Math.floor(matrixScrollLeft / cellPitch), 0, positions.length - 1);
-  const columnCount = Math.ceil(viewportWidth / cellPitch) + 2;
+  const endIndex = Math.ceil((matrixScrollLeft + viewportWidth) / cellPitch);
 
-  return positions.slice(startIndex, startIndex + columnCount);
+  return positions.slice(startIndex, Math.max(startIndex + 1, endIndex));
 }
 
 function visibleRowSlice(
   sequences: MSASequence[],
   viewport: MsaExportViewport | null,
   rowHeight: number,
-  trackCount: number
+  trackCount: number,
+  frozenHeaderHeight?: number
 ) {
-  if (!viewport || sequences.length <= DEFAULT_VISIBLE_ROW_COUNT) {
+  if (!viewport) {
     return sequences.slice(0, DEFAULT_VISIBLE_ROW_COUNT);
   }
 
-  const headerHeight = rowHeight * (1 + trackCount);
-  const matrixScrollTop = Math.max(0, viewport.scrollTop - headerHeight);
+  const headerHeight = frozenHeaderHeight ?? rowHeight * (1 + trackCount);
+  const matrixScrollTop = Math.max(0, viewport.scrollTop);
   const startIndex = clamp(Math.floor(matrixScrollTop / rowHeight), 0, sequences.length - 1);
-  const rowCount = Math.ceil(Math.max(1, viewport.clientHeight - headerHeight) / rowHeight) + 3;
+  const endIndex = Math.ceil((matrixScrollTop + Math.max(1, viewport.clientHeight - headerHeight)) / rowHeight);
 
-  return sequences.slice(startIndex, startIndex + rowCount);
+  return sequences.slice(startIndex, Math.max(startIndex + 1, endIndex));
 }
 
 function resolveColumns(
@@ -130,7 +132,7 @@ function resolveRows(
 ) {
   const region = normalizeExportRegion(options.region);
   if (region === "viewport") {
-    return visibleRowSlice(state.sequences, state.viewport, rowHeight, trackCount);
+    return visibleRowSlice(state.sequences, state.viewport, rowHeight, trackCount, state.frozenHeaderHeight);
   }
 
   if (region === "fullAlignment") {
@@ -251,6 +253,7 @@ function toColumns(
     : [];
   return positions.map((position) => ({
     position,
+    logo: state.columnStore ? frequencyLetters(state.columnStore,position,state.rna) : undefined,
     referencePosition: referenceCoordinates[position - 1] ?? null,
     conservation: state.columnStore
       ? columnStatsAtPosition(state.columnStore, position) ?? undefined
@@ -268,7 +271,8 @@ function blockHeight(
     (options.includeCoordinates ? rowHeight : 0) +
     (options.includeConservation ? rowHeight * trackCount : 0) +
     rows.length * rowHeight +
-    (options.includeConsensus ? rowHeight + 4 : 0)
+    (options.includeConsensus ? rowHeight + 4 : 0) +
+    (options.includeLogo ? 48 : 0)
   );
 }
 
@@ -342,7 +346,7 @@ export function calculateExportPreflight(
     rowHeight,
     activeTracks.length
   );
-  const columnCount = resolveColumnCount(state, options, labelWidth, cellPitch);
+  const columnCount = resolveColumnCount(state, options, state.viewSettings.labelWidth, cellPitch);
   const canonicalRegion = normalizeExportRegion(options.region);
   const columnsPerBlock = columnsPerExportBlock(
     options,
@@ -376,7 +380,7 @@ export function calculateExportPreflight(
     rowCount +
     (options.includeCoordinates ? 1 : 0) +
     (options.includeConservation ? activeTracks.length : 0) +
-    (options.includeConsensus ? 1 : 0);
+    (options.includeConsensus ? 1 : 0) + (options.includeLogo ? 4 : 0);
   const renderedCellCount = renderedRowCount * columnCount;
   const estimatedSvgBytes = estimateSvgExportBytes({
     blockCount,
@@ -538,7 +542,7 @@ export function calculateExportLayout(
     activeTracks.length
   );
   const columns = toColumns(
-    resolveColumns(state, options, labelWidth, cellPitch),
+    resolveColumns(state, options, state.viewSettings.labelWidth, cellPitch),
     state,
     referenceSequence
   );
@@ -617,6 +621,7 @@ export function calculateExportLayout(
     rowHeight,
     fontSize: state.viewSettings.fontSize,
     colorScheme: state.colorScheme,
+    conservationScale: state.viewSettings.conservationScale ?? "full",
     showCharacters: state.viewSettings.showCharacters,
     markerEvery: state.viewSettings.markerEvery,
     legendHeight,
@@ -682,7 +687,7 @@ export function paginateMsaExportLayout(
       layout.rows.length +
       (layout.options.includeCoordinates ? 1 : 0) +
       (layout.options.includeConservation ? layout.activeTracks.length : 0) +
-      (layout.options.includeConsensus ? 1 : 0);
+      (layout.options.includeConsensus ? 1 : 0) + (layout.options.includeLogo ? 4 : 0);
     pages.push({
       ...layout,
       blocks,

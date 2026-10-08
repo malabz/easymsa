@@ -16,20 +16,20 @@ test("embedded and immersive geometry preserves every workspace region", async (
   await loadNamedFixture(page, "layout-visual");
   const shell = page.locator("[data-msa-workspace-shell='true']");
   const command = page.locator("[data-msa-toolbar='true']");
-  const navigator = page.locator("[data-msa-workspace-navigator='true']");
+  const navigator = page.locator(".msa-global-overview");
   const matrix = page.locator("[data-msa-workspace-matrix='true']");
   const status = page.locator("[data-msa-workspace-status='true']");
   const shellBox = await locatorBox(shell);
   const commandBox = await locatorBox(command);
-  const navigatorBox = await locatorBox(navigator);
+  const navigatorBox = (page.viewportSize()?.width ?? 0)>=1024 ? await locatorBox(navigator) : null;
   const matrixBox = await locatorBox(matrix);
   const statusBox = await locatorBox(status);
   const viewportHeight = await page.evaluate(() => window.visualViewport?.height ?? window.innerHeight);
   if ((page.viewportSize()?.width ?? 0) >= 1024) {
     expect(matrixBox.height / viewportHeight).toBeGreaterThanOrEqual(.55);
   }
-  expect(commandBox.y + commandBox.height).toBeLessThanOrEqual(navigatorBox.y + 1);
-  expect(navigatorBox.y + navigatorBox.height).toBeLessThanOrEqual(matrixBox.y + 1);
+  expect(commandBox.y + commandBox.height).toBeLessThanOrEqual(matrixBox.y + 1);
+  if(navigatorBox) {expect(navigatorBox.x).toBeGreaterThanOrEqual(matrixBox.x+matrixBox.width-1);expect(navigatorBox.y).toBe(matrixBox.y);}
   expect(matrixBox.y + matrixBox.height).toBeLessThanOrEqual(statusBox.y + 1);
   expect(matrixBox.height).toBeGreaterThan(43);
   expect(statusBox.y + statusBox.height).toBeLessThanOrEqual(shellBox.y + shellBox.height + 1);

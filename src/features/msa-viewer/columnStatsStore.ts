@@ -1,7 +1,7 @@
 import type {
   ColumnPositionView,
   ColumnStats,
-  ColumnStatsStoreV1,
+  ColumnStatsStoreV2,
   MsaTrackId
 } from "./types";
 import {
@@ -11,6 +11,7 @@ import {
 
 const STORE_ARRAY_KEYS = [
   "canonicalCounts",
+  "nucleotideCounts",
   "ambiguityCounts",
   "unknownCounts",
   "gapCounts",
@@ -26,11 +27,11 @@ function finiteNonNegativeInteger(value: unknown): value is number {
 
 export function assertColumnStatsStore(
   value: unknown
-): asserts value is ColumnStatsStoreV1 {
+): asserts value is ColumnStatsStoreV2 {
   if (!value || typeof value !== "object") {
     throw new TypeError("Column statistics store must be an object.");
   }
-  const store = value as Partial<ColumnStatsStoreV1>;
+  const store = value as Partial<ColumnStatsStoreV2>;
   if (
     store.version !== COLUMN_STATS_STORE_VERSION ||
     !finiteNonNegativeInteger(store.length) ||
@@ -41,6 +42,7 @@ export function assertColumnStatsStore(
   const expectedLength = store.length;
   const expectedTags: Record<(typeof STORE_ARRAY_KEYS)[number], string> = {
     canonicalCounts: "[object Uint32Array]",
+    nucleotideCounts: "[object Uint32Array]",
     ambiguityCounts: "[object Uint32Array]",
     unknownCounts: "[object Uint32Array]",
     gapCounts: "[object Uint32Array]",
@@ -54,7 +56,7 @@ export function assertColumnStatsStore(
     if (
       !ArrayBuffer.isView(array) ||
       Object.prototype.toString.call(array) !== expectedTags[key] ||
-      array.length !== expectedLength
+      array.length !== expectedLength * (key === "nucleotideCounts" ? 4 : 1)
     ) {
       throw new TypeError(`Column statistics store field ${key} is invalid.`);
     }
@@ -67,9 +69,13 @@ export function assertColumnStatsStore(
   ) {
     throw new TypeError("Column statistics consensus vectors are invalid.");
   }
-  const validated = store as ColumnStatsStoreV1;
+  const validated = store as ColumnStatsStoreV2;
   for (let index = 0; index < expectedLength; index += 1) {
     const canonical = validated.canonicalCounts[index];
+    const bases = validated.nucleotideCounts.subarray(index * 4, index * 4 + 4);
+    if (bases.reduce((sum, value) => sum + value, 0) !== canonical) {
+      throw new TypeError(`Column ${index + 1} nucleotide counts are inconsistent.`);
+    }
     const ambiguity = validated.ambiguityCounts[index];
     const unknown = validated.unknownCounts[index];
     const gap = validated.gapCounts[index];
@@ -97,7 +103,7 @@ function fraction(numerator: number, denominator: number) {
 }
 
 export function columnStatsAtIndex(
-  store: ColumnStatsStoreV1,
+  store: ColumnStatsStoreV2,
   index: number
 ): ColumnStats | null {
   if (!Number.isInteger(index) || index < 0 || index >= store.length) {
@@ -146,7 +152,7 @@ export function columnStatsAtIndex(
 }
 
 export function columnStatsAtPosition(
-  store: ColumnStatsStoreV1,
+  store: ColumnStatsStoreV2,
   position: number
 ): ColumnStats | null {
   return columnStatsAtIndex(store, position - 1);
@@ -160,7 +166,7 @@ export type ColumnMetric =
   | "ambiguity";
 
 export function columnMetricAtIndex(
-  store: ColumnStatsStoreV1,
+  store: ColumnStatsStoreV2,
   index: number,
   metric: ColumnMetric | MsaTrackId
 ): number | null {
@@ -189,7 +195,7 @@ export function columnMetricAtIndex(
 }
 
 export function columnColorContextAtPosition(
-  store: ColumnStatsStoreV1,
+  store: ColumnStatsStoreV2,
   position: number
 ) {
   const index = position - 1;
@@ -204,7 +210,7 @@ export function columnColorContextAtPosition(
 }
 
 export function materializeColumnStatsForPositions(
-  store: ColumnStatsStoreV1,
+  store: ColumnStatsStoreV2,
   positions: ArrayLike<number>
 ) {
   const columns: ColumnStats[] = [];
@@ -215,13 +221,13 @@ export function materializeColumnStatsForPositions(
   return columns;
 }
 
-export function materializeAllColumnStats(store: ColumnStatsStoreV1) {
+export function materializeAllColumnStats(store: ColumnStatsStoreV2) {
   return Array.from({ length: store.length }, (_unused, index) =>
     columnStatsAtIndex(store, index)!
   );
 }
 
-export function columnStatsStoreTransferables(store: ColumnStatsStoreV1) {
+export function columnStatsStoreTransferables(store: ColumnStatsStoreV2) {
   const buffers = new Set<ArrayBuffer>();
   for (const key of STORE_ARRAY_KEYS) {
     const buffer = store[key].buffer;
@@ -230,7 +236,7 @@ export function columnStatsStoreTransferables(store: ColumnStatsStoreV1) {
   return Array.from(buffers);
 }
 
-export function columnStatsStoreByteLength(store: ColumnStatsStoreV1) {
+export function columnStatsStoreByteLength(store: ColumnStatsStoreV2) {
   const buffers = columnStatsStoreTransferables(store);
   return buffers.reduce((total, buffer) => total + buffer.byteLength, 0) +
     (store.majorityConsensus.length + store.iupacConsensus.length) * 2;

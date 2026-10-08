@@ -1,7 +1,7 @@
 import type { MSAResult, MSASequence } from "../../lib/types/msa";
 import type { SerializableMsaViewerContext } from "../msa-viewer/viewerContext";
-import type { AnalysisScope } from "../msa-viewer/types";
-import type { ColumnStatsStoreV1 } from "../msa-viewer/types";
+import type { AnalysisScope, ConservationScale } from "../msa-viewer/types";
+import type { ColumnStatsStoreV2 } from "../msa-viewer/types";
 import type {
   ConservationColorContext,
   MSAColorScheme
@@ -54,6 +54,7 @@ export type MsaExportOptions<
   includeSequenceNames: boolean;
   includeCoordinates: boolean;
   includeConsensus: boolean;
+  includeLogo?: boolean;
   includeConservation: boolean;
   includeLegend: boolean;
   includeAnnotations: boolean;
@@ -86,6 +87,7 @@ export type MsaExportViewport = {
 };
 
 export type MsaExportViewSettings = {
+  conservationScale?: ConservationScale;
   cellWidth: number;
   cellHeight: number;
   rowHeight: number;
@@ -128,7 +130,7 @@ export type MsaExportViewerState = {
   sequences: MSASequence[];
   visiblePositions: number[];
   /** Compact production model. Only resolved export positions are materialized. */
-  columnStore?: ColumnStatsStoreV1 | null;
+  columnStore?: ColumnStatsStoreV2 | null;
   /** @deprecated Explicit compatibility input used by legacy callers/tests. */
   conservationColumns?: MsaExportConservationColumn[];
   colorScheme: MSAColorScheme;
@@ -137,6 +139,8 @@ export type MsaExportViewerState = {
   viewport: MsaExportViewport | null;
   alignmentLength: number;
   activeTracks?: MsaExportTrackId[];
+  frozenHeaderHeight?: number;
+  rna?: boolean;
   consensusMode?: "majority" | "iupac";
   /** Consensus produced by the active Worker analysis and current scope. */
   consensusSequence?: string;
@@ -157,6 +161,7 @@ export type MsaExportViewerState = {
 };
 
 export type MsaExportColumn = {
+  logo?: Array<{base:string;count:number;color:string;frequency:number}>;
   position: number;
   referencePosition?: string | number | null;
   conservation?: MsaExportConservationColumn;
@@ -210,6 +215,7 @@ export type ExportPreflightResult = {
 };
 
 export type MsaExportLayout = {
+  conservationScale?: ConservationScale;
   alignment: MSAResult;
   options: SupportedMsaExportOptions;
   canonicalRegion: CanonicalExportRegion;

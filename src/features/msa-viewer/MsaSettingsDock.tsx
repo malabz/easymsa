@@ -75,7 +75,7 @@ function SettingsContent({
   visibleColumnCount,
   visibleSequenceCount
 }: Omit<MsaSettingsDockProps, "isOpen" | "onClose" | "presentation">) {
-  const { dictionary: d } = useLanguage();
+  const { locale, dictionary: d } = useLanguage();
   const t = d.results.viewer.stageTwo;
   const groupClass = "msa-view-group";
 
@@ -208,7 +208,21 @@ function SettingsContent({
           <p className="text-xs leading-5 text-slate-600">
             {d.results.viewer.scienceV2.neutralDescription}
           </p>
-        ) : <>{(["conservation", "gap", "coverage", "entropy"] as MsaTrackId[]).map(
+        ) : <>
+          <label className="block space-y-1 text-xs font-medium text-slate-600">
+            <span>{locale === "zh" ? "保守性显示" : "Conservation display"}</span>
+            <select className={selectClass}
+              aria-label={locale === "zh" ? "保守性显示" : "Conservation display"}
+              value={state.conservationScale ?? "high"}
+              onChange={(event) => onPatch({ conservationScale: event.target.value as ViewerState["conservationScale"] })}>
+              <option value="high">{locale === "zh" ? "高保守区间（80–100%）" : "High conservation (80–100%)"}</option>
+              <option value="full">{locale === "zh" ? "完整刻度（0–100%）" : "Full range (0–100%)"}</option>
+            </select>
+          </label>
+          <p className="text-xs leading-5 text-slate-500">{state.conservationScale === "full"
+            ? (locale === "zh" ? "按完整刻度显示各列保守性。" : "Show column conservation on the full scale.")
+            : (locale === "zh" ? "放大高保守区域的差异；低于 80% 的列以琥珀色标记。" : "Magnify differences in conserved regions; columns below 80% are marked in amber.")}</p>
+          {(["conservation", "gap", "coverage", "entropy"] as MsaTrackId[]).map(
           (track) => (
             <label className="flex min-h-11 items-center gap-2 text-sm text-slate-700" key={track}>
               <input

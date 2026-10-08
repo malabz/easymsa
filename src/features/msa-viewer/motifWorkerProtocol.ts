@@ -10,7 +10,7 @@ import type {
   MotifStrandMode
 } from "./types";
 
-export const MOTIF_WORKER_PROTOCOL_VERSION = 2 as const;
+export const MOTIF_WORKER_PROTOCOL_VERSION = 3 as const;
 export const DEFAULT_MAX_STORED_MOTIF_MATCHES = 20_000;
 
 export type MotifWorkerErrorCode =
@@ -24,7 +24,7 @@ export type MotifRowTotal = {
   totalCount: number;
 };
 
-export type MotifSearchPayloadV2 = {
+export type MotifSearchPayloadV3 = {
   sourceFingerprint: string;
   query: string;
   matchMode: MotifMatchMode;
@@ -32,6 +32,9 @@ export type MotifSearchPayloadV2 = {
   matches: MotifMatch[];
   totalCount: number;
   rowTotals: MotifRowTotal[];
+  /** Match starts over every hit, including hits omitted from the detail list. */
+  columnHitCounts: Uint32Array;
+  columnFirstRows: Int32Array;
   truncated: boolean;
 };
 
@@ -58,7 +61,7 @@ export type MotifWorkerResponse =
       protocolVersion: typeof MOTIF_WORKER_PROTOCOL_VERSION;
       type: "motifReady";
       requestId: number;
-      result: MotifSearchPayloadV2;
+      result: MotifSearchPayloadV3;
     }
   | {
       protocolVersion: typeof MOTIF_WORKER_PROTOCOL_VERSION;
@@ -112,7 +115,7 @@ export function calculateMotifSearchPayload({
   matchMode,
   strandMode,
   maxMatches
-}: Extract<MotifWorkerRequest, { type: "search" }>): MotifSearchPayloadV2 {
+}: Extract<MotifWorkerRequest, { type: "search" }>): MotifSearchPayloadV3 {
   const validation = validateIupacMotif(rawQuery);
   if (!validation.valid) {
     throw new MotifWorkerError(
@@ -128,7 +131,9 @@ export function calculateMotifSearchPayload({
   const matches: MotifMatch[] = [];
   const rowTotals: MotifRowTotal[] = [];
   let totalCount = 0;
+  const columnHitCounts = new Uint32Array(sequences.reduce((length, row) => Math.max(length, row.sequence.length), 0));
 
+  const columnFirstRows = new Int32Array(columnHitCounts.length).fill(-1);
   sequences.forEach((sequence, index) => {
     const rowKey = rowKeyForSequence(sequence, index);
     const row = { ...sequence, rowKey };
@@ -136,7 +141,8 @@ export function calculateMotifSearchPayload({
     const result = searchIupacMotifMatches([row], query, {
       maxMatches: remaining,
       matchMode,
-      strandMode
+      strandMode,
+      onMatch: (start) => { columnHitCounts[start - 1] += 1; if (columnFirstRows[start - 1] < 0) columnFirstRows[start - 1] = index; }
     });
     matches.push(...result.matches);
     totalCount += result.totalCount;
@@ -151,6 +157,8 @@ export function calculateMotifSearchPayload({
     matches,
     totalCount,
     rowTotals,
+    columnHitCounts,
+    columnFirstRows,
     truncated: totalCount > matches.length
   };
 }

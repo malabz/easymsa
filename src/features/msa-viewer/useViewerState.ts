@@ -17,7 +17,7 @@ import {
   claimLegacyWorkspaceSnapshot,
   migrateLegacyPreferences,
   migrateLegacyReference,
-  type MsaWorkspaceSnapshotV1,
+  type MsaWorkspaceSnapshotV2,
   type QcAnnotation
 } from "./workspaceSnapshot";
 import {
@@ -30,9 +30,10 @@ import {
 export const DEFAULT_VIEWER_PREFERENCES: ViewerPreferences = {
   activeTracks: ["conservation", "gap"],
   colorScheme: "nucleotide",
+  conservationScale: "high",
   consensusMode: "majority",
   coordinateMode: "alignment",
-  density: "comfortable",
+  density: "compact",
   differenceMode: false
 };
 
@@ -84,7 +85,9 @@ function defaultViewerState(
     inspectorWidth: 320,
     labelWidth: 192,
     lastHiddenRowKeys: [],
-    minimapCollapsed: false,
+    minimapCollapsed: typeof window !== "undefined" && window.innerWidth < 1024,
+    showLogo: typeof window === "undefined" || window.innerWidth >= 1024,
+    showConsensus: true,
     motifMatchMode: "strict",
     motifQuery: "",
     motifStrandMode: "forward",
@@ -184,7 +187,7 @@ function loadInitialViewerState(source: ResolvedViewerSource): ViewerState {
   const preferences = source.storage
     ? migrateLegacyPreferences(source.storage) ?? {}
     : {};
-  let state = defaultViewerState(preferences);
+  let state = defaultViewerState({...preferences,density:"compact"});
   const snapshot = source.storage
     ? loadWorkspaceSnapshot(source.storage, source.storageKey ?? source.fingerprint) ??
       (source.storageKey ? claimLegacyWorkspaceSnapshot(source.storage, source.fingerprint, source.storageKey) : null)
@@ -253,7 +256,7 @@ export type ViewerAction =
   | { type: "removeAnnotation"; id: string }
   | {
       type: "restoreSnapshot";
-      snapshot: MsaWorkspaceSnapshotV1;
+      snapshot: MsaWorkspaceSnapshotV2;
       validRowKeys: Iterable<string>;
     };
 
@@ -384,6 +387,7 @@ export function viewerReducer(state: ViewerState, action: ViewerAction): ViewerS
     return {
       ...state,
       activeTracks: [...DEFAULT_VIEWER_PREFERENCES.activeTracks],
+      conservationScale: DEFAULT_VIEWER_PREFERENCES.conservationScale,
       activeMotifIndex: 0,
       analysisScope: "all",
       columnFilter: "all",
@@ -393,7 +397,9 @@ export function viewerReducer(state: ViewerState, action: ViewerAction): ViewerS
       lastHiddenRowKeys: [],
       inspectorWidth: 320,
       labelWidth: 192,
-      minimapCollapsed: false,
+      minimapCollapsed: typeof window !== "undefined" && window.innerWidth < 1024,
+    showLogo: typeof window === "undefined" || window.innerWidth >= 1024,
+    showConsensus: true,
       motifQuery: "",
       pinnedRowKeys: new Set(),
       qcThresholds: cloneDefaultThresholds(),
@@ -508,7 +514,7 @@ export function useViewerState(input: string | ViewerStateOptions) {
     [validRowKeySignature]
   );
   const onRestore = useCallback(
-    (snapshot: MsaWorkspaceSnapshotV1) =>
+    (snapshot: MsaWorkspaceSnapshotV2) =>
       dispatch({ type: "restoreSnapshot", snapshot, validRowKeys }),
     [dispatch, validRowKeys]
   );

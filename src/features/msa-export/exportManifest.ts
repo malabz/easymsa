@@ -1,4 +1,5 @@
 import type { MSAResult, MSASequence } from "../../lib/types/msa";
+import { conservationScaleRange } from "../msa-viewer/conservationDisplay";
 import { rowKeyForSequence } from "../msa-viewer/alignmentModel";
 import { ANALYSIS_SEMANTICS } from "../msa-viewer/workspaceSnapshot";
 import type {
@@ -102,6 +103,7 @@ export type MsaExportManifestV1 = {
   };
   view: {
     colorScheme: MsaExportLayout["colorScheme"];
+    conservationDisplay: { mode: "high" | "full"; range: [number, number]; belowRange: "amber-marker" | null };
     activeTracks: MsaExportLayout["activeTracks"];
     consensusMode: "majority" | "iupac" | null;
     coordinateMode: MsaExportLayout["coordinateMode"];
@@ -119,6 +121,8 @@ export type MsaExportManifestV1 = {
     includeSequenceNames: boolean;
     includeCoordinates: boolean;
     includeConsensus: boolean;
+    includeLogo: boolean;
+    logoDefinition: string;
     includeConservation: boolean;
     includeLegend: boolean;
     includeAnnotations: boolean;
@@ -505,6 +509,11 @@ export function buildMsaExportManifestV1({
     },
     view: {
       colorScheme: layout.colorScheme,
+      conservationDisplay: {
+        mode: layout.conservationScale ?? "full",
+        range: [conservationScaleRange(layout.conservationScale ?? "full").min, 1],
+        belowRange: layout.conservationScale === "high" ? "amber-marker" : null
+      },
       activeTracks: analysisEnabled ? [...layout.activeTracks] : [],
       consensusMode: analysisEnabled
         ? state.consensusMode === "iupac" ? "iupac" : "majority"
@@ -528,6 +537,8 @@ export function buildMsaExportManifestV1({
       includeSequenceNames: layout.options.includeSequenceNames,
       includeCoordinates: layout.options.includeCoordinates,
       includeConsensus: layout.options.includeConsensus,
+      includeLogo: Boolean(layout.options.includeLogo),
+      logoDefinition: "Base count / total rows in analysis scope (0–100%); gaps and ambiguous symbols retain denominator weight.",
       includeConservation: layout.options.includeConservation,
       includeLegend: layout.options.includeLegend,
       includeAnnotations: layout.options.includeAnnotations,

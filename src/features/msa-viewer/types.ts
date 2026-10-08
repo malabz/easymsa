@@ -72,7 +72,7 @@ export type ColumnStats = {
   majorityTie?: boolean;
 };
 
-export const COLUMN_STATS_STORE_VERSION = 1 as const;
+export const COLUMN_STATS_STORE_VERSION = 2 as const;
 
 export const COLUMN_STATS_FLAGS = {
   informative: 1 << 0,
@@ -87,11 +87,13 @@ export const COLUMN_STATS_FLAGS = {
  * only inside `entropyBits` for scientifically unavailable columns; public
  * accessors restore that value to `null`.
  */
-export type ColumnStatsStoreV1 = {
+export type ColumnStatsStoreV2 = {
   readonly version: typeof COLUMN_STATS_STORE_VERSION;
   readonly length: number;
   readonly totalRows: number;
   readonly canonicalCounts: Uint32Array;
+  /** Packed A, C, G, T/U counts, four entries per original alignment column. */
+  readonly nucleotideCounts: Uint32Array;
   readonly ambiguityCounts: Uint32Array;
   readonly unknownCounts: Uint32Array;
   readonly gapCounts: Uint32Array;
@@ -195,7 +197,7 @@ export type MsaAnalysisResult = {
 };
 
 export type MsaAnalysisStoreResult = {
-  columnStore: ColumnStatsStoreV1;
+  columnStore: ColumnStatsStoreV2;
   overview: AlignmentOverviewStats;
 };
 
@@ -244,7 +246,10 @@ export type RangeStats = {
   transversionCount: number;
 };
 
+export type ConservationScale = "high" | "full";
+
 export type ViewerPreferences = {
+  conservationScale?: ConservationScale;
   activeTracks: MsaTrackId[];
   colorScheme: "nucleotide" | "purinePyrimidine" | "conservation";
   consensusMode: ConsensusMode;
@@ -271,7 +276,7 @@ export type RowSortMode =
 
 export type ViewerViewMode = "overview" | "detail";
 
-/** State represented in MsaWorkspaceSnapshotV1 (plus forward-compatible UI choices). */
+/** State represented in MsaWorkspaceSnapshotV2 (plus forward-compatible UI choices). */
 export type ViewerPersistableState = ViewerPreferences & {
   analysisScope: AnalysisScope;
   annotations: QcAnnotation[];
@@ -281,6 +286,8 @@ export type ViewerPersistableState = ViewerPreferences & {
   inspectorWidth: number;
   labelWidth: number;
   minimapCollapsed: boolean;
+  showLogo: boolean;
+  showConsensus: boolean;
   motifMatchMode: MotifMatchMode;
   motifQuery: string;
   motifStrandMode: MotifStrandMode;
@@ -295,6 +302,8 @@ export type ViewerPersistableState = ViewerPreferences & {
   settingsOpen: boolean;
   sortMode: RowSortMode;
   viewport: {
+    rowKey?: string;
+    position?: number;
     scrollLeft: number;
     scrollTop: number;
     clientWidth: number;
@@ -326,12 +335,14 @@ export type NucleotideAnalysisOptions = {
 };
 
 export type MotifSearchOptions = {
+  onMatch?: (alignmentStart: number) => void;
   maxMatches?: number;
   matchMode?: MotifMatchMode;
   strandMode?: MotifStrandMode;
 };
 
 export type MsaViewSettings = {
+  conservationScale?: ConservationScale;
   cellWidth: number;
   cellHeight: number;
   rowHeight: number;

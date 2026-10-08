@@ -7,12 +7,12 @@ import {
   migrateLegacyPreferences,
   migrateLegacyReference,
   saveWorkspaceSnapshot,
-  type MsaWorkspaceSnapshotV1
+  type MsaWorkspaceSnapshotV2
 } from "./workspaceSnapshot";
 
-function snapshot(fingerprint = "12345678abcdef"): MsaWorkspaceSnapshotV1 {
+function snapshot(fingerprint = "12345678abcdef"): MsaWorkspaceSnapshotV2 {
   return {
-    schema: "easymsa-viewer-workspace/v1",
+    schema: "easymsa-viewer-workspace/v2",
     analysisSemantics: "nucleotide-v2",
     source: { fingerprint, sequenceCount: 2, alignmentLength: 4 },
     view: {
@@ -22,6 +22,7 @@ function snapshot(fingerprint = "12345678abcdef"): MsaWorkspaceSnapshotV1 {
       consensusMode: "majority",
       coordinateMode: "alignment",
       density: "comfortable",
+      showLogo: true, showConsensus: true,
       differenceMode: false,
       columnFilter: "all",
       sortMode: "original",
@@ -147,4 +148,12 @@ describe("MSA workspace snapshots", () => {
       })
     ).toBeNull();
   });
+});
+
+
+it("round trips conservation scale and rejects unsupported display transforms", () => {
+  const input=snapshot();input.view.conservationScale='full';
+  expect(importWorkspaceSnapshot(exportWorkspaceSnapshot(input),input.source)).toMatchObject({ok:true,snapshot:{view:{conservationScale:'full'}}});
+  const bad=JSON.parse(JSON.stringify(input));bad.view.conservationScale='logarithmic';
+  expect(importWorkspaceSnapshot(JSON.stringify(bad),input.source).ok).toBe(false);
 });

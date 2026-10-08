@@ -16,7 +16,7 @@ export {
   type MSAColorScheme
 };
 
-function legendItems(
+export function legendItems(
   scheme: MSAColorScheme,
   labels: {
     purine: string;

@@ -18,7 +18,7 @@ test("reference, scope, QC annotation, restoration, motif, minimap, and bundle e
   const fasta = referenceFixture();
   await loadViewerFasta(page, fasta);
 
-  await expect(page.getByRole("slider", { name: /Alignment overview navigator/ })).toBeVisible();
+  await expect(page.getByRole("group", { name: /Overview navigation/ })).toBeVisible();
   await runRowAction(page, "reference", "Set as reference reference", "Set as reference");
   await expect(page.getByText("Reference: reference", { exact: true })).toBeVisible();
 
@@ -39,7 +39,7 @@ test("reference, scope, QC annotation, restoration, motif, minimap, and bundle e
     .toHaveAttribute("data-msa-motif-total", "1");
   await page.getByRole("button", { name: "Next match" }).click();
 
-  const navigator = page.getByRole("slider", { name: /Alignment overview navigator/ });
+  const navigator = page.getByRole("group", { name: /Overview navigation/ });
   const navigatorBounds = await navigator.boundingBox();
   if (!navigatorBounds) throw new Error("Overview navigator was not measurable.");
   await page.mouse.click(
@@ -75,7 +75,7 @@ test("reference, scope, QC annotation, restoration, motif, minimap, and bundle e
       snapshot.annotations.some((annotation) => annotation.text === "review interval")
     );
   });
-  await page.reload();
+  await page.reload({waitUntil:"domcontentloaded"});
   await page.getByLabel("Paste FASTA").fill(fasta);
   await page.getByRole("button", { name: "View pasted FASTA" }).click();
   await expect(page.locator("[data-msa-status='true']"))

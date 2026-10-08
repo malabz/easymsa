@@ -34,6 +34,7 @@ type MsaWorkspaceShellBaseProps = {
   matrixClassName?: string;
   matrixLabel: string;
   navigator?: ReactNode;
+  overview?: ReactNode;
   onDockClose?: () => void;
   onDockWidthChange?: (width: number) => void;
   returnFocusRef?: RefObject<HTMLElement>;
@@ -75,6 +76,7 @@ export function MsaWorkspaceShell({
   matrixLabel,
   mode,
   navigator,
+  overview,
   onDockClose,
   onDockWidthChange,
   returnFocusRef,
@@ -302,6 +304,7 @@ export function MsaWorkspaceShell({
           {matrix}
         </div>
 
+        {!dockOpen && overview}
         {dock !== undefined && dockOpen ? (
           <aside
             aria-label={dockLabel}

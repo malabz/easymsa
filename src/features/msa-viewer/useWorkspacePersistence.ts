@@ -7,7 +7,7 @@ import {
   exportWorkspaceSnapshot,
   importWorkspaceSnapshot,
   saveWorkspaceSnapshot,
-  type MsaWorkspaceSnapshotV1,
+  type MsaWorkspaceSnapshotV2,
   type WorkspaceImportResult
 } from "./workspaceSnapshot";
 
@@ -33,7 +33,7 @@ export function viewerStateToSnapshot(
   state: ViewerState,
   source: WorkspaceSourceIdentity,
   updatedAt = new Date().toISOString()
-): MsaWorkspaceSnapshotV1 {
+): MsaWorkspaceSnapshotV2 {
   return {
     schema: WORKSPACE_SCHEMA,
     analysisSemantics: ANALYSIS_SEMANTICS,
@@ -45,6 +45,9 @@ export function viewerStateToSnapshot(
       consensusMode: state.consensusMode,
       coordinateMode: state.coordinateMode,
       density: state.density,
+      conservationScale: state.conservationScale ?? "high",
+      showLogo: state.showLogo,
+      showConsensus: state.showConsensus,
       differenceMode: state.differenceMode,
       columnFilter: state.columnFilter,
       sortMode: state.sortMode,
@@ -92,7 +95,7 @@ function isRestorableSelectionKey(rowKey: string, validRowKeys: Set<string>) {
  */
 export function viewerStateFromSnapshot(
   base: ViewerState,
-  snapshot: MsaWorkspaceSnapshotV1,
+  snapshot: MsaWorkspaceSnapshotV2,
   validRowKeys: Iterable<string>
 ): ViewerState {
   const valid = new Set(validRowKeys);
@@ -129,6 +132,9 @@ export function viewerStateFromSnapshot(
     consensusMode: snapshot.view.consensusMode,
     coordinateMode: snapshot.view.coordinateMode,
     density: snapshot.view.density,
+    conservationScale: snapshot.view.conservationScale ?? "high",
+    showLogo: snapshot.view.showLogo,
+    showConsensus: snapshot.view.showConsensus,
     differenceMode: snapshot.view.differenceMode,
     hiddenRowKeys,
     inspectorOpen: false,
@@ -165,7 +171,7 @@ export type UseWorkspacePersistenceOptions = {
   storage: Storage | null;
   enabled?: boolean;
   debounceMs?: number;
-  onRestore: (snapshot: MsaWorkspaceSnapshotV1) => void;
+  onRestore: (snapshot: MsaWorkspaceSnapshotV2) => void;
 };
 
 /** Debounced, failure-tolerant workspace persistence scoped by fingerprint. */

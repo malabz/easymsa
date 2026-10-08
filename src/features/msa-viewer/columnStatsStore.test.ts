@@ -15,7 +15,7 @@ import {
   visibleIndexOfPosition
 } from "./columnStatsStore";
 
-describe("ColumnStatsStoreV1", () => {
+describe("ColumnStatsStoreV2", () => {
   it("materializes nucleotide-v2 sufficient statistics without leaking NaN", () => {
     const result = calculateMsaAnalysisStore([
       { sequence: "AA-ARN" },
@@ -89,7 +89,7 @@ describe("ColumnStatsStoreV1", () => {
     expect(columnMetricAtIndex(columnStore, 1, "conservation")).toBe(0.5);
     expect(columnMetricAtIndex(columnStore, 1, "coverage")).toBe(1);
     expect(columnMetricAtIndex(columnStore, 99, "gap")).toBeNull();
-    expect(columnStatsStoreTransferables(columnStore)).toHaveLength(8);
+    expect(columnStatsStoreTransferables(columnStore)).toHaveLength(9);
     expect(columnStatsStoreByteLength(columnStore)).toBeLessThan(256);
 
     const transferables = columnStatsStoreTransferables(columnStore);

@@ -12,7 +12,7 @@ import {
   motifWorkerError
 } from "./motifWorkerProtocol";
 import type {
-  MotifSearchPayloadV2,
+  MotifSearchPayloadV3,
   MotifWorkerErrorCode,
   MotifWorkerRequest,
   MotifWorkerResponse
@@ -20,7 +20,7 @@ import type {
 import type { MotifMatchMode, MotifStrandMode } from "./types";
 
 const MAX_MOTIF_CACHE_ENTRIES = 8;
-const motifCache = new Map<string, MotifSearchPayloadV2>();
+const motifCache = new Map<string, MotifSearchPayloadV3>();
 let nextMotifRequestId = 1;
 
 export type UseMotifSearchOptions = {
@@ -42,7 +42,7 @@ function cacheGet(key: string) {
   return cached;
 }
 
-function cacheSet(key: string, value: MotifSearchPayloadV2) {
+function cacheSet(key: string, value: MotifSearchPayloadV3) {
   motifCache.delete(key);
   motifCache.set(key, value);
   while (motifCache.size > MAX_MOTIF_CACHE_ENTRIES) {
@@ -98,7 +98,7 @@ export function useMotifSearch(
   const cached = validation.valid && validation.query
     ? motifCache.get(cacheKey) ?? null
     : null;
-  const [result, setResult] = useState<MotifSearchPayloadV2 | null>(cached);
+  const [result, setResult] = useState<MotifSearchPayloadV3 | null>(cached);
   const [resultCacheKey, setResultCacheKey] = useState<string | null>(
     cached ? cacheKey : null
   );
@@ -190,7 +190,7 @@ export function useMotifSearch(
       strandMode,
       maxMatches
     };
-    const complete = (payload: MotifSearchPayloadV2) => {
+    const complete = (payload: MotifSearchPayloadV3) => {
       if (cancelled) {
         return;
       }
@@ -336,6 +336,8 @@ export function useMotifSearch(
 
   return {
     matches: activeResult?.matches ?? [],
+    columnHitCounts: activeResult?.columnHitCounts ?? null,
+    columnFirstRows: activeResult?.columnFirstRows ?? null,
     totalCount: activeResult?.totalCount ?? 0,
     rowTotals: activeResult?.rowTotals ?? [],
     truncated: activeResult?.truncated ?? false,

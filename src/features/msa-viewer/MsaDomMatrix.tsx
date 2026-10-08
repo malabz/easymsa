@@ -1,3 +1,4 @@
+import { conservationScaleRange } from "./conservationDisplay";
 import { useVirtualizer, type VirtualItem } from "@tanstack/react-virtual";
 import {
   EyeOff,
@@ -30,6 +31,8 @@ import { rowKeyForSequence } from "./alignmentModel";
 import { differenceColorClass } from "./differenceColors";
 import { MsaRowMenu } from "./MsaRowMenu";
 import { MsaCanvasMatrix } from "./MsaCanvasMatrix";
+import { MsaFrequencyLogo } from "./MsaFrequencyLogo";
+import { AXIS_HEIGHT, TRACK_HEIGHT, LOGO_HEIGHT, CONSENSUS_HEIGHT, frozenHeight } from "./viewerGeometry";
 import { MsaStatisticTrack } from "./MsaStatisticTrack";
 import {
   columnStatsAtPosition,
@@ -42,7 +45,7 @@ import type {
   ColumnPositionView,
   ColumnRange,
   ColumnStats,
-  ColumnStatsStoreV1,
+  ColumnStatsStoreV2,
   MsaTrackId,
   MsaViewSettings
 } from "./types";
@@ -212,7 +215,7 @@ function SequenceCells({
   settings: MsaViewSettings;
   totalWidth: number;
 }) {
-  const { dictionary: d } = useLanguage();
+  const { dictionary: d, locale } = useLanguage();
   return (
     <div className="relative shrink-0" style={{ height: settings.cellHeight, width: totalWidth }}>
       {renderColumns.map(({ virtualColumn, position, stats }) => {
@@ -239,18 +242,18 @@ function SequenceCells({
             aria-selected={selectedCell || inSelectedRange}
             className={cn(
               "absolute left-0 top-0 inline-flex items-center justify-center font-mono font-semibold outline-none transition",
-              settings.showCharacters ? "rounded border" : "border-0",
+              settings.showCharacters ? "rounded-none border-0" : "border-0",
               consensusTie ? "border-dashed border-slate-700" : "",
               missingTail ? "border-slate-200 bg-slate-50 text-transparent" : colorClass,
               settings.showCharacters ? "" : "text-transparent",
               selectedCell
-                ? "ring-2 ring-teal-700 ring-offset-1"
+                ? "ring-2 ring-inset ring-teal-700"
                 : inSelectedRange
-                  ? "ring-1 ring-teal-500"
+                  ? "ring-1 ring-inset ring-teal-500"
                   : selectedRow || selectedColumn
                     ? "brightness-95 ring-1 ring-teal-300"
                     : motifHit
-                      ? "ring-2 ring-amber-500 ring-offset-1"
+                      ? "ring-2 ring-inset ring-amber-500"
                       : "hover:ring-1 hover:ring-slate-400"
             )}
             data-msa-cell="true"
@@ -443,6 +446,10 @@ export function MsaDomMatrix({
   selection,
   sequences,
   showConsensus = true,
+  showLogo = false,
+  rna = false,
+  motifColumnHitCounts = null,
+  onMotifColumnSelect,
   settings,
   stats,
   visiblePositions
@@ -473,12 +480,18 @@ export function MsaDomMatrix({
   selection: CellSelection | null;
   sequences: MSASequence[];
   showConsensus?: boolean;
+  showLogo?: boolean;
+  rna?: boolean;
+  motifColumnHitCounts?: Uint32Array | null;
+  onMotifColumnSelect?: (position:number)=>void;
   settings: MsaViewSettings;
-  stats: ColumnStatsStoreV1 | ColumnStats[] | null;
+  stats: ColumnStatsStoreV2 | ColumnStats[] | null;
   visiblePositions: ColumnPositionView | number[];
 }) {
-  const { dictionary: d } = useLanguage();
+  const { dictionary: d, locale } = useLanguage();
   const coarsePointer = useCoarsePointer();
+  const maxMotifCount = useMemo(()=>motifColumnHitCounts?.reduce((m,n)=>Math.max(m,n),1)??1,[motifColumnHitCounts]);
+  const [hoverIndex,setHoverIndex]=useState<number|null>(null);
   const reactGridId = useId();
   const gridId = `msa-grid-${reactGridId.replace(/[^a-zA-Z0-9_-]/g, "")}`;
 
@@ -549,7 +562,7 @@ export function MsaDomMatrix({
         : null;
     return [{ virtualColumn, position, stats: column }];
   }), [positionView, stats, virtualColumns]);
-  const headerHeight = (1 + activeTracks.length) * settings.rowHeight;
+  const headerHeight = frozenHeight(activeTracks.length, showLogo, showConsensus, Boolean(motifColumnHitCounts));
   const sequenceRows = useMemo(
     () =>
       sequences.map((sequence, index) => ({
@@ -597,11 +610,11 @@ export function MsaDomMatrix({
       ) ?? -1
     : -1;
   const activeRowIndex = activeSequenceRowIndex >= 0
-    ? activeTracks.length + activeSequenceRowIndex + 1
+    ? activeTracks.length + (showLogo?1:0)+(motifColumnHitCounts?1:0)+(showConsensus?1:0)+activeSequenceRowIndex + 1
     : activeTrackIndex >= 0
       ? activeTrackIndex + 1
       : selectedRowKey === CONSENSUS_ROW_KEY
-        ? sequenceRows.length + activeTracks.length + 1
+        ? activeTracks.length + (showLogo?1:0)+(motifColumnHitCounts?1:0)+1
         : undefined;
   const activeColumnOffset = selection
     ? visibleIndexOfPosition(positionView, selection.position)
@@ -699,8 +712,13 @@ export function MsaDomMatrix({
 
   return (
     <div
-      className="relative h-full min-h-0"
+      className="relative h-full min-h-0 overflow-hidden"
       ref={viewportRef}
+      onPointerLeave={()=>setHoverIndex(null)}
+      onPointerMove={event=>{
+        const el=scrollRef.current;if(!el)return; const x=event.clientX-el.getBoundingClientRect().left-settings.labelWidth-12;
+        setHoverIndex(x<0?null:Math.floor((x+el.scrollLeft)/pitch));
+      }}
         onPointerCancelCapture={(event) => releaseTouch(event.pointerId)}
         onPointerDownCapture={(event) => {
           if (event.pointerType === "touch") updatePinch(event.pointerId, event.clientX, event.clientY);
@@ -721,10 +739,11 @@ export function MsaDomMatrix({
         aria-describedby={`${gridId}-shortcut-help`}
         aria-keyshortcuts="Space P R H"
         aria-label={d.results.viewer.matrixNavigation}
-        aria-rowcount={sequenceRows.length + activeTracks.length + (showConsensus ? 1 : 0)}
+        aria-rowcount={sequenceRows.length + activeTracks.length + (showConsensus ? 1 : 0)+(showLogo?1:0)+(motifColumnHitCounts?1:0)}
         className="h-full min-h-0 overflow-auto outline-none focus:ring-2 focus:ring-inset focus:ring-teal-100"
         data-msa-scroll-viewport="true"
         id={gridId}
+        onScroll={e=>viewportRef.current?.style.setProperty("--msa-scroll-x",`${e.currentTarget.scrollLeft}px`)}
         onKeyDown={handleMatrixKeyDown}
         ref={scrollRef}
         role="grid"
@@ -747,13 +766,14 @@ export function MsaDomMatrix({
           </span>
         ) : null}
         <div style={{ minWidth: "100%", width: matrixWidth }}>
+          <div className="sticky top-0 z-30 bg-white" data-msa-frozen-tracks="true">
           <div
             className="sticky top-0 z-30 grid border-b border-slate-200 bg-slate-50/95"
-            style={{ gridTemplateColumns: `${settings.labelWidth}px 1fr` }}
+            style={{ gridTemplateColumns: `${settings.labelWidth}px 1fr`,height:AXIS_HEIGHT }}
           >
             <div
               className="sticky left-0 z-20 flex items-center border-r border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-500"
-              style={{ height: settings.rowHeight }}
+              style={{ height: AXIS_HEIGHT }}
             >
               {coordinateMode === "reference" && reference
                 ? d.results.viewer.stageTwo.referencePosition
@@ -766,7 +786,7 @@ export function MsaDomMatrix({
                 renderColumns={renderColumns}
                 reference={reference}
                 selectedRange={selectedRange}
-                settings={settings}
+                settings={{...settings, cellHeight: AXIS_HEIGHT}}
                 totalWidth={columnContentWidth}
               />
             </div>
@@ -780,28 +800,33 @@ export function MsaDomMatrix({
               role="row"
               style={{
                 gridTemplateColumns: `${settings.labelWidth}px 1fr`,
-                top: (trackIndex + 1) * settings.rowHeight
+                top: 0, height: TRACK_HEIGHT
               }}
             >
               <div
                 className="sticky left-0 z-10 flex items-center border-r border-slate-200 bg-white px-3 text-xs font-medium text-slate-500"
                 role="rowheader"
-                style={{ height: settings.rowHeight }}
+                style={{ height: TRACK_HEIGHT }}
               >
-                {d.results.viewer.stageTwo.tracks[track]}
+                <span className="min-w-0 flex-1 truncate">{d.results.viewer.stageTwo.tracks[track]}</span>
+                {track === "conservation" && <span
+                  className="ml-1 shrink-0 text-right text-[9px] leading-[11px] tabular-nums text-slate-500"
+                  data-msa-conservation-axis
+                  title={locale === "zh" ? `显示刻度 ${conservationScaleRange(settings.conservationScale ?? "high").label}` : `Display scale ${conservationScaleRange(settings.conservationScale ?? "high").label}`}
+                >100%<br/>{settings.conservationScale === "full" ? "0%" : "80%"}</span>}
               </div>
               <div
                 aria-colindex={2}
                 className="flex items-center px-3"
                 role="gridcell"
-                style={{ height: settings.rowHeight }}
+                style={{ height: TRACK_HEIGHT }}
               >
                 <MsaStatisticTrack
                   renderColumns={renderColumns}
                   onSelect={onSelect}
                   selectedRange={selectedRange}
                   selection={selection}
-                  settings={settings}
+                  settings={{...settings, cellHeight: 22}}
                   totalWidth={columnContentWidth}
                   track={track}
                 />
@@ -809,6 +834,62 @@ export function MsaDomMatrix({
             </div>
           ))}
 
+          {showLogo && <div role="row" aria-rowindex={activeTracks.length+1} className="grid border-b border-slate-200 bg-white" style={{gridTemplateColumns:`${settings.labelWidth}px 1fr`,height:LOGO_HEIGHT}}>
+            <div role="rowheader" className="sticky left-0 z-20 flex items-center justify-between border-r border-slate-200 bg-white px-3 text-xs text-slate-500"><span>{locale === "zh" ? "碱基频率" : "Base frequency"}</span><span className="text-[9px]">100%<br/>0%</span></div>
+            <div role="gridcell" aria-colindex={2} className="px-3"><MsaFrequencyLogo columns={renderColumns} store={stats && !Array.isArray(stats) ? stats : null} width={columnContentWidth} cellWidth={settings.cellWidth} rna={rna}/></div>
+          </div>}
+          {motifColumnHitCounts && <div role="row" aria-rowindex={activeTracks.length+(showLogo?1:0)+1} className="grid border-b border-slate-200 bg-white" style={{gridTemplateColumns:`${settings.labelWidth}px 1fr`,height:20}}>
+            <div role="rowheader" className="sticky left-0 z-20 border-r border-slate-200 bg-white px-3 text-xs text-teal-700">{locale === "zh" ? "搜索命中" : "Search hits"}</div>
+            <div role="gridcell" aria-colindex={2} className="relative mx-3" style={{width:columnContentWidth}}>{renderColumns.map(({position,virtualColumn})=>{
+              const count=motifColumnHitCounts[position-1]; if(!count)return null;
+              return <button type="button" key={position} title={`${position}: ${count}`} aria-label={`${locale==='zh'?'搜索命中':'Search hits'} ${position}: ${count}`}
+                className="absolute bottom-0 bg-teal-600" style={{left:virtualColumn.start,width:settings.cellWidth,height:Math.max(3,18*count/maxMotifCount)}}
+                tabIndex={-1} onClick={()=>onMotifColumnSelect?.(position)}/>;
+            })}</div>
+          </div>}
+          {showConsensus ? <div
+            aria-rowindex={activeTracks.length+(showLogo?1:0)+(motifColumnHitCounts?1:0)+1}
+            className="grid border-t border-slate-300 bg-teal-50/70"
+            role="row"
+            style={{ gridTemplateColumns: `${settings.labelWidth}px 1fr`,height:CONSENSUS_HEIGHT }}
+          >
+            <div
+              className="sticky left-0 z-20 flex items-center border-r border-slate-200 bg-teal-50 px-3 font-mono text-xs font-semibold text-teal-900"
+              role="rowheader"
+              style={{ height: CONSENSUS_HEIGHT }}
+            >
+              {locale === "zh" ? "共识" : "Consensus"}
+            </div>
+            <div className="flex items-center px-3" style={{ height: CONSENSUS_HEIGHT }}>
+              {settings.showCharacters ? (
+                <SequenceCells
+                  colorScheme={colorScheme}
+                  differenceMode={false}
+                  dragAnchorRef={dragAnchorRef}
+                  dragMovedRef={dragMovedRef}
+                  focusGrid={focusGrid}
+                  onRangeSelect={onRangeSelect}
+                  onSelect={onSelect}
+                  positionView={positionView}
+                  renderColumns={renderColumns}
+                  rangeSelectionMode={rangeSelectionMode}
+                  reference={null}
+                  selectedRange={selectedRange}
+                  selection={selection}
+                  sequence={{
+                    id: d.results.viewer.consensus,
+                    originalIndex: sequenceRows.length,
+                    rowKey: CONSENSUS_ROW_KEY,
+                    sequence: consensus
+                  }}
+                  sequenceRowKey={CONSENSUS_ROW_KEY}
+                  settings={{...settings, cellHeight: CONSENSUS_HEIGHT}}
+                  totalWidth={columnContentWidth}
+                />
+              ) : null}
+            </div>
+          </div> : null}
+          </div>
           <div className="relative" style={{ height: rowVirtualizer.getTotalSize(), width: matrixWidth }}>
             {virtualRows.map((virtualRow) => {
               const sequenceRow = sequenceRows[virtualRow.index];
@@ -821,8 +902,8 @@ export function MsaDomMatrix({
               const isSelected = selectedSequenceIds.has(rowKey);
               return (
                 <div
-                  aria-rowindex={activeTracks.length + virtualRow.index + 1}
-                  className="absolute left-0 top-0 grid border-b border-slate-100"
+                  aria-rowindex={activeTracks.length+(showLogo?1:0)+(motifColumnHitCounts?1:0)+(showConsensus?1:0)+virtualRow.index+1}
+                  className="absolute left-0 top-0 grid"
                   data-index={virtualRow.index}
                   data-msa-row-key={rowKey}
                   key={rowKey}
@@ -851,7 +932,7 @@ export function MsaDomMatrix({
                       <button
                         aria-label={`${d.results.viewer.stageTwo.selectSequence} ${sequence.id}`}
                         aria-pressed={isSelected}
-                        className="hidden h-11 w-11 shrink-0 items-center justify-center rounded text-slate-400 hover:bg-slate-100 hover:text-slate-900 sm:inline-flex sm:h-8 sm:w-8"
+                        className="hidden h-11 w-11 shrink-0 items-center justify-center rounded text-slate-400 hover:bg-slate-100 hover:text-slate-900 sm:inline-flex sm:h-5 sm:w-5"
                         onClick={() => onSelectSequence(rowKey)}
                         tabIndex={-1}
                         type="button"
@@ -859,6 +940,7 @@ export function MsaDomMatrix({
                         {isSelected ? <SquareCheckBig className="h-3.5 w-3.5 text-teal-700" /> : <Square className="h-3.5 w-3.5" />}
                       </button>
                     ) : null}
+                    <span aria-hidden="true" className="w-6 shrink-0 text-right text-[10px] text-slate-500">{virtualRow.index+1}</span>
                     <span className="min-w-0 flex-1 truncate" title={sequence.id}>{sequence.id}</span>
                     {isPinned && <Pin size={12} className="shrink-0 text-teal-700" aria-label={d.results.viewer.stageTwo.pinSequence}/>}
                     {isReference && <Flag size={12} className="shrink-0 text-amber-700" aria-label={d.results.viewer.stageTwo.setReference}/>}
@@ -899,51 +981,10 @@ export function MsaDomMatrix({
             })}
           </div>
 
-          {showConsensus ? <div
-            aria-rowindex={sequenceRows.length + activeTracks.length + 1}
-            className="grid border-t border-slate-300 bg-teal-50/70"
-            role="row"
-            style={{ gridTemplateColumns: `${settings.labelWidth}px 1fr` }}
-          >
-            <div
-              className="sticky left-0 z-20 flex items-center border-r border-slate-200 bg-teal-50 px-3 font-mono text-xs font-semibold text-teal-900"
-              role="rowheader"
-              style={{ height: settings.rowHeight + 4 }}
-            >
-              {d.results.viewer.consensus}
-            </div>
-            <div className="flex items-center px-3" style={{ height: settings.rowHeight + 4 }}>
-              {settings.showCharacters ? (
-                <SequenceCells
-                  colorScheme={colorScheme}
-                  differenceMode={false}
-                  dragAnchorRef={dragAnchorRef}
-                  dragMovedRef={dragMovedRef}
-                  focusGrid={focusGrid}
-                  onRangeSelect={onRangeSelect}
-                  onSelect={onSelect}
-                  positionView={positionView}
-                  renderColumns={renderColumns}
-                  rangeSelectionMode={rangeSelectionMode}
-                  reference={null}
-                  selectedRange={selectedRange}
-                  selection={selection}
-                  sequence={{
-                    id: d.results.viewer.consensus,
-                    originalIndex: sequenceRows.length,
-                    rowKey: CONSENSUS_ROW_KEY,
-                    sequence: consensus
-                  }}
-                  sequenceRowKey={CONSENSUS_ROW_KEY}
-                  settings={settings}
-                  totalWidth={columnContentWidth}
-                />
-              ) : null}
-            </div>
-          </div> : null}
         </div>
       </div>
 
+      {(hoverIndex !== null || selection) && <div aria-hidden="true" style={{position:"absolute",inset:0,zIndex:31,pointerEvents:"none",clipPath:`inset(0 0 0 ${settings.labelWidth+12}px)`}}><div className="msa-column-guide" style={{left:`calc(${settings.labelWidth+12+(hoverIndex ?? visibleIndexOfPosition(positionView,selection!.position))*pitch}px - var(--msa-scroll-x, 0px))`,width:settings.cellWidth}}/></div>}
       {!settings.showCharacters && activeSequenceRow ? (
         <details className="absolute left-2 top-12 z-[55]">
           <summary

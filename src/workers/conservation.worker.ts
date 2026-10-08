@@ -3,7 +3,7 @@
 import {
   MSA_ANALYSIS_PROTOCOL_VERSION,
   analysisWorkerError,
-  calculateMsaAnalysisPayloadV3
+  calculateMsaAnalysisPayloadV4
 } from "../features/msa-viewer/workerProtocol";
 import { columnStatsStoreTransferables } from "../features/msa-viewer/columnStatsStore";
 import type {
@@ -67,7 +67,7 @@ self.onmessage = (event: MessageEvent<MsaAnalysisWorkerRequest>) => {
       });
       return;
     }
-    const result = calculateMsaAnalysisPayloadV3(request);
+    const result = calculateMsaAnalysisPayloadV4(request);
     if (cancelledRequests.delete(key)) {
       post({
         protocolVersion: MSA_ANALYSIS_PROTOCOL_VERSION,

@@ -173,6 +173,7 @@ export function calculateMsaAnalysisStore(
   let ambiguityResidues = 0;
   let unknownResidues = 0;
   const canonicalCounts = new Uint32Array(alignmentLength);
+  const nucleotideCounts = new Uint32Array(alignmentLength * 4);
   const ambiguityCounts = new Uint32Array(alignmentLength);
   const unknownCounts = new Uint32Array(alignmentLength);
   const gapCounts = new Uint32Array(alignmentLength);
@@ -218,6 +219,7 @@ export function calculateMsaAnalysisStore(
 
     const canonicalCount = aCount + cCount + gCount + fourthCount;
     canonicalCounts[index] = canonicalCount;
+    nucleotideCounts.set([aCount, cCount, gCount, fourthCount], index * 4);
     ambiguityCounts[index] = ambiguityCount;
     unknownCounts[index] = unknownCount;
     gapCounts[index] = gapCount;
@@ -292,6 +294,7 @@ export function calculateMsaAnalysisStore(
       length: alignmentLength,
       totalRows,
       canonicalCounts,
+      nucleotideCounts,
       ambiguityCounts,
       unknownCounts,
       gapCounts,
@@ -549,7 +552,7 @@ function reverseComplementIupac(query: string) {
 
 function resolveMotifOptions(
   maxMatchesOrOptions: number | MotifSearchOptions
-): Required<MotifSearchOptions> {
+): Required<Omit<MotifSearchOptions, "onMatch">> & Pick<MotifSearchOptions, "onMatch"> {
   if (typeof maxMatchesOrOptions === "number") {
     return {
       maxMatches: Math.max(0, maxMatchesOrOptions),
@@ -560,7 +563,8 @@ function resolveMotifOptions(
   return {
     maxMatches: Math.max(0, maxMatchesOrOptions.maxMatches ?? Number.POSITIVE_INFINITY),
     matchMode: maxMatchesOrOptions.matchMode ?? "strict",
-    strandMode: maxMatchesOrOptions.strandMode ?? "forward"
+    strandMode: maxMatchesOrOptions.strandMode ?? "forward",
+    onMatch: maxMatchesOrOptions.onMatch
   };
 }
 
@@ -613,6 +617,7 @@ export function searchIupacMotifMatches(
           continue;
         }
         totalCount += 1;
+        options.onMatch?.(ungapped[start].alignmentPosition);
         if (matches.length >= options.maxMatches) {
           continue;
         }

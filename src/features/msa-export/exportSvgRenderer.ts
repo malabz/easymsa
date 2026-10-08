@@ -1,3 +1,4 @@
+import { conservationBar, conservationScaleRange, formatConservation } from "../msa-viewer/conservationDisplay";
 import { legendColorStyles, msaCellColorStyle } from "./exportColors";
 import { classifyDifference } from "../msa-viewer/analysis";
 import { differenceColorStyle } from "../msa-viewer/differenceColors";
@@ -194,7 +195,7 @@ function trackValue(column: MsaExportColumn, track: MsaExportTrackId) {
   if (track === "entropy") {
     return stats?.entropy ?? 0;
   }
-  return stats?.conservation ?? 0;
+  return stats?.conservation ?? null;
 }
 
 const TRACK_COLORS: Record<MsaExportTrackId, string> = {
@@ -212,26 +213,28 @@ function renderTrackRow(
   y: number
 ) {
   const parts = [
-    renderLabel(layout, labels.tracks[track], block.x, y, layout.rowHeight, "#ffffff")
+    renderLabel(layout, track === "conservation" ? "" : labels.tracks[track], block.x, y, layout.rowHeight, "#ffffff"),
+    ...(track === "conservation" && layout.labelWidth > 0 ? [
+      text(labels.tracks[track], block.x + 10, y + 7, { size: 10, fill: MUTED_TEXT_COLOR }),
+      text(conservationScaleRange(layout.conservationScale ?? "full").label,
+        block.x + 10, y + layout.rowHeight - 4, { size: 8, fill: MUTED_TEXT_COLOR })
+    ] : [])
   ];
 
   block.columns.forEach((column, index) => {
     const x = block.cellAreaX + index * layout.cellPitch;
     const value = trackValue(column, track);
-    const barHeight = Math.max(2, Math.round(layout.cellHeight * value));
-    const opacity = 0.18 + value * 0.72;
+    const bar = track === "conservation"
+      ? conservationBar(value, layout.conservationScale ?? "full", layout.cellHeight)
+      : { height: Math.max(2, Math.round(layout.cellHeight * (value ?? 0))), belowRange: false, opacity: 0.18 + (value ?? 0) * 0.72 };
+    const barHeight = bar.height;
+    const opacity = bar.opacity;
     parts.push(rect(x, y, layout.cellWidth, layout.cellHeight, "#ffffff"));
-    parts.push(
-      rect(
-        x,
-        y + layout.cellHeight - barHeight,
-        layout.cellWidth,
-        barHeight,
-        TRACK_COLORS[track],
-        "none",
-        opacity
-      )
-    );
+    const barRect = rect(x, y + layout.cellHeight - barHeight, layout.cellWidth, barHeight,
+      bar.belowRange ? "#d97706" : TRACK_COLORS[track], "none", opacity);
+    parts.push(track === "conservation"
+      ? `<g><title>${escapeSvg(`${labels.tracks[track]} ${column.position}: ${value === null ? "N/A" : formatConservation(value)}${bar.belowRange ? "; below 80%" : ""}`)}</title>${barRect}</g>`
+      : barRect);
   });
 
   return parts.join("");
@@ -316,6 +319,17 @@ function renderBlock(
     }
   }
 
+  if (layout.options.includeLogo) {
+    parts.push(renderLabel(layout, "Logo · 0–100%", block.x, y, 48, "#ffffff"));
+    block.columns.forEach((column,index)=>{
+      let bottom=y+46;
+      for(const letter of column.logo ?? []) {
+        const height=44*letter.frequency;bottom-=height;
+        parts.push(`<svg x="${block.cellAreaX+index*layout.cellPitch}" y="${bottom}" width="${layout.cellWidth}" height="${height}" viewBox="0 0 20 24" preserveAspectRatio="none"><text x="10" y="23" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="30" fill="${letter.color}">${letter.base}</text></svg>`);
+      }
+    });
+    y+=48;
+  }
   for (const row of layout.rows) {
     const isReference = row.rowKey && layout.referenceSequence?.rowKey
       ? row.rowKey === layout.referenceSequence.rowKey
@@ -424,6 +438,7 @@ export function renderMsaExportToSvg(
   const metadata = manifest ?? {
     schema: MSA_EXPORT_MANIFEST_SCHEMA,
     source: { label: sourceLabel },
+    view: { conservationScale: conservationScaleRange(layout.conservationScale ?? "full") },
     scope: {
       region: layout.canonicalRegion,
       rowCount: layout.rows.length,

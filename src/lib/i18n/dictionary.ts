@@ -923,7 +923,7 @@ const zh = {
   docs: {
     eyebrow: "面向科研用户的 EasyMSA 指南",
     title: "使用文档",
-    subtitle: "从 FASTA 输入、预处理和任务恢复，到科研结果解读、reference 差异分析与导出。",
+    subtitle: "查找输入、提交、结果查看与下载的操作说明。",
     searchLabel: "搜索使用文档",
     searchPlaceholder: "搜索 FASTA、reference、entropy、导出……",
     searchHint: "搜索章节标题、正文、功能名称和常见问题。按 Ctrl/⌘ + K 可随时聚焦。",
@@ -1889,7 +1889,7 @@ const en: typeof zh = {
   docs: {
     eyebrow: "EasyMSA guide for research users",
     title: "Documentation",
-    subtitle: "From FASTA input, preprocessing, and task recovery to scientific interpretation, reference differences, and export.",
+    subtitle: "Find guidance for input, submission, result viewing, and downloads.",
     searchLabel: "Search documentation",
     searchPlaceholder: "Search FASTA, reference, entropy, export…",
     searchHint: "Search section titles, content, feature names, and FAQs. Press Ctrl/⌘ + K to focus from anywhere.",

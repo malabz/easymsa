@@ -112,7 +112,7 @@ describe("DocsPage", () => {
     expect(search).toHaveValue("");
   });
 
-  it("navigates sections and copies a FASTA example", async () => {
+  it("navigates sections and opens the FASTA example on demand", async () => {
     renderDocs();
 
     fireEvent.click(
@@ -124,9 +124,8 @@ describe("DocsPage", () => {
       );
     });
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Copy example: FASTA example" })
-    );
+    fireEvent.click(screen.getAllByRole("button", { name: /FASTA and input/ })[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Copy example: FASTA example" }));
     await waitFor(() => expect(writeText).toHaveBeenCalledOnce());
     expect(writeText.mock.calls[0][0]).toContain(">reference_sequence");
     expect(await screen.findByText("Copied")).toBeInTheDocument();

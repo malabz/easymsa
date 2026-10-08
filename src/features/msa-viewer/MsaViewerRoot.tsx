@@ -11,7 +11,7 @@ import {
 } from "react";
 import { EmptyState } from "../../components/common/EmptyState";
 import { OverlayDialog } from "../../components/common/OverlayDialog";
-import { MSAColorLegend } from "../../components/results/MSAColorLegend";
+import { MSAColorLegend, legendItems } from "../../components/results/MSAColorLegend";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import type {
   AlignmentDescriptor,
@@ -39,7 +39,9 @@ import {
 import { MsaAnnotationPanel } from "./MsaAnnotationPanel";
 import { MsaDomMatrix } from "./MsaDomMatrix";
 import { MsaInspector } from "./MsaInspector";
-import { MsaOverviewNavigator } from "./MsaOverviewNavigator";
+import { MsaGlobalOverview } from "./MsaGlobalOverview";
+import { MsaHorizontalOverview } from "./MsaHorizontalOverview";
+import { frozenHeight } from "./viewerGeometry";
 import { MsaQcPanel } from "./MsaQcPanel";
 import { MsaWorkspaceHeader } from "./MsaWorkspaceHeader";
 import { MsaSettingsDock } from "./MsaSettingsDock";
@@ -88,7 +90,7 @@ export function getMsaViewSettings(
     : zoomLevel >= DETAIL_ZOOM_THRESHOLD;
   const baseCellWidth = compact ? 14 : 20;
   const baseCellHeight = compact ? 20 : 24;
-  const rowPadding = compact ? 10 : 14;
+  const rowPadding = compact ? 0 : 8;
   const overviewCellSize = Math.max(3, Math.round(12 * zoomLevel));
   return {
     cellWidth: showCharacters
@@ -100,7 +102,7 @@ export function getMsaViewSettings(
     rowHeight: showCharacters
       ? Math.round(baseCellHeight * zoomLevel + rowPadding)
       : Math.max(6, overviewCellSize + 2),
-    fontSize: Math.max(9, Math.round((compact ? 10 : 11) * zoomLevel)),
+    fontSize: Math.max(9, Math.round((compact ? 12 : 11) * zoomLevel)),
     labelWidth: Math.max(
       96,
       Math.min(
@@ -113,12 +115,12 @@ export function getMsaViewSettings(
     markerEvery:
       zoomLevel < 0.35 ? 100 : zoomLevel < 0.7 ? 50 : zoomLevel < 0.95 ? 20 : 10,
     showCharacters,
-    cellGap: showCharacters ? 2 : 0
+    cellGap: showCharacters && !compact ? 2 : 0
   };
 }
 
 function useMobileLayout() {
-  const [mobile, setMobile] = useState(false);
+  const [mobile, setMobile] = useState(()=>typeof window!=="undefined" && window.innerWidth<1024);
   useEffect(() => {
     if (typeof window.matchMedia !== "function") return;
     const query = window.matchMedia("(max-width: 1023px)");
@@ -178,7 +180,7 @@ function selectedRangeLabel(range: ColumnRange | null) {
   return range.start === range.end ? String(range.start) : `${range.start}-${range.end}`;
 }
 
-function DifferenceLegend() {
+function DifferenceLegend({compact=false}: {compact?:boolean} = {}) {
   const { dictionary: d } = useLanguage();
   const t = d.results.viewer.stageTwo.differences;
   const items = [
@@ -189,6 +191,7 @@ function DifferenceLegend() {
     [t.deletion, "bg-amber-200 border-amber-500 border-dotted"],
     [t.unknown, "bg-slate-200 border-slate-500 border-dashed"]
   ];
+  if(compact) return <span className="msa-inline-legend">{items.map(([label,className])=><span key={label}><i className={className}/>{label}</span>)}</span>;
   return (
     <div className="flex flex-wrap gap-2 p-3">
       {items.map(([label, className]) => (
@@ -242,6 +245,8 @@ export function MsaViewerRoot({
     legacyJobId: alignment.jobId
   });
   const [jumpPosition, setJumpPosition] = useState("");
+  const viewportAnchorRef = useRef<{rowKey?:string;position?:number}>({});
+  const layoutSourceRef = useRef<string|null>(null);
   const [workspaceMessage, setWorkspaceMessage] = useState<string | null>(null);
   const [qcFilters, setQcFilters] = useState<RowQcFilters>(DEFAULT_ROW_QC_FILTERS);
   const [qcSortDirection, setQcSortDirection] = useState<"asc" | "desc">("asc");
@@ -273,13 +278,20 @@ export function MsaViewerRoot({
     return counts;
   }, [rowRecords]);
   const rowLabels = useMemo(
-    () => new Map(rowRecords.map(({ rowKey, sequence, sourceIndex }) => [
+    () => {
+      const labels = new Map(rowRecords.map(({ rowKey, sequence, sourceIndex }) => [
       rowKey,
       (headerCounts.get(sequence.id) ?? 0) > 1
         ? `${sequence.id} (#${sourceIndex + 1})`
         : sequence.id
-    ])),
-    [headerCounts, rowRecords]
+      ]));
+      labels.set(CONSENSUS_ROW_KEY, locale === "zh" ? "共识" : "Consensus");
+      for (const [track, label] of Object.entries(d.results.viewer.stageTwo.tracks)) {
+        labels.set(`track:${track}`, label);
+      }
+      return labels;
+    },
+    [headerCounts, rowRecords, d, locale]
   );
   const reference = state.referenceRowKey
     ? rowByKey.get(state.referenceRowKey) ?? null
@@ -427,12 +439,15 @@ export function MsaViewerRoot({
     );
   }, [analysis.columnStore, canAnalyze, identityPositions, state.columnFilter, state.qcThresholds.column]);
   const viewSettings = useMemo(() => {
-    const settings = getMsaViewSettings(
-      state.zoomLevel,
-      state.density,
-      state.viewMode,
-      mobile ? Math.min(120, state.labelWidth) : state.labelWidth
-    );
+    const settings = {
+      ...getMsaViewSettings(
+        state.zoomLevel,
+        state.density,
+        state.viewMode,
+        mobile ? Math.min(120, state.labelWidth) : state.labelWidth
+      ),
+      conservationScale: state.conservationScale ?? "high"
+    };
     return mobile && settings.showCharacters
       ? {
           ...settings,
@@ -441,15 +456,15 @@ export function MsaViewerRoot({
           rowHeight: Math.max(48, settings.rowHeight)
         }
       : settings;
-  }, [mobile, state.density, state.labelWidth, state.viewMode, state.zoomLevel]);
+  }, [mobile, state.conservationScale, state.density, state.labelWidth, state.viewMode, state.zoomLevel]);
   const activeTracks = canAnalyze ? state.activeTracks : [];
   const navigationRowKeys = useMemo(
     () => [
       ...activeTracks.map((track) => `track:${track}`),
-      ...displayedRowKeys,
-      ...(canAnalyze ? [CONSENSUS_ROW_KEY] : [])
+      ...(canAnalyze && state.showConsensus ? [CONSENSUS_ROW_KEY] : []),
+      ...displayedRowKeys
     ],
-    [activeTracks, canAnalyze, displayedRowKeys]
+    [activeTracks, canAnalyze, displayedRowKeys,state.showConsensus]
   );
   const navigationRowIndex = useMemo(
     () => new Map(navigationRowKeys.map((rowKey, index) => [rowKey, index])),
@@ -536,6 +551,17 @@ export function MsaViewerRoot({
     scrollToAlignmentPosition(anchorPosition);
   }, [viewSettings.cellGap, viewSettings.cellWidth, visiblePositions]);
 
+  useLayoutEffect(()=>{
+    const el=scrollRef.current;const anchor=viewportAnchorRef.current;
+    if(el && layoutSourceRef.current===sourceFingerprint) {
+      const row=displayedSequences.findIndex((item,index)=>rowKeyForSequence(item,index)===anchor.rowKey);
+      if(row>=0)el.scrollTop=row*viewSettings.rowHeight;
+      const col=anchor.position ? lowerBoundVisibleIndex(visiblePositions,anchor.position) : -1;
+      if(col>=0)el.scrollLeft=col*(viewSettings.cellWidth+viewSettings.cellGap);
+    }
+    layoutSourceRef.current=sourceFingerprint;
+  },[displayedSequences,visiblePositions,state.density,sourceFingerprint]);
+
   useLayoutEffect(() => {
     if (
       restoredViewportSourceRef.current === sourceFingerprint ||
@@ -543,8 +569,10 @@ export function MsaViewerRoot({
       !scrollRef.current
     ) return;
     restoredViewportSourceRef.current = sourceFingerprint;
-    scrollRef.current.scrollLeft = state.viewport.scrollLeft;
-    scrollRef.current.scrollTop = state.viewport.scrollTop;
+    const column = state.viewport.position ? visibleIndexOfPosition(visiblePositions,state.viewport.position) : -1;
+    const row = state.viewport.rowKey ? displayedSequences.findIndex((item,index)=>rowKeyForSequence(item,index)===state.viewport!.rowKey) : -1;
+    scrollRef.current.scrollLeft = column >= 0 ? column*(viewSettings.cellWidth+viewSettings.cellGap) : state.viewport.scrollLeft;
+    scrollRef.current.scrollTop = row >= 0 ? row*viewSettings.rowHeight : state.viewport.scrollTop;
   }, [sourceFingerprint, state.viewport, displayedSequences.length, visiblePositions.length]);
 
   useEffect(() => {
@@ -552,11 +580,17 @@ export function MsaViewerRoot({
     if (!element) return;
     let timeout = 0;
     const updateViewport = () => {
+      viewportAnchorRef.current={
+        position:positionAt(visiblePositions,Math.floor(element.scrollLeft/(viewSettings.cellWidth+viewSettings.cellGap))),
+        rowKey:displayedSequences[Math.min(displayedSequences.length-1,Math.floor(element.scrollTop/viewSettings.rowHeight))]?.rowKey
+      };
       window.clearTimeout(timeout);
       timeout = window.setTimeout(() => dispatch({
         type: "patch",
         patch: {
           viewport: {
+            position: positionAt(visiblePositions,Math.floor(element.scrollLeft/(viewSettings.cellWidth+viewSettings.cellGap))),
+            rowKey: displayedSequences[Math.min(displayedSequences.length-1,Math.floor(element.scrollTop/viewSettings.rowHeight))]?.rowKey,
             scrollLeft: element.scrollLeft,
             scrollTop: element.scrollTop,
             clientWidth: element.clientWidth,
@@ -576,7 +610,7 @@ export function MsaViewerRoot({
       resizeObserver?.disconnect();
       element.removeEventListener("scroll", updateViewport);
     };
-  }, [dispatch, displayedSequences.length, visiblePositions.length]);
+  }, [dispatch, displayedSequences, visiblePositions, viewSettings.rowHeight, viewSettings.cellWidth, viewSettings.cellGap]);
 
   function patchState(patch: Partial<ViewerState>) {
     dispatch({ type: "patch", patch });
@@ -597,7 +631,7 @@ export function MsaViewerRoot({
     if (rowKey) {
       const rowIndex = displayedRowIndex.get(rowKey) ?? -1;
       if (rowIndex >= 0) {
-        const headerHeight = (1 + activeTracks.length) * viewSettings.rowHeight;
+        const headerHeight = frozenHeight(activeTracks.length, canAnalyze && state.showLogo, canAnalyze && state.showConsensus, Boolean(analysis.motifColumnHitCounts));
         element.scrollTop = Math.max(
           0,
           headerHeight + rowIndex * viewSettings.rowHeight - element.clientHeight / 2
@@ -637,7 +671,7 @@ export function MsaViewerRoot({
     const selectedRowIndex = state.selection
       ? navigationRowIndex.get(state.selection.rowKey) ?? -1
       : -1;
-    const currentRowIndex = selectedRowIndex >= 0 ? selectedRowIndex : activeTracks.length;
+    const currentRowIndex = selectedRowIndex >= 0 ? selectedRowIndex : activeTracks.length+(canAnalyze&&state.showConsensus?1:0);
     const nextColumnIndex = Math.min(
       visiblePositions.length - 1,
       Math.max(0, currentColumnIndex + deltaColumn)
@@ -798,6 +832,8 @@ export function MsaViewerRoot({
       viewport,
       alignmentLength,
       activeTracks,
+      frozenHeaderHeight: frozenHeight(activeTracks.length,canAnalyze&&state.showLogo,canAnalyze&&state.showConsensus,Boolean(analysis.motifColumnHitCounts)),
+      rna: descriptor.alphabet === "rna",
       consensusMode: state.consensusMode,
       consensusSequence:
         state.consensusMode === "iupac"
@@ -1012,6 +1048,10 @@ export function MsaViewerRoot({
     });
   };
   const exitWorkspace = () => onReturn ? onReturn() : patchState({ immersive: false });
+  const minimapStore=renderColorScheme==='conservation'?analysis.columnStore:null;
+  const minimapReference=canAnalyze&&state.differenceMode?reference:null;
+  const minimapScope=minimapReference?analysis.scopeRowKeys:undefined;
+  const overviewInput = useMemo(()=>({rows:displayedSequences,positions:visiblePositions,scheme:renderColorScheme,store:minimapStore,reference:minimapReference,differenceMode:Boolean(minimapReference),scopeRowKeys:minimapScope}),[displayedSequences,visiblePositions,renderColorScheme,minimapStore,minimapReference,minimapScope]);
   const sourceBar = <MsaWorkspaceHeader title={sourceName ?? descriptor.sourceName ?? alignment.jobId ?? "MSA"}
     sequences={alignment.sequenceCount ?? alignment.sequences.length} columns={alignmentLength}
     immersive={immersive} onReturn={onReturn} onToggle={() => patchState({ immersive: !state.immersive })}
@@ -1063,6 +1103,9 @@ export function MsaViewerRoot({
     fullResultHref: context?.downloads?.fullResultHref,
   };
   const workspaceActions = <div className="msa-view-settings">
+    {canAnalyze && <label className="flex min-h-11 items-center gap-2"><input type="checkbox" checked={state.showLogo} onChange={e=>patchState({showLogo:e.target.checked})}/>{locale==='zh'?'碱基频率 Logo':'Base frequency logo'}</label>}
+    {canAnalyze && <label className="flex min-h-11 items-center gap-2"><input type="checkbox" checked={state.showConsensus} onChange={e=>patchState({showConsensus:e.target.checked})}/>{d.results.viewer.consensus}</label>}
+
     <details className="msa-view-group"><summary>{locale === "zh" ? "分析范围与工作区" : "Analysis scope and workspace"}</summary><div>
       {canAnalyze && <label className="block text-sm">{d.results.viewer.stageTwo.analysisScope}
         <select className="h-11 w-full rounded border px-2" aria-label={d.results.viewer.stageTwo.analysisScope} value={state.analysisScope}
@@ -1129,10 +1172,22 @@ export function MsaViewerRoot({
         selection={state.selection}
         sequences={displayedSequences}
         settings={viewSettings}
-        showConsensus={canAnalyze}
+        showConsensus={canAnalyze && state.showConsensus}
+        showLogo={canAnalyze && state.showLogo}
+        rna={descriptor.alphabet === "rna"}
+        motifColumnHitCounts={analysis.motifColumnHitCounts}
+        onMotifColumnSelect={position=>{
+          const rowIndex=analysis.motifColumnFirstRows?.[position-1]??-1;
+          const row=scopeSequences[rowIndex];if(!row)return;
+          const rowKey=rowKeyForSequence(row,rowIndex);handleSelect({rowKey,position});scrollToAlignmentPosition(position,rowKey);
+        }}
         stats={analysis.columnStore}
         visiblePositions={visiblePositions}
       />
+      {analysis.status === 'error' && <div role="alert" className="absolute right-3 top-3 z-40 flex items-center gap-3 rounded border border-amber-200 bg-white px-3 py-2 text-xs text-amber-900">
+        <span>{locale==='zh'?'统计暂不可用，仍可浏览矩阵':'Statistics unavailable. Matrix browsing is available.'}</span>
+        <button type="button" className="min-h-9 text-teal-800 underline" onClick={analysis.retry}>{locale==='zh'?'重试':'Retry'}</button>
+      </div>}
       {analysis.isCalculating ? (
         <div aria-live="polite" className="pointer-events-none absolute right-3 top-3 z-40 inline-flex items-center rounded-full border border-teal-200 bg-white/95 px-3 py-1.5 text-xs text-teal-800 shadow" role="status">
           <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
@@ -1159,7 +1214,7 @@ export function MsaViewerRoot({
         <span>{state.selection ? `${d.results.viewer.position} ${state.selection.position}` : locale === "zh" ? "未选择" : "No selection"}</span>
         {rangeText && <span>{locale === "zh" ? "选区" : "Range"}: {rangeText}</span>}
         <span>{canAnalyze ? `${d.results.viewer.stageTwo.analysisScopes[state.analysisScope]} · ${analysis.scopeRowCount}` : d.results.viewer.scienceV2.neutralTitle}</span>
-        <span>{displayedSequences.length}/{alignment.sequences.length} {locale === "zh" ? "行" : "rows"} · {visiblePositions.length}/{alignmentLength} {locale === "zh" ? "列" : "columns"}</span>
+        <span>{locale==='zh'?'行':'Rows'} {Math.min(displayedSequences.length,Math.floor((state.viewport?.scrollTop??0)/viewSettings.rowHeight)+1)}–{Math.min(displayedSequences.length,Math.ceil(((state.viewport?.scrollTop??0)+Math.max(0,(state.viewport?.clientHeight??0)-frozenHeight(activeTracks.length,canAnalyze&&state.showLogo,canAnalyze&&state.showConsensus,Boolean(analysis.motifColumnHitCounts))))/viewSettings.rowHeight))}/{displayedSequences.length} · {locale==='zh'?'列':'Columns'} {positionAt(visiblePositions,Math.floor((state.viewport?.scrollLeft??0)/(viewSettings.cellWidth+viewSettings.cellGap)))??1}–{positionAt(visiblePositions,Math.min(visiblePositions.length-1,Math.floor(((state.viewport?.scrollLeft??0)+Math.max(0,(state.viewport?.clientWidth??0)-viewSettings.labelWidth-24))/(viewSettings.cellWidth+viewSettings.cellGap))))??alignmentLength}/{alignmentLength}</span>
         {(state.search || state.hiddenRowKeys.size > 0 || state.columnFilter !== "all") && <button type="button" className="text-teal-800 underline"
           onClick={() => { dispatch({ type: "showAllRows" }); patchState({search: "", columnFilter: "all"}); }}>{locale === "zh" ? "清除筛选" : "Clear filters"}</button>}
         {state.selectedRowKeys.size > 0 && <span>{state.selectedRowKeys.size} {locale === "zh" ? "行已选" : "rows selected"}</span>}
@@ -1172,6 +1227,7 @@ export function MsaViewerRoot({
         {workspaceMessage && <span role="status">{workspaceMessage}</span>}
       </div>
       <div className="flex shrink-0 items-center gap-2">
+        {canAnalyze && (state.differenceMode && reference ? <DifferenceLegend compact/> : <span className="msa-inline-legend" aria-label={d.results.viewer.legend}>{legendItems(renderColorScheme,d.results.viewer.legendLabels).map(item=><span key={item.label} title={item.title}><i className={item.className}/>{item.label==='T / U' ? (descriptor.alphabet==='rna'?'U':'T') : item.label}</span>)}</span>)}
         {state.lastHiddenRowKeys.length > 0 && <button type="button" onClick={() => dispatch({ type:"undoLastHide" })}>{d.results.viewer.stageTwo.undoHide}</button>}
         {state.selection && <button type="button" onClick={() => dispatch({ type:"clearSelection" })}>{d.results.viewer.clearSelection}</button>}
       </div>
@@ -1218,16 +1274,12 @@ export function MsaViewerRoot({
         dockWidth={state.inspectorWidth}
         matrix={matrix}
         matrixLabel={d.results.viewer.matrixNavigation}
-        navigator={state.minimapCollapsed ? undefined : (
-          <MsaOverviewNavigator
-            alignmentLength={alignmentLength}
-            cellPitch={viewSettings.cellWidth + viewSettings.cellGap}
-            labelOffset={viewSettings.labelWidth + 24}
-            overviewBins={analysis.overviewBins}
-            positionView={visiblePositions}
-            scrollRef={scrollRef}
-          />
-        )}
+        navigator={displayedSequences.length > 0 && visiblePositions.length > 0 ? <MsaHorizontalOverview
+          input={overviewInput} scrollRef={scrollRef} pitch={viewSettings.cellWidth + viewSettings.cellGap}
+          labelWidth={viewSettings.labelWidth}/> : undefined}
+        overview={state.minimapCollapsed || panelOpen ? undefined : <MsaGlobalOverview input={overviewInput} scrollRef={scrollRef}
+          pitch={viewSettings.cellWidth+viewSettings.cellGap} rowHeight={viewSettings.rowHeight}
+          headerHeight={frozenHeight(activeTracks.length,canAnalyze&&state.showLogo,canAnalyze&&state.showConsensus,Boolean(analysis.motifColumnHitCounts))} labelWidth={viewSettings.labelWidth}/>}
         onDockClose={closePanel}
         onDockWidthChange={(inspectorWidth) => patchState({ inspectorWidth })}
         statusBar={statusBar}
@@ -1249,16 +1301,6 @@ export function MsaViewerRoot({
         title={state.settingsOpen ? (locale === "zh" ? "视图" : "View") : (locale === "zh" ? "分析" : "Analyze")} variant="bottom-sheet">
         {dockContent}
       </OverlayDialog>
-
-      {analysis.status === "error" ? (
-        <div className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800" role="alert">
-          {analysis.errorCode === "RAW_UNEQUAL_ALIGNMENT"
-            ? d.results.viewer.scienceV2.neutralReasons.rawUnequal
-            : analysis.errorCode === "ANALYSIS_DISABLED_NEUTRAL"
-              ? d.results.viewer.scienceV2.neutralDescription
-              : d.results.viewer.stageTwo.analysisFailed}
-        </div>
-      ) : null}
 
       <ExportDialog
         error={imageExport.error}

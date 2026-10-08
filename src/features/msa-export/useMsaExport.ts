@@ -59,6 +59,7 @@ export function createDefaultExportOptions(): SupportedMsaExportOptions {
     includeSequenceNames: true,
     includeCoordinates: true,
     includeConsensus: true,
+    includeLogo: true,
     includeConservation: true,
     includeLegend: true,
     includeAnnotations: true,
@@ -95,6 +96,7 @@ export function exportPresetPatch(
       includeSequenceNames: true,
       includeCoordinates: true,
       includeConsensus: true,
+    includeLogo: true,
       includeConservation: true,
       includeLegend: true,
       includeAnnotations: true,
@@ -114,6 +116,7 @@ export function exportPresetPatch(
     includeSequenceNames: true,
     includeCoordinates: true,
     includeConsensus: true,
+    includeLogo: true,
     includeConservation: true,
     includeLegend: true,
     includeAnnotations: true,
@@ -160,6 +163,7 @@ export function useMsaExport(
       : {
           ...options,
           includeConsensus: false,
+          includeLogo: false,
           includeConservation: false,
           includeLegend: false
         },

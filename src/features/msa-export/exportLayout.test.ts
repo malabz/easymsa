@@ -79,6 +79,19 @@ function state(overrides: Partial<MsaExportViewerState> = {}): MsaExportViewerSt
 }
 
 describe("calculateExportLayout", () => {
+  it("clips even a small alignment to the scrolled viewport", () => {
+    const layout=calculateExportLayout(alignment,state({
+      viewport:{scrollLeft:44,scrollTop:36,clientWidth:250,clientHeight:180},
+      frozenHeaderHeight:152
+    }),{...baseOptions,region:"viewport"});
+    expect(layout.blocks[0].columns[0].position).toBe(3);
+    expect(layout.rows.map(row=>row.id)).toEqual(['seq2']);
+    const withoutNames=calculateExportLayout(alignment,state({
+      viewport:{scrollLeft:44,scrollTop:36,clientWidth:250,clientHeight:180},
+      frozenHeaderHeight:152
+    }),{...baseOptions,region:"viewport",includeSequenceNames:false});
+    expect(withoutNames.columns).toEqual(layout.columns);
+  });
   it("rejects oversized geometry without reading scientific column data", () => {
     const guardedState = state({
       alignmentLength: 10_000,
@@ -199,8 +212,8 @@ describe("calculateExportLayout", () => {
     });
 
     expect(layout.canonicalRegion).toBe("viewport");
-    expect(layout.rows.map((row) => row.id)).toEqual(["seq1", "seq2"]);
-    expect(layout.columns.map((column) => column.position)).toEqual([3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(layout.rows.map((row) => row.id)).toEqual(["seq2"]);
+    expect(layout.columns.map((column) => column.position)).toEqual([12, 13, 14, 15, 16, 17]);
   });
 
   it("exports filtered rows and columns for filteredView", () => {

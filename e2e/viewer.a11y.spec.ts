@@ -27,7 +27,7 @@ test.beforeEach(async ({ page }) => {
   await prepareViewerPage(page);
 });
 
-test("axe covers input, detail, Canvas, settings, Inspector, QC, export, and immersive states", async ({ page }) => {
+test("axe covers input, detail, settings, Inspector and QC", async ({ page }) => {
   test.setTimeout(180_000);
   await page.goto("./#/viewer");
   await expectAxeClean(page, "viewer-input");
@@ -47,16 +47,25 @@ test("axe covers input, detail, Canvas, settings, Inspector, QC, export, and imm
   await openQc(page);
   await expectAxeClean(page, "qc");
   await page.getByRole("button", { name: "Close panel" }).click();
+});
 
+test("axe covers normal and over-limit export states", async ({ page }) => {
+  test.setTimeout(120_000);
+  await loadNamedFixture(page, "layout-visual");
   await openExport(page);
   await expectAxeClean(page, "export-normal");
   await page.getByRole("button", { name: "PNG", exact: true }).click();
   await page.getByRole("button", { name: "Original full alignment", exact: true }).click();
+  await page.getByRole("button", { name: "Keep one line", exact: true }).click();
   await page.getByLabel("PNG scale", { exact: true }).fill("4");
   await expect(page.getByRole("alert")).toContainText(/limit|above|exceed/i);
   await expectAxeClean(page, "export-over-limit");
   await page.getByRole("dialog").locator("footer").getByRole("button", { name: "Cancel", exact: true }).click();
+});
 
+test("axe covers immersive and Canvas browsing", async ({ page }) => {
+  test.setTimeout(120_000);
+  await loadNamedFixture(page, "layout-visual");
   await page.getByRole("button", { name: "Full screen" }).click();
   await expectAxeClean(page, "immersive");
   await page.getByRole("button", { name: "Exit full screen" }).click();

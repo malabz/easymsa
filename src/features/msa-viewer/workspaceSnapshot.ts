@@ -1,7 +1,7 @@
 import { reportStorageFailure } from "../../lib/storage";
 import { z } from "zod";
 
-export const WORKSPACE_SCHEMA = "easymsa-viewer-workspace/v1" as const;
+export const WORKSPACE_SCHEMA = "easymsa-viewer-workspace/v2" as const;
 export const ANALYSIS_SEMANTICS = "nucleotide-v2" as const;
 export const WORKSPACE_STORAGE_KEY = "easymsa.viewer.workspaces.v1";
 export const MAX_STORED_WORKSPACES = 20;
@@ -22,6 +22,8 @@ const selectionSchema = z.object({
 }).strict();
 
 const viewportSchema = z.object({
+  rowKey: z.string().optional(),
+  position: z.number().int().positive().optional(),
   scrollLeft: z.number().nonnegative(),
   scrollTop: z.number().nonnegative(),
   clientWidth: z.number().nonnegative(),
@@ -86,7 +88,7 @@ export const DEFAULT_QC_THRESHOLDS: QcThresholds = {
   }
 };
 
-export const workspaceSnapshotSchema = z.object({
+const workspaceV2Schema = z.object({
   schema: z.literal(WORKSPACE_SCHEMA),
   analysisSemantics: z.literal(ANALYSIS_SEMANTICS),
   source: z.object({
@@ -101,6 +103,9 @@ export const workspaceSnapshotSchema = z.object({
     consensusMode: z.enum(["majority", "iupac"]),
     coordinateMode: z.enum(["alignment", "reference"]),
     density: z.enum(["comfortable", "compact"]),
+    conservationScale: z.enum(["high", "full"]).optional(),
+    showLogo: z.boolean().default(true),
+    showConsensus: z.boolean().default(true),
     differenceMode: z.boolean(),
     columnFilter: z.enum(["all", "variable", "conserved", "lowGap", "custom"]),
     sortMode: z.enum(["original", "name", "length", "gap", "ambiguity", "gc", "identity"]),
@@ -129,10 +134,23 @@ export const workspaceSnapshotSchema = z.object({
   updatedAt: z.string().datetime()
 }).strict();
 
-export type MsaWorkspaceSnapshotV1 = z.infer<typeof workspaceSnapshotSchema>;
+export const workspaceSnapshotSchema = z.preprocess((value) => {
+  if (!value || typeof value !== "object") return value;
+  const legacy = value as { schema?: string; view?: Record<string, unknown> };
+  if (legacy.schema !== "easymsa-viewer-workspace/v1" || !legacy.view) return value;
+  const view=legacy.view;const viewport=view.viewport as {scrollLeft:number;scrollTop:number}|null;
+  const zoom=Number(view.zoomLevel)||1;const oldCompact=view.density==='compact';
+  const converted=viewport && view.viewMode!=='overview' ? {...viewport,
+    scrollLeft:viewport.scrollLeft/(Math.round((oldCompact?14:20)*zoom)+2)*Math.round(14*zoom),
+    scrollTop:viewport.scrollTop/Math.round((oldCompact?20:24)*zoom+(oldCompact?10:14))*Math.round(20*zoom)
+  } : viewport;
+  return { ...legacy, schema: WORKSPACE_SCHEMA, view: { ...view, viewport:converted, density: "compact", showLogo: true, showConsensus: true } };
+}, workspaceV2Schema);
+
+export type MsaWorkspaceSnapshotV2 = z.infer<typeof workspaceSnapshotSchema>;
 
 type StoredWorkspaceEntry = {
-  snapshot: MsaWorkspaceSnapshotV1;
+  snapshot: MsaWorkspaceSnapshotV2;
   touchedAt: string;
 };
 
@@ -141,7 +159,7 @@ type WorkspaceStore = {
 };
 
 export type WorkspaceImportResult =
-  | { ok: true; snapshot: MsaWorkspaceSnapshotV1 }
+  | { ok: true; snapshot: MsaWorkspaceSnapshotV2 }
   | { ok: false; code: "INVALID_SCHEMA" | "SOURCE_MISMATCH"; message: string };
 
 export type LegacyViewerPreferences = {
@@ -284,7 +302,7 @@ function trimStore(store: WorkspaceStore) {
 
 export function saveWorkspaceSnapshot(
   storage: Storage,
-  snapshot: MsaWorkspaceSnapshotV1,
+  snapshot: MsaWorkspaceSnapshotV2,
   storageKey = snapshot.source.fingerprint
 ) {
   const valid = workspaceSnapshotSchema.parse(snapshot);
@@ -305,7 +323,7 @@ export function saveWorkspaceSnapshot(
 export function loadWorkspaceSnapshot(
   storage: Storage,
   fingerprint: string
-): MsaWorkspaceSnapshotV1 | null {
+): MsaWorkspaceSnapshotV2 | null {
   return readStore(storage).entries[fingerprint]?.snapshot ?? null;
 }
 
@@ -320,7 +338,7 @@ export function claimLegacyWorkspaceSnapshot(storage: Storage, fingerprint: stri
   return entry.snapshot;
 }
 
-export function exportWorkspaceSnapshot(snapshot: MsaWorkspaceSnapshotV1) {
+export function exportWorkspaceSnapshot(snapshot: MsaWorkspaceSnapshotV2) {
   return `${JSON.stringify(workspaceSnapshotSchema.parse(snapshot), null, 2)}\n`;
 }
 

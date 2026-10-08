@@ -19,7 +19,7 @@ import type {
   ColumnPositionView,
   ColumnRange,
   ColumnStats,
-  ColumnStatsStoreV1,
+  ColumnStatsStoreV2,
   MsaViewSettings
 } from "./types";
 
@@ -112,7 +112,7 @@ export function MsaCanvasMatrix({
   visiblePositions
 }: {
   colorScheme: MSAColorScheme;
-  columns: ColumnStatsStoreV1 | ColumnStats[] | null;
+  columns: ColumnStatsStoreV2 | ColumnStats[] | null;
   differenceMode: boolean;
   differenceRowKeys?: ReadonlySet<string>;
   headerHeight: number;
@@ -173,7 +173,7 @@ export function MsaCanvasMatrix({
       context.fillRect(0, 0, width, height);
 
       const pitch = settings.cellWidth + settings.cellGap;
-      const matrixScrollTop = Math.max(0, scrollElement.scrollTop - headerHeight);
+      const matrixScrollTop = Math.max(0, scrollElement.scrollTop);
       const firstColumn = Math.max(0, Math.floor((scrollElement.scrollLeft - 12) / pitch));
       const lastColumn = Math.min(
         positionView.length - 1,
@@ -309,7 +309,7 @@ export function MsaCanvasMatrix({
       (scrollElement.scrollLeft + clientX - bounds.left - 12) / pitch
     );
     const rowIndex = Math.floor(
-      (Math.max(0, scrollElement.scrollTop - headerHeight) + clientY - bounds.top) /
+      (Math.max(0, scrollElement.scrollTop) + clientY - bounds.top) /
       settings.rowHeight
     );
     const position = positionAt(positionView, columnIndex);

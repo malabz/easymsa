@@ -15,12 +15,12 @@ import {
 import type {
   AlignmentOverviewStats,
   AnalysisScope,
-  ColumnStatsStoreV1,
+  ColumnStatsStoreV2,
   RowQcStats
 } from "./types";
 import { COLUMN_STATS_FLAGS, COLUMN_STATS_STORE_VERSION } from "./types";
 
-export const MSA_ANALYSIS_PROTOCOL_VERSION = 3 as const;
+export const MSA_ANALYSIS_PROTOCOL_VERSION = 4 as const;
 export const MSA_ANALYSIS_SEMANTICS_VERSION = "nucleotide-v2" as const;
 
 export type MsaAnalysisWorkerErrorCode =
@@ -69,13 +69,13 @@ export type RowQcStatsV2 = RowQcStats & {
   reference: RowReferenceQc;
 };
 
-export type MsaAnalysisPayloadV3 = {
+export type MsaAnalysisPayloadV4 = {
   semanticsVersion: typeof MSA_ANALYSIS_SEMANTICS_VERSION;
   columnStoreVersion: typeof COLUMN_STATS_STORE_VERSION;
   sourceFingerprint: string;
   scope: AnalysisScope;
   scopeRowKeys: string[];
-  columnStore: ColumnStatsStoreV1;
+  columnStore: ColumnStatsStoreV2;
   overview: AlignmentOverviewStats;
   overviewBins: AnalysisOverviewBin[];
   rowQc: RowQcStatsV2[];
@@ -122,7 +122,7 @@ export type MsaAnalysisWorkerResponse =
       type: "analysisReady";
       generation: number;
       requestId: number;
-      result: MsaAnalysisPayloadV3;
+      result: MsaAnalysisPayloadV4;
     }
   | {
       protocolVersion: typeof MSA_ANALYSIS_PROTOCOL_VERSION;
@@ -149,16 +149,16 @@ export class MsaAnalysisWorkerError extends Error {
   }
 }
 
-export function assertMsaAnalysisPayloadV3(
+export function assertMsaAnalysisPayloadV4(
   value: unknown
-): asserts value is MsaAnalysisPayloadV3 {
+): asserts value is MsaAnalysisPayloadV4 {
   if (!value || typeof value !== "object") {
     throw new MsaAnalysisWorkerError(
       "PROTOCOL_VERSION_MISMATCH",
       "MSA analysis payload must be an object."
     );
   }
-  const payload = value as Partial<MsaAnalysisPayloadV3>;
+  const payload = value as Partial<MsaAnalysisPayloadV4>;
   if (
     payload.semanticsVersion !== MSA_ANALYSIS_SEMANTICS_VERSION ||
     payload.columnStoreVersion !== COLUMN_STATS_STORE_VERSION ||
@@ -253,7 +253,7 @@ function assertAnalyzableInput(
 }
 
 function buildOverviewBins(
-  store: ColumnStatsStoreV1,
+  store: ColumnStatsStoreV2,
   requestedBinCount = 512
 ): AnalysisOverviewBin[] {
   if (store.length === 0) {
@@ -322,7 +322,7 @@ function addComparisonStats(
   comparisonTarget: RowReferenceQc["comparisonTarget"],
   comparisonRowKey: string | null,
   isComparisonTarget: boolean,
-  informativeStore?: ColumnStatsStoreV1
+  informativeStore?: ColumnStatsStoreV2
 ): RowReferenceQc {
   let validComparisonCount = 0;
   let matchCount = 0;
@@ -398,7 +398,7 @@ function buildRowQc(
   alignmentLength: number,
   alphabet: SequenceAlphabet | undefined,
   majorityConsensus: string,
-  columnStore: ColumnStatsStoreV1,
+  columnStore: ColumnStatsStoreV2,
   referenceRowKey?: string | null,
   referenceSequence?: MSASequence | null
 ): RowQcStatsV2[] {
@@ -458,7 +458,7 @@ function buildRowQc(
   });
 }
 
-export function calculateMsaAnalysisPayloadV3({
+export function calculateMsaAnalysisPayloadV4({
   sourceFingerprint,
   scope,
   scopeRowKeys,
@@ -468,7 +468,7 @@ export function calculateMsaAnalysisPayloadV3({
   referenceRowKey,
   referenceSequence,
   overviewBinCount
-}: Extract<MsaAnalysisWorkerRequest, { type: "analyze" }>): MsaAnalysisPayloadV3 {
+}: Extract<MsaAnalysisWorkerRequest, { type: "analyze" }>): MsaAnalysisPayloadV4 {
   assertAnalyzableInput(sequences, alignmentLength, alphabet);
   if (scope !== "all" && sequences.length === 0) {
     throw new MsaAnalysisWorkerError(
@@ -479,7 +479,7 @@ export function calculateMsaAnalysisPayloadV3({
   const analysis = calculateMsaAnalysisStore(sequences, alignmentLength, { alphabet });
   const majority = analysis.columnStore.majorityConsensus;
   const iupac = analysis.columnStore.iupacConsensus;
-  const payload: MsaAnalysisPayloadV3 = {
+  const payload: MsaAnalysisPayloadV4 = {
     semanticsVersion: MSA_ANALYSIS_SEMANTICS_VERSION,
     columnStoreVersion: COLUMN_STATS_STORE_VERSION,
     sourceFingerprint,
@@ -499,11 +499,11 @@ export function calculateMsaAnalysisPayloadV3({
     ),
     consensus: { majority, iupac }
   };
-  assertMsaAnalysisPayloadV3(payload);
+  assertMsaAnalysisPayloadV4(payload);
   return payload;
 }
 
-export function estimateMsaAnalysisPayloadBytes(result: MsaAnalysisPayloadV3) {
+export function estimateMsaAnalysisPayloadBytes(result: MsaAnalysisPayloadV4) {
   return columnStatsStoreByteLength(result.columnStore) +
     result.rowQc.length * 384 +
     result.overviewBins.length * 96 +

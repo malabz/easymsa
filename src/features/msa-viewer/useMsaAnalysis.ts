@@ -18,13 +18,13 @@ import {
   MSA_ANALYSIS_PROTOCOL_VERSION,
   MsaAnalysisWorkerError,
   analysisWorkerError,
-  assertMsaAnalysisPayloadV3,
-  calculateMsaAnalysisPayloadV3,
+  assertMsaAnalysisPayloadV4,
+  calculateMsaAnalysisPayloadV4,
   estimateMsaAnalysisPayloadBytes
 } from "./workerProtocol";
 import { markMsaPerformance, MSA_PERFORMANCE_MARKS } from "./performanceMarks";
 import type {
-  MsaAnalysisPayloadV3,
+  MsaAnalysisPayloadV4,
   MsaAnalysisWorkerErrorCode,
   MsaAnalysisWorkerRequest,
   MsaAnalysisWorkerResponse
@@ -35,7 +35,7 @@ const MAX_ANALYSIS_CACHE_ENTRIES = 6;
 const MAX_ANALYSIS_CACHE_BYTES = 48 * 1024 * 1024;
 const analysisCache = new Map<
   string,
-  { result: MsaAnalysisPayloadV3; estimatedBytes: number }
+  { result: MsaAnalysisPayloadV4; estimatedBytes: number }
 >();
 let analysisCacheBytes = 0;
 let nextGeneration = 1;
@@ -106,7 +106,7 @@ function cacheGet(key: string) {
   return entry.result;
 }
 
-function cacheSet(key: string, result: MsaAnalysisPayloadV3) {
+function cacheSet(key: string, result: MsaAnalysisPayloadV4) {
   const prior = analysisCache.get(key);
   if (prior) {
     analysisCacheBytes -= prior.estimatedBytes;
@@ -264,7 +264,7 @@ export function useMsaAnalysis(
     overviewBinCount
   });
   const initial = disabled ? null : cachePeek(cacheKey);
-  const [result, setResult] = useState<MsaAnalysisPayloadV3 | null>(initial);
+  const [result, setResult] = useState<MsaAnalysisPayloadV4 | null>(initial);
   const [resultCacheKey, setResultCacheKey] = useState<string | null>(
     initial ? cacheKey : null
   );
@@ -280,6 +280,7 @@ export function useMsaAnalysis(
   const [analysisErrorCode, setAnalysisErrorCode] =
     useState<MsaAnalysisWorkerErrorCode | null>(disabled?.code ?? null);
   const [progress, setProgress] = useState(initial ? 1 : 0);
+  const [retryGeneration, setRetryGeneration] = useState(0);
   const workerRef = useRef<Worker | null>(null);
   const generationRef = useRef(0);
   const requestRef = useRef(0);
@@ -339,7 +340,7 @@ export function useMsaAnalysis(
       overviewBinCount
     };
 
-    const complete = (payload: MsaAnalysisPayloadV3) => {
+    const complete = (payload: MsaAnalysisPayloadV4) => {
       if (cancelled) {
         return;
       }
@@ -376,7 +377,7 @@ export function useMsaAnalysis(
     };
     const calculateWithoutWorker = () => {
       try {
-        complete(calculateMsaAnalysisPayloadV3(request));
+        complete(calculateMsaAnalysisPayloadV4(request));
       } catch (analysisError) {
         fail(analysisError);
       }
@@ -418,7 +419,7 @@ export function useMsaAnalysis(
           } else if (response.type === "analysisReady") {
             markMsaPerformance(MSA_PERFORMANCE_MARKS.analysisWorkerDone);
             try {
-              assertMsaAnalysisPayloadV3(response.result);
+              assertMsaAnalysisPayloadV4(response.result);
               complete(response.result);
             } catch (payloadError) {
               fail(payloadError);
@@ -480,6 +481,7 @@ export function useMsaAnalysis(
     disabled?.code,
     disabled?.message,
     overviewBinCount,
+    retryGeneration,
     referenceRowKey,
     referenceSequence,
     scope,
@@ -548,6 +550,7 @@ export function useMsaAnalysis(
           ? "error" as const
           : "ready" as const,
     progress: activeProgress,
+    retry: () => setRetryGeneration(value=>value+1),
     error: combinedError,
     errorCode: activeAnalysisErrorCode ?? motif.errorCode,
     analysisError: activeAnalysisError,
@@ -555,6 +558,8 @@ export function useMsaAnalysis(
     isCalculating: effectiveIsCalculating,
     isSearchingMotif: motif.isSearching,
     motifMatches: motif.matches,
+    motifColumnHitCounts: motif.columnHitCounts,
+    motifColumnFirstRows: motif.columnFirstRows,
     motifMatchCount: motif.totalCount,
     motifRowTotals,
     motifRowTotalList: motif.rowTotals,

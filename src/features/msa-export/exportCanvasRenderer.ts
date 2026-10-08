@@ -1,3 +1,4 @@
+import { conservationBar, conservationScaleRange } from "../msa-viewer/conservationDisplay";
 import { legendColorStyles, msaCellColorStyle } from "./exportColors";
 import { classifyDifference } from "../msa-viewer/analysis";
 import { differenceColorStyle } from "../msa-viewer/differenceColors";
@@ -183,7 +184,7 @@ function trackValue(column: MsaExportColumn, track: MsaExportTrackId) {
   if (track === "entropy") {
     return stats?.entropy ?? 0;
   }
-  return stats?.conservation ?? 0;
+  return stats?.conservation ?? null;
 }
 
 const TRACK_COLORS: Record<MsaExportTrackId, string> = {
@@ -201,17 +202,27 @@ function drawTrackRow(
   track: MsaExportTrackId,
   y: number
 ) {
-  drawLabel(ctx, layout, labels.tracks[track], block.x, y, layout.rowHeight, "#ffffff");
+  drawLabel(ctx, layout, track === "conservation" ? "" : labels.tracks[track], block.x, y, layout.rowHeight, "#ffffff");
+  if (track === "conservation" && layout.labelWidth > 0) {
+    drawText(ctx, labels.tracks[track], block.x + 10, y + 7,
+      { fontSize: 10, color: MUTED_TEXT_COLOR });
+    drawText(ctx, conservationScaleRange(layout.conservationScale ?? "full").label,
+      block.x + 10, y + layout.rowHeight - 4,
+      { fontSize: 8, color: MUTED_TEXT_COLOR });
+  }
   block.columns.forEach((column, index) => {
     const x = block.cellAreaX + index * layout.cellPitch;
     const value = trackValue(column, track);
-    const barHeight = Math.max(2, Math.round(layout.cellHeight * value));
-    const opacity = 0.18 + value * 0.72;
+    const bar = track === "conservation"
+      ? conservationBar(value, layout.conservationScale ?? "full", layout.cellHeight)
+      : { height: Math.max(2, Math.round(layout.cellHeight * (value ?? 0))), belowRange: false, opacity: 0.18 + (value ?? 0) * 0.72 };
+    const barHeight = bar.height;
+    const opacity = bar.opacity;
 
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(x, y, layout.cellWidth, layout.cellHeight);
     ctx.globalAlpha = opacity;
-    ctx.fillStyle = TRACK_COLORS[track];
+    ctx.fillStyle = bar.belowRange ? "#d97706" : TRACK_COLORS[track];
     ctx.fillRect(
       x,
       y + layout.cellHeight - barHeight,
@@ -306,6 +317,18 @@ function drawBlock(
     }
   }
 
+  if (layout.options.includeLogo) {
+    drawLabel(ctx, layout, "Logo · 0–100%", block.x, y, 48, "#ffffff");
+    block.columns.forEach((column,index)=>{
+      let bottom=y+46;
+      for(const letter of column.logo ?? []) {
+        const height=44*letter.frequency;bottom-=height;
+        ctx.save();ctx.translate(block.cellAreaX+index*layout.cellPitch,bottom);ctx.scale(layout.cellWidth/20,height/24);
+        ctx.beginPath();ctx.rect(0,0,20,24);ctx.clip();ctx.fillStyle=letter.color;ctx.font="700 30px Arial";ctx.textAlign="center";ctx.textBaseline="alphabetic";ctx.fillText(letter.base,10,23);ctx.restore();
+      }
+    });
+    y+=48;
+  }
   for (const row of layout.rows) {
     const isReference = row.rowKey && layout.referenceSequence?.rowKey
       ? row.rowKey === layout.referenceSequence.rowKey

@@ -10,6 +10,24 @@ test.beforeEach(async ({ page }) => {
   await prepareViewerPage(page);
 });
 
+test("horizontal overview provides a 44-pixel touch target and keeps vertical position", async ({page}) => {
+  await loadNamedFixture(page,'overview-touch');
+  await page.getByRole('button',{name:'Full screen',exact:true}).tap();
+  const slider=page.getByRole('slider',{name:'Horizontal overview',exact:true});
+  const matrix=page.locator('[data-msa-scroll-viewport]');
+  await expect(slider.locator('canvas')).toBeVisible();
+  const box=await locatorBox(slider);
+  expect(box.height).toBeGreaterThanOrEqual(43.5);
+  const top=await matrix.evaluate(el=>el.scrollTop);
+  await slider.tap({position:{x:box.width*.75,y:box.height/2}});
+  await expect.poll(()=>matrix.evaluate(el=>el.scrollLeft)).toBeGreaterThan(1000);
+  expect(await matrix.evaluate(el=>el.scrollTop)).toBe(top);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await slider.press('End');await expect(slider).toHaveAttribute('aria-valuetext',/1,024$/);
+  await slider.press('Home');await expect.poll(()=>matrix.evaluate(el=>el.scrollLeft)).toBe(0);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width);
+});
+
 test("trusted taps select DOM and Canvas cells, operate the minimap, and open a trapped bottom sheet", async ({ page }, testInfo) => {
   await loadNamedFixture(page, "detail-touch");
   await page.getByRole("button", { name: "Full screen", exact: true }).click();
@@ -91,7 +109,10 @@ test("trusted taps select DOM and Canvas cells, operate the minimap, and open a 
   await expect(status).not.toHaveAttribute("data-msa-selected-position", "");
 
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  const navigator = page.getByRole("slider", { name: /Alignment overview navigator/ });
+  await settingsButton.tap();
+  await page.getByLabel("Show overview navigator").check();
+  await page.getByRole("button",{name:"Close panel"}).tap();
+  const navigator = page.getByRole("group", { name: /Overview navigation/ });
   const navigatorBox = await locatorBox(navigator);
   await navigator.tap({
     position: {

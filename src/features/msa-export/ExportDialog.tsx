@@ -188,7 +188,7 @@ export function ExportDialog({
   progress = 0,
   scientificLayersEnabled = true
 }: ExportDialogProps) {
-  const { dictionary: d } = useLanguage();
+  const { dictionary: d, locale } = useLanguage();
   const t = d.results.viewer.imageExport;
 
   const selectionDisabled = !hasSelection;
@@ -453,6 +453,11 @@ export function ExportDialog({
                             checked={options.includeConservation}
                             label={t.conservation}
                             onChange={(checked) => onUpdate({ includeConservation: checked })}
+                          />
+                          <CheckboxRow
+                            checked={Boolean(options.includeLogo)}
+                            label={locale === "zh" ? "碱基频率 Logo" : "Base frequency logo"}
+                            onChange={(checked) => onUpdate({ includeLogo: checked })}
                           />
                           <CheckboxRow
                             checked={options.includeConsensus}

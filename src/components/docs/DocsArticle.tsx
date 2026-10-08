@@ -72,7 +72,17 @@ function DocsCodeBlock({ block }: { block: Extract<DocsBlock, { type: "code" }> 
 }
 
 function DocsBlockView({ block }: { block: DocsBlock }) {
-  if(block.type === "links") return <div className="flex flex-wrap gap-4">{block.items.map(item=><Link className="text-sm font-medium text-teal-800 underline" key={item.to} to={item.to}>{item.label}</Link>)}</div>;
+  if (block.type === "links") {
+    return (
+      <div className="flex flex-wrap gap-4">
+        {block.items.map((item) => (
+          <Link className="text-sm font-medium text-teal-800 underline" key={item.to} to={item.to}>
+            {item.label}
+          </Link>
+        ))}
+      </div>
+    );
+  }
   if (block.type === "paragraph") {
     return <p className="text-sm leading-7 text-slate-600">{block.text}</p>;
   }
@@ -92,11 +102,11 @@ function DocsBlockView({ block }: { block: DocsBlock }) {
 
   if (block.type === "steps") {
     return (
-      <ol className="grid gap-3 sm:grid-cols-2">
+      <ol className="space-y-3">
         {block.items.map((item, index) => (
-          <li className="rounded-xl border border-slate-200 bg-slate-50/70 p-4" key={item.title}>
+          <li className="py-1" key={item.title}>
             <div className="flex items-start gap-3">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-teal-700 text-xs font-semibold text-white">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-teal-100 text-xs font-semibold text-teal-800">
                 {index + 1}
               </span>
               <div>
@@ -160,7 +170,7 @@ function DocsBlockView({ block }: { block: DocsBlock }) {
 
 function ArticleBlocks({ blocks }: { blocks: DocsBlock[] }) {
   return (
-    <div className="mt-4 space-y-5">
+    <div className="mt-3 space-y-4">
       {blocks.map((block, index) => (
         <DocsBlockView block={block} key={`${block.type}:${index}`} />
       ))}
@@ -168,37 +178,30 @@ function ArticleBlocks({ blocks }: { blocks: DocsBlock[] }) {
   );
 }
 
-export function DocsArticle({ article }: { article: DocsArticleType }) {
+export function DocsArticle({ article, defaultOpen = false }: { article: DocsArticleType; defaultOpen?: boolean }) {
   const articleId = `docs-article-${article.id}`;
-
-  if (article.collapsible) {
-    return (
-      <details
-        className="group scroll-mt-24 rounded-xl border border-slate-200 bg-white open:border-teal-200 open:shadow-sm"
-        data-docs-faq="true"
-        id={articleId}
-      >
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-left">
-          <span>
-            <span aria-level={3} className="block text-base font-semibold text-slate-950" role="heading">
-              {article.title}
-            </span>
-            <span className="mt-1 block text-sm leading-6 text-slate-600">{article.summary}</span>
-          </span>
-          <ChevronDown aria-hidden="true" className="h-5 w-5 shrink-0 text-slate-500 transition group-open:rotate-180" />
-        </summary>
-        <div className="border-t border-slate-200 px-5 pb-5">
-          <ArticleBlocks blocks={article.blocks} />
-        </div>
-      </details>
-    );
-  }
+  const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <article className="scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/30 sm:p-6" id={articleId}>
-      <h3 className="text-lg font-semibold text-slate-950">{article.title}</h3>
-      <p className="mt-1 text-sm leading-6 text-slate-600">{article.summary}</p>
-      <ArticleBlocks blocks={article.blocks} />
-    </article>
+    <details
+      className="group scroll-mt-24 py-1"
+      data-docs-faq={article.collapsible ? "true" : undefined}
+      open={open}
+      onToggle={(event) => setOpen(event.currentTarget.open)}
+      id={articleId}
+    >
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600">
+        <span>
+          <span aria-level={3} className="block text-base font-semibold text-slate-950 group-open:text-teal-800" role="heading">
+            {article.title}
+          </span>
+          <span className="mt-0.5 block text-sm leading-6 text-slate-600">{article.summary}</span>
+        </span>
+        <ChevronDown aria-hidden="true" className="h-5 w-5 shrink-0 text-slate-500 transition group-open:rotate-180" />
+      </summary>
+      <div className="max-w-3xl border-t border-slate-100 pb-5 pt-1">
+        <ArticleBlocks blocks={article.blocks} />
+      </div>
+    </details>
   );
 }

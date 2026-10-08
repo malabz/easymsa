@@ -71,7 +71,7 @@ export function fixtureSha256(fasta: string) {
 
 export async function prepareViewerPage(page: Page) {
   await page.addInitScript(() => {
-    window.localStorage.setItem("easymsa.locale", "en");
+    if (!window.localStorage.getItem("easymsa.locale")) window.localStorage.setItem("easymsa.locale", "en");
     if (window.sessionStorage.getItem("easymsa.e2e.initialized") !== "true") {
       for (const key of Object.keys(window.localStorage)) {
         if (key.startsWith("easymsa.viewer")) window.localStorage.removeItem(key);
@@ -125,14 +125,13 @@ export async function disableVisualNoise(page: Page) {
     ]);
   });
   await settleBrowser(page);
-  const navigator = page.getByRole("slider", { name: /Alignment overview navigator/ });
-  await expect.poll(() => navigator.evaluate((element) => {
-    const canvas = element as HTMLCanvasElement;
-    const pixel = canvas.getContext("2d")?.getImageData(
-      Math.floor(canvas.width * 0.75), Math.floor(canvas.height / 3), 1, 1
-    ).data;
-    return Boolean(pixel && pixel[1] > pixel[0] + 10);
-  })).toBe(true);
+  const minimap = page.locator('.msa-map-area canvas');
+  if(await minimap.count()) {
+    await expect.poll(()=>minimap.evaluate(element=>{
+      const canvas=element as HTMLCanvasElement;
+      return canvas.getContext('2d')?.getImageData(0,0,1,1).data[3]??0;
+    })).toBe(255);
+  }
   await settleBrowser(page);
 }
 

@@ -3,7 +3,7 @@ import type { MSASequence } from "../../lib/types/msa";
 import {
   MSA_ANALYSIS_PROTOCOL_VERSION,
   MsaAnalysisWorkerError,
-  calculateMsaAnalysisPayloadV3
+  calculateMsaAnalysisPayloadV4
 } from "./workerProtocol";
 import {
   columnStatsAtPosition,
@@ -12,7 +12,7 @@ import {
 
 function request(
   sequences: MSASequence[],
-  overrides: Partial<Parameters<typeof calculateMsaAnalysisPayloadV3>[0]> = {}
+  overrides: Partial<Parameters<typeof calculateMsaAnalysisPayloadV4>[0]> = {}
 ) {
   return {
     protocolVersion: MSA_ANALYSIS_PROTOCOL_VERSION,
@@ -29,13 +29,13 @@ function request(
   };
 }
 
-describe("MSA analysis worker protocol v3", () => {
+describe("MSA analysis worker protocol v4", () => {
   it("returns a compact store, both consensus modes, overview bins, and row QC together", () => {
     const sequences: MSASequence[] = [
       { id: "duplicate", rowKey: "row:1", originalIndex: 0, sequence: "ACGT" },
       { id: "duplicate", rowKey: "row:2", originalIndex: 1, sequence: "AGGT" }
     ];
-    const result = calculateMsaAnalysisPayloadV3(request(sequences, {
+    const result = calculateMsaAnalysisPayloadV4(request(sequences, {
       referenceRowKey: "row:1",
       overviewBinCount: 2
     }));
@@ -43,7 +43,7 @@ describe("MSA analysis worker protocol v3", () => {
     expect(result.semanticsVersion).toBe("nucleotide-v2");
     expect(result.sourceFingerprint).toBe("sha256:test");
     expect(result.scopeRowKeys).toEqual(["row:1", "row:2"]);
-    expect(result.columnStoreVersion).toBe(1);
+    expect(result.columnStoreVersion).toBe(2);
     expect(result.columnStore.length).toBe(4);
     expect(result).not.toHaveProperty("columns");
     expect(result.columnStore.canonicalCounts).toBeInstanceOf(Uint32Array);
@@ -77,7 +77,7 @@ describe("MSA analysis worker protocol v3", () => {
       { id: "ref", rowKey: "ref", sequence: "A" },
       { id: "ambiguous", rowKey: "amb", sequence: "R" }
     ];
-    const result = calculateMsaAnalysisPayloadV3(request(sequences, {
+    const result = calculateMsaAnalysisPayloadV4(request(sequences, {
       referenceRowKey: "ref"
     }));
     expect(result.rowQc[1].reference).toEqual(expect.objectContaining({
@@ -97,7 +97,7 @@ describe("MSA analysis worker protocol v3", () => {
       rowKey: "reference",
       sequence: "A"
     };
-    const result = calculateMsaAnalysisPayloadV3(request(scoped, {
+    const result = calculateMsaAnalysisPayloadV4(request(scoped, {
       scope: "visible",
       scopeRowKeys: ["visible"],
       referenceRowKey: "reference",
@@ -118,7 +118,7 @@ describe("MSA analysis worker protocol v3", () => {
       { id: "one", rowKey: "one", sequence: "A-" },
       { id: "two", rowKey: "two", sequence: "A-" }
     ];
-    const result = calculateMsaAnalysisPayloadV3(request(sequences));
+    const result = calculateMsaAnalysisPayloadV4(request(sequences));
 
     expect(result.consensus.majority).toBe("AN");
     expect(result.rowQc[0].reference).toEqual(expect.objectContaining({
@@ -154,7 +154,7 @@ describe("MSA analysis worker protocol v3", () => {
     }
   ])("returns a stable code for $name", ({ sequences, overrides, code }) => {
     try {
-      calculateMsaAnalysisPayloadV3(request(sequences, overrides));
+      calculateMsaAnalysisPayloadV4(request(sequences, overrides));
       throw new Error("Expected analysis to fail");
     } catch (error) {
       expect(error).toBeInstanceOf(MsaAnalysisWorkerError);
@@ -163,7 +163,7 @@ describe("MSA analysis worker protocol v3", () => {
   });
 
   it("transfers each store buffer once and detaches the sender buffers", () => {
-    const result = calculateMsaAnalysisPayloadV3(request([
+    const result = calculateMsaAnalysisPayloadV4(request([
       { id: "one", rowKey: "one", sequence: "ACGT" },
       { id: "two", rowKey: "two", sequence: "AGGT" }
     ]));

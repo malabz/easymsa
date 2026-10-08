@@ -3,7 +3,7 @@ import {
   columnMetricAtIndex,
   type ColumnMetric
 } from "../../features/msa-viewer/columnStatsStore";
-import type { ColumnStatsStoreV1 } from "../../features/msa-viewer/types";
+import type { ColumnStatsStoreV2 } from "../../features/msa-viewer/types";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 
 type Track = {
@@ -14,7 +14,7 @@ type Track = {
 
 function drawTrack(
   context: CanvasRenderingContext2D,
-  columnStore: ColumnStatsStoreV1,
+  columnStore: ColumnStatsStoreV2,
   track: Track,
   top: number,
   width: number,
@@ -40,7 +40,7 @@ function drawTrack(
   context.stroke();
 }
 
-export function AlignmentQualityOverview({ columnStore }: { columnStore: ColumnStatsStoreV1 }) {
+export function AlignmentQualityOverview({ columnStore }: { columnStore: ColumnStatsStoreV2 }) {
   const { dictionary: d } = useLanguage();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const descriptionId = useId();

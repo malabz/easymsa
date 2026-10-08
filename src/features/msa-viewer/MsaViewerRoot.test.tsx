@@ -15,6 +15,8 @@ const canvasContext = {
   beginPath: vi.fn(),
   clearRect: vi.fn(),
   fillRect: vi.fn(),
+  createImageData: (w:number,h:number)=>({data:new Uint8ClampedArray(w*h*4)}),
+  putImageData: vi.fn(),
   lineTo: vi.fn(),
   moveTo: vi.fn(),
   setTransform: vi.fn(),
@@ -154,5 +156,20 @@ describe("MsaViewerRoot scientific workspace", () => {
     expect(shell.getAttribute("data-msa-workspace-mode")).toBe("immersive");
     fireEvent.click(screen.getAllByRole("button", { name: "Exit full screen" })[0]);
     expect(shell.getAttribute("data-msa-workspace-mode")).toBe("embedded");
+  });
+
+  it("shows a readable consensus label in the analysis panel", async () => {
+    vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(1000);
+    vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(600);
+    renderViewer(alignment([
+      { id: "a", rowKey: "row:a", sequence: "ACGT" },
+      { id: "b", rowKey: "row:b", sequence: "AGGT" }
+    ]));
+    await waitFor(() => expect(document.querySelector('[data-msa-row-key="easymsa:consensus"][data-msa-sequence-cell]')).not.toBeNull());
+    fireEvent.click(document.querySelector('[data-msa-row-key="easymsa:consensus"][data-msa-sequence-cell]')!);
+    fireEvent.click(screen.getByRole("button", { name: "Analysis inspector" }));
+    const inspector = document.querySelector('[data-msa-workspace-dock]');
+    expect(inspector?.textContent).toContain("Consensus");
+    expect(inspector?.textContent).not.toContain("easymsa:consensus");
   });
 });
