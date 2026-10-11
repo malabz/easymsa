@@ -1,0 +1,97 @@
+{
+  "version": "v2",
+  "created": "2026-10-04",
+  "durationSeconds": 40,
+  "dimensions": [
+    2304,
+    1296
+  ],
+  "captureScale": 2,
+  "captureSource": "Fresh double-density browser rendering of the verified public example, upload form and original completed task timeline.",
+  "production": "Edited walkthrough of real browser UI states; computation waiting time omitted.",
+  "input": "public/examples/v1/alignment-small/input.fasta",
+  "parameters": {
+    "algorithm": "minipoa",
+    "preprocess_mode": "audit",
+    "realign_enabled": false,
+    "email": null
+  },
+  "resultIntegrity": {
+    "count": 20,
+    "columns": [
+      515
+    ],
+    "ids_match": true,
+    "ungapped_match": true,
+    "same_as_public_result": true,
+    "alignment_sha256": "4d024fc7fe4e30bd2c8e2cab8354ee2fd09f2dab1bfdb27bcd372ba5655e5cae",
+    "input_sha256": "890f3518de5e51975df334bc7738cff7122731da8b31f5e8bd1119162e3ae2c5"
+  },
+  "chapters": [
+    {
+      "name": "upload",
+      "startSeconds": 0
+    },
+    {
+      "name": "submit",
+      "startSeconds": 8
+    },
+    {
+      "name": "explore",
+      "startSeconds": 15
+    },
+    {
+      "name": "download",
+      "startSeconds": 32
+    }
+  ],
+  "license": "MIT; synthetic demonstration data and original EasyMSA interface. Third-party tools retain their own licenses.",
+  "capturePolicy": "Public synthetic data only. No browser chrome, access credentials, restore links or local file paths in the exported media.",
+  "files": {
+    "poster-zh.webp": {
+      "bytes": 882818,
+      "sha256": "fd6df1e0b707d191a8159b5f6885b79ede9827dde28193c8d2174d819ce52c7a"
+    },
+    "demo-zh.mp4": {
+      "bytes": 3065939,
+      "sha256": "27d8811b6115076bc5f86b455c2b2aeaa348886136a2cfd7a96e7370fbac202d"
+    },
+    "demo-zh.webm": {
+      "bytes": 2675280,
+      "sha256": "bfe87ce5c6e8e3d303694f298b1ba9251a2bd9b5b9b3d25b20cccbf3c3150ed8"
+    },
+    "poster-en.webp": {
+      "bytes": 889892,
+      "sha256": "80a0449577dc7a05b0183c2f367f0788b5ad611a9c6c506c3292ef754cdde431"
+    },
+    "demo-en.mp4": {
+      "bytes": 3322099,
+      "sha256": "4102ab8d55deb3832eb66c45dec3f11dd68cb1fb887d37aa86cc12459440c73c"
+    },
+    "demo-en.webm": {
+      "bytes": 2901220,
+      "sha256": "431383c20522352be0b73809ff46755c596577606a5a31b6a8db2b32d23f336a"
+    }
+  },
+  "reviewedFrameHashes": {
+    "zh-01-upload": "91f6032df6eeadad09f7717a1eca4a533581fed4fa41ff554963cc73de87dfb8",
+    "zh-02-file": "9d8a5fdd0ae7afc457bab474aa7f5656c537845d76ed98ad591adcd1b103b750",
+    "zh-03-settings": "03473ee714ce107e6c671ddf94e9de79e7d867033d3f3ce6a543c3eabb3dc647",
+    "zh-04-timeline-safe": "c37f3b02e3bf93caf92b3d74afb3a7a940c009bbb826f6622b643b1f772d60a0",
+    "zh-05-overview": "c050b0899f8b781ffa76926c957c28d99d887275b71ffcb651849a706df009c3",
+    "zh-06-viewer": "e75bafc720defe1fcaa0e5d4ce213a2c8271ef346f76c7f0e683b63517867ec6",
+    "zh-07-search": "eec279483f4fbad838901c6b372308b63f60053bb6b58058f4ed604643030bf8",
+    "zh-08-selection": "1738bf738382eefc42fd105d803a856a69cd6117558458335d99dae6550a64ea",
+    "zh-09-download": "b68d4e4d9efaaddb6aacbeff0c62c6f40c911ac491db8665fce5130090704e90",
+    "en-01-upload": "0a029d1a76c0df1ff0352321d7b641391fd2277bd1217f4cb0d6473a672ae741",
+    "en-02-file": "5834ea009d2d26a1fef5d1bef0e6c6ec371e9928983f38aa1029fc9cc776d558",
+    "en-03-settings": "0cfbb027192326ecd075637daabefa01108c954553414ebb9b18f88e0e89a260",
+    "en-04-timeline-safe": "d814a30d023267fcb5354e9e2b523d2de622b40a2af5f93db465babd7e33e026",
+    "en-05-overview": "ebc477518ba9726980d17feb0475a06f0208405d1f18e5618266a65e370ebe0a",
+    "en-06-viewer": "15a19a96acb0482c9cf575a1db1adcaa1982d94a7907d99e5db517269eff379c",
+    "en-07-search": "46189b732e11de2e39430197af830cb101f33124d80c662445667c5e0263f8e8",
+    "en-08-selection": "73ff7c2f01bcd7ad726109e07f289f8a487154f0b37a6d1dbc838171eae38840",
+    "en-09-download": "20fb56e008c3e14b982f3bedae0ef203b367e478b42cfa79eae12d931b7ccdef"
+  },
+  "encoder": "ffmpeg version 7.0.2-static https://johnvansickle.com/ffmpeg/  Copyright (c) 2000-2024 the FFmpeg developers"
+}

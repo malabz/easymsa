@@ -1,25 +1,30 @@
-import { ArrowRight, Download } from "lucide-react";
+import { ArrowRight, ChevronsRight } from "lucide-react";
+import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../../lib/i18n/useLanguage";
-import { homeContent } from "../../lib/homeContent";
-import { exampleUrl } from "../../lib/examples";
+import { homeAdvantagesContent } from "../../lib/homeContent";
+import { HomeDemoFallback } from "./HomeDemoFallback";
+import { useHomeAnimation, useHomeDemo } from "./HomeDemoProvider";
+import { LargeScaleAlignmentCanvas } from "./LargeScaleAlignmentCanvas";
 
 export function WorkflowSection() {
   const { locale } = useLanguage();
-  const copy = homeContent[locale];
-  return (
-    <section className="home-section" id="home-workflow" tabIndex={-1} aria-labelledby="home-workflow-title">
-      <p className="home-eyebrow">01 / WORKFLOW</p>
-      <h2 id="home-workflow-title">{copy.workflowTitle}</h2>
-      <div className="home-workflow">
-        {copy.steps.map((step, index) => <article key={step.title}>
-          <span className="home-step-number" aria-hidden="true">0{index + 1}</span>
-          <h3>{step.title}</h3><p>{step.text}</p>
-          {index === 0
-            ? <a className="home-text-link" download="easymsa-example.fasta" href={exampleUrl({ id: "alignment-small", version: "v1" }, "input.fasta")}>{step.link}<Download size={16} aria-hidden="true" /></a>
-            : <Link className="home-text-link" to={index === 1 ? "/submit" : "/lookup"}>{step.link}<ArrowRight size={16} aria-hidden="true" /></Link>}
-        </article>)}
+  const copy = homeAdvantagesContent[locale];
+  const { data } = useHomeDemo();
+  const root = useRef<HTMLElement>(null);
+  const animation = useHomeAnimation(root, 10000);
+  return <section ref={root} className="home-section home-scale-showcase" id="home-workflow" tabIndex={-1} aria-labelledby="home-workflow-title">
+    <div className="home-scale-heading">
+      <div className="home-benefit-heading">
+        <h2 id="home-workflow-title">{copy.scaleTitle}</h2>
+        <p>{copy.scaleIntro}</p>
       </div>
-    </section>
-  );
+      <Link to="/submit" className="home-text-link">{copy.start}<ArrowRight size={18} aria-hidden="true" /></Link>
+    </div>
+    <figure className="home-scale-visual" data-phase={animation.progress < .3 ? "input" : animation.progress < .72 ? "aligning" : "complete"}>
+      <figcaption className="home-scale-labels"><span>{copy.batchInput}</span><span>{copy.alignmentComplete}</span></figcaption>
+      <ChevronsRight className="home-scale-direction" size={24} aria-hidden="true" />
+      {data ? <LargeScaleAlignmentCanvas data={data} progress={animation.progress} reduced={animation.reduced} label={copy.scaleAnimationLabel} /> : <HomeDemoFallback />}
+    </figure>
+  </section>;
 }
