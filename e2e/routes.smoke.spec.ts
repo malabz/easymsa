@@ -7,8 +7,8 @@ test.beforeEach(async ({ page }) => {
 
 test("opens the product routes and deep-linked documentation", async ({ page }) => {
   await page.goto("./#/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText(/Nucleotide alignment and refinement/i);
-  await page.getByRole("link", { name: /start analysis/i }).click();
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(/Multiple nucleotide sequence alignment/i);
+  await page.getByRole("link", { name: /start analysis/i }).first().click();
   await expect(page).toHaveURL(/#\/submit$/);
   await expect(page.getByRole("heading", { level: 1 })).toContainText(/submit job/i);
 

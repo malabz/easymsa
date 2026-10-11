@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { gunzipSync } from "node:zlib";
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { openExport } from "./helpers/viewer-fixtures";
 test.beforeEach(async ({ page }) => {
   // UI regression uses a deterministic service state and never submits to production.
   await page.route("**/api/**", async (route) => {
@@ -35,7 +36,7 @@ test("examples remain interactive offline and do not create private credentials"
   );
   await page.goto("#/examples/realignment-small");
   await expect(
-    page.getByRole("heading", { name: "Synthetic DNA · ReAlign-N refinement" }),
+    page.getByRole("heading", { level: 1, name: "Synthetic DNA · ReAlign-N refinement" }),
   ).toBeVisible();
   const inputDownloadPromise = page.waitForEvent("download");
   await page.getByRole("link", { name: "FASTA.gz", exact: true }).click();
@@ -60,6 +61,7 @@ test("examples remain interactive offline and do not create private credentials"
       "ready",
     );
   }
+  await page.getByRole("button", { name: "Back to results", exact: true }).click();
   await page.getByRole("tab", { name: "Downloads", exact: true }).click();
   const download = page.waitForEvent("download");
   await page
@@ -78,7 +80,7 @@ test("examples remain interactive offline and do not create private credentials"
   expect(await page.locator('a[href*="token="]').count()).toBe(0);
   await page.reload();
   await expect(
-    page.getByRole("heading", { name: "Synthetic DNA · ReAlign-N refinement" }),
+    page.getByRole("heading", { level: 1, name: "Synthetic DNA · ReAlign-N refinement" }),
   ).toBeVisible();
 });
 test("home, docs, license, invalid examples and responsive navigation", async ({
@@ -86,7 +88,7 @@ test("home, docs, license, invalid examples and responsive navigation", async ({
 }) => {
   await page.goto("#/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    "Nucleotide alignment",
+    "Multiple nucleotide sequence alignment",
   );
   await expect(
     page.getByRole("link", { name: "Download example input", exact: true }),
@@ -99,6 +101,7 @@ test("home, docs, license, invalid examples and responsive navigation", async ({
     "Copyright (c) 2026 EasyMSA contributors",
   );
   await page.goto("#/docs");
+  await page.getByRole("heading", { name: "Three complete workflows", exact: true }).click();
   await expect(
     page.getByRole("link", { name: "Alignment input and interactive result" }),
   ).toBeVisible();
@@ -118,7 +121,7 @@ test("home, docs, license, invalid examples and responsive navigation", async ({
   await expect(
     page
       .getByRole("navigation", { name: "Primary navigation" })
-      .getByRole("link", { name: "Examples", exact: true }),
+      .getByRole("link", { name: "Realign", exact: true }),
   ).toBeVisible();
 });
 test("privacy clears only EasyMSA keys, handles cancellation and denied storage", async ({
@@ -193,16 +196,16 @@ test("example input loading preserves email and does not submit; normal defaults
     .locator("summary")
     .filter({ hasText: /^Advanced settings/ })
     .click();
-  await expect(page.getByRole("radio", { name: /Auto/ })).toBeChecked();
+  await expect(page.getByRole("combobox", { name: "Alignment method", exact: true })).toHaveValue("auto");
   await page.locator("#email").fill("example@example.com");
   await page
-    .getByRole("button", { name: "Load example file", exact: true })
+    .getByRole("button", { name: "Load example", exact: true })
     .click();
   await expect(
-    page.getByText("alignment-small.fasta", { exact: true }),
+    page.locator(".work-file-name").filter({ hasText: "alignment-small.fasta" }),
   ).toBeVisible();
   await expect(page.locator("#email")).toHaveValue("example@example.com");
-  await expect(page.getByRole("radio", { name: /MiniPOA/i })).toBeChecked();
+  await expect(page.getByRole("combobox", { name: "Alignment method", exact: true })).toHaveValue("minipoa");
   expect(submissions).toBe(0);
 });
 test("new public pages pass accessibility rules", async ({ page }) => {
@@ -235,7 +238,9 @@ test("public viewer search, keyboard selection, export and stage isolation", asy
     "data-msa-selected-range",
     "1-2",
   );
+  await page.getByLabel("Search and navigation type").selectOption("motif");
   await page.getByLabel("Search DNA/RNA motif").fill("ACGT");
+  await page.getByLabel("Search and navigation type").selectOption("name");
   await expect
     .poll(() =>
       page.evaluate(
@@ -243,9 +248,7 @@ test("public viewer search, keyboard selection, export and stage isolation", asy
       ),
     )
     .toContain("seq_000001");
-  await page
-    .getByRole("button", { name: "Export / QC bundle", exact: true })
-    .click();
+  await openExport(page);
   await expect(
     page.getByRole("dialog", { name: "Export MSA and QC bundle" }),
   ).toBeVisible();
@@ -259,7 +262,7 @@ test("public viewer search, keyboard selection, export and stage isolation", asy
   expect(manifest.source.kind).toBe("example");
   expect(manifest.source.jobId).toBeNull();
   expect(JSON.stringify(manifest)).not.toContain("token=");
-  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog", { name: "Export MSA and QC bundle" })).toHaveCount(0);
   await page
     .getByLabel("Result version", { exact: true })
     .selectOption("refined");
@@ -324,7 +327,7 @@ test("Chinese content and offline submission availability", async ({
   await page.reload();
   await page.goto("#/submit?example=alignment-small");
   await expect(
-    page.getByText("alignment-small.fasta", { exact: true }),
+    page.locator(".work-file-name").filter({ hasText: "alignment-small.fasta" }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: /^(提交任务|Submit Job)$/, exact: true }),
@@ -339,7 +342,7 @@ test("concise bilingual copy preserves guidance and mobile layout", async ({ pag
       await page.getByRole("button", { name: "Switch language" }).filter({ visible: true }).click();
     }
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-      locale === "zh" ? "核酸多序列比对与重比对" : "Nucleotide alignment and refinement",
+      locale === "zh" ? "核酸多序列比对" : "Multiple nucleotide sequence alignment",
     );
     await page.setViewportSize({ width: 390, height: 844 });
     for (const route of ["/", "/about", "/examples", "/examples/realignment-small", "/docs", "/realign"]) {
@@ -349,7 +352,7 @@ test("concise bilingual copy preserves guidance and mobile layout", async ({ pag
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     }
     await page.goto("#/examples/realignment-small");
-    await expect(page.getByText(locale === "zh" ? "切换结果版本，比较初始比对与重比对结果。" : "Switch result versions to compare the initial and refined alignments.", { exact: true })).toBeVisible();
+    await expect(page.getByText(locale === "zh" ? "ReAlign-N · 先局部后全局 · 最终采用重比对结果。" : "ReAlign-N · Local → global · Final: refined alignment.", { exact: true })).toBeVisible();
     if (testInfo.project.name === "chromium") {
       await expect(page.getByRole("status").filter({ hasText: /Calculating alignment quality statistics|正在.*统计/ })).toHaveCount(0);
       await page.screenshot({ path: testInfo.outputPath(`examples-${locale}-mobile.png`), fullPage: true });
