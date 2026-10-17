@@ -195,7 +195,7 @@ export function DocsArticle({ article, defaultOpen = false }: { article: DocsArt
           <span aria-level={3} className="block text-base font-semibold text-slate-950 group-open:text-teal-800" role="heading">
             {article.title}
           </span>
-          <span className="mt-0.5 block text-sm leading-6 text-slate-600">{article.summary}</span>
+          {article.summary && <span className="mt-0.5 block text-sm leading-6 text-slate-600">{article.summary}</span>}
         </span>
         <ChevronDown aria-hidden="true" className="h-5 w-5 shrink-0 text-slate-500 transition group-open:rotate-180" />
       </summary>

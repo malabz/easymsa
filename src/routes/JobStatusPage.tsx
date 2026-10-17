@@ -122,7 +122,7 @@ export function JobStatusPage() {
       <p>{locale === "zh" ? "可关闭页面，稍后恢复任务。" : "You can close this page and restore the job later."}</p>
       <Button variant="outline" onClick={() => copyAccessText("restoreLink", restoreLink)}><Copy size={15} />{copyTarget === "restoreLink" ? d.common.copied : d.job.access.copyRestoreLink}</Button>
       <Button variant="outline" onClick={downloadAccessJson}><Download size={15} />{d.job.access.downloadJson}</Button>
-      <Button variant="ghost" onClick={openCredentials}><Eye size={15} />{locale === "zh" ? "查看凭证" : "View credentials"}</Button>
+      <Button variant="ghost" onClick={openCredentials}><Eye size={15} />{locale === "zh" ? "保存与恢复任务" : "Save and recover job"}</Button>
       {copyError && <p className="text-rose-700" role="alert">{copyError}</p>}
       <span className="sr-only" role="status">{copyTarget ? d.common.copied : ""}</span>
     </section> : null}

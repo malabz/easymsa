@@ -96,7 +96,7 @@ export function RealignPage() {
   return (
     <PageContainer className="workflow-page submission-page realignment-page">
       <div className="work-heading">
-        <div><h1>{t.title}</h1><p>{locale === "zh" ? "上传或粘贴已有比对，优化比对质量并保留初始结果。" : "Upload or paste an existing alignment to refine it and retain the initial result."}</p></div>
+        <div><h1>{t.title}</h1><p>{locale === "zh" ? "上传或粘贴已比对序列，优化比对结果。" : "Upload or paste aligned sequences to refine the alignment."}</p></div>
         <div role="status" className="work-status" data-status={ready ? "ready" : "offline"}>
           <StatusIcon size={15} aria-hidden="true" className={health.isPending ? "animate-spin" : ""} />
           <span>{statusText}</span>
@@ -124,7 +124,7 @@ export function RealignPage() {
                   aria-describedby="alignedFasta-hint" aria-invalid={Boolean(pastedFile && !validation?.valid && inputMethod === "paste")}
                   placeholder={">seq1\nACGT-ACGT\n>seq2\nACGTTAC-T"}
                   onChange={event => { setPastedFasta(event.target.value); setExampleLoaded(false); setError(null); }} />
-                <p id="alignedFasta-hint" className="work-hint mt-2">{locale === "zh" ? "粘贴已比对的 FASTA，保留 gap（-），各序列应等长。" : "Paste aligned FASTA with gaps (-) preserved and equal-length sequences."}</p>
+                <p id="alignedFasta-hint" className="work-hint mt-2">{locale === "zh" ? "各序列应等长，请保留缺口符号“-”。" : "Sequences must have equal lengths. Preserve gap characters (-)."}</p>
                 {inputMethod === "paste" && pastedFile && validation && !validation.valid && <p role="alert" className="work-error">{locale === "zh" ? "粘贴内容超过上传大小限制，请缩小数据规模。" : "Pasted content exceeds the upload size limit. Please use a smaller dataset."}</p>}
               </div></div>
             </div>
@@ -138,7 +138,7 @@ export function RealignPage() {
             </div>}
             <div className="submission-input-notes">
               <Link className="work-link" to="/docs">{w.help}</Link>
-              <p className="submission-audit-note"><ShieldCheck size={14} aria-hidden="true" />{locale === "zh" ? "保留初始比对，可分别查看与下载。" : "Keep both initial and refined results for viewing and download."}</p>
+              <p className="submission-audit-note"><ShieldCheck size={14} aria-hidden="true" />{locale === "zh" ? "初始结果会保留。" : "The initial alignment is retained."}</p>
             </div>
           </div>
           <div className="work-settings" aria-label={w.settings} ref={settingsRef}>
@@ -155,13 +155,13 @@ export function RealignPage() {
             </details>
             <section className="realignment-requirements" aria-label={t.inputRequirements}>
               <h3 className="work-label">{locale === "zh" ? "输入要求" : "Input requirements"}</h3>
-              <p className="work-hint">{locale === "zh" ? "序列应等长，标识唯一；支持 DNA / RNA 与 gap（-），不支持简并碱基。" : "Equal-length sequences with unique IDs. DNA / RNA and gaps (-) supported; no ambiguous bases."}</p>
+              <p className="work-hint">{locale === "zh" ? "序列名称不能重复；仅支持 A、C、G、T/U 和“-”。" : "Use unique sequence names and only A, C, G, T/U and gaps (-)."}</p>
               {refinement ? <dl className="realignment-limits">
                 <div><dt>{locale === "zh" ? "序列" : "Sequences"}</dt><dd>≤ {refinement.maxSequences.toLocaleString()}</dd></div>
                 <div><dt>{locale === "zh" ? "比对列" : "Columns"}</dt><dd>≤ {refinement.maxColumns.toLocaleString()}</dd></div>
-                <div><dt>{locale === "zh" ? "总字符" : "Characters"}</dt><dd>≤ {refinement.maxCells.toLocaleString()}</dd></div>
+                <div><dt>{locale === "zh" ? "比对字符数" : "Alignment characters"}</dt><dd>≤ {refinement.maxCells.toLocaleString()}</dd></div>
               </dl> : <p className="work-hint">{t.limits}</p>}
-              <p className="work-hint realignment-citation">{locale === "zh" ? "方法与引用：" : "Method and citation: "}<a className="work-link" href="https://doi.org/10.1093/nargab/lqae170" target="_blank" rel="noreferrer">ReAlign-N (2024)</a></p>
+              <p className="work-hint realignment-citation"><Link className="work-link" to="/about">{locale === "zh" ? "引用方法" : "Cite this method"}</Link></p>
             </section>
             {error && <p role="alert" className="work-error py-2">{error.code ? realignmentError(locale, error.code, error.message) : error.message}</p>}
           </div>

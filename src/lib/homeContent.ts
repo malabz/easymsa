@@ -7,7 +7,7 @@ export const homeContent = {
     intro: "面向大规模 DNA / RNA 序列，自动选择比对方法，在线查看与下载结果。",
     start: "开始分析", example: "体验示例", openExample: "打开完整示例",
     sample: "合成 DNA · 20 条序列 · minipoa", free: "所有用途免费 · 无需注册",
-    license: "MIT / 许可范围", privacy: "隐私与本地存储", scroll: "了解使用流程",
+    license: "使用许可", privacy: "隐私", scroll: "了解使用流程",
     workflowTitle: "一个工作流，完成序列分析。",
     steps: [
       { title: "准备输入", text: "上传或粘贴 FASTA，开始 DNA 或 RNA 序列分析。", link: "下载示例输入" },
@@ -36,7 +36,7 @@ export const homeContent = {
     intro: "Large-scale DNA / RNA alignment. Automatic method selection. Interactive results.",
     start: "Start analysis", example: "Explore example", openExample: "Open full example",
     sample: "Synthetic DNA · 20 sequences · minipoa", free: "Free for all uses · No registration",
-    license: "MIT / License scope", privacy: "Privacy and storage", scroll: "Explore the workflow",
+    license: "Licenses", privacy: "Privacy", scroll: "Explore the workflow",
     workflowTitle: "One workflow, from sequence to insight.",
     steps: [
       { title: "Prepare your input", text: "Upload or paste FASTA to start analyzing DNA or RNA sequences.", link: "Download example input" },
@@ -95,7 +95,7 @@ export const homeBenefitsContent = {
     openExample: "打开交互示例", exampleLabel: "合成 DNA · 公开示例", sequences: "条序列", columns: "列",
     overview: "序列概览", overviewLabel: "公开示例的全长序列概览", pan: "拖动概览，横向浏览比对",
     previewLabel: "可点击查看列统计的公开示例比对矩阵", position: "位置", conservation: "保守性", gap: "缺口",
-    dragHint: "拖动概览，定位感兴趣的区域。", interactionHint: "拖动概览移动视窗，点击矩阵查看列统计。",
+    dragHint: "拖动概览，定位感兴趣的区域。", interactionHint: "拖动概览浏览，点击碱基查看详情。",
     start: "开始分析", downloadInput: "下载示例输入", recover: "恢复已有任务",
   },
   en: {
@@ -120,7 +120,7 @@ export const homeBenefitsContent = {
     openExample: "Open interactive example", exampleLabel: "Synthetic DNA · Public example", sequences: "sequences", columns: "columns",
     overview: "Overview", overviewLabel: "Full-length overview of the public example", pan: "Drag the overview to pan the alignment",
     previewLabel: "Public example alignment; click a column to inspect its statistics", position: "Position", conservation: "Conservation", gap: "Gaps",
-    dragHint: "Drag the overview to explore a region.", interactionHint: "Drag the overview to move the viewport. Click a column to inspect its statistics.",
+    dragHint: "Drag the overview to explore a region.", interactionHint: "Drag the overview to navigate. Click a base for details.",
     start: "Start analysis", downloadInput: "Download example input", recover: "Recover a job",
   },
 } satisfies Record<Locale, unknown>;
@@ -143,7 +143,7 @@ export const homeAdvantagesContent = {
     matchLines: ["自动选择", "比对方法"], candidateLabel: "方法选择示意",
     scanning: "正在识别序列特征", matching: "正在匹配比对方法", resultLabel: "自动选择 · minipoa",
     outputLabel: "公开 minipoa 示例的局部比对结果", replay: "重新演示",
-    start: "开始分析", methodLink: "了解自动选择与比对方法",
+    start: "开始分析", methodLink: "了解方法",
   },
   en: {
     scaleTitle: "Large datasets. Efficient alignment.",
@@ -161,6 +161,6 @@ export const homeAdvantagesContent = {
     matchLines: ["Auto-select", "a method"], candidateLabel: "Method selection illustration",
     scanning: "Identifying sequence features", matching: "Matching an alignment method", resultLabel: "Auto-selection · minipoa",
     outputLabel: "A region of the public minipoa example alignment", replay: "Replay",
-    start: "Start analysis", methodLink: "Explore Auto and alignment methods",
+    start: "Start analysis", methodLink: "Explore methods",
   },
 } satisfies Record<Locale, unknown>;

@@ -925,18 +925,18 @@ export function MsaViewerRoot({
   }
 
   const qcLabels = locale === "zh" ? {
-    title: "序列 QC",
-    reviewOnly: "自动结果仅作为 QC 候选供复核；不会自动删除或改变源比对。",
+    title: "质量检查",
+    reviewOnly: "标记待检查序列，不修改原始比对。",
     scope: "分析范围",
     rows: "序列",
     columns: "列",
-    candidates: "QC 候选",
+    candidates: "待检查序列",
     search: "搜索序列名称",
     sort: "排序",
     ascending: "升序",
     descending: "降序",
     name: "名称",
-    length: "非 gap 长度",
+    length: "去除缺口后的长度",
     gap: "缺口",
     ambiguity: "模糊碱基",
     gc: "GC",
@@ -945,8 +945,8 @@ export function MsaViewerRoot({
     review: "复核"
   } : undefined;
   const annotationLabels = locale === "zh" ? {
-    title: "QC 人工标记",
-    reviewOnly: "“排除候选”只是复核标记，不会改变分析范围或源比对。",
+    title: "人工标记",
+    reviewOnly: "此标记不会从分析中移除序列。",
     category: "类别",
     sequenceRow: "序列行",
     all: "全部",

@@ -57,28 +57,22 @@ export function AboutPage() {
         </h1>
         <p className="mt-4 text-base leading-7 text-slate-700">
           {zh
-            ? "EasyMSA 提供核酸多序列比对与可选重比对。minipoa、HAlign、FMAlign2 和 ReAlign-N 来自实验室此前的方法工作；MAFFT 和 Mash 是外部工具。"
-            : "EasyMSA provides nucleotide multiple sequence alignment and optional refinement. minipoa, HAlign, FMAlign2 and ReAlign-N originate from the laboratory’s prior methods work; MAFFT and Mash are external tools."}
+            ? "EasyMSA 集成 minipoa、HAlign、FMAlign2 和 ReAlign-N，支持自动选择方法、重比对及结果浏览。"
+            : "EasyMSA integrates minipoa, HAlign, FMAlign2 and ReAlign-N, with automatic method selection, realignment and interactive results."}
         </p>
-        <p className="mt-2 text-sm leading-7 text-slate-600">
-          {zh
-            ? "Auto 根据序列特征自动选择比对方法。统一预处理、交互分析和任务恢复连接从输入到下载的完整流程。"
-            : "Auto selects an alignment method from sequence features. Preprocessing, interactive analysis and job recovery connect input to download."}
-        </p>
+
       </header>
 
       <div className="space-y-8">
         <section aria-labelledby="lab-methods-title">
           <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="text-xl font-semibold text-slate-950" id="lab-methods-title">{zh ? "实验室方法" : "Laboratory methods"}</h2>
-            <span className="text-xs text-slate-500">{zh ? "来自实验室此前的方法工作" : "Methods developed by the laboratory"}</span>
+            <h2 className="text-xl font-semibold text-slate-950" id="lab-methods-title">{zh ? "自主研发方法" : "Our methods"}</h2>
           </div>
           <MethodList entries={methods.filter((method) => method.origin === "lab")} locale={locale} />
         </section>
         <section aria-labelledby="external-methods-title">
           <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="text-xl font-semibold text-slate-950" id="external-methods-title">{zh ? "外部工具" : "External tools"}</h2>
-            <span className="text-xs text-slate-500">{zh ? "第三方开源工具" : "Third-party open-source tools"}</span>
           </div>
           <MethodList entries={methods.filter((method) => method.origin === "external")} locale={locale} />
         </section>
@@ -87,14 +81,14 @@ export function AboutPage() {
       <footer className="border-t border-slate-200 pt-5 text-sm leading-6 text-slate-600">
         <p>{zh ? "发表研究时，建议引用实际使用的方法。" : "When publishing work using EasyMSA, please cite the methods used."}</p>
         <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 font-medium text-teal-800 underline underline-offset-2">
-          <Link to="/license">{zh ? "许可与第三方声明" : "Licenses and third-party notices"}</Link>
+          <Link to="/license">{zh ? "使用许可" : "Licenses and third-party notices"}</Link>
           <a href="https://github.com/malabz/easymsa/issues" rel="noreferrer" target="_blank">GitHub Issues</a>
           <a href="https://github.com/malabz/easymsa" rel="noreferrer" target="_blank">GitHub</a>
         </div>
         <p className="mt-3 text-xs leading-6 text-slate-500">
           {zh
-            ? "公开反馈请勿附带用户序列、邮箱或任务访问凭证。实验室已明确持续维护负责人与至少五年的服务维护安排。"
-            : "Do not include user sequences, email addresses or task access credentials in public issues. The laboratory has designated maintainers and committed to at least five years of service maintenance."}
+            ? "反馈问题时，请勿公开序列和访问密钥。"
+            : "Keep sequences and access keys private when reporting an issue."}
         </p>
       </footer>
     </PageContainer>

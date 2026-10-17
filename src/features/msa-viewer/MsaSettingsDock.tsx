@@ -335,7 +335,7 @@ export function MsaSettingsDock(props: MsaSettingsDockProps) {
       <OverlayDialog
         bodyClassName="px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3"
         closeLabel={t.closeSettings}
-        description={props.analysisDisabled ? d.results.viewer.scienceV2.neutralDescription : t.settingsDescription}
+        description={props.analysisDisabled ? d.results.viewer.scienceV2.neutralDescription : undefined}
         isOpen={props.isOpen}
         onClose={props.onClose}
         title={t.settings}
@@ -364,9 +364,7 @@ export function MsaSettingsDock(props: MsaSettingsDockProps) {
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
           <h3 className="text-sm font-semibold text-slate-950">{t.settings}</h3>
-          <p className="mt-0.5 text-xs text-slate-500">
-            {props.analysisDisabled ? d.results.viewer.scienceV2.neutralDescription : t.settingsDescription}
-          </p>
+          {props.analysisDisabled && <p className="mt-0.5 text-xs text-slate-500">{d.results.viewer.scienceV2.neutralDescription}</p>}
         </div>
         <Button className="min-h-11" onClick={props.onClose} size="sm" variant="ghost">
           {t.closeSettings}

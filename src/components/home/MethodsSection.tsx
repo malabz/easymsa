@@ -52,7 +52,7 @@ export function MethodsSection() {
                 setSelected(next);
                 if (next < start || next >= start + visibleColumns) setStart(Math.min(Math.max(0, next - Math.floor(visibleColumns / 2)), data.length - visibleColumns));
               }} /></label>
-            <output aria-live="polite">{column ? `${copy.conservation} ${column.conservation == null ? "—" : (column.conservation * 100).toFixed(1) + "%"} · ${copy.gap} ${(column.gap * 100).toFixed(1)}%` : copy.dragHint}</output>
+            <output aria-live="polite">{column ? `${copy.conservation} ${column.conservation == null ? "—" : (column.conservation * 100).toFixed(1) + "%"} · ${copy.gap} ${(column.gap * 100).toFixed(1)}%` : ""}</output>
             <span>{start + 1}–{Math.min(data.length, start + visibleColumns)} / {data.length}</span>
           </div>
         </> : <HomeDemoFallback />}

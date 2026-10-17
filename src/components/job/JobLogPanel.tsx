@@ -12,6 +12,7 @@ import type { ApiFailure, JobDetail } from "../../lib/types/job";
 type LogEntry = {
   text: string;
   multiline?: boolean;
+  technical?: boolean;
 };
 
 type LogLabels = {
@@ -62,6 +63,7 @@ function addFailureDetailEvents(
   const exitCode = detailText(failure, "exitCode");
   if (exitCode) {
     events.push({
+      technical: true,
       text: fillTemplate(labels.exitCode, { value: exitCode })
     });
   }
@@ -69,6 +71,7 @@ function addFailureDetailEvents(
   const timeoutSeconds = detailText(failure, "timeoutSeconds");
   if (timeoutSeconds) {
     events.push({
+      technical: true,
       text: fillTemplate(labels.timeout, { value: timeoutSeconds })
     });
   }
@@ -76,6 +79,7 @@ function addFailureDetailEvents(
   const executionError = detailText(failure, "error");
   if (executionError) {
     events.push({
+      technical: true,
       text: fillTemplate(labels.executionError, { value: executionError })
     });
   }
@@ -83,6 +87,7 @@ function addFailureDetailEvents(
   const binary = detailText(failure, "binary");
   if (binary) {
     events.push({
+      technical: true,
       text: fillTemplate(labels.binary, { value: binary })
     });
   }
@@ -90,6 +95,7 @@ function addFailureDetailEvents(
   const mode = detailText(failure, "mode");
   if (mode) {
     events.push({
+      technical: true,
       text: fillTemplate(labels.mode, { value: mode })
     });
   }
@@ -97,6 +103,7 @@ function addFailureDetailEvents(
   const algorithm = detailText(failure, "algorithm");
   if (algorithm) {
     events.push({
+      technical: true,
       text: fillTemplate(labels.algorithmDetail, { value: algorithm })
     });
   }
@@ -104,6 +111,7 @@ function addFailureDetailEvents(
   const runLogTail = detailText(failure, "runLogTail");
   if (runLogTail) {
     events.push({
+      technical: true,
       text: `${labels.toolLog}\n${runLogTail}`,
       multiline: true
     });
@@ -181,20 +189,26 @@ function buildEvents(
 }
 
 export function JobLogPanel({ job, compact = false }: { job: JobDetail; compact?: boolean }) {
-  const { dictionary: d } = useLanguage();
-  const logs = buildEvents(
+  const { dictionary: d, locale } = useLanguage();
+  const allLogs = buildEvents(
     job,
     d.job.logEntries,
     d.common.algorithmNames,
     d.common.algorithmAutoResolved
   );
 
-  if (compact) return <ol className="job-event-list" aria-label={d.job.logs}>
+  const logs = allLogs.filter(log => !log.technical);
+  const details = allLogs.filter(log => log.technical);
+  const errorDetails = details.length ? <details className="mt-3 text-sm">
+    <summary className="cursor-pointer text-teal-800">{locale === "zh" ? "错误详情" : "Error details"}</summary>
+    <div className="mt-2 space-y-2">{details.map((log, index) => <pre key={index} className="whitespace-pre-wrap break-words text-xs">{log.text}</pre>)}</div>
+  </details> : null;
+  if (compact) return <><ol className="job-event-list" aria-label={d.job.logs}>
     {logs.map((log, index) => <li key={`${index}:${log.text}`}>
       <span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
       {log.multiline ? <pre className="min-w-0">{log.text}</pre> : <p className="min-w-0 break-words">{log.text}</p>}
     </li>)}
-  </ol>;
+  </ol>{errorDetails}</>;
   return (
     <Card>
       <CardHeader>
@@ -220,6 +234,7 @@ export function JobLogPanel({ job, compact = false }: { job: JobDetail; compact?
             </div>
           ))}
         </div>
+        {errorDetails}
       </CardContent>
     </Card>
   );

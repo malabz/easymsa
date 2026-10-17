@@ -244,7 +244,7 @@ export function SubmitJobForm() {
             <div className="submission-input-help">
               <Link className="work-link" to="/docs">{t.help}</Link>
             </div>
-            <p className="submission-audit-note"><ShieldCheck size={14} aria-hidden="true" />{preprocessMode === "audit" ? t.automaticAudit : t.automaticFilter}</p>
+            {preprocessMode === "filter" && <p className="submission-audit-note"><ShieldCheck size={14} aria-hidden="true" />{t.automaticFilter}</p>}
           </div>
         </div>
         <div className="work-settings" aria-label={t.settings} ref={settingsRef}>

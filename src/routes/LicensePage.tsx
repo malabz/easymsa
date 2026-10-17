@@ -16,8 +16,8 @@ export function LicensePage() {
         </h2>
         <p className="leading-7">
           {zh
-            ? "在线服务对学术、非商业和商业用途均免费，无需注册，邮箱可选。所有用户适用相同的输入、队列和资源限制；可用性依赖服务器容量。"
-            : "The online service is free for academic, non-commercial and commercial use. Registration is not required; email is optional. The same input, queue and resource limits apply to all users; availability depends on server capacity."}
+            ? "在线服务对学术、非商业和商业用途均免费，无需注册，邮箱可选。所有用户适用相同的输入、队列和资源限制。"
+            : "The online service is free for academic, non-commercial and commercial use. Registration is not required; email is optional. The same input, queue and resource limits apply to all users."}
         </p>
       </section>
       <section className="space-y-3">
@@ -28,8 +28,8 @@ export function LicensePage() {
         </h2>
         <p className="text-sm leading-7">
           {zh
-            ? "有权授权的自有前后端代码、原创文档及本轮合成教学数据与说明采用 MIT，可免费使用、修改和再分发，并须保留标准许可要求的声明。已有算法、第三方代码及衍生补丁保留原许可；不是所有内容都采用 MIT。"
-            : "Authorized original frontend/backend code, original documentation and the synthetic teaching data and explanatory materials in this release use MIT. Use, modification and redistribution are permitted subject to its notice requirements. Existing algorithms, third-party code and derivative patches retain their original licenses; MIT does not cover everything."}
+            ? "有权授权的自有前后端代码、原创文档及合成教学数据与说明采用 MIT，可免费使用、修改和再分发，并须保留标准许可要求的声明。第三方工具及其衍生代码沿用各自许可证。"
+            : "Authorized original frontend/backend code, original documentation and the synthetic teaching data and explanatory materials use MIT. Use, modification and redistribution are permitted subject to its notice requirements. Third-party tools and derivative code retain their respective licenses."}
         </p>
         <div className="flex flex-wrap gap-4 text-sm text-teal-800 underline">
           <a href="https://opensource.org/license/mit">
@@ -111,8 +111,8 @@ export function LicensePage() {
         </h2>
         <p className="text-sm leading-7">
           {zh
-            ? "上传和结果数据不会因使用 EasyMSA 自动公开或成为开源数据。学术工作中建议引用 EasyMSA 和实际使用的方法；引用建议与许可证义务分别适用。EasyMSA 论文尚无已核验的 DOI，因此目前请引用网站及所用软件版本。"
-            : "Uploads and results do not automatically become public or open data. For academic work, please acknowledge EasyMSA and cite the methods actually used. Citation recommendations are distinct from license obligations. No verified EasyMSA article DOI is currently available; cite the website and software version used."}
+            ? "上传和结果数据不会因使用 EasyMSA 自动公开或成为开源数据。学术工作中建议引用 EasyMSA 和实际使用的方法；引用建议与许可证义务分别适用。目前请引用网站及所用软件版本。"
+            : "Uploads and results do not automatically become public or open data. For academic work, please acknowledge EasyMSA and cite the methods actually used. Citation recommendations are distinct from license obligations. Please cite the website and software version used."}
         </p>
       </section>
     </PageContainer>

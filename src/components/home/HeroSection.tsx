@@ -48,7 +48,7 @@ export function HeroSection() {
         </div>
       </div>
       <div className="home-cover-bottom">
-        <p>{copy.free}<Link to="/license">{copy.license}</Link><Link to="/privacy">{copy.privacy}</Link></p>
+        <p><Link to="/license">{copy.license}</Link><Link to="/privacy">{copy.privacy}</Link></p>
         <button className="home-scroll" type="button" aria-label={copy.scroll} onClick={() => {
           const section = document.getElementById("home-workflow");
           section?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });

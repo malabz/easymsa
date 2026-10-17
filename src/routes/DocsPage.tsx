@@ -235,7 +235,7 @@ export function DocsPage() {
                   >
                     <span className="text-xs font-semibold uppercase tracking-wide text-teal-700">{result.sectionTitle}</span>
                     <span className="mt-1 block text-sm font-semibold text-slate-950">{result.articleTitle}</span>
-                    <span className="mt-0.5 block text-xs leading-5 text-slate-600">{result.summary}</span>
+                    {result.summary && <span className="mt-0.5 block text-xs leading-5 text-slate-600">{result.summary}</span>}
                   </button>
                 </li>
               ))}
@@ -295,7 +295,7 @@ export function DocsPage() {
                     <Icon className="h-4 w-4" />
                   </p>
                   <h2 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">{section.title}</h2>
-                  <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">{section.summary}</p>
+                  {section.summary && <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">{section.summary}</p>}
                 </header>
                 <div className="divide-y divide-slate-200">
                   {orderedArticles.map((article, articleIndex) => <DocsArticle article={article} defaultOpen={articleIndex === 0 && section.id !== "faq"} key={article.id} />)}

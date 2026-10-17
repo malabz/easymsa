@@ -34,10 +34,10 @@ export function ExamplesPage() {
   return (
     <PageContainer className="workflow-page">
       <div className="work-heading">
-        <div><h1>{zh ? "交互式示例" : "Interactive examples"}</h1>
+        <div><h1>{zh ? "示例" : "Examples"}</h1>
         <p>
           {zh
-            ? "使用示例体验比对结果浏览、阶段切换与下载。"
+            ? "打开示例，体验查看与下载。"
             : "Explore alignment results, switch between stages, and download example files."}
         </p></div>
       </div>
@@ -76,11 +76,11 @@ export function ExamplesPage() {
               <p className="text-sm leading-7 text-slate-600">
                 {e.kind === "alignment"
                   ? zh
-                    ? "minipoa 1.0 · Audit 预处理。下载包包含原始 ID 到标准化 ID 的映射。"
-                    : "minipoa 1.0 · Audit preprocessing. The download includes original-to-normalized ID mapping."
+                    ? "minipoa 比对示例"
+                    : "minipoa alignment example"
                   : zh
-                    ? "使用 ReAlign-N 对初始比对进行优化：先局部，后全局。"
-                    : "Refine the initial alignment with ReAlign-N: local then global."}
+                    ? "已有比对的优化示例"
+                    : "Refinement of an existing alignment"}
               </p>
               <ExampleActions example={e} />
             </section>
@@ -89,8 +89,8 @@ export function ExamplesPage() {
       )}
       <p className="work-hint mt-5">
         {zh
-          ? "示例使用合成 DNA，由 minipoa 和 ReAlign-N 计算，随网站版本长期提供。"
-          : "These synthetic DNA examples were computed with minipoa and ReAlign-N and remain available with the website."}
+          ? "示例使用合成 DNA。"
+          : "Examples use synthetic DNA."}
       </p>
     </PageContainer>
   );
@@ -119,7 +119,7 @@ export function ExampleActions({ example, showView = true }: { example: PublicEx
         className={link}
         to={`/${example.kind === "alignment" ? "submit" : "realign"}?example=${example.id}`}
       >
-        {zh ? "使用此数据新建任务" : "Use this data in a new job"}
+        {zh ? "用此示例提交任务" : "Submit this example"}
       </Link>
     </div>
   );
@@ -171,8 +171,8 @@ function ExampleResult({ example }: { example: PublicExample }) {
         <section className="flex flex-wrap gap-x-4 gap-y-1 border-l-2 border-teal-700 pl-3 text-xs leading-6 text-slate-600">
           <p>
             {zh
-              ? "ReAlign-N · 先局部后全局 · 最终采用重比对结果。"
-              : "ReAlign-N · Local → global · Final: refined alignment."}
+              ? "当前显示重比对结果。"
+              : "Showing the refined alignment."}
           </p>
           {example.sameInitialAndRefined && <p>
             {zh

@@ -38,7 +38,6 @@ export function AutoMethodDemo() {
         <ul>{features.map(({key, label, icon: Icon}) => <li key={key} data-active={!complete && current.feature === key}>
           <Icon size={20} aria-hidden="true" /><span>{label}</span>
         </li>)}</ul>
-        <span className="home-decision-note">{copy.featuresNote}</span>
       </div>
       <div className="home-decision-tree">
         <p className="home-decision-label"><GitBranch size={16} aria-hidden="true" />{copy.treeLabel}</p>

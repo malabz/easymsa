@@ -41,7 +41,7 @@ const zh = {
     serviceDegraded: "分析服务受限",
     serviceDegradedDescription: "部分后端工具暂不可用，请稍后再试或选择可用算法。",
     serviceOffline: "无法连接分析服务",
-    serviceOfflineDescription: "当前无法访问后端，浏览本地 MSA 不受影响。",
+    serviceOfflineDescription: "当前无法访问后端，仍可使用 MSA 查看器。",
     queueJobs: "队列 {count} 个任务",
     algorithmNames: {
       auto: "自动选择",
@@ -52,11 +52,11 @@ const zh = {
       fmalign2_mafft: "FMAlign2",
       fmalign2_halign3: "FMAlign2 + HAlign"
     },
-    algorithmAutoResolved: "自动选择（实际：{value}）"
+    algorithmAutoResolved: "自动选择：{value}"
   },
   footer: {
     tagline: "友好的多序列比对 Web 工作台。",
-    note: "前端提交任务到 EasyMSA 后端，并使用任务凭证恢复状态和结果。"
+    note: "提交序列，查看和下载比对结果。"
   },
   home: {
     eyebrow: "面向 DNA / RNA 的在线比对工作台",
@@ -93,11 +93,11 @@ const zh = {
       },
       {
         title: "安全恢复",
-        text: "凭任务 ID 和访问 token 在当前浏览器中恢复状态与下载结果。"
+        text: "凭任务 ID 和访问密钥 在当前浏览器中恢复状态与下载结果。"
       }
     ],
     visualTitle: "小规模 MSA 可视化",
-    visualCaption: "固定序列名、横向滚动、consensus 行和柔和碱基着色。"
+    visualCaption: "固定序列名、横向滚动、共识序列 行和柔和碱基着色。"
   },
   submit: {
     title: "提交任务",
@@ -111,13 +111,13 @@ const zh = {
     advancedSettings: "高级设置",
     loadExample: "载入示例",
     exampleJobName: "血红蛋白示例",
-    selectedAlgorithmUnavailable: "当前选择的比对算法不可用，请在高级设置中改选可用算法。",
+    selectedAlgorithmUnavailable: "当前方法暂不可用，请选择其他方法。",
     algorithm: "比对方法",
     algorithmHint:
       "Auto 根据序列特征自动选择比对方法，也可手动指定。",
-    adaptiveBadge: "推荐 · 自适应",
+    adaptiveBadge: "推荐",
     algorithms: {
-      auto: "自动选择（自适应）",
+      auto: "自动选择",
       minipoa: "minipoa",
       mafft: "MAFFT",
       halign3: "HAlign",
@@ -126,10 +126,10 @@ const zh = {
     },
     algorithmDescriptions: {
       auto: "根据序列特征自动选择合适的比对方法。",
-      minipoa: "快速部分有序比对，适合较大的近缘序列集。",
+      minipoa: "适合相似度较高的大规模序列。",
       mafft: "经典多序列比对，提供多种模式与迭代参数。",
       halign3: "面向超大规模 DNA/RNA 的原生高速比对，内存占用较高。",
-      fmalign2_mafft: "FMAlign2 框架内置 MAFFT 后端，两步式加速比对。",
+      fmalign2_mafft: "用于大规模序列的加速比对。",
       fmalign2_halign3: "FMAlign2 框架内置 HAlign 后端，适合大体量数据。"
     },
     dataFitLabel: "适用数据",
@@ -143,12 +143,12 @@ const zh = {
     },
     algorithmParameters: {
       title: "算法参数",
-      hint: "参数仅应用于当前任务。留空时由服务器按资源情况选择推荐值。",
-      reset: "恢复服务器默认值",
+      hint: "留空使用默认值。",
+      reset: "恢复默认",
       serverDefault: "服务器默认",
       thread: "线程数",
       threadHint: "请输入大于等于 1 的整数；留空时由服务器自动分配。",
-      threadHintWithMax: "可填写 1–{max}；留空时由服务器自动分配。",
+      threadHintWithMax: "1–{max}，留空自动分配。",
       mafftMode: "MAFFT 运行模式",
       mafftModes: {
         auto: "自动（--auto）",
@@ -190,15 +190,15 @@ const zh = {
     pastePlaceholder:
       "请在此粘贴 FASTA 格式序列，例如：\n\n>seq1\nATGCTAGCTAGC\n>seq2\nATGCTAGATAGC",
     pasteStats: "字符数：{chars}，估计序列数：{count}",
-    pasteValid: "FASTA 看起来可以提交。",
-    pasteInvalid: "请提供至少两条包含 header 和序列内容的 FASTA。",
-    pasteHint: "建议不超过 200,000 个字符；更大的数据请使用文件上传。",
+    pasteValid: "格式检查通过",
+    pasteInvalid: "请输入至少两条 FASTA 序列，每条包含名称和序列内容。",
+    pasteHint: "超过 20 万字符，请上传文件。",
     uploadTitle: "选择或拖拽文件",
     uploadDescription:
       "支持 FASTA 文件、FASTA 的 gz/xz/bz2 压缩文件，以及 zip/tar/tar.gz/tar.xz/tar.bz2 压缩包；压缩包内可包含多个 FASTA。",
     uploadBrowse: "选择文件",
     uploadDrop: "将文件拖到此处",
-    uploadValid: "文件可以提交。",
+    uploadValid: "文件已选择",
     uploadEmpty: "尚未选择文件。",
     submitting: "正在提交",
     errors: {
@@ -225,9 +225,9 @@ const zh = {
     logs: "运行日志",
     lookupLink: "前往任务恢复",
     missingJobId: "缺少任务 ID。",
-    missingAccess: "缺少此任务的访问 token。请前往任务恢复页输入任务 ID 与 token，或上传任务凭证 JSON。",
+    missingAccess: "缺少此任务的访问密钥。请前往任务恢复页输入任务 ID 与 访问密钥，或上传恢复文件。",
     loadingStatus: "正在读取任务状态",
-    polling: "状态会每 3 秒自动更新",
+    polling: "进度自动更新",
     updating: "正在更新任务状态",
     logEntries: {
       jobStatus: "任务 {jobId} 当前状态：{status}。",
@@ -255,30 +255,29 @@ const zh = {
       }
     },
     access: {
-      title: "任务凭证",
-      description:
-        "任务 ID 是你提交时填写的任务名称；访问 token 是查看任务状态和下载结果的访问密钥。请同时保存这两项，关闭页面后也可以恢复任务。",
+      title: "保存与恢复任务",
+      description: "保存结果链接，方便稍后查看。手动恢复需要任务 ID 和访问密钥。",
       jobIdLabel: "任务 ID",
       jobIdHelp: "用于识别你提交的任务，允许和其他任务重名。",
-      tokenLabel: "访问 token",
+      tokenLabel: "访问密钥",
       tokenHelp: "用于证明你有权查看和下载这个任务的结果。",
-      restoreLinkLabel: "恢复链接",
-      restoreLinkHelp: "包含任务 ID 和 token，可直接打开等待页继续轮询。",
+      restoreLinkLabel: "结果链接",
+      restoreLinkHelp: "打开链接，继续查看进度与结果。",
       copyJobId: "复制任务 ID",
-      copyToken: "复制 token",
-      showToken: "显示敏感信息",
-      hideToken: "隐藏敏感信息",
-      copyRestoreLink: "复制恢复链接",
-      copyJson: "复制任务凭证 JSON",
-      downloadJson: "下载任务凭证 JSON"
+      copyToken: "复制访问密钥",
+      showToken: "显示密钥",
+      hideToken: "隐藏密钥",
+      copyRestoreLink: "复制结果链接",
+      copyJson: "复制恢复信息",
+      downloadJson: "下载恢复文件"
     },
     preprocessSummary: {
       title: "预处理摘要",
       unavailable: "预处理摘要暂不可用，任务状态轮询不受影响。",
       modeAudit:
-        "Audit 模式会报告可疑序列，但通常不会删除这些序列。",
+        "检查模式会报告可疑序列，但通常不会删除这些序列。",
       modeFilter:
-        "Filter 模式会根据质量规则删除部分不合格序列。",
+        "过滤模式会根据质量规则删除部分不合格序列。",
       rawSequences: "原始序列",
       cleanSequences: "清洗后序列",
       removedSequences: "删除序列",
@@ -286,7 +285,7 @@ const zh = {
       possibleIssues: "可能有问题",
       removalReasons: "已删除原因",
       cleaningActions: "清洗操作",
-      noIssues: "未发现明显 QC 警告。",
+      noIssues: "未发现需要检查的问题。",
       noRemovals: "没有序列被删除。",
       noCleaning: "没有记录额外清洗操作。",
       labels: {
@@ -314,7 +313,7 @@ const zh = {
       preprocessing: "正在预处理",
       aligning: "正在比对",
       realigning: "正在重比对",
-      packaging: "正在打包结果",
+      packaging: "正在准备结果",
       completed: "已完成",
       failed: "失败"
     }
@@ -322,33 +321,33 @@ const zh = {
   lookup: {
     title: "恢复任务",
     subtitle: "从当前浏览器已保存的任务中，继续查看进度和结果。",
-    cachedTitle: "已缓存任务",
+    cachedTitle: "最近任务",
     cachedDescription:
-      "这些任务凭证只保存在当前浏览器。删除缓存不会影响服务器任务。",
+      "记录保存在此浏览器，移除记录不会删除服务器上的任务。",
     cachedEmpty:
-      "当前浏览器还没有保存的任务。可使用下方的任务凭证恢复。",
-    cachedOrder: "最近创建的任务在前",
+      "暂无最近任务，可通过下方方式找回。",
+    cachedOrder: "",
     otherMethods: "其他恢复方式",
-    otherMethodsHint: "任务 ID 与凭证 · JSON 文件",
+    otherMethodsHint: "使用访问密钥或恢复文件",
     importHint: "也可导入之前下载的任务凭证。",
-    importJson: "导入凭证 JSON",
-    cachedRestore: "恢复",
-    cachedDelete: "删除缓存",
+    importJson: "导入恢复文件",
+    cachedRestore: "打开任务",
+    cachedDelete: "移除记录",
     cachedCreatedAt: "创建时间",
-    cachedToken: "token 标识",
+    cachedToken: "访问密钥 标识",
     manualTitle: "手动恢复",
     manualDescription:
-      "提交任务后，等待页会显示任务 ID 和访问 token。如果关闭页面，可以在这里输入两者恢复轮询。",
+      "输入任务 ID 和访问密钥，继续查看进度与结果。",
     jobId: "任务 ID",
-    token: "访问 token",
+    token: "访问密钥",
     restore: "恢复任务",
-    uploadTitle: "上传任务凭证 JSON",
+    uploadTitle: "上传恢复文件",
     uploadDescription:
-      "上传之前下载的 easymsa 任务凭证 JSON，可自动恢复对应任务。",
-    chooseJson: "选择 JSON",
-    missingFields: "请同时提供任务 ID 和访问 token。",
-    invalidJson: "这不是有效的 easymsa 任务凭证 JSON。",
-    readJsonFailed: "无法读取该 JSON 文件。"
+      "上传之前下载的 easymsa 恢复文件，可自动恢复对应任务。",
+    chooseJson: "选择恢复文件",
+    missingFields: "请同时提供任务 ID 和访问密钥。",
+    invalidJson: "恢复文件无效，请选择之前下载的文件。",
+    readJsonFailed: "无法读取恢复文件。"
   },
   viewerPage: {
     title: "MSA 查看器",
@@ -359,8 +358,8 @@ const zh = {
     pastePlaceholder: ">seq1\nATGCTAGC\n>seq2\nATG-TAGC",
     pasteStats: "字符数：{chars}，估计序列数：{count}",
     characterLimit: "上限 {limit} 字符",
-    inputHint: "在浏览器本地载入 FASTA，不设固定规模上限。大文件建议使用文件上传；长度不一致时按原始序列浏览。",
-    viewPasted: "查看粘贴内容",
+    inputHint: "文件在浏览器中读取，无需上传服务器。",
+    viewPasted: "打开比对",
     matrix: "矩阵",
     source: "来源",
     uploadedSource: "上传的 FASTA",
@@ -369,7 +368,7 @@ const zh = {
     sequences: "序列数量",
     longestLength: "最长长度",
     lengthStatus: "长度状态",
-    equalLength: "等长序列输入",
+    equalLength: "序列等长",
     rawSequenceView: "原始序列查看，未执行比对。",
     empty: "上传或粘贴 FASTA 后打开矩阵查看器。",
     readError: "无法读取该 FASTA 文件。",
@@ -377,7 +376,7 @@ const zh = {
     inputErrors: {
       decode: "无法将文件解码为 UTF-8 文本。",
       empty: "FASTA 输入为空。",
-      invalid: "FASTA 格式无效；请检查 header 与序列内容。",
+      invalid: "FASTA 格式无效；请检查 名称行 与序列内容。",
       worker: "本地 FASTA 解析失败，请重试。",
       protocol: "查看器解析组件版本不匹配，请刷新页面后重试。"
     }
@@ -386,7 +385,7 @@ const zh = {
     title: "结果",
     subtitle: "查看任务概览、比对矩阵和输出文件。",
     missingJobId: "缺少任务 ID。",
-    missingAccess: "缺少此任务的访问 token。请前往任务恢复页输入凭证。",
+    missingAccess: "缺少此任务的访问密钥。请前往任务恢复页输入凭证。",
     lookupLink: "前往任务恢复",
     loading: {
       overview: "正在读取结果概览",
@@ -404,7 +403,7 @@ const zh = {
       averageIdentity: "平均一致性",
       gapPercentage: "缺口比例",
       averageConservation: "平均保守性",
-      averageEntropy: "平均归一化 entropy",
+      averageEntropy: "平均归一化熵",
       variableColumns: "变异列数",
       averageCoverage: "平均覆盖率",
       gcContent: "GC 比例",
@@ -412,7 +411,7 @@ const zh = {
     },
     overview: {
       completed: "分析完成",
-      title: "比对结果科研概览",
+      title: "比对结果概览",
       description: "{sequences} 条序列已比对至 {columns} 个位置。这里汇总预处理、比对质量和结果产物。",
       unavailable: "未提供",
       actions: {
@@ -421,7 +420,7 @@ const zh = {
       },
       summary: {
         title: "结果摘要",
-        description: "服务端结果与完整可视化预览的核心质量指标。",
+        description: "比对统计。",
         algorithm: "比对方法"
       },
       preprocess: {
@@ -435,7 +434,7 @@ const zh = {
         strictness: "严格度",
         unavailable: "该任务没有提供完整的预处理计数，已保留可用的配置数据。",
         values: {
-          audit: "审计",
+          audit: "检查模式",
           filter: "过滤",
           strict: "严格",
           normal: "标准",
@@ -443,15 +442,15 @@ const zh = {
         }
       },
       science: {
-        title: "科研分析",
-        description: "基于完整可视化比对在 Worker 中计算，不使用抽样数据。",
+        title: "比对统计",
+        description: "当前比对的统计结果。",
         calculating: "正在后台计算比对质量统计",
-        failed: "比对预览无法加载，因此暂时不能计算科研统计；预处理和输出产物信息仍然有效。",
+        failed: "比对预览无法加载，因此暂时不能计算比对统计；预处理和结果文件信息仍然有效。",
         truncated: "该比对超过预览上限，完整结果可下载。",
-        empty: "当前没有可用于计算科研统计的比对序列。",
+        empty: "当前没有可用于计算比对统计的比对序列。",
         qualityProfile: "全长质量轨道",
-        qualityChartLabel: "比对全长保守性、缺口比例和 Shannon entropy 质量轨道",
-        qualityChartSummary: "该图汇总全部 {columns} 个比对位置的保守性、缺口比例和 Shannon entropy。",
+        qualityChartLabel: "比对全长保守性、缺口比例和 香农熵 质量轨道",
+        qualityChartSummary: "该图汇总全部 {columns} 个比对位置的保守性、缺口比例和 香农熵。",
         baseComposition: "碱基与缺口组成",
         compositionNote: "组成比例以全部比对单元格为分母；GC 比例仅以 A、C、G、T、U 为分母。",
         bases: {
@@ -466,12 +465,12 @@ const zh = {
         }
       },
       outputs: {
-        title: "输出产物",
+        title: "结果文件",
         description: "服务端已生成 {count} 个结果文件，可前往下载页获取归档和比对文件。",
         empty: "服务端没有返回具体的输出文件清单。",
         groups: {
-          preprocess: "预处理产物",
-          alignment: "比对产物",
+          preprocess: "预处理文件",
+          alignment: "比对文件",
           logs: "运行日志"
         }
       }
@@ -490,26 +489,26 @@ const zh = {
       noMatches: "没有匹配的序列。",
       noColumns: "当前列过滤没有匹配的列。",
       calculating: "正在后台计算大规模比对的保守性统计",
-      neutralTitle: "中性只读浏览模式",
-      neutralDescription: "当前输入仍可浏览、搜索名称并下载原始 FASTA，但不会显示核酸专属统计。",
+      neutralTitle: "仅浏览序列",
+      neutralDescription: "可浏览、搜索名称和下载原始 FASTA；此输入不提供核酸统计。",
       stageTwo: {
         advanced: "高级视图与导出",
-        commandBar: "MSA 科研工作区命令栏",
+        commandBar: "MSA 比对工作区命令栏",
         statusChips: "当前查看器与分析状态",
         settings: "工作区设置",
         moreTools: "更多工具",
         closeSettings: "关闭设置",
-        settingsDescription: "配置视图、质量轨道、序列操作和导出；当前分析范围会持续显示在状态栏。",
+        settingsDescription: "",
         settingsGroups: {
           view: "视图",
           location: "定位",
           workspace: "工作区",
-          qc: "质量分析",
+          qc: "质量检查",
           rows: "序列与批量操作",
           export: "导出"
         },
-        qc: "QC",
-        closeQc: "关闭 QC",
+        qc: "质量检查",
+        closeQc: "关闭质量检查",
         resizeDock: "调整侧边面板宽度",
         exportWorkspace: "导出",
         expandWorkspace: "展开工作区",
@@ -522,18 +521,18 @@ const zh = {
         rangeSelectionHint: "关闭时单指用于平移，轻点用于选中；开启后拖动可选择连续区间。",
         rangeStatsFailed: "区间统计计算失败，请重新选择区间后重试。",
         rowActions: "{name} 行操作",
-        consensusTie: "多数 consensus 平票",
+        consensusTie: "多种碱基并列最多",
         analysisScope: "分析范围",
         analysisScopes: {
           all: "全部行",
           visible: "当前可见行",
-          selected: "明确选中行"
+          selected: "已选序列"
         },
         scopeChip: "分析：{scope}（{count} 行）",
         clearScope: "恢复全部行分析",
         referenceChip: "参考：{value}",
-        differenceChip: "参考差异视图",
-        disableDifference: "关闭参考差异视图",
+        differenceChip: "突出与参考序列的差异",
+        disableDifference: "关闭突出与参考序列的差异",
         columnFilterChip: "列过滤：{value}",
         clearColumnFilter: "清除列过滤",
         hiddenChip: "隐藏 {count} 行",
@@ -542,12 +541,12 @@ const zh = {
         rangeChip: "选区：{range}",
         trackChip: "轨道：{value}",
         hideTrack: "关闭 {value} 轨道",
-        motifMatchMode: "Motif 匹配规则",
+        motifMatchMode: "片段匹配方式",
         motifMatchModes: {
           strict: "严格匹配",
-          possible: "可能匹配"
+          possible: "兼容简并碱基"
         },
-        motifStrandMode: "Motif 链方向",
+        motifStrandMode: "搜索方向",
         motifStrandModes: {
           forward: "仅正向链",
           both: "搜索双链"
@@ -564,34 +563,34 @@ const zh = {
         unpinSelected: "取消固定",
         undoHide: "撤销隐藏",
         qcPanel: {
-          title: "序列 QC",
-          reviewOnly: "自动结果仅作为 QC 候选供复核；不会自动删除序列或改变源比对。",
+          title: "质量检查",
+          reviewOnly: "标记待检查序列，不修改原始比对。",
           scope: "分析范围",
           rows: "序列",
           columns: "列",
-          candidates: "QC 候选",
+          candidates: "待检查序列",
           search: "搜索序列名称",
           sort: "序列排序",
           ascending: "升序",
           descending: "降序",
           name: "名称",
-          length: "非 gap 长度",
+          length: "去除缺口后的长度",
           gap: "缺口比例",
           ambiguity: "模糊碱基比例",
           gc: "GC 比例",
           identity: "一致性",
-          comparisonTarget: "QC 比较对象",
+          comparisonTarget: "质量检查 比较对象",
           explicitReference: "明确指定的参考序列",
-          scopeConsensus: "当前分析范围 consensus",
+          scopeConsensus: "当前分析范围的共识序列",
           differences: "差异数",
           review: "复核",
           direction: "方向",
           originalOrder: "原始顺序",
           combinedFilters: "组合行筛选",
-          candidateRules: "QC 候选规则（留空表示关闭）",
+          candidateRules: "待检查序列规则（留空表示关闭）",
           columnRules: "自定义列筛选（修改后自动启用）",
-          minimumLength: "最小非 gap 长度",
-          maximumLength: "最大非 gap 长度",
+          minimumLength: "最小去除缺口后的长度",
+          maximumLength: "最大去除缺口后的长度",
           maximumGap: "最大缺口比例",
           maximumAmbiguity: "最大模糊碱基比例",
           minimumGc: "最小 GC 比例",
@@ -599,8 +598,8 @@ const zh = {
           minimumIdentity: "最小一致性",
           maximumDifferences: "最大差异数",
           minimumConservation: "最小保守性",
-          minimumCoverage: "最小 coverage",
-          maximumEntropy: "最大归一化 entropy",
+          minimumCoverage: "最小覆盖率",
+          maximumEntropy: "最大归一化熵",
           maximumColumnAmbiguity: "最大列模糊碱基比例",
           status: "状态",
           showingRows: "筛选后共有 {total} 行，当前显示前 {shown} 行。",
@@ -608,8 +607,8 @@ const zh = {
           distributionSummary: "{metric}：{count} 个观测；最小 {min}，中位数 {median}，最大 {max}。"
         },
         annotationPanel: {
-          title: "QC 人工标记",
-          reviewOnly: "“排除候选”只是复核标记，不会改变分析范围或源比对。",
+          title: "人工标记",
+          reviewOnly: "此标记不会从分析中移除序列。",
           category: "类别",
           sequenceRow: "序列行",
           all: "全部",
@@ -638,7 +637,7 @@ const zh = {
         alignmentPosition: "比对坐标",
         coordinateMode: "坐标模式",
         differenceMode: "差异视图",
-        consensusMode: "Consensus 模式",
+        consensusMode: "共识序列 模式",
         majorityConsensus: "多数规则",
         iupacConsensus: "IUPAC 模糊码",
         pinSequence: "固定序列",
@@ -646,9 +645,9 @@ const zh = {
         selectSequence: "选择序列",
         selectedRows: "已选 {count} 行",
         exportSelectedRows: "导出选中行",
-        inspector: "分析检查器",
-        openInspector: "打开分析检查器",
-        closeInspector: "关闭分析检查器",
+        inspector: "选区详情",
+        openInspector: "打开选区详情",
+        closeInspector: "关闭选区详情",
         overviewNavigator: "比对概览导航",
         previousMotif: "上一个命中",
         nextMotif: "下一个命中",
@@ -656,8 +655,8 @@ const zh = {
         motifHits: "片段命中列表",
         motifStoredLimit: "共命中 {total} 处；仅保留前 {stored} 处用于导航",
         searchingMotif: "正在搜索片段",
-        canvasOverview: "Canvas 全局模式",
-        domDetail: "DOM 细节模式",
+        canvasOverview: "全局视图",
+        domDetail: "详细视图",
         shortcutHint: "方向键移动；Shift 扩展范围；空格选择序列；P 固定；R 设为参考；H 隐藏。",
         tracks: {
           conservation: "保守性",
@@ -668,7 +667,7 @@ const zh = {
         stats: {
           baseComposition: "碱基组成",
           gcContent: "GC 比例",
-          averageEntropy: "平均归一化 entropy",
+          averageEntropy: "平均归一化熵",
           averageCoverage: "平均覆盖率",
           mismatches: "替换",
           insertions: "插入",
@@ -689,34 +688,34 @@ const zh = {
         }
       },
       scienceV2: {
-        semanticsVersion: "核酸统计语义 nucleotide-v2",
+        semanticsVersion: "指标定义",
         alphabets: {
           dna: "DNA",
           rna: "RNA",
           nucleotide: "混合 T/U 核酸",
           protein: "蛋白质",
-          unknown: "未知字母表"
+          unknown: "未知序列类型"
         },
         alignmentModes: {
           aligned: "等长核酸比对",
           rawUnequal: "非等长原始序列",
-          neutral: "中性只读浏览"
+          neutral: "仅浏览序列"
         },
         warnings: {
-          duplicateHeaders: "检测到重复 FASTA header；各行仍通过内部 rowKey 独立操作。",
+          duplicateHeaders: "检测到重复 FASTA 名称行；各行仍通过内部 rowKey 独立操作。",
           mixedTu: "同时检测到 T 和 U；显示保留原字符，统计时按统一核酸状态归一化。",
           normalizedGaps: "规范化指纹已将句点（.）统一为 gap（-）并统一字符大小写。",
           browserContentHash: "服务器结果只记录浏览器取得内容的规范化比对哈希，不代表服务端原文件哈希。"
         },
-        neutralTitle: "中性只读浏览模式",
-        neutralDescription: "当前输入仍可浏览、搜索名称并下载原始 FASTA，但不会显示核酸专属统计。",
+        neutralTitle: "仅浏览序列",
+        neutralDescription: "可浏览、搜索名称和下载原始 FASTA；此输入不提供核酸统计。",
         neutralReasons: {
-          protein: "检测到蛋白质特异残基；本轮不对蛋白质计算 GC、consensus、entropy、保守性或 Ti/Tv。",
-          unknown: "无法可靠判断序列字母表；为避免误导，已停用核酸专属统计。",
-          rawUnequal: "FASTA 序列长度不一致；尾部空白不会被解释为 gap、deletion 或低覆盖。",
+          protein: "当前为蛋白质序列，仅支持浏览。",
+          unknown: "无法识别序列类型，仅支持浏览。",
+          rawUnequal: "序列长度不一致，当前按原始序列显示。",
           invalidSymbols: "输入含非法字符；请修正输入后再运行核酸分析。"
         },
-        scopeRows: "当前分析范围：{scope}，实际 {count} 行",
+        scopeRows: "分析范围：{scope}，{count} 条序列",
         unavailable: "不可用",
         metrics: {
           coverage: "覆盖率",
@@ -726,7 +725,7 @@ const zh = {
           unknownFraction: "未知字符比例",
           conservation: "保守性",
           entropyBits: "Shannon entropy（bits）",
-          normalizedEntropy: "归一化 entropy",
+          normalizedEntropy: "归一化熵",
           gc: "GC 比例",
           validComparisons: "有效比较数",
           unknownComparisons: "未知比较数",
@@ -737,7 +736,7 @@ const zh = {
           coverage: "覆盖率 = 非 gap 行数 / 总行数。",
           informativeCoverage: "信息性覆盖率 = 确定性 A/C/G/T(U) 行数 / 总行数。",
           conservation: "保守性 = 最多确定性碱基计数 / 确定性碱基总数；无确定性碱基时不可用。",
-          entropy: "Entropy = -Σ p log₂(p)，仅使用确定性碱基；归一化 entropy = entropy / 2。",
+          entropy: "Entropy = -Σ p log₂(p)，仅使用确定性碱基；归一化熵 = 熵 / 2。",
           gc: "GC = (G + C) / (A + C + G + T/U)，模糊码与 gap 不进入分母。",
           variable: "变异列表示至少观察到两种确定性碱基；模糊码本身不制造变异。",
           titv: "Ti/Tv 仅统计双方均为确定性单碱基的替换。",
@@ -745,9 +744,9 @@ const zh = {
           compatibleAmbiguity: "两个合法 IUPAC 集合有交集但不属于相同确定性单碱基时，记为模糊码相容。"
         },
         qc: {
-          candidate: "QC 候选",
+          candidate: "待检查序列",
           needsReview: "需复核",
-          noAutomaticExclusion: "QC 结果不会自动删除序列或改变源比对。",
+          noAutomaticExclusion: "质量检查 结果不会自动删除序列或改变源比对。",
           annotationCategories: {
             note: "备注",
             review: "复核",
@@ -774,15 +773,15 @@ const zh = {
       showAll: "显示全部",
       exportVisible: "导出可见 FASTA",
       exportSelectedRange: "导出选中区间",
-      exportConsensusRange: "导出区间 consensus",
+      exportConsensusRange: "导出区间 共识序列",
       imageExport: {
-        button: "导出 / QC bundle",
-        title: "导出 MSA 与 QC bundle",
-        description: "按统一的行列范围导出 FASTA、SVG 或 PNG；推荐同时保存 manifest 与行列映射。",
-        preset: "一键成品",
+        button: "导出结果",
+        title: "导出比对",
+        description: "导出 FASTA、SVG 或 PNG，可同时保存筛选条件和分析记录。",
+        preset: "导出预设",
         presets: {
-          paper: "论文矢量 SVG",
-          presentation: "汇报高清 PNG",
+          paper: "论文用图（SVG）",
+          presentation: "演示用图（PNG）",
           custom: "自定义",
           paperHint: "可编辑矢量、自动换行，适合论文排版与长期归档。",
           presentationHint: "高对比 3× PNG，适合 PPT、海报和图片分享。"
@@ -817,7 +816,7 @@ const zh = {
         conservation: "当前分析轨道",
         consensus: "consensus",
         legend: "颜色图例",
-        annotations: "注释/feature",
+        annotations: "注释",
         annotationsUnavailable: "暂无数据",
         output: "输出",
         filename: "文件名",
@@ -836,11 +835,11 @@ const zh = {
         progress: "导出进度 {value}%",
         cancelExport: "取消导出",
         bundle: {
-          title: "复现信息",
-          qcBundle: "QC bundle（推荐）",
-          bare: "仅裸文件",
-          qcHint: "ZIP 同时保存主文件、manifest、行映射、列映射和已有 QC 标记。",
-          bareWarning: "仅导出主文件，不包含完整来源、筛选范围和行列映射。"
+          title: "附加分析记录",
+          qcBundle: "文件与分析记录（ZIP）",
+          bare: "仅导出文件",
+          qcHint: "包含结果文件、导出设置、序列与位置对应表及标记。",
+          bareWarning: "仅包含结果文件。选择 ZIP 可同时保存分析记录。"
         },
         export: "导出",
         exporting: "导出中",
@@ -877,7 +876,7 @@ const zh = {
       rangeConservation: "区间平均保守性",
       rangeGap: "区间平均缺口",
       rangeVariableColumns: "区间变异列",
-      rangeConsensus: "区间 consensus",
+      rangeConsensus: "区间 共识序列",
       clearSelection: "清除选择",
       matrixNavigation: "MSA 矩阵，可用方向键移动选中位置。",
       noSelection: "点击任意碱基格查看列组成；Shift+点击选择列区间；选中后可用方向键移动。",
@@ -925,13 +924,13 @@ const zh = {
     title: "使用文档",
     subtitle: "查找输入、提交、结果查看与下载的操作说明。",
     searchLabel: "搜索使用文档",
-    searchPlaceholder: "搜索 FASTA、reference、entropy、导出……",
+    searchPlaceholder: "搜索 FASTA、reference、熵、导出……",
     searchHint: "搜索章节标题、正文、功能名称和常见问题。按 Ctrl/⌘ + K 可随时聚焦。",
     clearSearch: "清除文档搜索",
     searchResultsTitle: "搜索结果",
     searchResultsCount: "找到 {count} 项",
     noSearchResults: "没有找到匹配内容",
-    noSearchResultsHint: "尝试更短的关键词，或使用 FASTA、token、reference、motif 等功能名称。",
+    noSearchResultsHint: "尝试更短的关键词，或使用 FASTA、访问密钥、reference、motif 等功能名称。",
     quickActionsTitle: "快捷入口",
     quickActions: {
       submit: {
@@ -944,7 +943,7 @@ const zh = {
       },
       lookup: {
         title: "恢复任务",
-        description: "使用 ID 和 token 继续"
+        description: "使用 ID 和 访问密钥 继续"
       }
     },
     tocTitle: "文档目录",
@@ -1018,7 +1017,7 @@ const en: typeof zh = {
       fmalign2_mafft: "FMAlign2",
       fmalign2_halign3: "FMAlign2 + HAlign"
     },
-    algorithmAutoResolved: "Auto (actual: {value})"
+    algorithmAutoResolved: "Auto-selected: {value}"
   },
   footer: {
     tagline: "A friendly web workspace for multiple sequence alignment.",
@@ -1059,7 +1058,7 @@ const en: typeof zh = {
       },
       {
         title: "Secure restore",
-        text: "Use a job ID and access token to restore status and downloads in this browser."
+        text: "Use a job ID and access key to restore status and downloads in this browser."
       }
     ],
     visualTitle: "Small-scale MSA visualization",
@@ -1077,13 +1076,13 @@ const en: typeof zh = {
     advancedSettings: "Advanced settings",
     loadExample: "Load example",
     exampleJobName: "Hemoglobin example",
-    selectedAlgorithmUnavailable: "The selected alignment algorithm is unavailable. Choose an available algorithm in advanced settings.",
+    selectedAlgorithmUnavailable: "This method is unavailable. Choose another method.",
     algorithm: "Alignment method",
     algorithmHint:
       "Auto selects an alignment method based on sequence features. You can also choose a method manually.",
-    adaptiveBadge: "Recommended · Adaptive",
+    adaptiveBadge: "Recommended",
     algorithms: {
-      auto: "Auto (adaptive)",
+      auto: "Auto",
       minipoa: "minipoa",
       mafft: "MAFFT",
       halign3: "HAlign",
@@ -1092,10 +1091,10 @@ const en: typeof zh = {
     },
     algorithmDescriptions: {
       auto: "Automatically selects a suitable method based on sequence features.",
-      minipoa: "Fast partial-order alignment for larger, closely related sequence sets.",
+      minipoa: "For large sets of closely related sequences.",
       mafft: "Classic multiple sequence alignment with multiple modes and iteration parameters.",
       halign3: "Native high-speed alignment for ultra-large DNA/RNA datasets; higher memory usage.",
-      fmalign2_mafft: "FMAlign2 framework with a built-in MAFFT backend.",
+      fmalign2_mafft: "Accelerated alignment for large datasets.",
       fmalign2_halign3: "FMAlign2 framework with a built-in HAlign backend for large datasets."
     },
     dataFitLabel: "Data fit",
@@ -1109,12 +1108,12 @@ const en: typeof zh = {
     },
     algorithmParameters: {
       title: "Algorithm parameters",
-      hint: "Parameters apply to this job only. Leave a field blank to let the server choose its recommended value for available resources.",
-      reset: "Restore server defaults",
+      hint: "Leave blank to use defaults.",
+      reset: "Restore defaults",
       serverDefault: "Server default",
       thread: "Threads",
       threadHint: "Enter an integer of 1 or greater, or leave blank for automatic server allocation.",
-      threadHintWithMax: "Enter 1–{max}, or leave blank for automatic server allocation.",
+      threadHintWithMax: "1–{max}; leave blank for automatic allocation.",
       mafftMode: "MAFFT mode",
       mafftModes: {
         auto: "Automatic (--auto)",
@@ -1141,7 +1140,7 @@ const en: typeof zh = {
     },
     preprocessMode: "Preprocess mode",
     preprocessModes: {
-      audit: "Audit",
+      audit: "Check mode",
       filter: "Filter"
     },
     preprocessModeDescriptions: {
@@ -1156,15 +1155,15 @@ const en: typeof zh = {
     pastePlaceholder:
       "Paste FASTA-formatted sequences here, for example:\n\n>seq1\nATGCTAGCTAGC\n>seq2\nATGCTAGATAGC",
     pasteStats: "Characters: {chars}, estimated sequences: {count}",
-    pasteValid: "The FASTA input looks ready to submit.",
-    pasteInvalid: "Provide at least two FASTA records with headers and sequence content.",
-    pasteHint: "Suggested maximum is 200,000 characters; use file upload for larger datasets.",
+    pasteValid: "Format check passed",
+    pasteInvalid: "Enter at least two FASTA records, each with a name and sequence.",
+    pasteHint: "Upload a file for more than 200,000 characters.",
     uploadTitle: "Choose or drop a file",
     uploadDescription:
       "Supports FASTA files, gz/xz/bz2-compressed FASTA files, and zip/tar/tar.gz/tar.xz/tar.bz2 archives containing one or more FASTA files.",
     uploadBrowse: "Choose file",
     uploadDrop: "Drop the file here",
-    uploadValid: "The file is ready to submit.",
+    uploadValid: "File selected",
     uploadEmpty: "No file selected.",
     submitting: "Submitting",
     errors: {
@@ -1191,9 +1190,9 @@ const en: typeof zh = {
     logs: "Run log",
     lookupLink: "Go to task lookup",
     missingJobId: "Missing job ID.",
-    missingAccess: "The access token is missing. Enter the job ID and token on the lookup page, or upload the job access JSON.",
+    missingAccess: "The access key is missing. Enter the job ID and token on the lookup page, or upload the recovery file.",
     loadingStatus: "Loading job status",
-    polling: "Status refreshes automatically every 3 seconds",
+    polling: "Progress updates automatically",
     updating: "Updating job status",
     logEntries: {
       jobStatus: "Job {jobId} is {status}.",
@@ -1221,30 +1220,30 @@ const en: typeof zh = {
       }
     },
     access: {
-      title: "Job access",
+      title: "Save and recover job",
       description:
-        "The job ID is the name you submitted. The access token is the key for viewing status and downloading results. Save both so you can restore this job after closing the page.",
+        "Save the results link to return later. Manual recovery requires the job ID and access key.",
       jobIdLabel: "Job ID",
       jobIdHelp: "Identifies your submitted job. Multiple jobs can share the same ID.",
-      tokenLabel: "Access token",
+      tokenLabel: "Access key",
       tokenHelp: "Proves you can view and download this job's results.",
-      restoreLinkLabel: "Restore link",
-      restoreLinkHelp: "Includes the job ID and token, so it can reopen this waiting page.",
+      restoreLinkLabel: "Results link",
+      restoreLinkHelp: "Open this link to view progress and results.",
       copyJobId: "Copy Job ID",
-      copyToken: "Copy token",
-      showToken: "Show sensitive data",
-      hideToken: "Hide sensitive data",
-      copyRestoreLink: "Copy restore link",
-      copyJson: "Copy job access JSON",
-      downloadJson: "Download job access JSON"
+      copyToken: "Copy access key",
+      showToken: "Show key",
+      hideToken: "Hide key",
+      copyRestoreLink: "Copy results link",
+      copyJson: "Copy recovery details",
+      downloadJson: "Download recovery file"
     },
     preprocessSummary: {
       title: "Preprocess summary",
       unavailable: "Preprocess summary is unavailable; status polling continues normally.",
       modeAudit:
-        "Audit mode reports suspicious sequences, but usually keeps them.",
+        "Check mode reports issues and retains sequences.",
       modeFilter:
-        "Filter mode removes some sequences according to quality rules.",
+        "Filter mode removes sequences that fail the filters.",
       rawSequences: "Raw sequences",
       cleanSequences: "Clean sequences",
       removedSequences: "Removed sequences",
@@ -1280,7 +1279,7 @@ const en: typeof zh = {
       preprocessing: "Preprocessing",
       aligning: "Aligning",
       realigning: "Realigning",
-      packaging: "Packaging results",
+      packaging: "Preparing results",
       completed: "Completed",
       failed: "Failed"
     }
@@ -1288,33 +1287,33 @@ const en: typeof zh = {
   lookup: {
     title: "Restore Job",
     subtitle: "Resume a saved job from this browser to view its progress and results.",
-    cachedTitle: "Cached jobs",
+    cachedTitle: "Recent jobs",
     cachedDescription:
-      "These job credentials are stored only in this browser. Deleting a cache entry does not affect the server job.",
+      "Records are saved in this browser. Removing a record does not delete the server job.",
     cachedEmpty:
-      "No jobs saved in this browser yet. Use your job credentials below to restore one.",
-    cachedOrder: "Newest first",
+      "No recent jobs. Use the options below to find a job.",
+    cachedOrder: "",
     otherMethods: "Other recovery options",
-    otherMethodsHint: "Job ID and token · JSON file",
-    importHint: "Or import a previously downloaded credentials file.",
-    importJson: "Import credentials JSON",
-    cachedRestore: "Restore",
-    cachedDelete: "Delete cache",
+    otherMethodsHint: "Use an access key or recovery file",
+    importHint: "Or import a saved recovery file.",
+    importJson: "Import recovery file",
+    cachedRestore: "Open job",
+    cachedDelete: "Remove record",
     cachedCreatedAt: "Created",
-    cachedToken: "Token",
+    cachedToken: "Access key",
     manualTitle: "Manual restore",
     manualDescription:
-      "After submitting a job, the waiting page shows the job ID and access token. If you close the page, enter both here to resume polling.",
+      "Enter the job ID and access key to view progress and results.",
     jobId: "Job ID",
-    token: "Access token",
+    token: "Access key",
     restore: "Restore Job",
-    uploadTitle: "Upload job access JSON",
+    uploadTitle: "Upload recovery file",
     uploadDescription:
-      "Upload the easymsa job access JSON you downloaded earlier to restore the matching job automatically.",
-    chooseJson: "Choose JSON",
-    missingFields: "Please provide both job ID and access token.",
-    invalidJson: "This is not a valid easymsa job access JSON file.",
-    readJsonFailed: "Could not read this JSON file."
+      "Upload the easymsa recovery file you downloaded earlier to restore the matching job automatically.",
+    chooseJson: "Choose recovery file",
+    missingFields: "Please provide both job ID and access key.",
+    invalidJson: "Invalid recovery file. Select a previously downloaded recovery file.",
+    readJsonFailed: "Unable to read the recovery file."
   },
   viewerPage: {
     title: "MSA Viewer",
@@ -1325,8 +1324,8 @@ const en: typeof zh = {
     pastePlaceholder: ">seq1\nATGCTAGC\n>seq2\nATG-TAGC",
     pasteStats: "Characters: {chars}, estimated sequences: {count}",
     characterLimit: "Limit {limit} characters",
-    inputHint: "Open FASTA locally without a fixed dataset size limit. Use file upload for large datasets. Unequal lengths are displayed as raw sequences.",
-    viewPasted: "View Pasted FASTA",
+    inputHint: "Files are read in your browser without uploading to the server.",
+    viewPasted: "Open alignment",
     matrix: "Matrix",
     source: "Source",
     uploadedSource: "Uploaded FASTA",
@@ -1335,7 +1334,7 @@ const en: typeof zh = {
     sequences: "Sequences",
     longestLength: "Longest length",
     lengthStatus: "Length status",
-    equalLength: "Equal-length sequence input",
+    equalLength: "Equal-length sequences",
     rawSequenceView: "Raw sequence view; no alignment was performed.",
     empty: "Upload or paste FASTA to open the matrix viewer.",
     readError: "Could not read this FASTA file.",
@@ -1352,7 +1351,7 @@ const en: typeof zh = {
     title: "Results",
     subtitle: "Inspect the job overview, alignment matrix, and output files.",
     missingJobId: "Missing job ID.",
-    missingAccess: "The access token is missing. Enter the credentials on the lookup page.",
+    missingAccess: "The access key is missing. Enter the credentials on the lookup page.",
     lookupLink: "Go to task lookup",
     loading: {
       overview: "Loading result overview",
@@ -1378,7 +1377,7 @@ const en: typeof zh = {
     },
     overview: {
       completed: "Analysis complete",
-      title: "Scientific alignment overview",
+      title: "Alignment overview",
       description: "{sequences} sequences were aligned across {columns} positions. This dashboard summarizes preprocessing, alignment quality, and result artifacts.",
       unavailable: "Not provided",
       actions: {
@@ -1401,7 +1400,7 @@ const en: typeof zh = {
         strictness: "Strictness",
         unavailable: "Complete preprocessing counts were not provided for this task; available configuration is still shown.",
         values: {
-          audit: "Audit",
+          audit: "Check mode",
           filter: "Filter",
           strict: "Strict",
           normal: "Normal",
@@ -1409,12 +1408,12 @@ const en: typeof zh = {
         }
       },
       science: {
-        title: "Scientific analysis",
-        description: "Calculated in a Worker from the complete visualized alignment without sampling.",
+        title: "Alignment statistics",
+        description: "Statistics for the current alignment.",
         calculating: "Calculating alignment quality statistics in the background",
-        failed: "The alignment preview could not be loaded, so scientific statistics are unavailable. Preprocessing and output artifact details remain valid.",
+        failed: "The alignment preview could not be loaded, so alignment statistics are unavailable. Preprocessing and output artifact details remain valid.",
         truncated: "This alignment exceeds the preview limits. Download the complete result.",
-        empty: "No alignment sequences are available for scientific statistics.",
+        empty: "No alignment sequences are available for alignment statistics.",
         qualityProfile: "Full-length quality tracks",
         qualityChartLabel: "Full-length conservation, gap fraction, and Shannon entropy tracks",
         qualityChartSummary: "This chart summarizes conservation, gap fraction, and Shannon entropy across all {columns} alignment positions.",
@@ -1456,8 +1455,8 @@ const en: typeof zh = {
       noMatches: "No matching sequences.",
       noColumns: "No columns match the current column filter.",
       calculating: "Calculating conservation statistics in the background",
-      neutralTitle: "Neutral read-only browsing mode",
-      neutralDescription: "You can still browse the input, search names, and download the original FASTA, but nucleotide-specific statistics are hidden.",
+      neutralTitle: "Sequence browsing only",
+      neutralDescription: "Browse sequences, search names and download the original FASTA. Nucleotide statistics are unavailable for this input.",
       stageTwo: {
         advanced: "Advanced view and export",
         commandBar: "MSA research workspace command bar",
@@ -1465,17 +1464,17 @@ const en: typeof zh = {
         settings: "Workspace settings",
         moreTools: "More tools",
         closeSettings: "Close settings",
-        settingsDescription: "Configure the view, QC tracks, row actions, and export. The active analysis scope remains visible in the status bar.",
+        settingsDescription: "",
         settingsGroups: {
           view: "View",
           location: "Locate",
           workspace: "Workspace",
-          qc: "Quality analysis",
+          qc: "Quality check",
           rows: "Sequences and batch actions",
           export: "Export"
         },
-        qc: "QC",
-        closeQc: "Close QC",
+        qc: "Quality check",
+        closeQc: "Close quality check",
         resizeDock: "Resize side panel",
         exportWorkspace: "Export",
         expandWorkspace: "Expand workspace",
@@ -1488,7 +1487,7 @@ const en: typeof zh = {
         rangeSelectionHint: "When off, one finger pans and a tap selects. Turn it on to drag a continuous range.",
         rangeStatsFailed: "Range statistics failed. Select the interval again and retry.",
         rowActions: "{name} row actions",
-        consensusTie: "Majority-consensus tie",
+        consensusTie: "Several bases share the highest count",
         analysisScope: "Analysis scope",
         analysisScopes: {
           all: "All rows",
@@ -1508,12 +1507,12 @@ const en: typeof zh = {
         rangeChip: "Range: {range}",
         trackChip: "Track: {value}",
         hideTrack: "Hide {value} track",
-        motifMatchMode: "Motif match rule",
+        motifMatchMode: "Motif matching",
         motifMatchModes: {
           strict: "Strict match",
           possible: "Possible match"
         },
-        motifStrandMode: "Motif strand",
+        motifStrandMode: "Search direction",
         motifStrandModes: {
           forward: "Forward only",
           both: "Search both strands"
@@ -1530,12 +1529,12 @@ const en: typeof zh = {
         unpinSelected: "Unpin selected",
         undoHide: "Undo hide",
         qcPanel: {
-          title: "Sequence QC",
-          reviewOnly: "Automatic results are QC candidates for review only; rows are never removed and the source alignment is never changed automatically.",
+          title: "Quality check",
+          reviewOnly: "Flag sequences for review without changing the original alignment.",
           scope: "Analysis scope",
           rows: "Rows",
           columns: "Columns",
-          candidates: "QC candidates",
+          candidates: "Sequences to check",
           search: "Search sequence names",
           sort: "Sort rows",
           ascending: "Ascending",
@@ -1554,7 +1553,7 @@ const en: typeof zh = {
           direction: "Direction",
           originalOrder: "Original order",
           combinedFilters: "Combined row filters",
-          candidateRules: "QC candidate rules (blank means disabled)",
+          candidateRules: "Sequence to check rules (blank means disabled)",
           columnRules: "Custom column filters (enabled when edited)",
           minimumLength: "Minimum non-gap length",
           maximumLength: "Maximum non-gap length",
@@ -1574,8 +1573,8 @@ const en: typeof zh = {
           distributionSummary: "{metric}: {count} observations; minimum {min}, median {median}, maximum {max}."
         },
         annotationPanel: {
-          title: "QC annotations",
-          reviewOnly: "‘Exclude candidate’ is a review marker only; it never changes the analysis scope or source alignment.",
+          title: "Annotations",
+          reviewOnly: "This marker does not exclude sequences from analysis.",
           category: "Category",
           sequenceRow: "Sequence row",
           all: "All",
@@ -1612,9 +1611,9 @@ const en: typeof zh = {
         selectSequence: "Select sequence",
         selectedRows: "{count} rows selected",
         exportSelectedRows: "Export selected rows",
-        inspector: "Analysis inspector",
-        openInspector: "Open analysis inspector",
-        closeInspector: "Close analysis inspector",
+        inspector: "Selection details",
+        openInspector: "Open selection details",
+        closeInspector: "Close selection details",
         overviewNavigator: "Alignment overview navigator",
         previousMotif: "Previous match",
         nextMotif: "Next match",
@@ -1622,8 +1621,8 @@ const en: typeof zh = {
         motifHits: "Motif match list",
         motifStoredLimit: "{total} matches found; navigation retains the first {stored}",
         searchingMotif: "Searching motif",
-        canvasOverview: "Canvas overview mode",
-        domDetail: "DOM detail mode",
+        canvasOverview: "Overview",
+        domDetail: "Detailed view",
         shortcutHint: "Arrow keys move; Shift extends the range; Space selects the row; P pins; R sets the reference; H hides the row.",
         tracks: {
           conservation: "Conservation",
@@ -1655,7 +1654,7 @@ const en: typeof zh = {
         }
       },
       scienceV2: {
-        semanticsVersion: "Nucleotide analysis semantics nucleotide-v2",
+        semanticsVersion: "Metric definitions",
         alphabets: {
           dna: "DNA",
           rna: "RNA",
@@ -1666,7 +1665,7 @@ const en: typeof zh = {
         alignmentModes: {
           aligned: "Equal-length nucleotide alignment",
           rawUnequal: "Raw unequal-length sequences",
-          neutral: "Neutral read-only browsing"
+          neutral: "Sequence browsing only"
         },
         warnings: {
           duplicateHeaders: "Duplicate FASTA headers were detected; each row remains independently addressable through its internal rowKey.",
@@ -1674,15 +1673,15 @@ const en: typeof zh = {
           normalizedGaps: "The normalized fingerprint converts dots (.) to gaps (-) and normalizes character case.",
           browserContentHash: "Server results record only the normalized hash of content received by the browser; it is not a hash of the original server file."
         },
-        neutralTitle: "Neutral read-only browsing mode",
-        neutralDescription: "You can still browse the input, search names, and download the original FASTA, but nucleotide-specific statistics are hidden.",
+        neutralTitle: "Sequence browsing only",
+        neutralDescription: "Browse sequences, search names and download the original FASTA. Nucleotide statistics are unavailable for this input.",
         neutralReasons: {
-          protein: "Protein-specific residues were detected. GC, consensus, entropy, conservation, and Ti/Tv are not calculated for proteins in this release.",
-          unknown: "The sequence alphabet cannot be determined reliably. Nucleotide-specific statistics are disabled to avoid misleading results.",
-          rawUnequal: "FASTA rows have unequal lengths. Blank tails are not interpreted as gaps, deletions, or low coverage.",
+          protein: "Protein sequences are available for browsing only.",
+          unknown: "The sequence type is unidentified. Browsing is available; nucleotide statistics are not.",
+          rawUnequal: "Sequences have unequal lengths and are shown as raw sequences.",
           invalidSymbols: "The input contains invalid symbols. Correct the input before running nucleotide analysis."
         },
-        scopeRows: "Analysis scope: {scope}, {count} rows actually used",
+        scopeRows: "Analysis: {scope}, {count} sequences",
         unavailable: "Not available",
         metrics: {
           coverage: "Coverage",
@@ -1711,7 +1710,7 @@ const en: typeof zh = {
           compatibleAmbiguity: "Two valid IUPAC sets with a non-empty intersection, but not the same canonical single base, are compatible ambiguity."
         },
         qc: {
-          candidate: "QC candidate",
+          candidate: "Sequence to check",
           needsReview: "Needs review",
           noAutomaticExclusion: "QC results never delete rows or change the source alignment automatically.",
           annotationCategories: {
@@ -1742,13 +1741,13 @@ const en: typeof zh = {
       exportSelectedRange: "Export selected range",
       exportConsensusRange: "Export range consensus",
       imageExport: {
-        button: "Export / QC bundle",
-        title: "Export MSA and QC bundle",
-        description: "Export FASTA, SVG, or PNG from one exact row/column region; the recommended bundle also preserves the manifest and mappings.",
-        preset: "Ready-to-use output",
+        button: "Export results",
+        title: "Export alignment",
+        description: "Export FASTA, SVG or PNG, with optional filter settings and analysis records.",
+        preset: "Export preset",
         presets: {
-          paper: "Paper vector SVG",
-          presentation: "Presentation HD PNG",
+          paper: "Publication (SVG)",
+          presentation: "Presentation (PNG)",
           custom: "Custom",
           paperHint: "Editable vector output with automatic wrapping for papers and archival.",
           presentationHint: "High-contrast 3× PNG for slides, posters, and sharing."
@@ -1783,7 +1782,7 @@ const en: typeof zh = {
         conservation: "Active analysis tracks",
         consensus: "Consensus",
         legend: "Color legend",
-        annotations: "Annotations/features",
+        annotations: "Annotations",
         annotationsUnavailable: "No data",
         output: "Output",
         filename: "Filename",
@@ -1802,11 +1801,11 @@ const en: typeof zh = {
         progress: "Export progress {value}%",
         cancelExport: "Cancel export",
         bundle: {
-          title: "Reproducibility",
-          qcBundle: "QC bundle (recommended)",
-          bare: "Bare file only",
-          qcHint: "The ZIP includes the primary file, manifest, row map, column map, and available QC annotations.",
-          bareWarning: "A bare primary file omits complete provenance, filter scope, and row/column mappings."
+          title: "Analysis records",
+          qcBundle: "Files and analysis records (ZIP)",
+          bare: "File only",
+          qcHint: "Includes the output, export settings, sequence and position mappings, and annotations.",
+          bareWarning: "Includes the output file only. Choose ZIP to also save analysis records."
         },
         export: "Export",
         exporting: "Exporting",
