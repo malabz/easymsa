@@ -57,41 +57,25 @@ npm run preview
 
 The production build is written to `dist/`.
 
-## GitHub Pages Deployment
+## Production Deployment
 
-This repository is configured for a GitHub Pages project site at:
+The production frontend is hosted at https://easymsa.cn/ and uses
+https://api.easymsa.cn/api. GitHub stores the source code; pushing commits does
+not build or deploy the frontend. GitHub Pages publishing has been removed.
+Frontend CI is available for pull requests and manual runs.
 
-```text
-https://malabz.github.io/easymsa/
+Build a production release with Node.js specified in `.nvmrc`:
+
+```bash
+EASYMSA_BASE_PATH=/ VITE_API_MODE=real VITE_API_BASE_URL=https://api.easymsa.cn/api VITE_ICP_NUMBER=冀ICP备2026045022号 npm run build
 ```
 
-`vite.config.ts` uses:
+Deploy `dist/` to a versioned directory on the production server, verify the
+public example resource hashes, and switch the Nginx frontend link after
+validation. Keep the previous release for rollback. Record the source commit
+in `release.json`.
 
-```ts
-base: "/easymsa/"
-```
-
-If the project is later moved to a user or organization site repository such as `<username>.github.io`, change the Vite base to:
-
-```ts
-base: "/"
-```
-
-The deployment workflow is in `.github/workflows/deploy.yml` and builds the
-static site with Node 20 before deploying `dist/` to GitHub Pages. The GitHub
-Pages build uses:
-
-```yaml
-VITE_API_MODE: real
-VITE_API_BASE_URL: https://api.easymsa.cn/api
-```
-
-Because GitHub Pages is served over HTTPS, the backend API must also use HTTPS.
-The backend server should allow this frontend origin in CORS:
-
-```env
-CORS_ALLOW_ORIGINS=https://malabz.github.io,http://localhost:5173,http://127.0.0.1:5173
-```
+The backend must allow the production frontend origin `https://easymsa.cn`.
 
 ## Backend API
 
