@@ -1,6 +1,6 @@
 # NAR website readiness update — 2026-10-03
 
-This update includes the reviewed website features and concise bilingual copy. Pushes to main run validation and publish GitHub Pages; release.json identifies the deployed commit.
+This update includes the reviewed website features and concise bilingual copy. The production frontend is hosted at https://easymsa.cn/. Pushes do not build or publish the frontend; release.json identifies the deployed commit.
 
 ## Local review
 
@@ -10,7 +10,7 @@ This update includes the reviewed website features and concise bilingual copy. P
 - Privacy, retention and selective browser storage controls: `#/privacy`.
 - Workflows: `#/docs`; method origins and original papers: `#/about`.
 
-The production API remains `https://api.easymsa.cn/api`; production keeps the `/easymsa/` base path. No DNS, server algorithm, queue, database or retention change is included.
+The production API remains `https://api.easymsa.cn/api`; production uses the `/` base path. No DNS, server algorithm, queue, database or retention change is included.
 
 ## Public examples
 
