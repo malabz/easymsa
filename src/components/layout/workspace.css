@@ -245,3 +245,20 @@ header .workspace-navigation { max-width: 1344px; }
   .submission-form .work-grid { grid-template-columns: minmax(0, 1fr); }
   .submission-form .work-settings { padding: 16px 0 0; border-left: 0; border-top: 1px solid #e2e8f0; }
 }
+
+/* Realignment shares the submission workspace and its fixed desktop action bar. */
+.realignment-upload { display: flex; flex-direction: column; min-width: 0; }
+.realignment-upload > div { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.realignment-requirements { padding-top: 6px; }
+.realignment-requirements > p { margin-top: 6px; }
+.realignment-limits { display: flex; flex-wrap: wrap; gap: 12px 24px; margin-top: 12px; padding-block: 10px; border-block: 1px solid #e2e8f0; }
+.realignment-limits dt { color: #64748b; font-size: 12px; }
+.realignment-limits dd { color: #334155; font-size: 14px; font-weight: 500; margin-top: 3px; }
+.realignment-citation { padding-top: 4px; }
+@media (min-width: 1024px) {
+  .realignment-form .realignment-upload { flex: 1; min-height: 180px; }
+  .realignment-form .work-file { justify-content: center; }
+}
+@media (max-width: 1023px) {
+  .realignment-upload .work-file { min-height: 240px; }
+}

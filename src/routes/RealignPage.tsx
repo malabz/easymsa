@@ -3,11 +3,13 @@ import { useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Activity, CheckCircle2, CircleAlert, FileText, Loader2, RefreshCw } from "lucide-react";
+import { Activity, CheckCircle2, CircleAlert, FileText, Loader2, RefreshCw, ChevronDown, SlidersHorizontal, ShieldCheck } from "lucide-react";
 import { PageContainer } from "../components/layout/PageContainer";
 import { Button } from "../components/common/Button";
+import { InputMethodTabs } from "../components/submit/InputMethodTabs";
+import { estimateFastaSequenceCount } from "../lib/utils/fasta";
 import { FileUploadCard } from "../components/submit/FileUploadCard";
-import { RealignmentOptions } from "../components/submit/RealignmentOptions";
+
 import { useLanguage } from "../lib/i18n/useLanguage";
 import { realignText, realignmentError } from "../lib/i18n/realignment";
 import { useServiceHealth } from "../lib/query/useServiceHealth";
@@ -31,28 +33,56 @@ export function RealignPage() {
   const health = useServiceHealth();
   const navigate = useNavigate();
   const [file, setFile] = useDraftState<File | null>("realign:file", null);
+  const [inputMethod, setInputMethod] = useDraftState<"paste" | "upload">("realign:inputMethod", file ? "upload" : "paste");
+  const [pastedFasta, setPastedFasta] = useDraftState("realign:paste", "");
+  const pastedFile = useMemo(() => pastedFasta.trim()
+    ? new File([pastedFasta], "pasted-alignment.fasta", { type: "text/plain" }) : null, [pastedFasta]);
+  const activeFile = inputMethod === "paste" ? pastedFile : file;
+  const sequenceCount = useMemo(() => estimateFastaSequenceCount(pastedFasta), [pastedFasta]);
+  const inputSummary = inputMethod === "paste"
+    ? pastedFile ? (locale === "zh" ? `粘贴 FASTA · ${sequenceCount.toLocaleString()} 条序列` : `Pasted FASTA · ${sequenceCount.toLocaleString()} sequences`) : w.inputPending
+    : file?.name || w.inputPending;
   const [pattern, setPattern] = useDraftState<1 | 2>("realign:pattern", 1);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<{code?: string; message: string} | null>(null);
   const inFlight = useRef(false);
+  const settingsRef = useRef<HTMLDivElement>(null);
   const schema = useMemo(() => taskMetadataSchema(d.submit.errors), [d]);
-  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<Values>({
-    resolver: zodResolver(schema), defaultValues: readDraft("realign:metadata", { jobName: "", email: "" })
+  const { register, handleSubmit, setValue, getValues, watch, formState: { errors } } = useForm<Values>({
+    resolver: zodResolver(schema), shouldFocusError: false, defaultValues: readDraft("realign:metadata", { jobName: "", email: "" })
   });
   useDraftMetadata("realign:metadata", watch);
   const refinement = health.data?.realignment;
   const ready = !health.isPending && !health.isError && health.data?.acceptingJobs !== false && health.data?.coreReady === true && refinement?.enabled === true && refinement.available;
-  const validation = file ? validateInputFile(file, "realignment", locale) : null;
+  const validation = activeFile ? validateInputFile(activeFile, "realignment", locale) : null;
   const statusText = health.isPending ? t.checking : health.isError || !health.data?.coreReady ? t.offline : !refinement?.enabled ? t.disabled : !refinement.available ? t.unavailable : t.ready;
   const StatusIcon = health.isPending ? Loader2 : ready ? Activity : CircleAlert;
 
+  function suggestName(input: HTMLInputElement) {
+    if (getValues("jobName").trim()) return false;
+    const now = new Date();
+    const pad = (v: number) => String(v).padStart(2, "0");
+    const stamp = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+    const name = `${locale === "zh" ? "重比对任务" : "Realignment"}-${stamp}`;
+    setValue("jobName", name, { shouldDirty: true });
+    input.value = name; input.select(); return true;
+  }
+  function focusInvalid(invalid: { jobName?: unknown; email?: unknown }) {
+    const panel = settingsRef.current;
+    const target = panel?.querySelector<HTMLInputElement>(invalid.jobName ? "#jobName" : "#email");
+    if (!panel || !target) return;
+    target.focus({ preventScroll: true });
+    panel.scrollTop += target.getBoundingClientRect().top - panel.getBoundingClientRect().top - 16;
+    if (window.innerWidth < 1024) target.scrollIntoView({ block: "center" });
+  }
+
   async function submit(values: Values) {
-    if (inFlight.current || !ready || !file || !validation?.valid) return;
+    if (inFlight.current || !ready || !activeFile || !validation?.valid) return;
     inFlight.current = true;
     setBusy(true);
     setError(null);
     try {
-      const job = await createRealignmentJob(file, values.jobName, pattern, locale, values.email);
+      const job = await createRealignmentJob(activeFile, values.jobName, pattern, locale, values.email);
       clearDraft("realign"); forgetWork("realign");
       navigate(jobRoute(job.jobId, job.token!));
     } catch (e) {
@@ -64,9 +94,9 @@ export function RealignPage() {
   }
 
   return (
-    <PageContainer className="workflow-page">
+    <PageContainer className="workflow-page submission-page realignment-page">
       <div className="work-heading">
-        <div><h1>{t.title}</h1><p>{t.description}</p></div>
+        <div><h1>{t.title}</h1><p>{locale === "zh" ? "上传或粘贴已有比对，优化比对质量并保留初始结果。" : "Upload or paste an existing alignment to refine it and retain the initial result."}</p></div>
         <div role="status" className="work-status" data-status={ready ? "ready" : "offline"}>
           <StatusIcon size={15} aria-hidden="true" className={health.isPending ? "animate-spin" : ""} />
           <span>{statusText}</span>
@@ -74,45 +104,80 @@ export function RealignPage() {
           {!health.isPending && !ready && <button type="button" aria-label={d.common.retry} onClick={() => health.refetch()}><RefreshCw size={14} /></button>}
         </div>
       </div>
-      <form onSubmit={handleSubmit(submit)} noValidate aria-busy={busy}>
+      <form className="submission-form realignment-form" onSubmit={handleSubmit(submit, focusInvalid)} noValidate aria-busy={busy}>
         <fieldset className="work-grid" disabled={busy}>
           <legend className="sr-only">{t.title}</legend>
           <div className="work-input">
             <div className="work-input-heading">
-              <h2>{t.file}</h2>
-              <ExampleInputLoader kind="realignment" disabled={busy} hasInput={Boolean(file)}
-                onLoad={next => { setFile(next); setPattern(1); setError(null); setExampleLoaded(true); setValue("jobName", "Synthetic DNA refinement"); }} />
+              <h2>{locale === "zh" ? "已比对序列" : "Aligned sequences"}</h2>
+              <ExampleInputLoader kind="realignment" disabled={busy} hasInput={Boolean(activeFile)}
+                onLoad={async next => { if (inputMethod === "paste") setPastedFasta(await next.text()); else setFile(next); setPattern(1); setError(null); setExampleLoaded(true); setValue("jobName", "Synthetic DNA refinement"); }} />
             </div>
-            <FileUploadCard compact variant="realignment" file={file} disabled={busy}
-              onChange={next => { setFile(next); setExampleLoaded(false); setError(null); }} />
-            {exampleLoaded && file && <div className="work-feedback" role="status">
+            <InputMethodTabs value={inputMethod} onChange={method => { setInputMethod(method); setExampleLoaded(false); setError(null); }} />
+            <div id="input-panel-paste" role="tabpanel" aria-labelledby="input-tab-paste" hidden={inputMethod !== "paste"}>
+              <div className="work-paste"><div>
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <label className="work-label" htmlFor="alignedFasta">{locale === "zh" ? "FASTA 序列" : "FASTA sequences"}</label>
+                  <span className="work-hint">{locale === "zh" ? `字符数：${pastedFasta.length.toLocaleString()} · 序列数：${sequenceCount.toLocaleString()}` : `${pastedFasta.length.toLocaleString()} characters · ${sequenceCount.toLocaleString()} sequences`}</span>
+                </div>
+                <textarea id="alignedFasta" className="work-control font-mono" value={pastedFasta} disabled={busy}
+                  aria-describedby="alignedFasta-hint" aria-invalid={Boolean(pastedFile && !validation?.valid && inputMethod === "paste")}
+                  placeholder={">seq1\nACGT-ACGT\n>seq2\nACGTTAC-T"}
+                  onChange={event => { setPastedFasta(event.target.value); setExampleLoaded(false); setError(null); }} />
+                <p id="alignedFasta-hint" className="work-hint mt-2">{locale === "zh" ? "粘贴已比对的 FASTA，保留 gap（-），各序列应等长。" : "Paste aligned FASTA with gaps (-) preserved and equal-length sequences."}</p>
+                {inputMethod === "paste" && pastedFile && validation && !validation.valid && <p role="alert" className="work-error">{locale === "zh" ? "粘贴内容超过上传大小限制，请缩小数据规模。" : "Pasted content exceeds the upload size limit. Please use a smaller dataset."}</p>}
+              </div></div>
+            </div>
+            <div id="input-panel-upload" role="tabpanel" aria-labelledby="input-tab-upload" hidden={inputMethod !== "upload"}>
+              <div className="realignment-upload"><FileUploadCard compact variant="realignment" file={file} disabled={busy}
+                onChange={next => { setFile(next); setExampleLoaded(false); setError(null); }} /></div>
+            </div>
+            {exampleLoaded && activeFile && <div className="work-feedback" role="status">
               <CheckCircle2 size={16} aria-hidden="true" /><span>{w.exampleLoaded}</span>
               <Link to="/examples/realignment-small">{w.exampleResult}</Link>
             </div>}
-            <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
-              <p className="work-hint">{locale === "zh" ? "FASTA / FASTA.gz，序列等长，最大 100 MiB。" : "FASTA / FASTA.gz, equal-length sequences, up to 100 MiB."}</p>
+            <div className="submission-input-notes">
               <Link className="work-link" to="/docs">{w.help}</Link>
+              <p className="submission-audit-note"><ShieldCheck size={14} aria-hidden="true" />{locale === "zh" ? "保留初始比对，可分别查看与下载。" : "Keep both initial and refined results for viewing and download."}</p>
             </div>
           </div>
-          <div className="work-settings" aria-label={w.settings}>
-            <TaskMetadataFields register={register} errors={errors} disabled={busy} />
-            <div className="work-field"><p className="work-label">{d.submit.algorithm}</p><p className="text-sm text-slate-700">ReAlign-N</p></div>
-            <RealignmentOptions limits={refinement} pattern={pattern} onPattern={setPattern} disabled={busy} />
+          <div className="work-settings" aria-label={w.settings} ref={settingsRef}>
+            <h2 className="submission-settings-heading">{w.settings}</h2>
+            <div className="submission-metadata"><TaskMetadataFields register={register} errors={errors} disabled={busy} onSuggestName={suggestName} /></div>
+            <details className="work-parameters group">
+              <summary><span><SlidersHorizontal size={16} />{locale === "zh" ? "高级设置" : "Advanced settings"}</span><ChevronDown size={16} className="group-open:rotate-180" /></summary>
+              <div className="work-field py-3">
+                <label className="work-label" htmlFor="realignPattern">{t.pattern}</label>
+                <select className="work-control" id="realignPattern" value={pattern} disabled={busy} onChange={e => setPattern(Number(e.target.value) as 1 | 2)}>
+                  <option value="1">{t.localFirst}</option><option value="2">{t.globalFirst}</option>
+                </select>
+              </div>
+            </details>
+            <section className="realignment-requirements" aria-label={t.inputRequirements}>
+              <h3 className="work-label">{locale === "zh" ? "输入要求" : "Input requirements"}</h3>
+              <p className="work-hint">{locale === "zh" ? "序列应等长，标识唯一；支持 DNA / RNA 与 gap（-），不支持简并碱基。" : "Equal-length sequences with unique IDs. DNA / RNA and gaps (-) supported; no ambiguous bases."}</p>
+              {refinement ? <dl className="realignment-limits">
+                <div><dt>{locale === "zh" ? "序列" : "Sequences"}</dt><dd>≤ {refinement.maxSequences.toLocaleString()}</dd></div>
+                <div><dt>{locale === "zh" ? "比对列" : "Columns"}</dt><dd>≤ {refinement.maxColumns.toLocaleString()}</dd></div>
+                <div><dt>{locale === "zh" ? "总字符" : "Characters"}</dt><dd>≤ {refinement.maxCells.toLocaleString()}</dd></div>
+              </dl> : <p className="work-hint">{t.limits}</p>}
+              <p className="work-hint realignment-citation">{locale === "zh" ? "方法与引用：" : "Method and citation: "}<a className="work-link" href="https://doi.org/10.1093/nargab/lqae170" target="_blank" rel="noreferrer">ReAlign-N (2024)</a></p>
+            </section>
+            {error && <p role="alert" className="work-error py-2">{error.code ? realignmentError(locale, error.code, error.message) : error.message}</p>}
           </div>
         </fieldset>
-        {error && <p role="alert" className="work-error py-3">{error.code ? realignmentError(locale, error.code, error.message) : error.message}</p>}
         <div className="work-actionbar">
           <div className="work-summary">
             <strong><FileText size={16} />{w.summary}</strong>
-            <span className="max-w-64 truncate" title={file?.name}>{file?.name || w.inputPending}</span>
-            <span>ReAlign-N · {pattern === 1 ? t.localFirst : t.globalFirst}</span>
+            <span className="max-w-64 truncate" title={inputSummary}>{inputSummary}</span>
+            <span>{pattern === 1 ? t.localFirst : t.globalFirst}</span>
           </div>
           <Button type="submit" disabled={busy || !ready || !validation?.valid}>
             {busy && <Loader2 className="h-4 w-4 animate-spin" />}{busy ? t.pending : t.submit}
           </Button>
         </div>
       </form>
-      <p className="work-hint mt-3">{t.citation} <a className="work-link" href="https://doi.org/10.1093/nargab/lqae170" target="_blank" rel="noreferrer">ReAlign-N</a></p>
+
     </PageContainer>
   );
 }
