@@ -1,1 +1,8 @@
 *.cmd text eol=crlf
+# Public example hashes require stable bytes on every platform.
+public/examples/**/*.fasta text eol=lf
+public/examples/**/*.json text eol=lf
+public/examples/**/*.txt text eol=lf
+public/examples/**/*.bin -text
+public/examples/**/*.xz -text
+public/examples/**/*.zip -text
