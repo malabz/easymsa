@@ -6,8 +6,6 @@ import type {
   SequenceAlphabet
 } from "../../lib/types/msa";
 import {
-  MAX_FASTA_CHARACTERS,
-  MAX_LOCAL_FASTA_BYTES,
   parseFasta
 } from "../../lib/utils/fasta";
 import {
@@ -141,15 +139,8 @@ export async function processMsaInputRequest(
     throw new MsaInputError("PROTOCOL_VERSION_MISMATCH");
   }
 
-  const maxCharacters = request.sourceKind === "local-file"
-    ? MAX_LOCAL_FASTA_BYTES
-    : MAX_FASTA_CHARACTERS;
-  if (
-    request.payload.kind === "bytes" &&
-    request.payload.bytes.byteLength > MAX_LOCAL_FASTA_BYTES
-  ) {
-    throw new MsaInputError("INPUT_TOO_LARGE");
-  }
+  // Viewer inputs have no application-level size cap. Submission limits are separate.
+  const maxCharacters = Number.POSITIVE_INFINITY;
 
   const { text, rawBytes } = decodePayload(request.payload);
   const parsed = parseFasta(text, 1, maxCharacters);

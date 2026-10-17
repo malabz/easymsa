@@ -96,11 +96,9 @@ describe("alignment input worker protocol v1", () => {
     expect(result.descriptor?.alignmentSha256).toMatch(/^[0-9a-f]{64}$/);
   });
 
-  it("keeps the paste guard at 200,000 characters while allowing local files up to 1 MiB", async () => {
+  it("accepts pasted inputs above the submission limit", async () => {
     const overPasteLimit = `>row\n${"A".repeat(MAX_FASTA_CHARACTERS)}`;
-    await expect(processMsaInputRequest(textRequest(overPasteLimit))).rejects.toEqual(
-      expect.objectContaining({ code: "INPUT_TOO_LARGE" })
-    );
+    expect((await processMsaInputRequest(textRequest(overPasteLimit))).alignmentLength).toBe(MAX_FASTA_CHARACTERS);
 
     const localText = `>row\n${"A".repeat(MAX_FASTA_CHARACTERS)}`;
     const localBytes = Buffer.from(localText, "utf8");
@@ -122,7 +120,7 @@ describe("alignment input worker protocol v1", () => {
     expect(result.alignmentLength).toBe(MAX_FASTA_CHARACTERS);
   });
 
-  it("rejects local files above the 1 MiB browser preview boundary before decoding", async () => {
+  it("accepts local FASTA files above the former 1 MiB boundary", async () => {
     await expect(processMsaInputRequest({
       protocolVersion: MSA_INPUT_PROTOCOL_VERSION,
       type: "parse",
@@ -130,8 +128,8 @@ describe("alignment input worker protocol v1", () => {
       sourceKind: "local-file",
       sourceName: "too-large.fna",
       declaredAlphabet: "dna",
-      payload: { kind: "bytes", bytes: new ArrayBuffer(MAX_LOCAL_FASTA_BYTES + 1) }
-    })).rejects.toEqual(expect.objectContaining({ code: "INPUT_TOO_LARGE" }));
+      payload: { kind: "bytes", bytes: new TextEncoder().encode(`>row\n${"A".repeat(MAX_LOCAL_FASTA_BYTES + 1)}`).buffer }
+    })).resolves.toMatchObject({ alignmentLength: MAX_LOCAL_FASTA_BYTES + 1 });
   });
 
   it("downgrades a declared nucleotide file containing illegal symbols", async () => {

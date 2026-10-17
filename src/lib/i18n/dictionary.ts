@@ -48,9 +48,9 @@ const zh = {
       minipoa: "minipoa",
       mafft: "MAFFT",
       mafft_fast: "MAFFT 快速",
-      halign3: "HAlign4",
+      halign3: "HAlign",
       fmalign2_mafft: "FMAlign2",
-      fmalign2_halign3: "FMAlign2 + HAlign4"
+      fmalign2_halign3: "FMAlign2 + HAlign"
     },
     algorithmAutoResolved: "自动选择（实际：{value}）"
   },
@@ -120,9 +120,9 @@ const zh = {
       auto: "自动选择（自适应）",
       minipoa: "minipoa",
       mafft: "MAFFT",
-      halign3: "HAlign4",
+      halign3: "HAlign",
       fmalign2_mafft: "FMAlign2",
-      fmalign2_halign3: "FMAlign2 + HAlign4"
+      fmalign2_halign3: "FMAlign2 + HAlign"
     },
     algorithmDescriptions: {
       auto: "根据序列特征自动选择合适的比对方法。",
@@ -130,7 +130,7 @@ const zh = {
       mafft: "经典多序列比对，提供多种模式与迭代参数。",
       halign3: "面向超大规模 DNA/RNA 的原生高速比对，内存占用较高。",
       fmalign2_mafft: "FMAlign2 框架内置 MAFFT 后端，两步式加速比对。",
-      fmalign2_halign3: "FMAlign2 框架内置 HAlign4 后端，适合大体量数据。"
+      fmalign2_halign3: "FMAlign2 框架内置 HAlign 后端，适合大体量数据。"
     },
     dataFitLabel: "适用数据",
     algorithmDataFit: {
@@ -139,7 +139,7 @@ const zh = {
       mafft: "数百至数千条中等长度序列的通用场景。",
       halign3: "超大规模且整体相似的 DNA/RNA，内存占用高。",
       fmalign2_mafft: "大体量数据的加速管线，内置 MAFFT 后端。",
-      fmalign2_halign3: "超大规模且高相似数据的加速管线，内置 HAlign4 后端。"
+      fmalign2_halign3: "超大规模且高相似数据的加速管线，内置 HAlign 后端。"
     },
     algorithmParameters: {
       title: "算法参数",
@@ -359,7 +359,7 @@ const zh = {
     pastePlaceholder: ">seq1\nATGCTAGC\n>seq2\nATG-TAGC",
     pasteStats: "字符数：{chars}，估计序列数：{count}",
     characterLimit: "上限 {limit} 字符",
-    inputHint: "独立查看器只在本地解析 FASTA；本地文件上限为 1 MiB，粘贴文本上限为 200,000 字符。长度不一致时按原始序列浏览，不执行比对。",
+    inputHint: "在浏览器本地载入 FASTA，不设固定规模上限。大文件建议使用文件上传；长度不一致时按原始序列浏览。",
     viewPasted: "查看粘贴内容",
     matrix: "矩阵",
     source: "来源",
@@ -959,7 +959,7 @@ const zh = {
     subtitle: "一个面向 DNA/RNA 多序列比对的 Web 工具。",
     project:
       "提供核酸比对与重比对、任务恢复和交互式结果查看。",
-    version: "当前版本：自适应 Auto、MiniPOA、MAFFT、HAlign4、FMAlign2、可选 ReAlign-N 与交互结果。",
+    version: "当前版本：自适应 Auto、minipoa、MAFFT、HAlign、FMAlign2、可选 ReAlign-N 与交互结果。",
     citation: "引用：发表研究时，建议引用实际使用的方法及软件。",
     contact: "联系：问题与建议请通过 GitHub Issues 提交。",
     repository: "GitHub repository：https://github.com/malabz/easymsa"
@@ -1014,9 +1014,9 @@ const en: typeof zh = {
       minipoa: "minipoa",
       mafft: "MAFFT",
       mafft_fast: "MAFFT fast",
-      halign3: "HAlign4",
+      halign3: "HAlign",
       fmalign2_mafft: "FMAlign2",
-      fmalign2_halign3: "FMAlign2 + HAlign4"
+      fmalign2_halign3: "FMAlign2 + HAlign"
     },
     algorithmAutoResolved: "Auto (actual: {value})"
   },
@@ -1086,9 +1086,9 @@ const en: typeof zh = {
       auto: "Auto (adaptive)",
       minipoa: "minipoa",
       mafft: "MAFFT",
-      halign3: "HAlign4",
+      halign3: "HAlign",
       fmalign2_mafft: "FMAlign2",
-      fmalign2_halign3: "FMAlign2 + HAlign4"
+      fmalign2_halign3: "FMAlign2 + HAlign"
     },
     algorithmDescriptions: {
       auto: "Automatically selects a suitable method based on sequence features.",
@@ -1096,7 +1096,7 @@ const en: typeof zh = {
       mafft: "Classic multiple sequence alignment with multiple modes and iteration parameters.",
       halign3: "Native high-speed alignment for ultra-large DNA/RNA datasets; higher memory usage.",
       fmalign2_mafft: "FMAlign2 framework with a built-in MAFFT backend.",
-      fmalign2_halign3: "FMAlign2 framework with a built-in HAlign4 backend for large datasets."
+      fmalign2_halign3: "FMAlign2 framework with a built-in HAlign backend for large datasets."
     },
     dataFitLabel: "Data fit",
     algorithmDataFit: {
@@ -1105,7 +1105,7 @@ const en: typeof zh = {
       mafft: "General-purpose use with hundreds to thousands of medium-length sequences.",
       halign3: "Ultra-large, globally similar DNA/RNA sets; high memory usage.",
       fmalign2_mafft: "Accelerated pipeline for large datasets with a built-in MAFFT backend.",
-      fmalign2_halign3: "Accelerated pipeline for ultra-large, high-similarity data with a built-in HAlign4 backend."
+      fmalign2_halign3: "Accelerated pipeline for ultra-large, high-similarity data with a built-in HAlign backend."
     },
     algorithmParameters: {
       title: "Algorithm parameters",
@@ -1325,7 +1325,7 @@ const en: typeof zh = {
     pastePlaceholder: ">seq1\nATGCTAGC\n>seq2\nATG-TAGC",
     pasteStats: "Characters: {chars}, estimated sequences: {count}",
     characterLimit: "Limit {limit} characters",
-    inputHint: "The standalone viewer parses FASTA locally: local files are limited to 1 MiB and pasted text to 200,000 characters. Unequal lengths are shown as raw sequences without running alignment.",
+    inputHint: "Open FASTA locally without a fixed dataset size limit. Use file upload for large datasets. Unequal lengths are displayed as raw sequences.",
     viewPasted: "View Pasted FASTA",
     matrix: "Matrix",
     source: "Source",
@@ -1925,7 +1925,7 @@ const en: typeof zh = {
     subtitle: "A web tool for DNA/RNA multiple sequence alignment.",
     project:
       "This project offers server alignment and refinement, task recovery and interactive results.",
-    version: "Current version: adaptive Auto selection, MiniPOA, MAFFT, HAlign4, FMAlign2, optional ReAlign-N and interactive results.",
+    version: "Current version: adaptive Auto selection, minipoa, MAFFT, HAlign, FMAlign2, optional ReAlign-N and interactive results.",
     citation: "Citation: when publishing research, please cite the methods and software used.",
     contact: "Contact: submit questions and suggestions through GitHub Issues.",
     repository: "GitHub repository: https://github.com/malabz/easymsa"

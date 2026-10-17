@@ -37,8 +37,8 @@ export const EXAMPLE_IDS = ["alignment-small", "realignment-small"] as const;
 export function exampleTitle(example: PublicExample, locale: string) {
   return example.kind === "alignment"
     ? locale === "zh"
-      ? "合成 DNA · MiniPOA 比对"
-      : "Synthetic DNA · MiniPOA alignment"
+      ? "合成 DNA · minipoa 比对"
+      : "Synthetic DNA · minipoa alignment"
     : locale === "zh"
       ? "合成 DNA · ReAlign-N 重比对"
       : "Synthetic DNA · ReAlign-N refinement";
@@ -60,7 +60,7 @@ export async function loadExamples(
 ): Promise<PublicExample[]> {
   const r = await fetch(
     `${import.meta.env.BASE_URL}examples/v1/manifest.json`,
-    { signal },
+    { signal, cache: "no-cache" },
   );
   if (!r.ok) throw new Error("EXAMPLE_UNAVAILABLE");
   return z.array(exampleSchema).parse(await r.json());
@@ -72,7 +72,7 @@ export async function verifiedExampleBytes(
 ) {
   const file = example.files[name];
   if (!file) throw new Error("EXAMPLE_UNAVAILABLE");
-  const r = await fetch(exampleUrl(example, name), { signal });
+  const r = await fetch(`${exampleUrl(example, name)}?sha256=${file.sha256}`, { signal });
   if (!r.ok) throw new Error("EXAMPLE_UNAVAILABLE");
   const bytes = await r.arrayBuffer();
   const digest = await crypto.subtle.digest("SHA-256", bytes);

@@ -23,8 +23,8 @@ describe("documentation content", () => {
       const text = flattenDocsText(docsContent[locale]);
       expect(text).toContain("200,000");
       expect(text).toContain("100 MB");
-      expect(text).toContain("1 MB");
-      expect(text).toContain("500");
+      expect(text).toContain(locale === "zh" ? "≤ª…ËπÃ∂®" : "no fixed");
+
       expect(text).toContain("10,000");
       expect(text).toMatch(/IUPAC/i);
       expect(text).toMatch(/reference/i);

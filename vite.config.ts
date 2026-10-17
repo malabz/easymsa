@@ -11,7 +11,7 @@ export default defineConfig(({ command }) => {
   );
   return {
     plugins: [react()],
-    base: "/easymsa/",
+    base: process.env.EASYMSA_BASE_PATH || "/easymsa/",
     customLogger: logger,
     server: localBackend ? {
       host: "127.0.0.1",

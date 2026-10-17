@@ -17,8 +17,6 @@ import { useDraftState, useRememberWork } from "../lib/workspace";
 import { createLocalViewerContext, type MsaViewerContext } from "../features/msa-viewer/viewerContext";
 import {
   estimateFastaSequenceCount,
-  MAX_FASTA_CHARACTERS,
-  MAX_LOCAL_FASTA_BYTES
 } from "../lib/utils/fasta";
 
 export function ViewerPage() {
@@ -40,7 +38,7 @@ export function ViewerPage() {
     () => estimateFastaSequenceCount(pastedFasta),
     [pastedFasta]
   );
-  const pastedTooLarge = pastedCharacterCount > MAX_FASTA_CHARACTERS;
+
   const pasteStatsText = d.viewerPage.pasteStats
     .replace("{chars}", pastedCharacterCount.toLocaleString())
     .replace("{count}", pastedSequenceCount.toLocaleString());
@@ -75,11 +73,7 @@ export function ViewerPage() {
         return;
       }
       const code = inputError instanceof MsaInputError ? inputError.code : null;
-      const message = code === "INPUT_TOO_LARGE"
-        ? request.sourceKind === "local-file"
-          ? d.viewerPage.fileTooLarge.replace("{limit}", MAX_LOCAL_FASTA_BYTES.toLocaleString())
-          : d.viewerPage.characterLimit.replace("{limit}", MAX_FASTA_CHARACTERS.toLocaleString())
-        : code === "INPUT_DECODE_FAILED"
+      const message = code === "INPUT_DECODE_FAILED"
           ? d.viewerPage.inputErrors.decode
           : code === "INPUT_EMPTY"
             ? d.viewerPage.inputErrors.empty
@@ -108,17 +102,6 @@ export function ViewerPage() {
     setExamplePending(false);
     cancelInput();
 
-    if (file.size > MAX_LOCAL_FASTA_BYTES) {
-      setError(
-        d.viewerPage.fileTooLarge.replace(
-          "{limit}",
-          MAX_LOCAL_FASTA_BYTES.toLocaleString()
-        )
-      );
-      setAlignment(null);
-      return;
-    }
-
     try {
       const bytes = await file.arrayBuffer();
       if (generation !== loadGenerationRef.current) {
@@ -143,9 +126,6 @@ export function ViewerPage() {
   }
 
   function handlePasteLoad() {
-    if (pastedFasta.length > MAX_FASTA_CHARACTERS) {
-      return;
-    }
     const generation = loadGenerationRef.current + 1;
     loadGenerationRef.current = generation;
     void loadFasta(generation, d.viewerPage.pastedSource, {
@@ -222,18 +202,13 @@ export function ViewerPage() {
           <div className="text-xs leading-5 text-slate-600">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span>{pasteStatsText}</span>
-              <span className={pastedTooLarge ? "font-medium text-rose-700" : "text-slate-500"}>
-                {d.viewerPage.characterLimit.replace(
-                  "{limit}",
-                  MAX_FASTA_CHARACTERS.toLocaleString()
-                )}
-              </span>
+
             </div>
             <p className="mt-1">{d.viewerPage.inputHint}</p>
           </div>
           <Button
             className="w-full"
-            disabled={!pastedFasta.trim() || pastedTooLarge}
+            disabled={!pastedFasta.trim()}
             onClick={handlePasteLoad}
             type="button"
           >

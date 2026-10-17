@@ -9,15 +9,16 @@ function MethodList({ entries, locale }: { entries: readonly Method[]; locale: "
   const zh = locale === "zh";
   return (
     <div className="divide-y divide-slate-200 border-y border-slate-200">
-      <div className="hidden grid-cols-[minmax(6.5rem,0.7fr)_minmax(12rem,2fr)_minmax(5.5rem,0.6fr)_minmax(13rem,1.65fr)_minmax(7rem,0.9fr)] gap-4 bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 lg:grid">
+      <div className="hidden grid-cols-[minmax(6rem,0.7fr)_minmax(10rem,1.5fr)_minmax(4rem,0.5fr)_minmax(14rem,2fr)_minmax(9rem,1.1fr)_minmax(6rem,0.8fr)] gap-4 bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 lg:grid">
         <span>{zh ? "方法" : "Method"}</span>
         <span>{zh ? "用途与特点" : "Use and input"}</span>
         <span>{zh ? "版本" : "Version"}</span>
         <span>{zh ? "相关论文" : "Publication"}</span>
+        <span>{zh ? "发表期刊" : "Journal"}</span>
         <span>{zh ? "源码 / 文档" : "Source / docs"}</span>
       </div>
       {entries.map((method) => (
-        <article className="grid gap-2 py-4 text-sm lg:grid-cols-[minmax(6.5rem,0.7fr)_minmax(12rem,2fr)_minmax(5.5rem,0.6fr)_minmax(13rem,1.65fr)_minmax(7rem,0.9fr)] lg:gap-4 lg:px-3 lg:py-3" key={method.name}>
+        <article className="grid gap-2 py-4 text-sm lg:grid-cols-[minmax(6rem,0.7fr)_minmax(10rem,1.5fr)_minmax(4rem,0.5fr)_minmax(14rem,2fr)_minmax(9rem,1.1fr)_minmax(6rem,0.8fr)] lg:gap-4 lg:px-3 lg:py-3" key={method.name}>
           <div className="flex flex-wrap items-baseline gap-x-2">
             <h3 className="font-semibold text-slate-950">{method.name}</h3>
             <span className="text-xs text-slate-500 lg:hidden">{method.version}</span>
@@ -25,9 +26,16 @@ function MethodList({ entries, locale }: { entries: readonly Method[]; locale: "
           <p className="leading-5 text-slate-600">{method.role[locale]} · {method.input[locale]}</p>
           <span className="hidden text-slate-600 lg:block">{method.version}</span>
           <div className="flex flex-wrap gap-x-4 gap-y-1 lg:contents">
-            <a className="w-fit break-words font-medium leading-5 text-teal-800 underline underline-offset-2 hover:text-teal-950" href={method.paper} rel="noreferrer" target="_blank" title={method.title}>
-              <span className="lg:hidden">{zh ? "论文" : "Paper"}</span><span className="hidden lg:inline">{method.title}</span>
-            </a>
+            <div className="flex flex-col gap-3 lg:col-span-2">
+              {[...("additionalPapers" in method ? method.additionalPapers : []), { paper: method.paper, title: method.title, journal: method.journal, year: method.year }].sort((a, b) => a.year - b.year).map((publication) => (
+                <div key={publication.paper} className="grid gap-1 lg:grid-cols-[minmax(14rem,2fr)_minmax(9rem,1.1fr)] lg:gap-4">
+                <a className="w-fit break-words font-medium leading-5 text-teal-800 underline underline-offset-2 hover:text-teal-950" href={publication.paper} rel="noreferrer" target="_blank" title={publication.title}>
+                  {publication.title}
+                </a>
+                <p className="text-xs leading-5 text-slate-600 lg:text-sm"><span className="font-medium">{publication.journal}</span><span className="block text-xs text-slate-500">{publication.year}</span></p>
+                </div>
+              ))}
+            </div>
             <a className="w-fit font-medium text-teal-800 underline underline-offset-2 hover:text-teal-950" href={method.source} rel="noreferrer" target="_blank">
               {zh ? "软件与文档" : "Software & docs"}
             </a>
@@ -49,8 +57,8 @@ export function AboutPage() {
         </h1>
         <p className="mt-4 text-base leading-7 text-slate-700">
           {zh
-            ? "EasyMSA 提供核酸多序列比对与可选重比对。MiniPOA、HAlign4、FMAlign2 和 ReAlign-N 来自实验室此前的方法工作；MAFFT 和 Mash 是外部工具。"
-            : "EasyMSA provides nucleotide multiple sequence alignment and optional refinement. MiniPOA, HAlign4, FMAlign2 and ReAlign-N originate from the laboratory’s prior methods work; MAFFT and Mash are external tools."}
+            ? "EasyMSA 提供核酸多序列比对与可选重比对。minipoa、HAlign、FMAlign2 和 ReAlign-N 来自实验室此前的方法工作；MAFFT 和 Mash 是外部工具。"
+            : "EasyMSA provides nucleotide multiple sequence alignment and optional refinement. minipoa, HAlign, FMAlign2 and ReAlign-N originate from the laboratory’s prior methods work; MAFFT and Mash are external tools."}
         </p>
         <p className="mt-2 text-sm leading-7 text-slate-600">
           {zh

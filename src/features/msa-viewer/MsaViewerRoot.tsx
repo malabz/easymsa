@@ -1241,12 +1241,12 @@ export function MsaViewerRoot({
     return <MsaWorkspaceShell sourceBar={sourceBar} commandBar={null} matrixLabel={d.results.viewer.matrixNavigation}
       workspaceLabel="MSA" matrix={      <section className="rounded-xl border border-amber-200 bg-amber-50 p-5" role="status">
         <h2 className="font-semibold text-amber-950">
-          {locale === "zh" ? "该结果超过浏览器预览上限" : "This result exceeds the browser preview limits"}
+          {locale === "zh" ? "服务端未提供完整预览" : "The server did not provide a complete preview"}
         </h2>
         <p className="mt-2 text-sm leading-6 text-amber-900">
           {alignment.message ?? (locale === "zh"
-            ? `结果包含 ${count.toLocaleString()} 条序列、${length.toLocaleString()} 列；当前上限保持为 1 MB、500 条序列和 10,000 列。`
-            : `The result contains ${count.toLocaleString()} rows and ${length.toLocaleString()} columns. Current limits remain 1 MB, 500 rows, and 10,000 columns.`)}
+            ? `结果包含 ${count.toLocaleString()} 条序列、${length.toLocaleString()} 列；可下载完整结果。`
+            : `The result contains ${count.toLocaleString()} rows and ${length.toLocaleString()} columns. Download the complete result to view locally.`)}
         </p>
         {context?.downloads?.fullResultHref ? (
           <a className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg bg-amber-900 px-4 text-sm font-semibold text-white" href={context.downloads.fullResultHref}>

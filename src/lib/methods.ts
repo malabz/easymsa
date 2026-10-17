@@ -1,6 +1,6 @@
 export const methods = [
   {
-    name: "MiniPOA",
+    name: "minipoa",
     version: "1.0",
     origin: "lab",
     role: { en: "Partial order nucleotide alignment", zh: "核酸偏序图比对" },
@@ -9,10 +9,12 @@ export const methods = [
     source: "https://github.com/NCl3-lhd/minipoa",
     licenseUrl: "https://github.com/NCl3-lhd/minipoa/blob/main/LICENSE",
     paper: "https://doi.org/10.1101/gr.282046.126",
+    journal: "Genome Research",
+    year: 2026,
     title: "Fast and memory efficient partial order alignment with minipoa",
   },
   {
-    name: "HAlign4",
+    name: "HAlign",
     version: "2.0.0",
     origin: "lab",
     role: {
@@ -23,7 +25,20 @@ export const methods = [
     license: "MIT",
     source: "https://github.com/malabz/HAlign-4",
     licenseUrl: "https://github.com/malabz/HAlign-4/blob/main/LICENSE",
+    additionalPapers: [{
+      paper: "https://doi.org/10.1093/molbev/msac166",
+    journal: "Molecular Biology and Evolution",
+    year: 2022,
+      title: "HAlign 3: Fast Multiple Alignment of Ultra-Large Numbers of Similar DNA/RNA Sequences",
+    }, {
+      paper: "https://doi.org/10.1186/s13059-025-03881-3",
+      title: "HAlign-G: rapid and low-memory multiple-genome aligner for large-scale closely related genomes",
+      journal: "Genome Biology",
+      year: 2025,
+    }],
     paper: "https://doi.org/10.1093/bioinformatics/btae718",
+    journal: "Bioinformatics",
+    year: 2024,
     title:
       "HAlign 4: a new strategy for rapidly aligning millions of sequences",
   },
@@ -39,7 +54,15 @@ export const methods = [
     license: "Apache-2.0",
     source: "https://github.com/malabz/FMAlign2",
     licenseUrl: "https://github.com/malabz/FMAlign2/blob/master/LICENSE",
+    additionalPapers: [{
+      paper: "https://doi.org/10.1093/bib/bbab519",
+      title: "A novel fast multiple nucleotide sequence alignment method based on FM-index",
+      journal: "Briefings in Bioinformatics",
+      year: 2022,
+    }],
     paper: "https://doi.org/10.1093/bioinformatics/btae014",
+    journal: "Bioinformatics",
+    year: 2024,
     title:
       "FMAlign2: a novel fast multiple nucleotide sequence alignment method for ultralong datasets",
   },
@@ -59,6 +82,8 @@ export const methods = [
     source: "https://github.com/malabz/ReAlign-N",
     licenseUrl: "https://github.com/malabz/ReAlign-N/blob/main/LICENSE",
     paper: "https://doi.org/10.1093/nargab/lqae170",
+    journal: "NAR Genomics and Bioinformatics",
+    year: 2024,
     title:
       "ReAlign-N: an integrated realignment approach for multiple nucleic acid sequence alignment, combining global and local realignments",
   },
@@ -78,6 +103,8 @@ export const methods = [
     source: "https://mafft.cbrc.jp/alignment/software/",
     licenseUrl: "https://mafft.cbrc.jp/alignment/software/license.txt",
     paper: "https://doi.org/10.1093/molbev/mst010",
+    journal: "Molecular Biology and Evolution",
+    year: 2013,
     title:
       "MAFFT multiple sequence alignment software version 7: improvements in performance and usability",
   },
@@ -97,6 +124,8 @@ export const methods = [
     source: "https://github.com/marbl/Mash",
     licenseUrl: "https://github.com/marbl/Mash/blob/v2.3/LICENSE.txt",
     paper: "https://doi.org/10.1186/s13059-016-0997-x",
+    journal: "Genome Biology",
+    year: 2016,
     title: "Mash: fast genome and metagenome distance estimation using MinHash",
   },
 ] as const;

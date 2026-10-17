@@ -282,7 +282,7 @@ export function SubmitJobForm() {
         <div className="work-summary">
           <strong><FileText size={16} />{t.summary}</strong>
           <span className="max-w-64 truncate" title={summaryInput}>{summaryInput}</span>
-          <span>{algorithm === "minipoa" ? "MiniPOA" : d.submit.algorithms[algorithm]}</span>
+          <span>{algorithm === "minipoa" ? "minipoa" : d.submit.algorithms[algorithm]}</span>
         </div>
         <Button disabled={submitting || submissionBlocked} type="submit">
           {submitting && <Loader2 className="h-4 w-4 animate-spin" />}

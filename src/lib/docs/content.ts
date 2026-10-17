@@ -64,7 +64,7 @@ const zh: DocsSection[] = [
       "summary": "选择适合你的流程，从示例开始体验。",
       "keywords": [
             "ReAlign-N",
-            "MiniPOA",
+            "minipoa",
             "example",
             "refinement",
             "重比对",
@@ -186,7 +186,7 @@ const zh: DocsSection[] = [
           { type: "table", headers: ["输入方式", "当前默认上限", "适用场景"], rows: [
             ["粘贴 FASTA", "200,000 字符", "快速提交小型数据，页面会即时检查格式。"],
             ["上传文件", "100 MB", "较大 FASTA、压缩 FASTA 或包含多个 FASTA 的压缩包。"],
-            ["独立查看器", "200,000 字节", "在浏览器本地查看单个文本 FASTA。"]
+            ["独立查看器", "不设固定规模上限", "在浏览器本地查看单个文本 FASTA。"]
           ] },
           { type: "paragraph", text: "上传支持常见 FASTA 扩展名，以及 gz、xz、bz2、zip、tar、tar.gz、tar.xz 和 tar.bz2 等压缩格式。压缩包内可以包含多个 FASTA。" },
           { type: "callout", tone: "info", title: "部署配置可能不同", body: "这些数字是当前 EasyMSA 的默认值。若服务端管理员调整限制，实际响应以提交页面和服务端提示为准。" }
@@ -209,24 +209,24 @@ const zh: DocsSection[] = [
           { type: "list", items: [
             "任务名称用于识别任务，最长 64 个字符，不应包含路径字符或连续的 ..。",
             "通知邮箱可留空；填写后，任务完成或失败时会发送访问链接。",
-            "Auto 是默认的自适应模式：后端根据序列数量、长度与相似性特征，在 minipoa、MAFFT、HAlign4 与 FMAlign2 之间选择，并在任务完成后显示实际使用的方法。",
-            "也可以手动选择 minipoa、MAFFT、HAlign4、FMAlign2；服务不可用的算法会在页面中禁用。"
+            "Auto 是默认的自适应模式：后端根据序列数量、长度与相似性特征，在 minipoa、MAFFT、HAlign 与 FMAlign2 之间选择，并在任务完成后显示实际使用的方法。",
+            "也可以手动选择 minipoa、MAFFT、HAlign、FMAlign2；服务不可用的算法会在页面中禁用。"
           ] },
           { type: "table", headers: ["算法", "建议用途", "适用数据"], rows: [
             ["Auto（自适应）", "后端根据输入特征选择方法，结果页显示实际算法。", "DNA/RNA；约 50–10,000 条序列、长度中位数约 495–10,000。"],
             ["minipoa", "EasyMSA 快速工作流的默认实现。", "中等规模、序列相似度较高的数据集。"],
             ["MAFFT", "需要明确使用 MAFFT 或与既有 MAFFT 流程保持一致时。", "数百至数千条中等长度序列的通用场景。"],
-            ["HAlign4", "面向超大规模 DNA/RNA 的原生高速比对，内存占用较高。", "超大规模且整体相似的 DNA/RNA。"],
+            ["HAlign", "面向超大规模 DNA/RNA 的原生高速比对，内存占用较高。", "超大规模且整体相似的 DNA/RNA。"],
             ["FMAlign2", "FMAlign2 框架内置 MAFFT 后端。", "大体量数据的加速管线。"]
           ] },
           { type: "paragraph", text: "高级设置中的算法参数只影响当前任务。所有输入都会在前端检查，并由后端再次验证；恢复服务器默认值会停止发送自定义 algorithm_params。" },
           { type: "table", headers: ["参数", "适用算法", "含义与范围"], rows: [
-            ["thread", "Auto、minipoa、MAFFT、HAlign4、FMAlign2 系列", "线程数；留空由服务器自动分配，上限以当前服务器资源配置为准。"],
+            ["thread", "Auto、minipoa、MAFFT、HAlign、FMAlign2 系列", "线程数；留空由服务器自动分配，上限以当前服务器资源配置为准。"],
             ["mode", "MAFFT", "auto、fast、localpair 或 globalpair；根据速度与局部/全局同源假设选择。"],
             ["maxiterate", "MAFFT", "最大迭代次数，允许 0–1000；较大的值通常需要更多运行时间。"],
             ["reorder", "MAFFT", "允许 MAFFT 根据比对结果重新排列输出序列。"]
           ] },
-          { type: "callout", tone: "warning", title: "显式选择与资源消耗", body: "手动选择的方法会直接执行，不经过自适应选择器。HAlign4 与 FMAlign2 系列可能显著增加运行时间和内存占用，请根据数据规模选择。" },
+          { type: "callout", tone: "warning", title: "显式选择与资源消耗", body: "手动选择的方法会直接执行，不经过自适应选择器。HAlign 与 FMAlign2 系列可能显著增加运行时间和内存占用，请根据数据规模选择。" },
           { type: "callout", tone: "info", title: "记录可复现参数", body: "自定义参数可能改变运行时间、输出顺序和比对结果。用于科研分析时，请在实验记录中保存算法名称及参数值。" }
         ]
       },
@@ -305,17 +305,10 @@ const zh: DocsSection[] = [
       },
       {
         id: "preview-limits",
-        title: "比对预览边界",
-        summary: "超出安全上限时仍可下载结果，但不在浏览器中推断统计。",
-        keywords: ["1 MB", "500", "10000", "10,000", "truncated", "过大"],
-        blocks: [
-          { type: "table", headers: ["项目", "当前默认上限"], rows: [
-            ["用于浏览器预览的 alignment 文件", "1 MB"],
-            ["可视化序列数量", "500 条"],
-            ["可视化比对长度", "10,000 列"]
-          ] },
-          { type: "callout", tone: "info", title: "超限不会删除结果", body: "页面会停止加载矩阵和基于矩阵的科研统计，避免卡顿或误导；完整服务端产物仍可在下载页获取。" }
-        ]
+        title: "大规模比对浏览",
+        summary: "查看器不设固定文件大小、序列数或列数上限。",
+        keywords: ["large", "大规模"],
+        blocks: [{ type: "paragraph", text: "实际载入能力取决于设备内存与浏览器；大数据可下载后在本地查看。" }]
       },
       {
         id: "downloads",
@@ -449,9 +442,9 @@ const zh: DocsSection[] = [
     keywords: ["FAQ", "问题", "错误", "帮助"],
     articles: [
       { id: "invalid-fasta", title: "为什么粘贴的 FASTA 无法提交？", summary: "通常是记录数不足、header 缺失、序列为空或字符数超限。", keywords: ["无效", "header", "空输入"], collapsible: true, blocks: [{ type: "paragraph", text: "确认至少有两条记录，每条 header 以 > 开头且后面存在非空序列内容；粘贴内容还必须不超过 200,000 字符。" }] },
-      { id: "service-unavailable", title: "为什么提交按钮不可用？", summary: "服务健康检查、队列或选定算法可能暂时不可用。", keywords: ["离线", "队列满", "按钮禁用"], collapsible: true, blocks: [{ type: "paragraph", text: "查看页面顶部的服务状态。后端离线、队列已满或手动选择的算法不可用时，页面会阻止提交；例如 HAlign4 与 FMAlign2 系列在对应工具未安装时会被禁用。可以稍后重试或选择当前可用算法。" }] },
+      { id: "service-unavailable", title: "为什么提交按钮不可用？", summary: "服务健康检查、队列或选定算法可能暂时不可用。", keywords: ["离线", "队列满", "按钮禁用"], collapsible: true, blocks: [{ type: "paragraph", text: "查看页面顶部的服务状态。后端离线、队列已满或手动选择的算法不可用时，页面会阻止提交；例如 HAlign 与 FMAlign2 系列在对应工具未安装时会被禁用。可以稍后重试或选择当前可用算法。" }] },
       { id: "lost-token", title: "丢失 token 后还能恢复任务吗？", summary: "只有任务 ID 不能访问受保护的任务结果。", keywords: ["找回", "凭证丢失", "历史"], collapsible: true, blocks: [{ type: "paragraph", text: "先检查查询任务页的本地历史、通知邮件、保存的恢复链接或访问 JSON。若这些位置都没有 token，前端无法绕过访问控制恢复任务。" }] },
-      { id: "large-preview", title: "为什么结果可以下载但不能显示矩阵？", summary: "alignment 超过文件大小、序列数量或列数预览上限。", keywords: ["过大", "truncated", "空矩阵"], collapsible: true, blocks: [{ type: "paragraph", text: "当 alignment 超过 1 MB、500 条序列或 10,000 列时，浏览器预览会停止，但服务端结果仍可从下载页获取。" }] },
+      { id: "large-preview", title: "为什么结果可以下载但不能显示矩阵？", summary: "可下载文件，在独立查看器中打开。", keywords: ["过大", "truncated", "空矩阵"], collapsible: true, blocks: [{ type: "paragraph", text: "若在线载入失败，可下载完整 FASTA，在独立查看器中打开。" }] },
       { id: "standalone-unaligned", title: "独立查看器会自动执行比对吗？", summary: "不会；它只解析和显示本地 FASTA。", keywords: ["本地查看", "长度不一致", "原始序列"], collapsible: true, blocks: [{ type: "paragraph", text: "等长输入可以作为 MSA 浏览；长度不一致时会按原始序列显示。需要生成新的 alignment 时，请使用提交任务页面。" }] },
       { id: "export-limit", title: "为什么 PNG 导出失败？", summary: "当前范围生成的画布可能超过浏览器安全尺寸。", keywords: ["图片", "尺寸", "SVG"], collapsible: true, blocks: [{ type: "paragraph", text: "缩小导出范围、降低缩放或改用 SVG/FASTA。SVG 更适合需要后续排版的矢量输出，大型完整结果则建议直接下载 FASTA。" }] }
     ]
@@ -471,7 +464,7 @@ const en: DocsSection[] = [
       "summary": "Choose a workflow and try an example.",
       "keywords": [
             "ReAlign-N",
-            "MiniPOA",
+            "minipoa",
             "example",
             "refinement",
             "重比对",
@@ -590,7 +583,7 @@ const en: DocsSection[] = [
           { type: "table", headers: ["Input method", "Current default limit", "Best for"], rows: [
             ["Paste FASTA", "200,000 characters", "Small datasets with immediate format validation."],
             ["File upload", "100 MB", "Large FASTA files, compressed FASTA, or archives containing multiple FASTA files."],
-            ["Standalone viewer", "200,000 bytes", "Opening one text FASTA locally in the browser."]
+            ["Standalone viewer", "No fixed dataset size limit", "Opening one text FASTA locally in the browser."]
           ] },
           { type: "paragraph", text: "Upload supports common FASTA extensions plus gz, xz, bz2, zip, tar, tar.gz, tar.xz, and tar.bz2 archives. An archive may contain multiple FASTA files." },
           { type: "callout", tone: "info", title: "Deployment settings may differ", body: "These numbers are the current EasyMSA defaults. If an administrator changes them, follow the limits shown by the submission page and server response." }
@@ -613,24 +606,24 @@ const en: DocsSection[] = [
           { type: "list", items: [
             "The task name identifies the run, accepts up to 64 characters, and must not contain path characters or two consecutive periods (..).",
             "Notification email is optional; when provided, it receives an access link after completion or failure.",
-            "Auto is the default adaptive mode: the backend chooses among minipoa, MAFFT, HAlign4, and FMAlign2 based on sequence count, length, and similarity, then reports the actual tool after completion.",
-            "minipoa, MAFFT, HAlign4, or FMAlign2 can also be selected explicitly; unavailable algorithms are disabled in the page."
+            "Auto is the default adaptive mode: the backend chooses among minipoa, MAFFT, HAlign, and FMAlign2 based on sequence count, length, and similarity, then reports the actual tool after completion.",
+            "minipoa, MAFFT, HAlign, or FMAlign2 can also be selected explicitly; unavailable algorithms are disabled in the page."
           ] },
           { type: "table", headers: ["Algorithm", "Suggested use", "Data fit"], rows: [
             ["Auto (adaptive)", "Backend selection from input features; the result records the actual method.", "DNA/RNA; roughly 50–10,000 sequences with median length about 495–10,000."],
             ["minipoa", "The default implementation for EasyMSA's fast workflow.", "Medium-sized datasets with closely related sequences."],
             ["MAFFT", "Use when MAFFT is explicitly required or consistency with an existing MAFFT workflow matters.", "General-purpose use with hundreds to thousands of medium-length sequences."],
-            ["HAlign4", "Native high-speed alignment for ultra-large DNA/RNA datasets; higher memory usage.", "Ultra-large, globally similar DNA/RNA sets."],
+            ["HAlign", "Native high-speed alignment for ultra-large DNA/RNA datasets; higher memory usage.", "Ultra-large, globally similar DNA/RNA sets."],
             ["FMAlign2", "FMAlign2 framework with a built-in MAFFT backend.", "Accelerated pipeline for large datasets."]
           ] },
           { type: "paragraph", text: "Algorithm parameters in advanced settings apply to the current task only. Inputs are checked in the browser and validated again by the backend; restoring server defaults stops sending custom algorithm_params." },
           { type: "table", headers: ["Parameter", "Algorithms", "Meaning and range"], rows: [
-            ["thread", "Auto, minipoa, MAFFT, HAlign4, FMAlign2 methods", "Thread count. Leave blank for server allocation; the upper bound follows the current server resource configuration."],
+            ["thread", "Auto, minipoa, MAFFT, HAlign, FMAlign2 methods", "Thread count. Leave blank for server allocation; the upper bound follows the current server resource configuration."],
             ["mode", "MAFFT", "auto, fast, localpair, or globalpair, selected according to speed and local/global homology assumptions."],
             ["maxiterate", "MAFFT", "Maximum iteration count from 0 to 1000; larger values usually require more runtime."],
             ["reorder", "MAFFT", "Allow MAFFT to reorder output sequences based on the alignment result."]
           ] },
-          { type: "callout", tone: "warning", title: "Explicit selection and resource usage", body: "Manually selected methods run directly and bypass the adaptive selector. HAlign4 and the FMAlign2 family can substantially increase runtime and memory; choose according to data size." },
+          { type: "callout", tone: "warning", title: "Explicit selection and resource usage", body: "Manually selected methods run directly and bypass the adaptive selector. HAlign and the FMAlign2 family can substantially increase runtime and memory; choose according to data size." },
           { type: "callout", tone: "info", title: "Record parameters for reproducibility", body: "Custom parameters can change runtime, output order, and the alignment itself. For research use, record the algorithm name and parameter values with the experiment." }
         ]
       },
@@ -709,17 +702,10 @@ const en: DocsSection[] = [
       },
       {
         id: "preview-limits",
-        title: "Alignment preview boundaries",
-        summary: "Results remain downloadable beyond the safe browser limits, but statistics are not inferred.",
-        keywords: ["1 MB", "500", "10000", "10,000", "truncated", "large"],
-        blocks: [
-          { type: "table", headers: ["Item", "Current default limit"], rows: [
-            ["Alignment file used for browser preview", "1 MB"],
-            ["Visualized sequences", "500"],
-            ["Visualized alignment length", "10,000 columns"]
-          ] },
-          { type: "callout", tone: "info", title: "Exceeding a limit does not delete results", body: "The matrix and matrix-derived scientific statistics stop loading to prevent poor performance or misleading output. Complete server artifacts remain available from Downloads." }
-        ]
+        title: "Large alignment browsing",
+        summary: "The viewer has no fixed file-size, sequence-count or column limit.",
+        keywords: ["large", "大规模"],
+        blocks: [{ type: "paragraph", text: "Loading capacity depends on device memory and browser resources. Large results can also be downloaded and opened locally." }]
       },
       {
         id: "downloads",
@@ -853,9 +839,9 @@ const en: DocsSection[] = [
     keywords: ["FAQ", "questions", "errors", "help"],
     articles: [
       { id: "invalid-fasta", title: "Why can I not submit pasted FASTA?", summary: "Common causes are too few records, missing headers, empty sequences, or the character limit.", keywords: ["invalid", "header", "empty"], collapsible: true, blocks: [{ type: "paragraph", text: "Confirm there are at least two records, every header begins with >, sequence content is non-empty, and the pasted input does not exceed 200,000 characters." }] },
-      { id: "service-unavailable", title: "Why is the submit button unavailable?", summary: "Service health, queue capacity, or the selected algorithm may be unavailable.", keywords: ["offline", "queue full", "disabled"], collapsible: true, blocks: [{ type: "paragraph", text: "Check the service status at the top of the page. Submission is blocked when the backend is offline, the queue is full, or a manually selected algorithm is unavailable (for example, HAlign4 and FMAlign2 methods are disabled when their backend tools are not installed). Retry later or select an available algorithm." }] },
+      { id: "service-unavailable", title: "Why is the submit button unavailable?", summary: "Service health, queue capacity, or the selected algorithm may be unavailable.", keywords: ["offline", "queue full", "disabled"], collapsible: true, blocks: [{ type: "paragraph", text: "Check the service status at the top of the page. Submission is blocked when the backend is offline, the queue is full, or a manually selected algorithm is unavailable (for example, HAlign and FMAlign2 methods are disabled when their backend tools are not installed). Retry later or select an available algorithm." }] },
       { id: "lost-token", title: "Can I restore a task after losing its token?", summary: "A task ID alone cannot access a protected task.", keywords: ["recover", "lost credentials", "history"], collapsible: true, blocks: [{ type: "paragraph", text: "Check local history on Task Lookup, notification email, saved restore links, and downloaded access JSON. If none contains the token, the frontend cannot bypass access control to restore the task." }] },
-      { id: "large-preview", title: "Why can I download results but not display the matrix?", summary: "The alignment exceeds the file-size, sequence-count, or column preview boundary.", keywords: ["large", "truncated", "empty matrix"], collapsible: true, blocks: [{ type: "paragraph", text: "Browser preview stops when the alignment exceeds 1 MB, 500 sequences, or 10,000 columns, but server results remain available from Downloads." }] },
+      { id: "large-preview", title: "Why can I download results but not display the matrix?", summary: "Download the alignment and open it in the standalone viewer.", keywords: ["large", "truncated", "empty matrix"], collapsible: true, blocks: [{ type: "paragraph", text: "If loading fails, download the complete FASTA and open it in the standalone viewer." }] },
       { id: "standalone-unaligned", title: "Does the standalone viewer align sequences automatically?", summary: "No. It only parses and displays local FASTA.", keywords: ["local viewer", "unequal length", "raw sequences"], collapsible: true, blocks: [{ type: "paragraph", text: "Equal-length input can be viewed as an MSA; unequal-length input is shown as raw sequences. Use Submit when a new alignment must be generated." }] },
       { id: "export-limit", title: "Why did PNG export fail?", summary: "The current region may produce a canvas beyond browser safety limits.", keywords: ["image", "dimensions", "SVG"], collapsible: true, blocks: [{ type: "paragraph", text: "Reduce the exported region, lower zoom, or use SVG/FASTA. SVG is preferable for vector layout work, while full large results are best downloaded as FASTA." }] }
     ]

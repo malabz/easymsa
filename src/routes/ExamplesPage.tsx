@@ -76,8 +76,8 @@ export function ExamplesPage() {
               <p className="text-sm leading-7 text-slate-600">
                 {e.kind === "alignment"
                   ? zh
-                    ? "MiniPOA 1.0 · Audit 预处理。下载包包含原始 ID 到标准化 ID 的映射。"
-                    : "MiniPOA 1.0 · Audit preprocessing. The download includes original-to-normalized ID mapping."
+                    ? "minipoa 1.0 · Audit 预处理。下载包包含原始 ID 到标准化 ID 的映射。"
+                    : "minipoa 1.0 · Audit preprocessing. The download includes original-to-normalized ID mapping."
                   : zh
                     ? "使用 ReAlign-N 对初始比对进行优化：先局部，后全局。"
                     : "Refine the initial alignment with ReAlign-N: local then global."}
@@ -89,8 +89,8 @@ export function ExamplesPage() {
       )}
       <p className="work-hint mt-5">
         {zh
-          ? "示例使用合成 DNA，由 MiniPOA 和 ReAlign-N 计算，随网站版本长期提供。"
-          : "These synthetic DNA examples were computed with MiniPOA and ReAlign-N and remain available with the website."}
+          ? "示例使用合成 DNA，由 minipoa 和 ReAlign-N 计算，随网站版本长期提供。"
+          : "These synthetic DNA examples were computed with minipoa and ReAlign-N and remain available with the website."}
       </p>
     </PageContainer>
   );

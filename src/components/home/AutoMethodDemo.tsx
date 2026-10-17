@@ -22,7 +22,7 @@ export function AutoMethodDemo() {
     { key: "kmer_diversity", label: copy.treeFeatures[0], icon: Network },
     { key: "length_std", label: copy.treeFeatures[1], icon: Ruler },
     { key: "similarity_std", label: copy.treeFeatures[2], icon: GitCompareArrows },
-    { key: "gc_std", label: copy.treeFeatures[3], icon: Leaf },
+    { key: "sequence_heterogeneity", label: copy.treeFeatures[3], icon: Leaf },
   ];
   return <section ref={root} className="home-section home-smart-match" aria-labelledby="home-methods-title">
     <div className="home-decision-heading">
