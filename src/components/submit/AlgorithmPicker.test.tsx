@@ -48,11 +48,11 @@ describe("AlgorithmPicker", () => {
     renderPicker();
 
     expect(screen.getAllByRole("radio")).toHaveLength(5);
-    expect(screen.getByRole("radio", { name: /Auto \(adaptive\)/ })).toBeChecked();
-    expect(screen.getByText("Recommended · Adaptive")).toBeInTheDocument();
-    expect(screen.getByRole("radio", { name: /^HAlign4/ })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /Auto/ })).toBeChecked();
+    expect(screen.getByText("Recommended")).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /^HAlign/ })).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: /^FMAlign2/ })).toBeInTheDocument();
-    expect(screen.queryByRole("radio", { name: /FMAlign2 \+ HAlign4/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("radio", { name: /FMAlign2 \+ HAlign/ })).not.toBeInTheDocument();
   });
 
   it("shows data-fit guidance and updates it when the method changes", () => {
@@ -60,11 +60,11 @@ describe("AlgorithmPicker", () => {
 
     expect(screen.getByText(/fits the adaptive training domain/i)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("radio", { name: /^HAlign4/ }));
-    expect(screen.getByText(/Ultra-large, globally similar DNA\/RNA/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("radio", { name: /^HAlign/ }));
+    expect(screen.getByText(/Native high-speed alignment for ultra-large DNA\/RNA/i)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("radio", { name: /^FMAlign2/ }));
-    expect(screen.getByText(/Accelerated pipeline for large datasets/i)).toBeInTheDocument();
+    expect(screen.getByText(/Accelerated alignment for large datasets/i)).toBeInTheDocument();
   });
 
   it("disables unavailable methods and reports changes", () => {
@@ -73,7 +73,7 @@ describe("AlgorithmPicker", () => {
       value: "minipoa"
     });
 
-    const halign3 = screen.getByRole("radio", { name: /^HAlign4/ });
+    const halign3 = screen.getByRole("radio", { name: /^HAlign/ });
     expect(halign3).toBeDisabled();
 
     fireEvent.click(screen.getByRole("radio", { name: /^MAFFT/ }));

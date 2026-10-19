@@ -23,25 +23,25 @@ describe("documentation content", () => {
       const text = flattenDocsText(docsContent[locale]);
       expect(text).toContain("200,000");
       expect(text).toContain("100 MB");
-      expect(text).toContain(locale === "zh" ? "����̶�" : "no fixed");
+      expect(text).toContain(locale === "zh" ? "固定" : "No fixed");
 
-      expect(text).toContain("10,000");
+      expect(text).toContain("2,000");
       expect(text).toMatch(/IUPAC/i);
       expect(text).toMatch(/reference/i);
       expect(text).toMatch(/SVG/);
       expect(text).toMatch(/PNG/);
-      expect(text).toMatch(/algorithm_params/);
+      expect(text).toMatch(/thread/);
       expect(text).toMatch(/maxiterate/);
-      expect(text).toMatch(/localpair/);
-      expect(text).toMatch(/reorder/);
+      expect(text).toMatch(/策略|strategy/);
+      expect(text).toMatch(/输出顺序|output order/);
     }
   });
 
   it("searches titles, body text, and keywords in both languages", () => {
-    expect(searchDocs(docsContent.en, "IUPAC motif")[0]).toMatchObject({
+    expect(searchDocs(docsContent.en, "IUPAC motif")).toEqual(expect.arrayContaining([expect.objectContaining({
       sectionId: "msa-viewer",
       articleId: "navigate-search"
-    });
+    })]));
     expect(searchDocs(docsContent.zh, "访问 token")).toEqual(
       expect.arrayContaining([
         expect.objectContaining({

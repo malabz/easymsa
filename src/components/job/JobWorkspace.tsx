@@ -52,7 +52,7 @@ export function JobWorkspace({ job, token, credentials, recoveryActions, polling
     </div>
     <dl className="job-detail-strip">
       <div><dt>{d.job.jobId}</dt><dd>{job.jobId}</dd></div>
-      <div><dt>{d.common.createdAt}</dt><dd>{job.createdAt ? formatDateTime(job.createdAt) : "—"}</dd></div>
+      <div><dt>{d.common.createdAt}</dt><dd>{job.createdAt ? formatDateTime(job.createdAt, locale) : "—"}</dd></div>
       <div><dt>{d.job.algorithmLabel}</dt><dd>{method}</dd></div>
     </dl>
     <section className="job-preprocess">

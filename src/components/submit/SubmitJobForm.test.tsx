@@ -49,7 +49,7 @@ it('submits thread and preprocessing selections and updates the input hint', asy
   show(); const user = await validInput(); await user.click(screen.getByText('Advanced settings'));
   await user.selectOptions(screen.getByLabelText('Preprocess mode'), 'filter');
   await user.type(screen.getByRole('spinbutton', { name: /Thread/ }), '2');
-  expect(screen.getByText('Input sequences are checked and flagged sequences are filtered.')).toBeVisible();
+  expect(screen.getByText('Sequences that fail the filters will be removed.')).toBeVisible();
   await user.click(submitButton());
   await waitFor(() => expect(mocks.submit).toHaveBeenCalledWith(expect.objectContaining({ preprocessMode: 'filter', algorithmParams: { thread: 2 } })));
 });

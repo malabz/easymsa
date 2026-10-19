@@ -273,7 +273,7 @@ export function JobStatusCard({ job, token }: { job: JobDetail; token: string })
         <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
           <span className="inline-flex items-center gap-2">
             <Clock3 className="h-4 w-4 text-teal-700" />
-            {d.common.createdAt}: {job.createdAt ? formatDateTime(job.createdAt) : "-"}
+            {d.common.createdAt}: {job.createdAt ? formatDateTime(job.createdAt, locale) : "-"}
           </span>
           {job.status === "completed" ? (
             <ButtonLink to={resultsRoute(job.jobId, token)}>

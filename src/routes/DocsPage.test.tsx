@@ -98,7 +98,7 @@ describe("DocsPage", () => {
     expect(search).toHaveFocus();
 
     fireEvent.change(search, { target: { value: "IUPAC motif" } });
-    const result = screen.getByRole("button", { name: /Navigation, zoom, and search/ });
+    const result = screen.getByRole("button", { name: /Navigation and search/ });
     expect(result).toBeInTheDocument();
     fireEvent.click(result);
     expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "smooth", block: "start" });
@@ -136,10 +136,10 @@ describe("DocsPage", () => {
     renderDocs();
     fireEvent.change(
       screen.getByRole("searchbox", { name: "Search documentation" }),
-      { target: { value: "lost token" } }
+      { target: { value: "lost credentials" } }
     );
     fireEvent.click(
-      screen.getByRole("button", { name: /Can I restore a task after losing its token/ })
+      screen.getByRole("button", { name: /How do I find a job/ })
     );
 
     expect(document.querySelector("#docs-article-lost-token")).toHaveAttribute("open");

@@ -35,7 +35,7 @@ describe("JobWorkspace", () => {
     view();
     fireEvent.click(screen.getByRole("button", { name: "Show credentials" }));
     expect(screen.getByText("Credential details")).toBeVisible();
-    const credentials = screen.getByRole("tab", { name: "Job access" });
+    const credentials = screen.getByRole("tab", { name: "Save and recover job" });
     expect(credentials).toHaveAttribute("aria-selected", "true");
     fireEvent.keyDown(credentials, { key: "Home" });
     expect(screen.getByRole("tab", { name: "Run log" })).toHaveFocus();
@@ -54,5 +54,14 @@ describe("JobWorkspace", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Preprocessing details" }));
     expect(screen.getByRole("tabpanel")).toHaveTextContent(/unavailable/i);
     expect(screen.queryByText(/No obvious QC warnings/i)).not.toBeInTheDocument();
+  });
+  it.each(["en", "zh"] as const)("localizes independent realignment logs in %s", locale => {
+    localStorage.setItem("easymsa.locale", locale);
+    view({ ...job, status: "completed", algorithm: { name: "realign_n" },
+      preprocess: { ...job.preprocess, status: "not_applicable", mode: "audit" } });
+    const log = screen.getByRole("tabpanel");
+    expect(log).toHaveTextContent(locale === "en" ? "No preprocessing needed" : "无需预处理");
+    expect(log).toHaveTextContent(locale === "en" ? "Realignment" : "重比对");
+    expect(log).not.toHaveTextContent(/realign_n|not_applicable|\(audit\)|\(Check mode\)|\(检查模式\)/);
   });
 });

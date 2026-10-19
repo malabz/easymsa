@@ -92,7 +92,7 @@ test("responsive settings and Inspector use the intended sheet or side dock", as
   await page.keyboard.press("ArrowRight");
   await expect(page.locator("[data-msa-workspace-dock]")).toHaveCount(0);
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await page.getByRole("button", {name:"Analysis inspector",exact:true}).click();
+  await page.getByRole("button", {name:"Selection details",exact:true}).click();
   if (compact) {
     const inspector = page.getByRole("dialog", { name: "Analyze" });
     await expect(inspector).toHaveAttribute("data-overlay-variant", "bottom-sheet");
@@ -100,7 +100,7 @@ test("responsive settings and Inspector use the intended sheet or side dock", as
   } else {
     const dock = page.locator("[data-msa-workspace-dock='true']");
     await expect(dock).toBeVisible();
-    await expect(dock).toHaveAttribute("aria-label", "Analysis inspector");
+    await expect(dock).toHaveAttribute("aria-label", "Selection details");
     const separator = dock.getByRole("separator");
     await expect(separator).toBeVisible();
     const widthBefore = (await locatorBox(dock)).width;

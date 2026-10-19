@@ -18,14 +18,14 @@ beforeEach(()=>{
 });
 afterEach(cleanup);
 const show=()=>render(<MemoryRouter><LanguageProvider><RealignPage/></LanguageProvider></MemoryRouter>);
-async function validForm(){const user=userEvent.setup();await user.type(screen.getByLabelText('Job name'),'valid-task');await user.upload(screen.getByLabelText('Aligned FASTA file'),aligned);return user;}
+async function validForm(){const user=userEvent.setup();await user.type(screen.getByLabelText('Job name'),'valid-task');await user.click(screen.getByRole('tab',{name:'Upload File'}));await user.upload(screen.getByLabelText('Aligned FASTA file'),aligned);return user;}
 it('shows dedicated queue, default order, and waits for a valid file',()=>{
  show();expect(screen.getByRole('button',{name:'Submit Realignment'})).toBeDisabled();expect(screen.queryByText(/99/)).not.toBeInTheDocument();
  expect(screen.getByText(/2 jobs/)).toBeVisible();
  expect(document.querySelector('#realignPattern')).toHaveValue('1');expect(document.querySelector('details')).not.toHaveAttribute('open');
 });
 it('validates task name and email before posting',async()=>{
- show();const user=userEvent.setup();await user.upload(screen.getByLabelText('Aligned FASTA file'),aligned);
+ show();const user=userEvent.setup();await user.click(screen.getByRole('tab',{name:'Upload File'}));await user.upload(screen.getByLabelText('Aligned FASTA file'),aligned);
  await user.type(screen.getByLabelText(/Notification email|Email/i),'bad-email');await user.click(screen.getByRole('button',{name:'Submit Realignment'}));
  expect(await screen.findAllByRole('alert')).toHaveLength(2);expect(mocks.submit).not.toHaveBeenCalled();
 });

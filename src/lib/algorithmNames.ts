@@ -1,4 +1,5 @@
 export type DisplayAlgorithmName =
+  | "realign_n"
   | "auto"
   | "minipoa"
   | "mafft"

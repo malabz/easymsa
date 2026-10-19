@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { gunzipSync } from "node:zlib";
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+
 import { openExport } from "./helpers/viewer-fixtures";
 test.beforeEach(async ({ page }) => {
   // UI regression uses a deterministic service state and never submits to production.
@@ -62,6 +63,7 @@ test("examples remain interactive offline and do not create private credentials"
     );
   }
   await page.getByRole("button", { name: "Back to results", exact: true }).click();
+
   await page.getByRole("tab", { name: "Downloads", exact: true }).click();
   const download = page.waitForEvent("download");
   await page
@@ -93,7 +95,7 @@ test("home, docs, license, invalid examples and responsive navigation", async ({
   await expect(
     page.getByRole("link", { name: "Download example input", exact: true }),
   ).toBeVisible();
-  await page.goto("#/license");
+  await page.getByRole("navigation", { name: "Site information" }).getByRole("link", { name: "Licenses", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Free for all uses" }),
   ).toBeVisible();
@@ -101,9 +103,10 @@ test("home, docs, license, invalid examples and responsive navigation", async ({
     "Copyright (c) 2026 EasyMSA contributors",
   );
   await page.goto("#/docs");
-  await page.getByRole("heading", { name: "Three complete workflows", exact: true }).click();
+
+  await expect(page.getByRole("heading", { name: "Start an alignment in three steps", exact: true })).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "Alignment input and interactive result" }),
+    page.getByRole("link", { name: "Alignment example", exact: true }),
   ).toBeVisible();
   await page.goto("#/examples/no-such-example");
   await expect(
@@ -239,7 +242,9 @@ test("public viewer search, keyboard selection, export and stage isolation", asy
     "1-2",
   );
   await page.getByLabel("Search and navigation type").selectOption("motif");
+
   await page.getByLabel("Search DNA/RNA motif").fill("ACGT");
+
   await page.getByLabel("Search and navigation type").selectOption("name");
   await expect
     .poll(() =>
@@ -250,7 +255,7 @@ test("public viewer search, keyboard selection, export and stage isolation", asy
     .toContain("seq_000001");
   await openExport(page);
   await expect(
-    page.getByRole("dialog", { name: "Export MSA and QC bundle" }),
+    page.getByRole("dialog", { name: "Export alignment" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "FASTA", exact: true }).click();
   const promise = page.waitForEvent("download");
@@ -262,7 +267,7 @@ test("public viewer search, keyboard selection, export and stage isolation", asy
   expect(manifest.source.kind).toBe("example");
   expect(manifest.source.jobId).toBeNull();
   expect(JSON.stringify(manifest)).not.toContain("token=");
-  await expect(page.getByRole("dialog", { name: "Export MSA and QC bundle" })).toHaveCount(0);
+  await expect(page.getByRole("dialog", { name: "Export alignment" })).toHaveCount(0);
   await page
     .getByLabel("Result version", { exact: true })
     .selectOption("refined");
@@ -287,17 +292,16 @@ test("public viewer search, keyboard selection, export and stage isolation", asy
 test("corrupt example assets are rejected without fabricated fallback", async ({
   page,
 }) => {
-  await page.route("**/examples/v1/alignment-small/final.alignment.json", (r) =>
+  await page.route("**/examples/v1/alignment-small/final.alignment.json*", (r) =>
     r.fulfill({ status: 200, contentType: "application/json", body: "{}" }),
   );
-  await page.goto("#/examples/alignment-small");
+  await page.goto("#/examples/alignment-small?tab=alignment");
   await expect(
     page.getByText(
       "Example files are missing or failed integrity verification. Please reload.",
       { exact: true },
     ),
   ).toBeVisible();
-  await page.getByRole("tab", { name: "Alignment", exact: true }).click();
   await expect(page.locator('[data-msa-status="true"]')).toHaveCount(0);
 });
 test("Chinese content and offline submission availability", async ({
@@ -317,7 +321,7 @@ test("Chinese content and offline submission availability", async ({
   ).toBeVisible();
   await page.goto("#/examples");
   await expect(
-    page.getByRole("heading", { name: "交互式示例", exact: true }),
+    page.getByRole("heading", { name: "示例", exact: true }),
   ).toBeVisible();
   await page.route("**/*", (r) =>
     new URL(r.request().url()).pathname.startsWith("/api/")
@@ -352,7 +356,7 @@ test("concise bilingual copy preserves guidance and mobile layout", async ({ pag
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     }
     await page.goto("#/examples/realignment-small");
-    await expect(page.getByText(locale === "zh" ? "ReAlign-N · 先局部后全局 · 最终采用重比对结果。" : "ReAlign-N · Local → global · Final: refined alignment.", { exact: true })).toBeVisible();
+    await expect(page.getByText(locale === "zh" ? "当前显示重比对结果。" : "Showing the refined alignment.", { exact: true })).toBeVisible();
     if (testInfo.project.name === "chromium") {
       await expect(page.getByRole("status").filter({ hasText: /Calculating alignment quality statistics|正在.*统计/ })).toHaveCount(0);
       await page.screenshot({ path: testInfo.outputPath(`examples-${locale}-mobile.png`), fullPage: true });

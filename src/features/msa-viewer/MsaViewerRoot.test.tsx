@@ -114,7 +114,7 @@ describe("MsaViewerRoot scientific workspace", () => {
       alignmentMode: "neutral"
     }));
 
-    expect(screen.getByText(/Protein-specific residues were detected/)).not.toBeNull();
+    expect(screen.getByText(/Protein sequences are available for browsing only/)).not.toBeNull();
     expect(screen.queryByRole("combobox", { name: "Analysis scope" })).toBeNull();
     expect(screen.queryByRole("searchbox", { name: "Search DNA\/RNA motif" })).toBeNull();
     expect(screen.queryByText("Set as reference")).toBeNull();
@@ -123,12 +123,12 @@ describe("MsaViewerRoot scientific workspace", () => {
     fireEvent.click(screen.getByRole("button", { name: "Workspace settings" }));
     expect(screen.queryByText("Export consensus range")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Close panel" }));
-    fireEvent.click(screen.getByRole("button", { name: "Analysis inspector" }));
+    fireEvent.click(screen.getByRole("button", { name: "Selection details" }));
     expect(screen.queryByText(/^Reference$/)).toBeNull();
     expect(screen.queryByText("Reference position")).toBeNull();
 
     fireEvent.click(document.querySelector(".msa-export-menu summary")!);
-    fireEvent.click(screen.getByRole("button", { name: "Export / QC bundle" }));
+    fireEvent.click(screen.getByRole("button", { name: "Export results" }));
     expect(screen.queryByLabelText("Active analysis tracks")).toBeNull();
     expect(screen.queryByLabelText("Consensus")).toBeNull();
     expect(screen.queryByLabelText("Color legend")).toBeNull();
@@ -167,7 +167,7 @@ describe("MsaViewerRoot scientific workspace", () => {
     ]));
     await waitFor(() => expect(document.querySelector('[data-msa-row-key="easymsa:consensus"][data-msa-sequence-cell]')).not.toBeNull());
     fireEvent.click(document.querySelector('[data-msa-row-key="easymsa:consensus"][data-msa-sequence-cell]')!);
-    fireEvent.click(screen.getByRole("button", { name: "Analysis inspector" }));
+    fireEvent.click(screen.getByRole("button", { name: "Selection details" }));
     const inspector = document.querySelector('[data-msa-workspace-dock]');
     expect(inspector?.textContent).toContain("Consensus");
     expect(inspector?.textContent).not.toContain("easymsa:consensus");

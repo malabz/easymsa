@@ -9,12 +9,13 @@
     "preview": "vite preview",
     "test": "vitest run src --environment jsdom",
     "test:e2e": "playwright test",
-    "test:e2e:routes": "playwright test e2e/routes.smoke.spec.ts",
-    "test:e2e:core": "playwright test e2e/viewer.core.spec.ts",
+    "test:e2e:routes": "playwright test --project=routes-*",
+    "test:e2e:core": "playwright test --project=core-*",
     "test:e2e:mobile": "playwright test e2e/viewer.mobile.spec.ts e2e/viewer.touch.spec.ts",
     "test:e2e:layout": "playwright test e2e/viewer.layout.spec.ts",
     "test:e2e:visual": "playwright test e2e/viewer.visual.spec.ts",
-    "test:e2e:a11y": "playwright test e2e/viewer.a11y.spec.ts"
+    "test:e2e:a11y": "playwright test e2e/viewer.a11y.spec.ts",
+    "test:e2e:prepare": "node scripts/build-production.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "3.10.0",
@@ -53,5 +54,13 @@
   "license": "MIT",
   "engines": {
     "node": ">=24.21.0 <25"
+  },
+  "overrides": {
+    "tailwindcss": {
+      "postcss-selector-parser": "7.1.6",
+      "postcss-nested": {
+        "postcss-selector-parser": "7.1.6"
+      }
+    }
   }
 }

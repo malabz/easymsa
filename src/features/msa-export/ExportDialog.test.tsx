@@ -93,8 +93,8 @@ describe("ExportDialog localization", () => {
       </LanguageProvider>
     );
 
-    expect(screen.getByRole("button", { name: /论文矢量 SVG/ }).getAttribute("aria-pressed")).toBe("true");
-    fireEvent.click(screen.getByRole("button", { name: /汇报高清 PNG/ }));
+    expect(screen.getByRole("button", { name: /论文用图/ }).getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(screen.getByRole("button", { name: /演示用图/ }));
     expect(onUpdate).toHaveBeenCalledWith(expect.objectContaining({
       preset: "presentation-png",
       format: "png",

@@ -77,7 +77,7 @@ test("reference, scope, QC annotation, restoration, motif, minimap, and bundle e
   });
   await page.reload({waitUntil:"domcontentloaded"});
   await page.getByLabel("Paste FASTA").fill(fasta);
-  await page.getByRole("button", { name: "View pasted FASTA" }).click();
+  await page.getByRole("button", { name: "Open alignment" }).click();
   await expect(page.locator("[data-msa-status='true']"))
     .toHaveAttribute("data-msa-analysis-status", "ready");
   await expect(page.getByText(/Reference: reference/)).toBeVisible();
@@ -134,10 +134,10 @@ test("the matrix is one real Tab stop with complete keyboard and overlay focus b
   await expect(page.locator("[data-msa-settings-dock='true']")).toBeVisible();
   await page.getByRole("button", { name: "Close panel" }).click();
 
-  const exportButton = page.getByRole("button", { name: "Export / QC bundle" });
+  const exportButton = page.getByRole("button", { name: "Export results" });
   await page.locator(".msa-export-menu > summary").click();
   await exportButton.click();
-  const exportDialog = page.getByRole("dialog", { name: "Export MSA and QC bundle" });
+  const exportDialog = page.getByRole("dialog", { name: "Export alignment" });
   await expect(exportDialog).toBeVisible();
   for (let index = 0; index < 20; index += 1) await page.keyboard.press("Tab");
   expect(await exportDialog.evaluate((surface) => surface.contains(document.activeElement))).toBe(true);

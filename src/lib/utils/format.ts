@@ -13,11 +13,13 @@ export function formatPercent(value: number): string {
   return `${value.toFixed(1)}%`;
 }
 
-export function formatDateTime(value: string): string {
-  return new Intl.DateTimeFormat(undefined, {
+export function formatDateTime(value: string, locale: "zh" | "en" = "en"): string {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "—";
+  return new Intl.DateTimeFormat(locale === "zh" ? "zh-CN" : "en-GB", {
     dateStyle: "medium",
     timeStyle: "short"
-  }).format(new Date(value));
+  }).format(date);
 }
 
 export function assetUrl(path: string): string {

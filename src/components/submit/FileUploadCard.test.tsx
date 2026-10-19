@@ -28,7 +28,7 @@ describe('upload validation',()=>{
 it('selects, replaces, removes, and reselects the same file',async()=>{
  render(<Harness/>);const user=userEvent.setup();const input=screen.getByLabelText('Aligned FASTA file') as HTMLInputElement;
  const selected=file();await user.upload(input,selected);
- expect(screen.getByText(selected.name)).toBeVisible();expect(screen.getByText(/Sequence content will be validated/)).toBeVisible();
+ expect(screen.getByText(selected.name)).toBeVisible();expect(screen.getByText('File selected')).toBeVisible();
  expect(input.value).toBe('');await user.upload(input,file('replaced.fa'));expect(screen.queryByText('aligned.fa')).not.toBeInTheDocument();
  await user.click(screen.getByRole('button',{name:'Remove'}));expect(screen.getByText('No file selected.')).toBeVisible();
  await user.upload(input,selected);expect(screen.getByText(selected.name)).toBeVisible();

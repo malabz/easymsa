@@ -5,6 +5,8 @@ import {
   CardHeader,
   CardTitle
 } from "../common/Card";
+import { jobValue, jobMessage } from "../../lib/jobPresentation";
+import { formatDateTime } from "../../lib/utils/format";
 import { displayAlgorithmLabel } from "../../lib/algorithmNames";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import type { ApiFailure, JobDetail } from "../../lib/types/job";
@@ -122,26 +124,27 @@ function buildEvents(
   job: JobDetail,
   labels: LogLabels,
   algorithmLabels: Record<string, string>,
-  algorithmAutoResolvedTemplate: string
+  algorithmAutoResolvedTemplate: string,
+  locale: "zh" | "en"
 ) {
   const events: LogEntry[] = [
     {
       text: fillTemplate(labels.jobStatus, {
         jobId: job.jobId,
-        status: job.status
+        status: jobValue(job.status, locale)
       })
     }
   ];
 
   if (job.message) {
-    events.push({ text: job.message });
+    events.push({ text: jobMessage(job.message, locale) ?? job.message, technical: jobMessage(job.message, locale) === null });
   }
 
   if (job.preprocess.status) {
     events.push({
       text: fillTemplate(labels.preprocess, {
-        status: job.preprocess.status,
-        mode: job.preprocess.mode ? ` (${job.preprocess.mode})` : ""
+        status: jobValue(job.preprocess.status, locale),
+        mode: job.preprocess.mode && job.preprocess.status !== "not_applicable" ? ` (${jobValue(job.preprocess.mode, locale)})` : ""
       })
     });
   }
@@ -161,6 +164,7 @@ function buildEvents(
 
   if (job.failure) {
     events.push({
+      technical: true,
       text: fillTemplate(labels.failure, {
         code: job.failure.code,
         message: job.failure.message
@@ -180,7 +184,7 @@ function buildEvents(
   if (job.expiresAt) {
     events.push({
       text: fillTemplate(labels.expiresAt, {
-        value: new Date(job.expiresAt).toLocaleString()
+        value: formatDateTime(job.expiresAt, locale)
       })
     });
   }
@@ -194,7 +198,8 @@ export function JobLogPanel({ job, compact = false }: { job: JobDetail; compact?
     job,
     d.job.logEntries,
     d.common.algorithmNames,
-    d.common.algorithmAutoResolved
+    d.common.algorithmAutoResolved,
+    locale
   );
 
   const logs = allLogs.filter(log => !log.technical);

@@ -188,7 +188,7 @@ function ExampleResult({ example }: { example: PublicExample }) {
           </a>
         </section>
       )}
-      {error && <ErrorState message={error} />}
+      {error && tab !== "alignment" && <ErrorState message={error} />}
       <ResultPanels
         sourceName={exampleTitle(example, locale)} headerActions={stageControl} onRetry={() => query.refetch()}
         key={`${example.id}:${example.version}:${stage}`}

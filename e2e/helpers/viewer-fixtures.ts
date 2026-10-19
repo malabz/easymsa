@@ -138,7 +138,7 @@ export async function disableVisualNoise(page: Page) {
 export async function loadViewerFasta(page: Page, fasta: string) {
   await page.goto("./#/viewer");
   await page.getByLabel("Paste FASTA").fill(fasta);
-  await page.getByRole("button", { name: "View pasted FASTA" }).click();
+  await page.getByRole("button", { name: "Open alignment" }).click();
   const status = page.locator("[data-msa-status='true']");
   await expect(status).toBeVisible();
   await expect(status).toHaveAttribute("data-msa-analysis-status", /ready|disabled/);
@@ -219,10 +219,10 @@ export async function openMotif(page: Page) {
 }
 export async function openExport(page: Page) {
   await page.locator(".msa-export-menu > summary").click();
-  await page.getByRole("button", { name: "Export / QC bundle" }).click();
+  await page.getByRole("button", { name: "Export results" }).click();
 }
 export async function openQc(page: Page) {
-  await page.getByRole("button", { name: "Analysis inspector", exact: true }).click();
+  await page.getByRole("button", { name: "Selection details", exact: true }).click();
   await page.getByRole("tab", { name: "Quality checks", exact: true }).click();
 }
 export async function chooseScope(page: Page, scope: string) {

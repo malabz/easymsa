@@ -1,3 +1,6 @@
+const port = process.env.EASYMSA_E2E_PORT ?? "4178";
+const baseURL = `http://127.0.0.1:${port}/`;
+
 import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
@@ -20,7 +23,7 @@ export default defineConfig({
     ? [["github"], ["html", { outputFolder: "playwright-report", open: "never" }]]
     : [["list"], ["html", { outputFolder: "playwright-report", open: "never" }]],
   use: {
-    baseURL: "http://127.0.0.1:4173/easymsa/",
+    baseURL,
     colorScheme: "light",
     locale: "en-US",
     screenshot: "only-on-failure",
@@ -141,8 +144,9 @@ export default defineConfig({
     }
   ],
   webServer: {
-    command: "npm run preview -- --host 127.0.0.1 --port 4173",
+    command: `"${process.execPath}" node_modules/vite/bin/vite.js preview --host 127.0.0.1 --port ${port} --strictPort`,
+    env: { EASYMSA_BASE_PATH: "/" },
     reuseExistingServer: !process.env.CI,
-    url: "http://127.0.0.1:4173/easymsa/"
+    url: baseURL
   }
 });

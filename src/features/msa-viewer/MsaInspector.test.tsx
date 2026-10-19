@@ -80,7 +80,7 @@ describe("MsaInspector accessibility", () => {
       </LanguageProvider>
     );
 
-    expect(container.textContent).toMatch(/Neutral read-only browsing mode|中性只读浏览模式/);
+    expect(container.textContent).toMatch(/Sequence browsing only|仅浏览序列/);
     expect(container.textContent).not.toContain("reference");
     expect(container.textContent).not.toMatch(/Reference position|参考位置/);
     expect(container.textContent).not.toMatch(/Base composition|碱基组成/);

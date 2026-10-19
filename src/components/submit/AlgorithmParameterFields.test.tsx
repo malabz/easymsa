@@ -56,7 +56,7 @@ describe("AlgorithmParameterFields", () => {
     expect(threads).toHaveValue(4);
     expect(iterations).toHaveValue(500);
 
-    fireEvent.click(screen.getByRole("button", { name: "Restore server defaults" }));
+    fireEvent.click(screen.getByRole("button", { name: "Restore defaults" }));
     expect(threads).toHaveValue(null);
     expect(iterations).toHaveValue(null);
 

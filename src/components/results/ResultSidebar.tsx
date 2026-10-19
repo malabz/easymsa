@@ -31,7 +31,7 @@ export function ResultSidebar({ title, summary, job, links, note, onDownload }: 
       <div><dt>{t.mode}</dt><dd>{p?.mode ? values[p.mode.toLowerCase()] ?? p.mode : "—"}</dd></div>
       <div><dt>{t.strictness}</dt><dd>{p?.strictness ? values[p.strictness.toLowerCase()] ?? p.strictness : "—"}</dd></div>
       {job && <div><dt>{d.job.jobId}</dt><dd>{job.jobId}</dd></div>}
-      {job?.createdAt && <div><dt>{d.common.createdAt}</dt><dd>{formatDateTime(job.createdAt)}</dd></div>}
+      {job?.createdAt && <div><dt>{d.common.createdAt}</dt><dd>{formatDateTime(job.createdAt, locale)}</dd></div>}
     </dl>
     <section className="workspace-side-section">
       <h3>{t.title}</h3>
@@ -43,7 +43,7 @@ export function ResultSidebar({ title, summary, job, links, note, onDownload }: 
     {links && <div className="workspace-side-links">{links}</div>}
     {note && <div className="workspace-side-note">{note}</div>}
     <div className="workspace-side-bottom">
-      {job?.expiresAt && <p className="workspace-side-note">{locale === "zh" ? "结果保留至 " : "Available until "}{formatDateTime(job.expiresAt)}</p>}
+      {job?.expiresAt && <p className="workspace-side-note">{locale === "zh" ? "结果保留至 " : "Available until "}{formatDateTime(job.expiresAt, locale)}</p>}
       <Button disabled={!summary} onClick={onDownload} className="w-full"><Download size={16} />{d.results.overview.actions.openDownloads}</Button>
       <Link className="work-link" to="/docs">{locale === "zh" ? "指标与使用帮助" : "Metrics and help"}</Link>
     </div>

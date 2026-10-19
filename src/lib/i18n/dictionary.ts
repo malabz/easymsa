@@ -50,6 +50,7 @@ const zh = {
       mafft_fast: "MAFFT 快速",
       halign3: "HAlign",
       fmalign2_mafft: "FMAlign2",
+      realign_n: "重比对",
       fmalign2_halign3: "FMAlign2 + HAlign"
     },
     algorithmAutoResolved: "自动选择：{value}"
@@ -122,6 +123,7 @@ const zh = {
       mafft: "MAFFT",
       halign3: "HAlign",
       fmalign2_mafft: "FMAlign2",
+      realign_n: "Realignment",
       fmalign2_halign3: "FMAlign2 + HAlign"
     },
     algorithmDescriptions: {
@@ -1015,6 +1017,7 @@ const en: typeof zh = {
       mafft_fast: "MAFFT fast",
       halign3: "HAlign",
       fmalign2_mafft: "FMAlign2",
+      realign_n: "Realignment",
       fmalign2_halign3: "FMAlign2 + HAlign"
     },
     algorithmAutoResolved: "Auto-selected: {value}"
@@ -1087,6 +1090,7 @@ const en: typeof zh = {
       mafft: "MAFFT",
       halign3: "HAlign",
       fmalign2_mafft: "FMAlign2",
+      realign_n: "Realignment",
       fmalign2_halign3: "FMAlign2 + HAlign"
     },
     algorithmDescriptions: {

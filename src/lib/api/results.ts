@@ -47,6 +47,7 @@ export const ServerAlignmentPayloadSchema = z.object({
   alignmentLength: z.number().int().nonnegative().nullable(),
   sequences: z.array(z.object({
     id: z.string(),
+    header: z.string().optional(),
     sequence: safeSequenceText
   })),
   message: z.string().optional()
@@ -116,7 +117,9 @@ export async function adaptServerAlignment(
   if (!parsed.success) {
     throw new ServerAlignmentPayloadError();
   }
-  const payload = parsed.data;
+  const payload = { ...parsed.data, sequences: parsed.data.sequences.map(row => ({
+    id: row.header ?? row.id, sequence: row.sequence
+  })) };
   const canonicalSource = canonicalAlignmentSource(payload.sequences);
   let alignmentSha256: string | undefined;
   try {

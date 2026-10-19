@@ -85,9 +85,9 @@ describe("MsaViewerToolbar", () => {
   it("starts with one search input and only View, Analyze, zoom and Export entries", () => {
     const { container } = renderToolbar();
     expect(screen.getAllByRole("searchbox")).toHaveLength(1);
-    expect(screen.queryByLabelText("Motif match rule")).toBeNull();
+    expect(screen.queryByLabelText("Motif matching")).toBeNull();
     expect(screen.getByRole("button", {name:"Workspace settings"}).getAttribute("aria-expanded")).toBe("false");
-    expect(screen.getByRole("button", {name:"Analysis inspector"}).getAttribute("aria-expanded")).toBe("false");
+    expect(screen.getByRole("button", {name:"Selection details"}).getAttribute("aria-expanded")).toBe("false");
     expect(container.querySelector("details")?.hasAttribute("open")).toBe(false);
     expect(screen.queryByText(/^Track:/)).toBeNull();
   });
@@ -105,8 +105,8 @@ describe("MsaViewerToolbar", () => {
     const match: MotifMatch={sequenceId:"duplicate",rowKey:"row:2",start:12,positions:[12,13,14],alignmentStart:12,alignmentEnd:14,sequenceStart:7,sequenceEnd:9,strand:"-"};
     const { shared }=renderToolbar({propOverrides:{motifMatchCount:1,motifMatches:[match]}});
     motif();
-    fireEvent.change(screen.getByLabelText("Motif match rule"),{target:{value:"possible"}});
-    fireEvent.change(screen.getByLabelText("Motif strand"),{target:{value:"both"}});
+    fireEvent.change(screen.getByLabelText("Motif matching"),{target:{value:"possible"}});
+    fireEvent.change(screen.getByLabelText("Search direction"),{target:{value:"both"}});
     expect(shared.onPatch).toHaveBeenCalledWith({motifMatchMode:"possible",activeMotifIndex:0});
     expect(shared.onPatch).toHaveBeenCalledWith({motifStrandMode:"both",activeMotifIndex:0});
     expect(screen.getByRole("option",{name:/duplicate · - strand · alignment 12-14 · sequence 7-9/})).not.toBeNull();
@@ -116,7 +116,7 @@ describe("MsaViewerToolbar", () => {
     const {shared}=renderToolbar({propOverrides:{onOpenInspector}});
     fireEvent.click(screen.getByRole("button",{name:"Workspace settings"}));
     expect(shared.onPatch).toHaveBeenCalledWith({settingsOpen:true,inspectorOpen:false,qcPanelOpen:false});
-    fireEvent.click(screen.getByRole("button",{name:"Analysis inspector"}));
+    fireEvent.click(screen.getByRole("button",{name:"Selection details"}));
     expect(onOpenInspector).toHaveBeenCalledOnce();
   });
   it("gathers exports in a menu and disables absent selections", () => {

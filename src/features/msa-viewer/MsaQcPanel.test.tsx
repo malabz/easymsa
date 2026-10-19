@@ -51,7 +51,7 @@ describe("MsaQcPanel", () => {
         />
       </LanguageProvider>
     );
-    expect(screen.getByText(/rows are never removed/i)).toBeTruthy();
+    expect(screen.getByText(/without changing the original alignment/i)).toBeTruthy();
     expect(screen.getByRole("img", { name: /Gap fraction: 1 observations/i })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Review" }));
     expect(onReviewRow).toHaveBeenCalledWith("row-1");

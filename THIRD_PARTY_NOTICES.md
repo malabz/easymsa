@@ -32,3 +32,10 @@ The backend's vendored adaptive selector and models retain their recorded proven
 ## User data and attribution
 
 Uploaded data does not become open data. Only the explicitly published, newly generated synthetic teaching examples are included in the MIT materials grant. Academic citations are requested separately from license obligations. EasyMSA has no verified paper DOI to cite at this time.
+
+
+## Dependency snapshot update — 2026-10-19
+
+The frontend license inventory was regenerated from the repaired lockfile (300 entries, no unresolved declared license). React 18 and Tailwind 3 remain unchanged. Scoped Tailwind/PostCSS overrides select postcss-selector-parser 7.1.6 (MIT). Existing upstream notices are retained in the inventory.
+
+The full development dependency audit still reports the braces nested-pattern advisory and its transitive consumers. These are recorded in docs/dependency-review-20261019.md; they are not marked fixed. Production runtime dependency audit reports no known advisories at this check.
