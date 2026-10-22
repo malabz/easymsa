@@ -3,7 +3,6 @@ import { useVirtualizer, type VirtualItem } from "@tanstack/react-virtual";
 import {
   EyeOff,
   Flag,
-  MoreHorizontal,
   Pin,
   PinOff,
   Square,
@@ -12,6 +11,7 @@ import {
 import {
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -492,6 +492,7 @@ export function MsaDomMatrix({
   const coarsePointer = useCoarsePointer();
   const maxMotifCount = useMemo(()=>motifColumnHitCounts?.reduce((m,n)=>Math.max(m,n),1)??1,[motifColumnHitCounts]);
   const [hoverIndex,setHoverIndex]=useState<number|null>(null);
+  const [globalRowMenuPosition, setGlobalRowMenuPosition] = useState<{ left: number; top: number } | null>(null);
   const reactGridId = useId();
   const gridId = `msa-grid-${reactGridId.replace(/[^a-zA-Z0-9_-]/g, "")}`;
 
@@ -590,6 +591,43 @@ export function MsaDomMatrix({
   const activeSequenceRow = activeSequenceRowIndex >= 0
     ? sequenceRows[activeSequenceRowIndex]
     : null;
+
+  useLayoutEffect(() => {
+    const viewport = scrollRef.current;
+    if (settings.showCharacters || activeSequenceRowIndex < 0 || !viewport) {
+      setGlobalRowMenuPosition(null);
+      return;
+    }
+
+    const positionMenu = () => {
+      const rowTop = headerHeight + activeSequenceRowIndex * settings.rowHeight - viewport.scrollTop;
+      const visibleBottom = viewport.clientHeight - 16;
+      if (
+        rowTop + settings.rowHeight <= headerHeight ||
+        rowTop >= visibleBottom ||
+        visibleBottom - headerHeight < 48
+      ) {
+        setGlobalRowMenuPosition(null);
+        return;
+      }
+      setGlobalRowMenuPosition({
+        left: Math.max(8, Math.min(settings.labelWidth - 48, viewport.clientWidth - 52)),
+        top: Math.max(headerHeight + 4, Math.min(rowTop, visibleBottom - 44))
+      });
+    };
+
+    positionMenu();
+    viewport.addEventListener("scroll", positionMenu, { passive: true });
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(positionMenu);
+    observer?.observe(viewport);
+    window.addEventListener("resize", positionMenu);
+    return () => {
+      viewport.removeEventListener("scroll", positionMenu);
+      observer?.disconnect();
+      window.removeEventListener("resize", positionMenu);
+    };
+  }, [activeSequenceRowIndex, headerHeight, scrollRef, settings.labelWidth, settings.rowHeight, settings.showCharacters]);
+
   const activeBase = selection && activeSequenceRow
     ? activeSequenceRow.sequence.sequence[selection.position - 1] ?? ""
     : selection && selectedRowKey === CONSENSUS_ROW_KEY
@@ -985,31 +1023,20 @@ export function MsaDomMatrix({
       </div>
 
       {(hoverIndex !== null || selection) && <div aria-hidden="true" style={{position:"absolute",inset:0,zIndex:31,pointerEvents:"none",clipPath:`inset(0 0 0 ${settings.labelWidth+12}px)`}}><div className="msa-column-guide" style={{left:`calc(${settings.labelWidth+12+(hoverIndex ?? visibleIndexOfPosition(positionView,selection!.position))*pitch}px - var(--msa-scroll-x, 0px))`,width:settings.cellWidth}}/></div>}
-      {!settings.showCharacters && activeSequenceRow ? (
-        <details className="absolute left-2 top-12 z-[55]">
-          <summary
-            aria-label={d.results.viewer.stageTwo.rowActions.replace("{name}", activeSequenceRow.sequence.id)}
-            className="flex h-11 min-w-11 cursor-pointer list-none items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-slate-600 shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 [&::-webkit-details-marker]:hidden"
-          >
-            <MoreHorizontal className="h-4 w-4" />
-          </summary>
-          <div className="mt-1 grid min-w-44 overflow-hidden rounded-lg border border-slate-200 bg-white p-1 shadow-xl">
-            <button className="min-h-11 rounded px-3 text-left text-xs hover:bg-slate-100" onClick={() => onSelectSequence(activeSequenceRow.rowKey)} type="button">
-              {d.results.viewer.stageTwo.selectSequence}
-            </button>
-            <button className="min-h-11 rounded px-3 text-left text-xs hover:bg-slate-100 disabled:opacity-40" disabled={activeSequenceRow.rowKey === referenceRowKey} onClick={() => onPinSequence(activeSequenceRow.rowKey)} type="button">
-              {pinnedSequenceIds.has(activeSequenceRow.rowKey) ? d.results.viewer.stageTwo.unpinSequence : d.results.viewer.stageTwo.pinSequence}
-            </button>
-            {referenceActionsEnabled ? (
-              <button className="min-h-11 rounded px-3 text-left text-xs hover:bg-amber-50" onClick={() => onSetReference(activeSequenceRow.rowKey)} type="button">
-                {d.results.viewer.stageTwo.setReference}
-              </button>
-            ) : null}
-            <button className="min-h-11 rounded px-3 text-left text-xs hover:bg-slate-100 disabled:opacity-40" disabled={activeSequenceRow.rowKey === referenceRowKey} onClick={() => onHideSequence(activeSequenceRow.rowKey)} type="button">
-              {d.results.viewer.hideSequence}
-            </button>
-          </div>
-        </details>
+      {!settings.showCharacters && activeSequenceRow && globalRowMenuPosition ? (
+        <div className="absolute z-[55]" style={globalRowMenuPosition}>
+          <MsaRowMenu
+            key={activeSequenceRow.rowKey}
+            label={d.results.viewer.stageTwo.rowActions.replace("{name}", activeSequenceRow.sequence.id)}
+            triggerClassName="msa-global-row-menu-trigger"
+            actions={[
+              { label: d.results.viewer.stageTwo.selectSequence, active: selectedSequenceIds.has(activeSequenceRow.rowKey), run: () => onSelectSequence(activeSequenceRow.rowKey) },
+              { label: pinnedSequenceIds.has(activeSequenceRow.rowKey) ? d.results.viewer.stageTwo.unpinSequence : d.results.viewer.stageTwo.pinSequence, active: pinnedSequenceIds.has(activeSequenceRow.rowKey), disabled: activeSequenceRow.rowKey === referenceRowKey, run: () => onPinSequence(activeSequenceRow.rowKey) },
+              ...(referenceActionsEnabled ? [{ label: d.results.viewer.stageTwo.setReference, active: activeSequenceRow.rowKey === referenceRowKey, run: () => onSetReference(activeSequenceRow.rowKey) }] : []),
+              { label: d.results.viewer.hideSequence, disabled: activeSequenceRow.rowKey === referenceRowKey, run: () => onHideSequence(activeSequenceRow.rowKey) }
+            ]}
+          />
+        </div>
       ) : null}
 
       {!settings.showCharacters ? (

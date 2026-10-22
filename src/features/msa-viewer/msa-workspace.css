@@ -2,7 +2,8 @@
 .msa-status:focus-visible { outline:2px solid #0f766e; outline-offset:-2px; }
 .msa-row-menu-trigger { display:flex; align-items:center; justify-content:center; width:28px; height:32px; flex-shrink:0; color:#64748b; border-radius:4px; }
 .msa-row-menu-trigger:hover { background:#f0fdfa; color:#0f766e; }
-.msa-row-menu { position:fixed; z-index:100; display:grid; width:212px; padding:4px; background:white; border:1px solid #cbd5e1; border-radius:6px; box-shadow:0 8px 24px #0f172a26; }
+.msa-row-menu { position:fixed; z-index:100; display:grid; width:212px; overflow:auto; padding:4px; background:white; border:1px solid #cbd5e1; border-radius:6px; box-shadow:0 8px 24px #0f172a26; }
+.msa-row-menu-trigger.msa-global-row-menu-trigger { width:44px; height:44px; border:1px solid #e2e8f0; border-radius:8px; background:#fff; box-shadow:0 4px 12px #0f172a26; }
 .msa-row-menu button { min-height:44px; text-align:left; padding:6px 12px; font-size:12px; border-radius:4px; }
 .msa-row-menu button:hover, .msa-row-menu button:focus { background:#f0fdfa; }
 .msa-row-menu button:disabled { color:#94a3b8; }

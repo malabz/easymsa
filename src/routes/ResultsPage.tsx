@@ -2,8 +2,9 @@ import { ResultPanels } from "../components/results/ResultPanels";
 import type { ResultStage } from "../lib/types/job";
 import { useJobStatus } from "../lib/query/useJobStatus";
 import { RealignmentNotice } from "../components/job/RealignmentNotice";
+import { SavedJobAccessChoices } from "../components/job/SavedJobAccessChoices";
 import { realignText } from "../lib/i18n/realignment";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { RefreshCw } from "lucide-react";
 import { Button } from "../components/common/Button";
@@ -15,9 +16,10 @@ import {
 } from "../components/results/ResultTabs";
 import { getDownloadFiles } from "../lib/api/results";
 import {
+  findJobAccessRecords,
+  isValidJobId,
   resolveJobAccess,
-  saveJobAccess,
-  type JobAccess
+  saveJobAccess
 } from "../lib/api/tokens";
 import { useLanguage } from "../lib/i18n/useLanguage";
 import { useAlignmentResult, useResultSummary } from "../lib/query/useJobResults";
@@ -29,15 +31,18 @@ import { workspaceText } from "../lib/i18n/workspace";
 
 export function ResultsPage() {
   const { jobId: routeJobId } = useParams<{ jobId: string }>();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { dictionary: d, locale } = useLanguage();
   const t = realignText[locale];
   const { stage, setStage, tab: activeTab, setTab: setActiveTab } = useResultLocation();
-  useRememberWork("result");
-  const [access, setAccess] = useState<JobAccess | null>(null);
   const queryToken = searchParams.get("token");
-  const jobId = routeJobId ? decodeURIComponent(routeJobId) : null;
+  // useParams already returns decoded path segments.
+  const invalidJobId = Boolean(routeJobId && !isValidJobId(routeJobId));
+  const jobId = routeJobId && !invalidJobId ? routeJobId : null;
+  const access = useMemo(() => jobId ? resolveJobAccess(jobId, queryToken) : null, [jobId, queryToken]);
+  const savedAccess = useMemo(() => jobId ? findJobAccessRecords(jobId) : [], [jobId, queryToken]);
   const jobQuery = useJobStatus(jobId ?? undefined, access?.token);
+  useRememberWork("result", Boolean(access && jobQuery.isSuccess && jobQuery.data?.jobId === access.jobId));
   const refinement = jobQuery.data?.realignment;
   const summaryQuery = useResultSummary(jobId ?? undefined, access?.token, stage);
   const alignmentQuery = useAlignmentResult(jobId ?? undefined, access?.token, stage);
@@ -47,34 +52,28 @@ export function ResultsPage() {
   );
 
   useEffect(() => {
-    if (!jobId) {
-      setAccess(null);
-      return;
+    if (access && jobQuery.isSuccess && jobQuery.data?.jobId === access.jobId) {
+      saveJobAccess({ ...access, createdAt: jobQuery.data.createdAt || access.createdAt });
     }
+  }, [access, jobQuery.isSuccess, jobQuery.data?.jobId, jobQuery.data?.createdAt]);
 
-    const resolvedAccess = resolveJobAccess(jobId, queryToken);
-    if (!resolvedAccess) {
-      setAccess(null);
-      return;
-    }
-
-    setAccess(resolvedAccess);
-    saveJobAccess(resolvedAccess);
-  }, [jobId, queryToken]);
-
-  const missingAccess = Boolean(jobId && !access);
-  const accessError = !jobId
-    ? d.results.missingJobId
-    : missingAccess
-      ? d.results.missingAccess
-      : null;
+  const needsAccessChoice = !access && savedAccess.length > 1;
+  const missingAccess = Boolean(jobId && !access && !needsAccessChoice);
+  const accessError = invalidJobId
+    ? locale === "zh" ? "任务号格式无效。请在恢复页面检查任务号后重试。" : "This job ID is invalid. Check the job ID on the recovery page and try again."
+    : !jobId
+      ? d.results.missingJobId
+      : missingAccess
+        ? d.results.missingAccess
+        : null;
   const activeQuery = activeTab === "overview" ? summaryQuery : alignmentQuery;
   const activeError = activeTab === "downloads"
     ? null
     : activeQuery.error instanceof Error
       ? activeQuery.error.message
       : null;
-  const error = accessError ?? activeError;
+  const statusError = jobQuery.error instanceof Error ? jobQuery.error.message : null;
+  const error = accessError ?? statusError ?? activeError;
 
   const stageControl = refinement?.initialAvailable && refinement.refinedAvailable && <label className="flex flex-wrap items-center gap-3 text-sm font-medium">{t.resultVersion}
         <select aria-label={t.resultVersion} className="rounded border p-2" value={stage} onChange={event => setStage(event.target.value as ResultStage)}>
@@ -92,12 +91,20 @@ export function ResultsPage() {
       <ResultTabs value={activeTab} onChange={setActiveTab} />
       {activeTab !== "alignment" && stageControl}
       </div>
+      {needsAccessChoice && <div className="space-y-3">
+        <SavedJobAccessChoices records={savedAccess} onSelect={selected => setSearchParams(previous => {
+          const next = new URLSearchParams(previous);
+          next.set("token", selected.token);
+          return next;
+        }, { replace: true })} />
+        <Link className="work-link" to="/lookup">{d.results.lookupLink}</Link>
+      </div>}
       {error ? (
         <div className="space-y-4">
           <ErrorState message={error} />
           <div className="flex flex-wrap items-center gap-3">
-            {!accessError && activeTab !== "downloads" ? (
-              <Button onClick={() => activeQuery.refetch()} size="sm" variant="outline">
+            {!accessError && (statusError || activeTab !== "downloads") ? (
+              <Button onClick={() => statusError ? jobQuery.refetch() : activeQuery.refetch()} size="sm" variant="outline">
                 <RefreshCw className="h-4 w-4" />
                 {d.common.retry}
               </Button>
@@ -109,12 +116,12 @@ export function ResultsPage() {
         </div>
       ) : null}
 
-      <div className="analysis-panels">
+      {access && <div className="analysis-panels">
       {jobQuery.data && <div className="analysis-notice"><RealignmentNotice job={jobQuery.data} token={access?.token ?? ""} /></div>}
-      <ResultPanels workspaceScope={`job:${jobId}:${stage}`} sourceName={jobQuery.data?.jobName ?? d.results.title} headerActions={stageControl} onRetry={() => alignmentQuery.refetch()} activeTab={activeTab} setActiveTab={setActiveTab} summary={summaryQuery.data}
+      <ResultPanels workspaceScope={`job:${jobId}:${stage}`} sourceName={jobQuery.data?.jobName ?? d.results.title} headerActions={stageControl} onRetry={() => statusError ? jobQuery.refetch() : alignmentQuery.refetch()} activeTab={activeTab} setActiveTab={setActiveTab} summary={summaryQuery.data}
         alignment={alignmentQuery.data} summaryPending={summaryQuery.isPending} alignmentPending={alignmentQuery.isPending}
         alignmentError={alignmentQuery.error instanceof Error ? alignmentQuery.error.message : null} error={error}
-        files={access ? files : []} context={summaryQuery.data ? createServerViewerContext(summaryQuery.data, files, stage) : undefined} /></div>
+        files={files} context={summaryQuery.data ? createServerViewerContext(summaryQuery.data, files, stage) : undefined} /></div>}
     </AnalysisWorkspace>
   );
 }

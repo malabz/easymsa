@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import {
   DEFAULT_ANNOTATION_FILTERS,
@@ -91,17 +91,30 @@ export function MsaAnnotationPanel({
   );
   const [draftCategory, setDraftCategory] = useState<QcAnnotation["category"]>("note");
   const [draftText, setDraftText] = useState("");
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeAnnotationId, setActiveAnnotationId] = useState<string | null>(null);
   const filtered = useMemo(
     () => filterQcAnnotations(annotations, filters),
     [annotations, filters]
   );
+  const selectedIndex = filtered.findIndex((annotation) => annotation.id === activeAnnotationId);
+  const activeIndex = filtered.length ? Math.max(0, selectedIndex) : -1;
+  const currentAnnotationId = filtered[activeIndex]?.id ?? null;
+
+  useEffect(() => {
+    // Keep the navigation cursor on the same marker through filtering and edits.
+    // If that marker disappears, start from the first remaining visible marker.
+    setActiveAnnotationId(currentAnnotationId);
+  }, [currentAnnotationId]);
+
+  function jumpTo(annotation: QcAnnotation) {
+    setActiveAnnotationId(annotation.id);
+    onJump(annotation);
+  }
 
   function navigate(delta: number) {
     if (!filtered.length) return;
     const nextIndex = (activeIndex + delta + filtered.length) % filtered.length;
-    setActiveIndex(nextIndex);
-    onJump(filtered[nextIndex]);
+    jumpTo(filtered[nextIndex]);
   }
 
   function create() {
@@ -113,7 +126,7 @@ export function MsaAnnotationPanel({
   return (
     <aside
       aria-label={t.title}
-      className="grid gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+      className="grid min-w-0 gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
       data-msa-annotation-panel="true"
     >
       <div>
@@ -123,11 +136,11 @@ export function MsaAnnotationPanel({
         </p>
       </div>
 
-      <div className="grid gap-2 sm:grid-cols-3">
-        <label className="grid gap-1 text-xs font-medium text-slate-600">
+      <div className="grid min-w-0 grid-cols-1 gap-2">
+        <label className="grid min-w-0 gap-1 text-xs font-medium text-slate-600">
           {t.category}
           <select
-            className="min-h-11 rounded-lg border border-slate-300 px-3 text-sm"
+            className="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 px-3 text-sm"
             onChange={(event) => setFilters({
               ...filters,
               category: event.target.value as AnnotationFilters["category"]
@@ -140,10 +153,10 @@ export function MsaAnnotationPanel({
             <option value="exclude-candidate">{t.excludeCandidate}</option>
           </select>
         </label>
-        <label className="grid gap-1 text-xs font-medium text-slate-600">
+        <label className="grid min-w-0 gap-1 text-xs font-medium text-slate-600">
           {t.sequenceRow}
           <select
-            className="min-h-11 rounded-lg border border-slate-300 px-3 text-sm"
+            className="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 px-3 text-sm"
             onChange={(event) => setFilters({ ...filters, rowKey: event.target.value })}
             value={filters.rowKey}
           >
@@ -153,10 +166,10 @@ export function MsaAnnotationPanel({
             ))}
           </select>
         </label>
-        <label className="grid gap-1 text-xs font-medium text-slate-600">
+        <label className="grid min-w-0 gap-1 text-xs font-medium text-slate-600">
           {t.containsPosition}
           <input
-            className="min-h-11 rounded-lg border border-slate-300 px-3 text-sm"
+            className="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 px-3 text-sm"
             min={1}
             onChange={(event) => setFilters({
               ...filters,
@@ -170,7 +183,7 @@ export function MsaAnnotationPanel({
 
       <div className="flex flex-wrap items-center gap-2">
         <button
-          className="min-h-11 rounded-lg border border-slate-300 px-4 text-sm font-medium disabled:opacity-40"
+          className="min-h-11 whitespace-nowrap rounded-lg border border-slate-300 px-4 text-sm font-medium disabled:opacity-40"
           disabled={!filtered.length}
           onClick={() => navigate(-1)}
           type="button"
@@ -178,7 +191,7 @@ export function MsaAnnotationPanel({
           {t.previous}
         </button>
         <button
-          className="min-h-11 rounded-lg border border-slate-300 px-4 text-sm font-medium disabled:opacity-40"
+          className="min-h-11 whitespace-nowrap rounded-lg border border-slate-300 px-4 text-sm font-medium disabled:opacity-40"
           disabled={!filtered.length}
           onClick={() => navigate(1)}
           type="button"
@@ -186,20 +199,20 @@ export function MsaAnnotationPanel({
           {t.next}
         </button>
         <span aria-live="polite" className="text-xs text-slate-500">
-          {filtered.length ? `${Math.min(activeIndex + 1, filtered.length)} / ${filtered.length}` : t.noMatches}
+          {filtered.length ? `${activeIndex + 1} / ${filtered.length}` : t.noMatches}
         </span>
       </div>
 
-      <div className="grid gap-2 rounded-lg border border-teal-200 bg-teal-50/40 p-3">
-        <div className="text-xs font-semibold text-teal-950">
+      <div className="grid min-w-0 gap-2 rounded-lg border border-teal-200 bg-teal-50/40 p-3">
+        <div className="min-w-0 break-words text-xs font-semibold text-teal-950">
           {t.newAnnotation} · {activeTarget
             ? `${activeTarget.rowKey ? rowLabels?.get(activeTarget.rowKey) ?? activeTarget.rowKey : t.allRows}${activeTarget.start ? ` · ${activeTarget.start}${activeTarget.end !== activeTarget.start ? `–${activeTarget.end}` : ""}` : ""}`
             : t.selectTarget}
         </div>
-        <div className="grid gap-2 sm:grid-cols-[12rem_minmax(0,1fr)_auto]">
+        <div className="grid min-w-0 grid-cols-1 gap-2">
           <select
             aria-label={`${t.newAnnotation}: ${t.category}`}
-            className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm"
+            className="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 text-sm"
             onChange={(event) => setDraftCategory(event.target.value as QcAnnotation["category"])}
             value={draftCategory}
           >
@@ -209,14 +222,14 @@ export function MsaAnnotationPanel({
           </select>
           <input
             aria-label={`${t.newAnnotation}: ${t.note}`}
-            className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm"
+            className="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 text-sm"
             maxLength={4000}
             onChange={(event) => setDraftText(event.target.value)}
             placeholder={t.optionalNote}
             value={draftText}
           />
           <button
-            className="min-h-11 rounded-lg bg-teal-700 px-4 text-sm font-semibold text-white disabled:opacity-40"
+            className="msa-primary min-h-11 whitespace-nowrap px-4 text-sm disabled:opacity-40"
             disabled={!activeTarget}
             onClick={create}
             type="button"
@@ -226,19 +239,20 @@ export function MsaAnnotationPanel({
         </div>
       </div>
 
-      <ol className="grid max-h-96 gap-2 overflow-auto">
+      <ol className="grid max-h-96 min-w-0 gap-2 overflow-auto">
         {filtered.map((annotation) => (
-          <li className="grid gap-2 rounded-lg border border-slate-200 p-3" key={annotation.id}>
+          <li className="grid min-w-0 gap-2 rounded-lg border border-slate-200 p-3" key={annotation.id}>
             <div className="flex flex-wrap items-start justify-between gap-2">
               <button
-                className="min-h-11 text-left text-xs font-semibold text-teal-800 underline-offset-2 hover:underline"
-                onClick={() => onJump(annotation)}
+                aria-current={annotation.id === currentAnnotationId ? "true" : undefined}
+                className="min-h-11 min-w-0 break-words text-left text-xs font-semibold text-teal-800 underline-offset-2 hover:underline"
+                onClick={() => jumpTo(annotation)}
                 type="button"
               >
                 {targetLabel(annotation, rowLabels, t.allRows)}
               </button>
               <button
-                className="min-h-11 rounded-lg px-3 text-xs font-medium text-rose-700 hover:bg-rose-50"
+                className="min-h-11 whitespace-nowrap rounded-lg px-3 text-xs font-medium text-rose-700 hover:bg-rose-50"
                 onClick={() => onDelete(annotation.id)}
                 type="button"
               >
@@ -247,7 +261,7 @@ export function MsaAnnotationPanel({
             </div>
             <select
               aria-label={`${t.category}: ${targetLabel(annotation, rowLabels, t.allRows)}`}
-              className="min-h-11 rounded-lg border border-slate-300 px-3 text-sm"
+              className="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 px-3 text-sm"
               onChange={(event) => onUpdate(annotation.id, {
                 category: event.target.value as QcAnnotation["category"]
               })}
@@ -259,7 +273,7 @@ export function MsaAnnotationPanel({
             </select>
             <textarea
               aria-label={`${t.note}: ${targetLabel(annotation, rowLabels, t.allRows)}`}
-              className="min-h-20 rounded-lg border border-slate-300 p-3 text-sm"
+              className="min-h-20 w-full min-w-0 rounded-lg border border-slate-300 p-3 text-sm"
               maxLength={4000}
               onChange={(event) => onUpdate(annotation.id, { text: event.target.value })}
               value={annotation.text}

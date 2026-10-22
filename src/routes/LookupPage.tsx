@@ -2,13 +2,14 @@ import { ArrowRight, ChevronDown, History, Trash2, Upload } from "lucide-react";
 import { type ChangeEvent, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/common/Button";
+import { savedKeyLabel } from "../components/job/SavedJobAccessChoices";
 import { PageContainer } from "../components/layout/PageContainer";
 import {
   deleteJobAccess,
   type JobAccess,
+  isValidJobId,
   jobRoute,
   readJobAccessRecords,
-  saveJobAccess,
   validateJobAccess
 } from "../lib/api/tokens";
 import { useLanguage } from "../lib/i18n/useLanguage";
@@ -31,7 +32,7 @@ function formatCreatedAt(createdAt: string, locale: string) {
   });
 }
 
-type RecoveryError = "missingFields" | "invalidJson" | "readJsonFailed";
+type RecoveryError = "missingFields" | "invalidJobId" | "invalidJson" | "readJsonFailed";
 
 export function LookupPage() {
   const { dictionary: d, locale } = useLanguage();
@@ -46,6 +47,9 @@ export function LookupPage() {
     sortCachedAccess(readJobAccessRecords())
   );
   const [otherMethodsOpen, setOtherMethodsOpen] = useState(cachedAccess.length === 0);
+  const invalidJobIdMessage = locale === "zh"
+    ? "请输入有效任务号（最多 64 个字符），可包含文字、数字、空格、下划线、连字符、点和括号，不能包含连续两个点。"
+    : "Enter a valid job ID (up to 64 characters): letters, numbers, spaces, underscores, hyphens, dots and parentheses are supported; consecutive dots are not allowed.";
 
   function refreshCachedAccess() {
     const records = sortCachedAccess(readJobAccessRecords());
@@ -62,6 +66,13 @@ export function LookupPage() {
       setError("missingFields");
       if (!trimmedJobId) jobIdRef.current?.focus();
       else tokenRef.current?.focus();
+      return;
+    }
+
+    if (!isValidJobId(trimmedJobId)) {
+      setOtherMethodsOpen(true);
+      setError("invalidJobId");
+      jobIdRef.current?.focus();
       return;
     }
 
@@ -89,8 +100,12 @@ export function LookupPage() {
         setError("invalidJson");
         return;
       }
-      saveJobAccess(access);
-      refreshCachedAccess();
+      if (!isValidJobId(access.jobId)) {
+        setError("invalidJobId");
+        return;
+      }
+      // An imported file is a recovery attempt. The status page saves it only
+      // after the server accepts its job ID and token.
       setError(null);
       navigate(jobRoute(access.jobId, access.token));
     } catch {
@@ -125,11 +140,17 @@ export function LookupPage() {
               <span />
             </div>
             <ul aria-labelledby="cached-jobs-heading" className="lookup-rows">
-              {cachedAccess.map((access) => (
+              {cachedAccess.map((access) => {
+                const matchingRecords = cachedAccess.filter(record => record.jobId === access.jobId);
+                const keyLabel = matchingRecords.length > 1
+                  ? savedKeyLabel(access, matchingRecords.indexOf(access), locale)
+                  : null;
+                return (
                 <li className="lookup-row" key={access.jobId + ":" + access.token}>
                   <div className="lookup-job-id" title={access.jobId}>
                     <span className="sr-only">{d.lookup.jobId}: </span>
-                    {access.jobId}
+                    <span className="block truncate">{access.jobId}</span>
+                    {keyLabel && <span className="block text-xs font-normal text-slate-500">{keyLabel}</span>}
                   </div>
                   <div className="lookup-created">
                     <span className="lookup-created-label">{d.lookup.cachedCreatedAt}: </span>
@@ -137,7 +158,7 @@ export function LookupPage() {
                   </div>
                   <div className="lookup-row-actions">
                     <Button
-                      aria-label={d.lookup.cachedRestore + ": " + access.jobId}
+                      aria-label={d.lookup.cachedRestore + ": " + access.jobId + (keyLabel ? ", " + keyLabel : "")}
                       onClick={() => restore(access.jobId, access.token)}
                       size="sm"
                     >
@@ -145,7 +166,7 @@ export function LookupPage() {
                       <ArrowRight aria-hidden="true" size={15} />
                     </Button>
                     <Button
-                      aria-label={d.lookup.cachedDelete + ": " + access.jobId}
+                      aria-label={d.lookup.cachedDelete + ": " + access.jobId + (keyLabel ? ", " + keyLabel : "")}
                       className="lookup-delete"
                       onClick={() => removeCachedAccess(access)}
                       size="sm"
@@ -156,7 +177,8 @@ export function LookupPage() {
                     </Button>
                   </div>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           </div>
         ) : (
@@ -188,8 +210,8 @@ export function LookupPage() {
             <div className="work-field">
               <label className="work-label" htmlFor="jobId">{d.lookup.jobId}</label>
               <input
-                aria-describedby={error === "missingFields" ? "lookup-error" : undefined}
-                aria-invalid={error === "missingFields" && !jobId.trim() || undefined}
+                aria-describedby={error === "missingFields" || error === "invalidJobId" ? "lookup-error" : undefined}
+                aria-invalid={error === "invalidJobId" || error === "missingFields" && !jobId.trim() || undefined}
                 autoCapitalize="none"
                 autoComplete="off"
                 className="work-control"
@@ -231,7 +253,7 @@ export function LookupPage() {
             </Button>
             <span className="work-hint">{d.lookup.importHint}</span>
           </div>
-          {error && <p className="work-error lookup-error" id="lookup-error" role="alert">{d.lookup[error]}</p>}
+          {error && <p className="work-error lookup-error" id="lookup-error" role="alert">{error === "invalidJobId" ? invalidJobIdMessage : d.lookup[error]}</p>}
         </div>
       </section>
     </PageContainer>

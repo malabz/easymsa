@@ -195,6 +195,7 @@ const zh = { viewerWorkflow: viewerWorkflowZh,
     pasteStats: "字符数：{chars}，估计序列数：{count}",
     pasteValid: "格式检查通过",
     pasteInvalid: "请输入至少两条 FASTA 序列，每条包含名称和序列内容。",
+    pasteTooLong: "粘贴内容超过 200,000 字符，请改用文件上传。",
     pasteHint: "超过 20 万字符，请上传文件。",
     uploadTitle: "选择或拖拽文件",
     uploadDescription:
@@ -1163,6 +1164,7 @@ const en: typeof zh = {
     pasteStats: "Characters: {chars}, estimated sequences: {count}",
     pasteValid: "Format check passed",
     pasteInvalid: "Enter at least two FASTA records, each with a name and sequence.",
+    pasteTooLong: "Pasted input exceeds 200,000 characters. Please upload a file instead.",
     pasteHint: "Upload a file for more than 200,000 characters.",
     uploadTitle: "Choose or drop a file",
     uploadDescription:

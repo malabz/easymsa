@@ -43,7 +43,7 @@ export function InputMethodTabs({
               onChange(methods[target].value); buttons.current[target]?.focus();
             }}
             className={cn(
-              "flex h-11 items-center justify-center gap-2 rounded-md px-3 text-sm font-medium transition",
+              "flex h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 text-sm font-medium transition",
               selected
                 ? "bg-teal-700 text-white shadow-sm"
                 : "text-slate-600 hover:bg-white/80 hover:text-slate-950"
@@ -54,7 +54,7 @@ export function InputMethodTabs({
             type="button"
             role="tab"
           >
-            <Icon className="h-4 w-4" />
+            <Icon aria-hidden="true" className="h-4 w-4 shrink-0" />
             {d.submit.methods[method.value]}
           </button>
         );

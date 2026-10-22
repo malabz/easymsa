@@ -24,7 +24,7 @@ import type {
   InputMethod,
   PreprocessMode
 } from "../../lib/types/job";
-import { validateFasta } from "../../lib/utils/fasta";
+import { MAX_FASTA_CHARACTERS, validateFasta } from "../../lib/utils/fasta";
 import { validateInputFile } from "../../lib/utils/fileValidation";
 import { Button } from "../common/Button";
 import { AlgorithmParameterFields } from "./AlgorithmParameterFields";
@@ -155,7 +155,8 @@ export function SubmitJobForm() {
     const fileValidation = file ? validateInputFile(file, "alignment", locale) : null;
 
     if (inputMethod === "paste" && !fastaValidation.valid) {
-      setFormError(d.submit.errors.paste);
+      setFormError(fastaValidation.characterCount > MAX_FASTA_CHARACTERS
+        ? d.submit.pasteTooLong : d.submit.errors.paste);
       return;
     }
 

@@ -16,6 +16,26 @@ function canUseStorage() {
   return Boolean(browserStorage());
 }
 
+// Public job IDs also include legacy human-readable job names. Match the
+// server's Unicode-aware rule rather than restricting recovery to UUIDs.
+export function isValidJobId(jobId: string) {
+  return (
+    jobId.trim().length > 0 &&
+    [...jobId].length <= 64 &&
+    !jobId.includes("..") &&
+    /^[\p{L}\p{N}_ .()（）-]+$/u.test(jobId)
+  );
+}
+
+function canEncodeComponent(value: string) {
+  try {
+    encodeURIComponent(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function isJobAccess(value: unknown): value is JobAccess {
   if (!value || typeof value !== "object") {
     return false;
@@ -29,6 +49,8 @@ function isJobAccess(value: unknown): value is JobAccess {
     record.jobId.trim().length > 0 &&
     typeof record.token === "string" &&
     record.token.trim().length > 0 &&
+    canEncodeComponent(record.jobId) &&
+    canEncodeComponent(record.token) &&
     typeof record.statusUrl === "string" &&
     typeof record.createdAt === "string"
   );
@@ -60,7 +82,7 @@ function readLegacyAccessRecords(): JobAccess[] {
     ) as Record<string, string>;
 
     return Object.entries(legacy)
-      .filter(([jobId, token]) => jobId && typeof token === "string" && token)
+      .filter(([jobId, token]) => jobId && typeof token === "string" && token && canEncodeComponent(jobId) && canEncodeComponent(token))
       .map(([jobId, token]) => ({
         app: "easymsa",
         version: 1,
@@ -159,20 +181,30 @@ export function findJobAccessByToken(jobId: string, token: string) {
 }
 
 export function findSingleJobAccess(jobId: string) {
-  const matches = readJobAccessRecords().filter((record) => record.jobId === jobId);
+  const matches = findJobAccessRecords(jobId);
   return matches.length === 1 ? matches[0] : null;
 }
 
+export function findJobAccessRecords(jobId: string) {
+  const tokens = new Set<string>();
+  return readJobAccessRecords().filter((record) => {
+    if (record.jobId !== jobId || tokens.has(record.token)) return false;
+    tokens.add(record.token);
+    return true;
+  });
+}
+
 export function resolveJobAccess(jobId: string, token: string | null) {
+  // Resolution is read-only. Submission responses and authenticated status
+  // responses are the only points that persist new credentials.
   if (token) {
-    const access =
+    return (
       findJobAccessByToken(jobId, token) ??
       createJobAccess({
         jobId,
         token
-      });
-    saveJobAccess(access);
-    return access;
+      })
+    );
   }
 
   return findSingleJobAccess(jobId);

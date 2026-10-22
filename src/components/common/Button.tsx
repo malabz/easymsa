@@ -32,7 +32,7 @@ export function buttonClasses({
   className?: string;
 }) {
   return cn(
-    "inline-flex items-center justify-center gap-2 rounded-md font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-55",
+    "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-55 [&>svg]:shrink-0",
     variantClasses[variant],
     sizeClasses[size],
     className

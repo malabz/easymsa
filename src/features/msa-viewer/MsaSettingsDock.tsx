@@ -238,7 +238,7 @@ function SettingsContent({
           {" · "}
           {t.selectedRows.replace("{count}", selectedRowCount.toLocaleString())}
         </p>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="flex flex-wrap gap-2 [&>button]:flex-1">
           <Button className="min-h-11" disabled={!onSelectAllVisible} onClick={onSelectAllVisible} size="sm" variant="outline">
             <Rows3 aria-hidden="true" className="h-4 w-4" />
             {t.selectAllVisible}

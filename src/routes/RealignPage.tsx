@@ -53,9 +53,13 @@ export function RealignPage() {
   });
   useDraftMetadata("realign:metadata", watch);
   const refinement = health.data?.realignment;
-  const ready = !health.isPending && !health.isError && health.data?.acceptingJobs !== false && health.data?.coreReady === true && refinement?.enabled === true && refinement.available;
+  const serviceState = health.isPending ? "checking"
+    : health.isError || health.data?.coreReady !== true ? "offline"
+    : !refinement?.enabled ? "disabled"
+    : !refinement.available ? "unavailable" : "ready";
+  const ready = serviceState === "ready";
   const validation = activeFile ? validateInputFile(activeFile, "realignment", locale) : null;
-  const statusText = health.isPending ? t.checking : health.isError || !health.data?.coreReady ? t.offline : !refinement?.enabled ? t.disabled : !refinement.available ? t.unavailable : t.ready;
+  const statusText = t[serviceState];
   const StatusIcon = health.isPending ? Loader2 : ready ? Activity : CircleAlert;
 
   function suggestName(input: HTMLInputElement) {

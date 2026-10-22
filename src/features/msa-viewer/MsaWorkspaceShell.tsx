@@ -58,6 +58,24 @@ export type MsaWorkspaceShellProps =
   | EmbeddedWorkspaceProps
   | ImmersiveWorkspaceProps;
 
+function closeWorkspacePopup(shell: HTMLElement | null) {
+  if (!shell) return false;
+  const selector = 'details[data-msa-popup][open], details[data-msa-row-menu][open], [role="menu"][data-msa-row-menu]';
+  const focusedPopup = document.activeElement?.closest<HTMLElement>(selector);
+  const popups = Array.from(shell.querySelectorAll<HTMLElement>(selector));
+  const popup = focusedPopup && shell.contains(focusedPopup)
+    ? focusedPopup
+    : popups[popups.length - 1];
+  if (!popup) return false;
+  if (popup instanceof HTMLDetailsElement) {
+    popup.open = false;
+    popup.querySelector<HTMLElement>("summary")?.focus({ preventScroll: true });
+  } else {
+    popup.dispatchEvent(new Event("msa-close-popup"));
+  }
+  return true;
+}
+
 export function MsaWorkspaceShell({
   className,
   commandBar,
@@ -136,8 +154,7 @@ export function MsaWorkspaceShell({
   useLayoutEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (immersive || event.key !== "Escape" || event.defaultPrevented || !shellRef.current?.contains(event.target as Node)) return;
-      const menu = shellRef.current.querySelector<HTMLDetailsElement>("details[data-msa-popup][open]");
-      if (menu) { menu.open = false; menu.querySelector<HTMLElement>("summary")?.focus(); event.preventDefault(); }
+      if (closeWorkspacePopup(shellRef.current)) event.preventDefault();
       else if (closeTransientRef.current?.()) event.preventDefault();
     };
     document.addEventListener("keydown", handleEscape);
@@ -171,8 +188,7 @@ export function MsaWorkspaceShell({
         return;
       }
 
-      const openMenu = shellRef.current?.querySelector<HTMLDetailsElement>("details[data-msa-popup][open], details[data-msa-row-menu][open]");
-      if (openMenu) { openMenu.open = false; openMenu.querySelector<HTMLElement>("summary")?.focus(); event.preventDefault(); return; }
+      if (closeWorkspacePopup(shellRef.current)) { event.preventDefault(); return; }
       if (closeTransientRef.current?.()) { event.preventDefault(); return; }
       event.preventDefault();
       onExitImmersiveRef.current?.();

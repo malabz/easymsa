@@ -45,7 +45,7 @@ export function ResultTabs({
               onChange(tabs[target].value); buttons.current[target]?.focus();
             }}
             className={cn(
-              "flex h-9 items-center justify-center gap-2 rounded px-3 text-sm font-medium transition",
+              "flex h-9 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded px-3 text-sm font-medium transition",
               selected
                 ? "bg-teal-50 text-teal-800"
                 : "text-slate-600 hover:bg-slate-100 hover:text-slate-950"
@@ -56,7 +56,7 @@ export function ResultTabs({
             type="button"
             role="tab"
           >
-            <Icon className="h-4 w-4" />
+            <Icon aria-hidden="true" className="h-4 w-4 shrink-0" />
             {d.results.tabs[tab.value]}
           </button>
         );

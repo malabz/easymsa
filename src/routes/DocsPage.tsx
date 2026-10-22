@@ -99,8 +99,9 @@ export function DocsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const sections = docsContent[locale];
   const requestedSection = searchParams.get("section");
-  const initialSection = validSection(requestedSection) ? requestedSection : DOCS_SECTION_IDS[0];
-  const [activeSection, setActiveSection] = useState<DocsSectionId>(initialSection);
+  const [activeSection, setActiveSection] = useState<DocsSectionId>(
+    validSection(requestedSection) ? requestedSection : DOCS_SECTION_IDS[0]
+  );
   const [query, setQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
   const mobileTocRef = useRef<HTMLDetailsElement>(null);
@@ -128,6 +129,8 @@ export function DocsPage() {
     if (target instanceof HTMLDetailsElement) {
       target.open = true;
     }
+    const focusTarget = target?.querySelector<HTMLElement>(articleId ? "summary" : "h2");
+    focusTarget?.focus({ preventScroll: true });
     target?.scrollIntoView({ behavior: "smooth", block: "start" });
     syncSectionParam(sectionId, replace);
     mobileTocRef.current?.removeAttribute("open");
@@ -139,12 +142,15 @@ export function DocsPage() {
       internalParamUpdateRef.current = false;
       return;
     }
-    if (!validSection(requestedSection)) return;
-    setActiveSection(requestedSection);
-    document.getElementById(`docs-section-${requestedSection}`)?.scrollIntoView({
-      behavior: "auto",
-      block: "start"
+    const sectionId = validSection(requestedSection) ? requestedSection : DOCS_SECTION_IDS[0];
+    setActiveSection(sectionId);
+    const frame = requestAnimationFrame(() => {
+      document.getElementById(`docs-section-${sectionId}`)?.scrollIntoView({
+        behavior: "auto",
+        block: "start"
+      });
     });
+    return () => cancelAnimationFrame(frame);
   }, [requestedSection]);
 
   useEffect(() => {
@@ -255,12 +261,12 @@ export function DocsPage() {
         data-docs-mobile-toc="true"
         ref={mobileTocRef}
       >
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-slate-900">
+        <summary className="flex cursor-pointer list-none flex-col items-start gap-1 px-4 py-3 text-sm font-semibold text-slate-900 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
           <span className="flex items-center gap-2">
-            <List className="h-4 w-4 text-teal-700" />
+            <List className="h-4 w-4 shrink-0 text-teal-700" />
             {d.docs.mobileToc}
           </span>
-          <span className="text-xs font-normal text-slate-500">
+          <span className="min-w-0 pl-6 text-xs font-normal text-slate-500 sm:pl-0">
             {sections.find((section) => section.id === activeSection)?.title}
           </span>
         </summary>
@@ -294,7 +300,7 @@ export function DocsPage() {
                     <span>{String(index + 1).padStart(2, "0")}</span>
                     <Icon className="h-4 w-4" />
                   </p>
-                  <h2 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">{section.title}</h2>
+                  <h2 tabIndex={-1} className="mt-1 text-2xl font-semibold tracking-tight text-slate-950 focus-visible:outline-teal-600 sm:text-3xl">{section.title}</h2>
                   {section.summary && <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">{section.summary}</p>}
                 </header>
                 <div className="divide-y divide-slate-200">

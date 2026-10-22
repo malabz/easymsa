@@ -5,15 +5,17 @@ import { Button } from "../components/common/Button";
 import { ErrorState } from "../components/common/ErrorState";
 import { LoadingState } from "../components/common/LoadingState";
 import { JobWorkspace } from "../components/job/JobWorkspace";
+import { SavedJobAccessChoices } from "../components/job/SavedJobAccessChoices";
 import { PageContainer } from "../components/layout/PageContainer";
 import {
   accessDownloadFilename,
   downloadableAccessJson,
+  findJobAccessRecords,
   hashRouterUrl,
+  isValidJobId,
   jobRoute,
   resolveJobAccess,
-  saveJobAccess,
-  type JobAccess
+  saveJobAccess
 } from "../lib/api/tokens";
 import { useLanguage } from "../lib/i18n/useLanguage";
 import { useJobStatus } from "../lib/query/useJobStatus";
@@ -23,18 +25,21 @@ import { useRememberWork } from "../lib/workspace";
 type CopyTarget = "jobId" | "token" | "restoreLink" | "json";
 
 export function JobStatusPage() {
-  useRememberWork("job");
   const { jobId: routeJobId } = useParams<{ jobId: string }>();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { dictionary: d, locale } = useLanguage();
-  const [access, setAccess] = useState<JobAccess | null>(null);
   const [showSensitiveAccess, setShowSensitiveAccess] = useState(false);
   const [copyTarget, setCopyTarget] = useState<CopyTarget | null>(null);
   const [copyError, setCopyError] = useState<string | null>(null);
   const queryToken = searchParams.get("token");
-  const jobId = routeJobId ? decodeURIComponent(routeJobId) : null;
+  // useParams already returns decoded path segments.
+  const invalidJobId = Boolean(routeJobId && !isValidJobId(routeJobId));
+  const jobId = routeJobId && !invalidJobId ? routeJobId : null;
+  const access = useMemo(() => jobId ? resolveJobAccess(jobId, queryToken) : null, [jobId, queryToken]);
+  const savedAccess = useMemo(() => jobId ? findJobAccessRecords(jobId) : [], [jobId, queryToken]);
   const jobQuery = useJobStatus(jobId ?? undefined, access?.token);
   const job = jobQuery.data;
+  useRememberWork("job", Boolean(access && jobQuery.isSuccess && job?.jobId === access.jobId));
 
   const accessJson = useMemo(
     () => (access ? downloadableAccessJson(access) : ""),
@@ -78,26 +83,30 @@ export function JobStatusPage() {
   }
 
   useEffect(() => {
-    if (!jobId) {
-      setAccess(null);
-      return;
+    if (access && jobQuery.isSuccess && job?.jobId === access.jobId) {
+      saveJobAccess({ ...access, createdAt: job.createdAt || access.createdAt });
     }
+  }, [access, jobQuery.isSuccess, job?.jobId, job?.createdAt]);
 
-    const resolvedAccess = resolveJobAccess(jobId, queryToken);
-    setAccess(resolvedAccess);
-    if (resolvedAccess) {
-      saveJobAccess(resolvedAccess);
-    }
-  }, [jobId, queryToken]);
-
-  const missingAccess = Boolean(jobId && !access);
-  const error = !jobId
-    ? d.job.missingJobId
-    : missingAccess
-      ? d.job.missingAccess
-      : jobQuery.error instanceof Error
-        ? jobQuery.error.message
-        : null;
+  const needsAccessChoice = !access && savedAccess.length > 1;
+  const missingAccess = Boolean(jobId && !access && !needsAccessChoice);
+  const error = invalidJobId
+    ? locale === "zh" ? "任务号格式无效。请在恢复页面检查任务号后重试。" : "This job ID is invalid. Check the job ID on the recovery page and try again."
+    : !jobId
+      ? d.job.missingJobId
+      : missingAccess
+        ? d.job.missingAccess
+        : jobQuery.error instanceof Error
+          ? jobQuery.error.message
+          : null;
+  const accessChoices = needsAccessChoice ? <div className="space-y-3">
+    <SavedJobAccessChoices records={savedAccess} onSelect={selected => setSearchParams(previous => {
+      const next = new URLSearchParams(previous);
+      next.set("token", selected.token);
+      return next;
+    }, { replace: true })} />
+    <Link className="work-link" to="/lookup">{d.job.lookupLink}</Link>
+  </div> : null;
 
   const errorContent = error ? <div className="space-y-3 mb-3">
     <ErrorState message={error} />
@@ -109,7 +118,7 @@ export function JobStatusPage() {
 
   if (!job) return <PageContainer className="workflow-page">
     <div className="work-heading"><h1>{d.job.title}</h1></div>
-    {errorContent ?? <LoadingState label={d.job.loadingStatus} />}
+    {accessChoices ?? errorContent ?? <LoadingState label={d.job.loadingStatus} />}
   </PageContainer>;
 
   return <JobWorkspace job={job} token={access?.token ?? ""}
