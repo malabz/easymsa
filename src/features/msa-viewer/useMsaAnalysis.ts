@@ -33,6 +33,13 @@ import { columnStatsAtPosition } from "./columnStatsStore";
 
 const MAX_ANALYSIS_CACHE_ENTRIES = 6;
 const MAX_ANALYSIS_CACHE_BYTES = 48 * 1024 * 1024;
+// Progress updates must not invalidate downstream row ordering and minimaps.
+const EMPTY_ROW_QC: MsaAnalysisPayloadV4["rowQc"] = [];
+const EMPTY_OVERVIEW_BINS: MsaAnalysisPayloadV4["overviewBins"] = [];
+const EMPTY_CONSENSUS: MsaAnalysisPayloadV4["consensus"] = {
+  majority: "",
+  iupac: ""
+};
 const analysisCache = new Map<
   string,
   { result: MsaAnalysisPayloadV4; estimatedBytes: number }
@@ -534,9 +541,9 @@ export function useMsaAnalysis(
     columnCount: activeResult?.columnStore.length ?? 0,
     getColumnStats,
     overview: activeResult?.overview ?? null,
-    overviewBins: activeResult?.overviewBins ?? [],
-    rowQc: activeResult?.rowQc ?? [],
-    consensus: activeResult?.consensus ?? { majority: "", iupac: "" },
+    overviewBins: activeResult?.overviewBins ?? EMPTY_OVERVIEW_BINS,
+    rowQc: activeResult?.rowQc ?? EMPTY_ROW_QC,
+    consensus: activeResult?.consensus ?? EMPTY_CONSENSUS,
     scope,
     scopeRowKeys,
     scopeRowCount: scopedSequences.length,

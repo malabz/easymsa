@@ -77,15 +77,16 @@ function SettingsContent({
 }: Omit<MsaSettingsDockProps, "isOpen" | "onClose" | "presentation">) {
   const { locale, dictionary: d } = useLanguage();
   const t = d.results.viewer.stageTwo;
+  const w = d.viewerWorkflow;
   const groupClass = "msa-view-group";
 
 
   return (
     <div className="msa-view-settings">
       <details className={groupClass} open>
-        <summary>{t.settingsGroups.view}</summary><div>
+        <summary>{w.appearance}</summary><div>
         <label className="block space-y-1 text-xs font-medium text-slate-600">
-          <span>{t.viewMode}</span>
+          <span>{w.displayMode}</span>
           <select
             aria-label={t.viewMode}
             className={selectClass}
@@ -99,7 +100,7 @@ function SettingsContent({
           </select>
         </label>
         <label className="block space-y-1 text-xs font-medium text-slate-600">
-          <span>{t.labelWidth}: {state.labelWidth}px</span>
+          <span>{w.nameWidth}: {state.labelWidth}px</span>
           <input
             aria-label={t.labelWidth}
             className="h-11 w-full accent-teal-700"
@@ -147,22 +148,7 @@ function SettingsContent({
             <option value="conservation">{d.results.viewer.colorSchemes.conservation}</option>
           </select>
           </label>
-          <label className="block space-y-1 text-xs font-medium text-slate-600">
-          <span>{t.coordinateMode}</span>
-          <select
-            aria-label={t.coordinateMode}
-            className={selectClass}
-            disabled={!state.referenceRowKey}
-            onChange={(event) =>
-              onPatch({ coordinateMode: event.target.value as ViewerState["coordinateMode"] })
-            }
-            value={state.coordinateMode}
-          >
-            <option value="alignment">{t.alignmentPosition}</option>
-            <option value="reference">{t.referencePosition}</option>
-          </select>
-          </label>
-          <label className="block space-y-1 text-xs font-medium text-slate-600">
+         <label className="block space-y-1 text-xs font-medium text-slate-600">
           <span>{t.consensusMode}</span>
           <select
             aria-label={t.consensusMode}
@@ -176,34 +162,16 @@ function SettingsContent({
             <option value="iupac">{t.iupacConsensus}</option>
           </select>
           </label>
-          <label className="flex min-h-11 items-center gap-2 text-sm text-slate-700">
-          <input
-            checked={state.differenceMode}
-            disabled={!state.referenceRowKey}
-            onChange={(event) => onPatch({ differenceMode: event.target.checked })}
-            type="checkbox"
-          />
-          {t.differenceMode}
-          </label>
-        </> : (
+       </> : (
           <p className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
             {d.results.viewer.scienceV2.neutralDescription}
           </p>
         )}
-        <button
-          className="inline-flex min-h-11 items-center gap-2 rounded-md px-2 text-sm text-slate-700 hover:bg-white hover:text-teal-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
-          onClick={() =>
-            onPatch({ density: state.density === "compact" ? "comfortable" : "compact" })
-          }
-          type="button"
-        >
-          <Columns3 aria-hidden="true" className="h-4 w-4" />
-          {d.results.viewer.density[state.density]}
-        </button>
+        <label className="block space-y-1"><span>{w.density}</span><select aria-label={w.density} value={state.density} className={selectClass} onChange={e => onPatch({density:e.target.value as ViewerState["density"]})}><option value="compact">{w.compact}</option><option value="comfortable">{w.comfortable}</option></select></label>
       </div></details>
 
       <details className={groupClass}>
-        <summary>{t.settingsGroups.qc}</summary><div>
+        <summary>{w.topTracks}</summary><div>
         {analysisDisabled ? (
           <p className="text-xs leading-5 text-slate-600">
             {d.results.viewer.scienceV2.neutralDescription}
@@ -234,33 +202,14 @@ function SettingsContent({
             </label>
           )
         )}
-          <label className="block space-y-1 text-xs font-medium text-slate-600">
-          <span>{d.results.viewer.columnFilter}</span>
-          <select
-            aria-label={d.results.viewer.columnFilter}
-            className={selectClass}
-            onChange={(event) =>
-              onPatch({ columnFilter: event.target.value as ViewerState["columnFilter"] })
-            }
-            value={state.columnFilter}
-          >
-            <option value="all">{d.results.viewer.columnFilters.all}</option>
-            <option value="variable">{d.results.viewer.columnFilters.variable}</option>
-            <option value="conserved">{d.results.viewer.columnFilters.conserved}</option>
-            <option value="lowGap">{d.results.viewer.columnFilters.lowGap}</option>
-            <option value="custom">{d.results.viewer.columnFilters.custom}</option>
-          </select>
-          </label>
-          <p className="text-xs leading-5 text-slate-500">
-          {d.results.viewer.visibleColumns
-            .replace("{shown}", visibleColumnCount.toLocaleString())
-            .replace("{total}", alignmentLength.toLocaleString())}
-          </p>
+          <label className="flex min-h-11 items-center gap-2"><input type="checkbox" checked={state.showLogo} onChange={e=>onPatch({showLogo:e.target.checked})}/>{w.logo}</label>
+          <label className="flex min-h-11 items-center gap-2"><input type="checkbox" checked={state.showConsensus} onChange={e=>onPatch({showConsensus:e.target.checked})}/>{w.consensus}</label>
+
         </>}
       </div></details>
 
       <details className={groupClass}>
-        <summary>{t.settingsGroups.rows}</summary><div>
+        <summary>{w.rowOrder}</summary><div>
         <label className="block space-y-1 text-xs font-medium text-slate-600">
           <span>{d.results.viewer.sortBy}</span>
           <select

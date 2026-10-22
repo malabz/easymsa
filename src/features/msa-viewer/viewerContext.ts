@@ -13,6 +13,7 @@ export type MsaViewerContext = {
     type: MsaViewerSourceType;
     name: string;
     jobId?: string;
+    stage?: "initial" | "refined" | "final";
   };
   algorithm: {
     requested: string | null;
@@ -39,13 +40,15 @@ function safeSourceName(value: string, fallback: string) {
 
 export function createServerViewerContext(
   summary: ResultSummary,
-  files: ResultFile[] = []
+  files: ResultFile[] = [],
+  stage?: "initial" | "refined" | "final"
 ): MsaViewerContext {
   return {
     source: {
       type: "server-job",
       name: `job-${summary.jobId}`,
-      jobId: summary.jobId
+      jobId: summary.jobId,
+      ...(stage ? { stage } : {})
     },
     algorithm: {
       requested: summary.algorithm?.name ?? null,

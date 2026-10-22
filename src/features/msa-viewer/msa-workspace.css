@@ -148,7 +148,88 @@
 .msa-horizontal-thumb::before,.msa-horizontal-thumb::after {content:"";position:absolute;top:2px;bottom:2px;width:2px;background:#0f766e;}
 .msa-horizontal-thumb::before {left:2px}.msa-horizontal-thumb::after {right:2px}
 .msa-horizontal-thumb span {position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);height:10px;width:5px;border-inline:1px solid #0f766e;}
+
+/* Panel fields follow their container width, independent of the matrix viewport. */
+#msa-shared-panel { min-width:0; width:100%; font-size:12px; color:#475569; overflow-wrap:anywhere; }
+.msa-panel-content { padding:12px 16px; min-width:0; max-width:100%; }
+.msa-panel-content label, .msa-threshold-form > label, .msa-export-selection > label { display:grid; gap:5px; margin-block:10px; min-width:0; }
+.msa-panel-content :is(input:not([type="checkbox"]),select), .msa-threshold-form input, .msa-export-selection select { width:100%; min-width:0; max-width:100%; min-height:36px; padding:6px 8px; border:1px solid #cbd5e1; border-radius:4px; background:white; color:#334155; }
+.msa-panel-content input[type="checkbox"] { accent-color:#0f766e; }
+.msa-panel-content label:has(input[type="checkbox"]) { display:flex; align-items:flex-start; gap:8px; }
+.msa-panel-content small { display:block; margin-top:5px; font-size:11px; color:#64748b; }
+.msa-panel-content button, .msa-threshold-form button { min-height:36px; color:#0f766e; font-weight:500; padding:4px 8px; border-radius:4px; }
+.msa-panel-content button:hover, .msa-threshold-form button:hover { background:#effaf8; }
+.msa-panel-content button:disabled, .msa-threshold-form button:disabled, .msa-status button:disabled { color:#94a3b8; cursor:not-allowed; }
+.msa-panel-content details, .msa-inspector details { border-top:1px solid #e2e8f0; margin-top:10px; padding-top:6px; }
+.msa-panel-content summary, .msa-inspector summary { padding-block:8px; font-weight:600; cursor:pointer; }
+.msa-panel-content .msa-view-group { padding-bottom:6px; }
+.msa-qc-actions { display:flex; flex-wrap:wrap; gap:4px; border-block:1px solid #e2e8f0; margin-block:12px; padding-block:4px; }
+.msa-check-list { list-style:none; margin:0; padding:0; }
+.msa-check-list li { border-bottom:1px solid #e2e8f0; padding-block:9px; line-height:1.6; }
+.msa-check-list li p { margin-top:3px; }
+.msa-check-list li p:last-child { font-size:11px; }
+.msa-pagination { display:flex; align-items:center; justify-content:space-between; gap:6px; margin-top:8px; font-size:11px; }
+.msa-pagination button { width:auto; flex:0 0 auto; padding-inline:4px; }
+.msa-pagination span { white-space:nowrap; }
+.msa-check-table { border-collapse:collapse; min-width:850px; width:100%; font-size:12px; }
+.msa-check-table :is(th,td) { border-bottom:1px solid #e2e8f0; padding:10px 8px; text-align:left; vertical-align:top; }
+.msa-check-table th { background:#f8fafc; color:#475569; font-weight:600; }
+.msa-check-table td:first-child { min-width:180px; max-width:260px; overflow-wrap:anywhere; }
+.msa-check-table td:nth-child(8) { min-width:160px; }
+.msa-check-table button { min-height:36px; color:#0f766e; }
+.msa-export-selection { display:grid; gap:10px; font-size:14px; }
+.msa-export-selection > label { font-weight:600; }
+.msa-primary { min-height:40px; padding:8px 16px; background:#0f766e; color:white !important; border-radius:5px; font-weight:600; }
+.msa-primary:hover { background:#115e59 !important; }
+.msa-primary:disabled { background:#cbd5e1; color:#475569 !important; cursor:not-allowed; }
+.msa-reference-list { width:100%; }
+.msa-reference-list option { padding:8px; overflow:hidden; text-overflow:ellipsis; }
+.msa-name-results { max-height:min(460px,65vh); overflow-y:auto; width:400px; left:0; right:auto; }
+.msa-search-options:has(.msa-name-results) { position:static; }
+.msa-name-results button { gap:12px; }
+.msa-name-results button > span:last-child { flex:0 0 auto; font-size:11px; color:#0f766e; }
+.msa-name-results label { justify-content:flex-start; }
+.msa-name-results input[type="checkbox"] { width:16px; height:16px; }
+.msa-search-feedback { display:flex; flex-wrap:wrap; align-items:center; gap:10px; font-size:11px; padding:4px 16px; border-bottom:1px solid #e2e8f0; color:#64748b; }
+.msa-search-feedback button { color:#0f766e; text-decoration:underline; }
+.msa-command .msa-motif-count { white-space:nowrap; }
+.msa-command .msa-motif-nav { flex-shrink:0; gap:2px; font-size:11px; }
+.msa-command .msa-motif-nav button { display:grid; place-items:center; width:28px; }
+.msa-inspector { padding:12px 16px; font-size:12px; min-width:0; }
+.msa-inspector dl { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:7px 10px; margin-block:8px; }
+.msa-inspector dt { color:#64748b; }
+.msa-inspector dd { color:#0f172a; text-align:right; font-variant-numeric:tabular-nums; max-width:180px; overflow-wrap:anywhere; }
+.msa-status { overflow:visible; }
+.msa-status > div:first-child { flex:1; overflow-x:auto; scrollbar-width:thin; }
+.msa-status > div:last-of-type { flex-shrink:0; }
+@media(min-width:1024px) and (max-width:1350px) {
+ .msa-command {gap:5px;padding-inline:10px;}
+ .msa-command-action {gap:4px;padding-inline:6px;}
+ .msa-search {min-width:200px;}
+ .msa-zoom {padding-inline:5px;}
+ .msa-status .msa-inline-legend {display:none;}
+}
+@media(max-width:1023px) {
+ .msa-command .msa-search { flex-basis:100%; }
+ .msa-name-results {left:0; width:calc(100vw - 24px);max-height:50vh;}
+ .msa-command .msa-motif-nav {position:absolute;right:10px;top:52px;}
+ .msa-command:has(.msa-motif-nav) .msa-zoom {margin-right:110px;}
+ .msa-command-action {font-size:12px;padding-inline:5px;gap:3px;}
+ .msa-status {height:auto;min-height:36px;flex-wrap:wrap;gap:2px;padding-block:2px;}
+ .msa-status > div {max-width:100%;}
+ .msa-status > div:first-child {flex-basis:100%;}
+ .msa-status > div:last-of-type {overflow-x:auto;gap:12px;}
+ .msa-status button {white-space:nowrap;}
+ .msa-panel-content button,.msa-panel-content select,.msa-panel-content input:not([type="checkbox"]),.msa-threshold-form button,.msa-threshold-form input,.msa-export-selection select,.msa-check-table button {min-height:44px;}
+}
+@media(max-width:1023px) and (pointer:fine) {
+ .msa-row-menu-trigger {width:22px;height:20px;min-height:0;}
+}
 .msa-horizontal-retry {font-size:10px;color:#0f766e;padding:0 6px;}
+@media(max-width:600px) {
+ .msa-command-action {flex-direction:column;gap:1px;padding:2px 3px;font-size:10px;min-width:44px;}
+ .msa-zoom {padding-inline:0;gap:0;}
+}
 @media(min-width:1024px) and (max-height:650px) {
  .msa-horizontal-overview {height:24px;}
  .msa-horizontal-track {height:22px;}

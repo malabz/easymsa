@@ -81,7 +81,7 @@ test("CDP trusted touch validates pan, explicit range drag, and Viewer-owned pin
   await openSettings(page);
   await page.getByRole("checkbox", { name: /Touch range-selection mode/ }).check();
   await page.getByRole("button", { name: "Close panel" }).click();
-  await expect(page.getByRole("dialog", { name: "View" })).toBeHidden();
+  await expect(page.getByRole("dialog", { name: "Display" })).toBeHidden();
   await settleBrowser(page);
   await expect(status).toHaveAttribute("data-msa-range-mode", "range");
 

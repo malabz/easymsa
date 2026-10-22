@@ -97,7 +97,7 @@ describe("MsaViewerRoot scientific workspace", () => {
       { id: "sample", rowKey: "row:sample", sequence: "AGGT" }
     ]));
 
-    await waitFor(() => expect(screen.getByText("All rows · 2")).not.toBeNull());
+    await waitFor(() => expect(screen.getByText("All sequences · 2")).not.toBeNull());
     const accessibility = await axe.run(container, {
       rules: { "color-contrast": { enabled: false } }
     });
@@ -115,20 +115,20 @@ describe("MsaViewerRoot scientific workspace", () => {
     }));
 
     expect(screen.getByText(/Protein sequences are available for browsing only/)).not.toBeNull();
-    expect(screen.queryByRole("combobox", { name: "Analysis scope" })).toBeNull();
+    expect(screen.queryByRole("combobox", { name: "Statistics scope" })).toBeNull();
     expect(screen.queryByRole("searchbox", { name: "Search DNA\/RNA motif" })).toBeNull();
     expect(screen.queryByText("Set as reference")).toBeNull();
     expect(screen.queryByText("Color legend")).toBeNull();
 
-    fireEvent.click(screen.getByRole("button", { name: "Workspace settings" }));
-    expect(screen.queryByText("Export consensus range")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Display" }));
+    expect(screen.queryByText("Export region consensus")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Close panel" }));
-    fireEvent.click(screen.getByRole("button", { name: "Selection details" }));
+    fireEvent.click(screen.getByRole("button", { name: "Check" }));
     expect(screen.queryByText(/^Reference$/)).toBeNull();
     expect(screen.queryByText("Reference position")).toBeNull();
 
     fireEvent.click(document.querySelector(".msa-export-menu summary")!);
-    fireEvent.click(screen.getByRole("button", { name: "Export results" }));
+    fireEvent.click(screen.getByRole("button", { name: "Export image" }));
     expect(screen.queryByLabelText("Active analysis tracks")).toBeNull();
     expect(screen.queryByLabelText("Consensus")).toBeNull();
     expect(screen.queryByLabelText("Color legend")).toBeNull();
@@ -141,7 +141,7 @@ describe("MsaViewerRoot scientific workspace", () => {
     ], { warnings: ["duplicate_headers"] }));
 
     expect(screen.getByText(/Duplicate headers detected/)).not.toBeNull();
-    await waitFor(() => expect(screen.getByText("All rows · 2")).not.toBeNull());
+    await waitFor(() => expect(screen.getByText("All sequences · 2")).not.toBeNull());
   });
 
   it("enters and exits the CSS immersive workspace without the Fullscreen API", () => {
@@ -167,7 +167,7 @@ describe("MsaViewerRoot scientific workspace", () => {
     ]));
     await waitFor(() => expect(document.querySelector('[data-msa-row-key="easymsa:consensus"][data-msa-sequence-cell]')).not.toBeNull());
     fireEvent.click(document.querySelector('[data-msa-row-key="easymsa:consensus"][data-msa-sequence-cell]')!);
-    fireEvent.click(screen.getByRole("button", { name: "Selection details" }));
+    fireEvent.click(screen.getByRole("button", { name: "Check" }));
     const inspector = document.querySelector('[data-msa-workspace-dock]');
     expect(inspector?.textContent).toContain("Consensus");
     expect(inspector?.textContent).not.toContain("easymsa:consensus");

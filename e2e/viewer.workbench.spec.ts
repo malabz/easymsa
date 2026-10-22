@@ -90,11 +90,12 @@ test("horizontal overview follows zoom, column filtering and workspace viewport 
 
   await expect.poll(async()=>(await page.locator('[data-msa-horizontal-thumb]').boundingBox())!.width).toBeLessThan(width);
 
-  await page.getByRole('button',{name:'Workspace settings'}).click();
+  await page.getByRole('button',{name:'Display'}).click();
 
-  await page.locator('[data-msa-settings-dock] summary').filter({hasText:'Quality check'}).click();
+  await page.locator('[data-msa-settings-dock] summary').filter({hasText:'Displayed columns'}).click();
 
   await page.getByLabel('Column filter',{exact:true}).selectOption('variable');
+  await page.getByRole('button',{name:'Apply',exact:true}).click();
 
   await page.getByRole('button',{name:'Close panel'}).click();
 
@@ -168,7 +169,7 @@ test("result Alignment opens immersive directly; history and immediate return pr
 
   await page.getByRole("tab",{name:"Alignment",exact:true}).click();
 
-  await page.getByRole("button",{name:"Workspace settings"}).click();
+  await page.getByRole("button",{name:"Display"}).click();
 
   await expect(page.locator("[data-msa-settings-dock]")).toBeVisible();
 
@@ -276,7 +277,7 @@ test("Escape closes export, popovers and panels before leaving immersive mode", 
 
   await expect(shell).toHaveAttribute("data-msa-workspace-mode","immersive");
 
-  await page.getByRole("button",{name:"Workspace settings"}).click();
+  await page.getByRole("button",{name:"Display"}).click();
 
   await page.keyboard.press("Escape");
 
@@ -354,8 +355,8 @@ test("frozen tracks and two-dimensional overview stay aligned and avoid rebuildi
     const i=Math.floor(el.scrollTop/20);return document.querySelector(`[data-index="${i}"][data-msa-row-key]`)?.getAttribute('data-msa-row-key');
   });
   await page.waitForTimeout(750);
-  await page.getByRole('button',{name:'Workspace settings'}).click();
-  await page.getByRole('button',{name:'Compact',exact:true}).click();
+  await page.getByRole('button',{name:'Display'}).click();
+  await page.getByLabel('Density',{exact:true}).selectOption('comfortable');
   await page.getByRole('button',{name:'Close panel'}).click();await settleBrowser(page);
   const restored=await page.locator('[data-msa-scroll-viewport]').evaluate(el=>{
     const i=Math.floor(el.scrollTop/32);return document.querySelector(`[data-index="${i}"][data-msa-row-key]`)?.getAttribute('data-msa-row-key');
@@ -403,9 +404,9 @@ test("conservation scale magnifies similar columns, keeps exact values and survi
 
   await expect(second.locator('span')).toHaveCSS('height','22px');
 
-  await page.getByRole('button',{name:'Workspace settings'}).click();
+  await page.getByRole('button',{name:'Display'}).click();
 
-  await page.locator('[data-msa-settings-dock] summary').filter({hasText:'Quality check'}).click();
+  await page.locator('[data-msa-settings-dock] summary').filter({hasText:'Top statistics'}).click();
 
   await expect(page.getByLabel('Conservation display',{exact:true})).toHaveValue('high');
 
@@ -421,9 +422,9 @@ test("conservation scale magnifies similar columns, keeps exact values and survi
 
   await expect(first).toHaveAttribute('data-msa-conservation-scale','0–100%');
 
-  await page.getByRole('button',{name:'Workspace settings'}).click();
+  await page.getByRole('button',{name:'Display'}).click();
 
-  await page.locator('[data-msa-settings-dock] summary').filter({hasText:'Quality check'}).click();
+  await page.locator('[data-msa-settings-dock] summary').filter({hasText:'Top statistics'}).click();
 
   await expect(page.getByLabel('Conservation display',{exact:true})).toHaveValue('full');
 
@@ -465,9 +466,9 @@ test("conservation scale marks low values in amber and leaves uninformed columns
 
   await expect(page.locator('[data-msa-track="conservation"][data-msa-track-position="7"] span')).toHaveCSS('height','0px');
 
-  await page.getByRole('button',{name:'Workspace settings'}).click();
+  await page.getByRole('button',{name:'Display'}).click();
 
-  await page.locator('[data-msa-settings-dock] summary').filter({hasText:'Quality check'}).click();
+  await page.locator('[data-msa-settings-dock] summary').filter({hasText:'Top statistics'}).click();
 
   await page.getByLabel('Conservation display',{exact:true}).selectOption('full');
 

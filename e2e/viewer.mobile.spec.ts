@@ -65,9 +65,9 @@ test("trusted taps select DOM and Canvas cells, operate the minimap, and open a 
   await expect(status).toHaveAttribute("data-msa-selected-position", expectedPosition ?? "1");
 
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  const settingsButton = page.getByRole("button", { name: "Workspace settings" });
+  const settingsButton = page.getByRole("button", { name: "Display" });
   await settingsButton.tap();
-  const sheet = page.getByRole("dialog", { name: "View" });
+  const sheet = page.getByRole("dialog", { name: "Display" });
   await expect(sheet).toBeVisible();
   await expect(sheet).toHaveAttribute("data-overlay-variant", "bottom-sheet");
   await expect(sheet.locator("[data-msa-settings-dock='true']")).toBeVisible();
@@ -82,7 +82,7 @@ test("trusted taps select DOM and Canvas cells, operate the minimap, and open a 
       .filter((control) => {
         const style = getComputedStyle(control);
         const bounds = control.getBoundingClientRect();
-        return style.display !== "none" && style.visibility !== "hidden" && bounds.width > 0 && bounds.height > 0;
+        return control.checkVisibility() && style.display !== "none" && style.visibility !== "hidden" && bounds.width > 0 && bounds.height > 0;
       })
       .map((control) => {
         const bounds = control.getBoundingClientRect();
@@ -94,7 +94,7 @@ test("trusted taps select DOM and Canvas cells, operate the minimap, and open a 
     expect(size.width).toBeGreaterThanOrEqual(43.5);
   }
 
-  await page.getByLabel("Matrix display mode").selectOption("overview");
+  await page.getByLabel("Display mode").selectOption("overview");
   await page.getByRole("button", { name: "Close panel" }).tap();
   await expect(settingsButton).toBeFocused();
   const canvas = page.locator("canvas[data-msa-canvas='true']");

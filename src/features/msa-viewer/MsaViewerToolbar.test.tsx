@@ -80,14 +80,14 @@ describe("MsaViewerToolbar", () => {
 
   function motif() {
     fireEvent.change(screen.getByLabelText("Search and navigation type"), { target: { value: "motif" } });
-    fireEvent.click(screen.getByLabelText("Motif options and results"));
+    fireEvent.click(screen.getByLabelText("More search options"));
   }
   it("starts with one search input and only View, Analyze, zoom and Export entries", () => {
     const { container } = renderToolbar();
     expect(screen.getAllByRole("searchbox")).toHaveLength(1);
     expect(screen.queryByLabelText("Motif matching")).toBeNull();
-    expect(screen.getByRole("button", {name:"Workspace settings"}).getAttribute("aria-expanded")).toBe("false");
-    expect(screen.getByRole("button", {name:"Selection details"}).getAttribute("aria-expanded")).toBe("false");
+    expect(screen.getByRole("button", {name:"Display"}).getAttribute("aria-expanded")).toBe("false");
+    expect(screen.getByRole("button", {name:"Check"}).getAttribute("aria-expanded")).toBe("false");
     expect(container.querySelector("details")?.hasAttribute("open")).toBe(false);
     expect(screen.queryByText(/^Track:/)).toBeNull();
   });
@@ -97,8 +97,8 @@ describe("MsaViewerToolbar", () => {
     motif();
     expect((screen.getByRole("searchbox") as HTMLInputElement).value).toBe("ACG");
     fireEvent.change(screen.getByLabelText("Search and navigation type"),{target:{value:"position"}});
-    expect((screen.getByRole("spinbutton") as HTMLInputElement).value).toBe("12");
-    fireEvent.keyDown(screen.getByRole("spinbutton"),{key:"Enter"});
+    expect((screen.getByRole("searchbox") as HTMLInputElement).value).toBe("12");
+    fireEvent.keyDown(screen.getByRole("searchbox"),{key:"Enter"});
     expect(shared.onJump).toHaveBeenCalled();
   });
   it("publishes motif rules and both coordinate systems", () => {
@@ -109,21 +109,23 @@ describe("MsaViewerToolbar", () => {
     fireEvent.change(screen.getByLabelText("Search direction"),{target:{value:"both"}});
     expect(shared.onPatch).toHaveBeenCalledWith({motifMatchMode:"possible",activeMotifIndex:0});
     expect(shared.onPatch).toHaveBeenCalledWith({motifStrandMode:"both",activeMotifIndex:0});
-    expect(screen.getByRole("option",{name:/duplicate · - strand · alignment 12-14 · sequence 7-9/})).not.toBeNull();
+    expect(screen.getByRole("option",{name:/duplicate · - · Alignment position 12–14/})).not.toBeNull();
+    fireEvent.click(screen.getByText("Details"));
+    expect(screen.getByText("Sequence position: 7–9")).not.toBeNull();
   });
   it("opens View exclusively and Analyze only on explicit activation", () => {
     const onOpenInspector=vi.fn();
     const {shared}=renderToolbar({propOverrides:{onOpenInspector}});
-    fireEvent.click(screen.getByRole("button",{name:"Workspace settings"}));
+    fireEvent.click(screen.getByRole("button",{name:"Display"}));
     expect(shared.onPatch).toHaveBeenCalledWith({settingsOpen:true,inspectorOpen:false,qcPanelOpen:false});
-    fireEvent.click(screen.getByRole("button",{name:"Selection details"}));
+    fireEvent.click(screen.getByRole("button",{name:"Check"}));
     expect(onOpenInspector).toHaveBeenCalledOnce();
   });
   it("gathers exports in a menu and disables absent selections", () => {
     const {container, shared}=renderToolbar();
     fireEvent.click(container.querySelector(".msa-export-menu summary")!);
-    expect((screen.getByRole("button",{name:"Export selected rows"}) as HTMLButtonElement).disabled).toBe(true);
-    fireEvent.click(screen.getByRole("button",{name:"Export visible FASTA"}));
+    expect((screen.getByRole("button",{name:"Export selected sequences"}) as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(screen.getByRole("button",{name:"Download sequences"}));
     expect(shared.onExportVisible).toHaveBeenCalledOnce();
     expect(container.querySelector("details")?.hasAttribute("open")).toBe(false);
   });
@@ -134,7 +136,7 @@ describe("MsaViewerToolbar", () => {
   it("keeps neutral browsing information and excludes nucleotide controls", () => {
     renderToolbar({propOverrides:{analysisDisabled:true,neutralReason:"Unequal row lengths are shown without padding."}});
     expect(screen.queryByRole("option",{name:"Sequence motif"})).toBeNull();
-    expect(screen.queryByText("Export consensus range")).toBeNull();
+    expect(screen.queryByText("Export region consensus")).toBeNull();
     expect(screen.getByRole("status").textContent).toContain("Unequal row lengths");
   });
 });

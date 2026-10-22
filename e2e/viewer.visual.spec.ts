@@ -50,9 +50,9 @@ test("fixed platform Chromium workspace baselines", async ({ page }, testInfo) =
 
   if (width === 390 || width === 768) {
 
-    await page.getByRole("button", { name: "Workspace settings" }).click();
+    await page.getByRole("button", { name: "Display" }).click();
 
-    await expect(page.getByRole("dialog", { name: "View" }))
+    await expect(page.getByRole("dialog", { name: "Display" }))
 
       .toHaveScreenshot("settings-sheet.png");
 
@@ -66,11 +66,11 @@ test("fixed platform Chromium workspace baselines", async ({ page }, testInfo) =
 
     await page.locator("[data-msa-sequence-cell='true']").first().click();
 
-    await page.getByRole("button", { name: "Selection details", exact: true }).click();
+    await page.getByRole("button", { name: "Check", exact: true }).click();
 
     if (width === 390) {
 
-      await expect(page.getByRole("dialog", { name: "Analyze", exact: true }))
+      await expect(page.getByRole("dialog", { name: "Check", exact: true }))
 
         .toHaveScreenshot("inspector-sheet.png");
 

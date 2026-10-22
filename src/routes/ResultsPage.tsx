@@ -114,7 +114,7 @@ export function ResultsPage() {
       <ResultPanels workspaceScope={`job:${jobId}:${stage}`} sourceName={jobQuery.data?.jobName ?? d.results.title} headerActions={stageControl} onRetry={() => alignmentQuery.refetch()} activeTab={activeTab} setActiveTab={setActiveTab} summary={summaryQuery.data}
         alignment={alignmentQuery.data} summaryPending={summaryQuery.isPending} alignmentPending={alignmentQuery.isPending}
         alignmentError={alignmentQuery.error instanceof Error ? alignmentQuery.error.message : null} error={error}
-        files={access ? files : []} context={summaryQuery.data ? createServerViewerContext(summaryQuery.data, files) : undefined} /></div>
+        files={access ? files : []} context={summaryQuery.data ? createServerViewerContext(summaryQuery.data, files, stage) : undefined} /></div>
     </AnalysisWorkspace>
   );
 }

@@ -77,14 +77,14 @@ test("responsive settings and Inspector use the intended sheet or side dock", as
   if (!viewport) throw new Error("Viewport is unavailable.");
   const compact = viewport.width <= 768;
 
-  await page.getByRole("button", { name: "Workspace settings" }).click();
+  await page.getByRole("button", { name: "Display" }).click();
   if (compact) {
-    const settings = page.getByRole("dialog", { name: "View" });
+    const settings = page.getByRole("dialog", { name: "Display" });
     await expect(settings).toHaveAttribute("data-overlay-variant", "bottom-sheet");
     await page.keyboard.press("Escape");
   } else {
     await expect(page.locator("[data-msa-settings-dock='true']")).toBeVisible();
-    await expect(page.getByRole("dialog", { name: "View" })).toHaveCount(0);
+    await expect(page.getByRole("dialog", { name: "Display" })).toHaveCount(0);
     await page.getByRole("button", { name: "Close panel" }).click();
   }
 
@@ -92,15 +92,15 @@ test("responsive settings and Inspector use the intended sheet or side dock", as
   await page.keyboard.press("ArrowRight");
   await expect(page.locator("[data-msa-workspace-dock]")).toHaveCount(0);
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await page.getByRole("button", {name:"Selection details",exact:true}).click();
+  await page.getByRole("button", {name:"Check",exact:true}).click();
   if (compact) {
-    const inspector = page.getByRole("dialog", { name: "Analyze" });
+    const inspector = page.getByRole("dialog", { name: "Check" });
     await expect(inspector).toHaveAttribute("data-overlay-variant", "bottom-sheet");
     await page.keyboard.press("Escape");
   } else {
     const dock = page.locator("[data-msa-workspace-dock='true']");
     await expect(dock).toBeVisible();
-    await expect(dock).toHaveAttribute("aria-label", "Selection details");
+    await expect(dock).toHaveAttribute("aria-label", "Check");
     const separator = dock.getByRole("separator");
     await expect(separator).toBeVisible();
     const widthBefore = (await locatorBox(dock)).width;
@@ -115,7 +115,7 @@ test("responsive settings and Inspector use the intended sheet or side dock", as
         .filter((control) => {
           const bounds = control.getBoundingClientRect();
           const style = getComputedStyle(control);
-          return bounds.width > 0 && bounds.height > 0 && style.display !== "none" && style.visibility !== "hidden";
+          return control.checkVisibility() && bounds.width > 0 && bounds.height > 0 && style.display !== "none" && style.visibility !== "hidden";
         })
         .map((control) => {
           const bounds = control.getBoundingClientRect();

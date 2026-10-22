@@ -61,9 +61,10 @@ export function MsaInspectorContent({
   const { dictionary: d } = useLanguage();
   const t = d.results.viewer.stageTwo;
   const science = d.results.viewer.scienceV2;
+  const w = d.viewerWorkflow;
 
   return (
-    <div className="space-y-4">
+    <div className="msa-inspector space-y-3">
       <div className="flex flex-wrap gap-2 text-xs">
         <span className="rounded-full bg-teal-50 px-2.5 py-1 font-semibold text-teal-800">
           {showReferenceContext
@@ -75,13 +76,13 @@ export function MsaInspectorContent({
             : science.neutralTitle}
         </span>
       </div>
-      {showReferenceContext ? (
+      {showReferenceContext && reference ? (
         <section className="border-b border-slate-200 pb-3">
           <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
             <Dna className="h-3.5 w-3.5 text-teal-700" />
             {t.reference}
           </p>
-          <p className="mt-2 truncate font-mono text-sm text-slate-900">
+          <p className="mt-2 truncate font-mono text-sm text-slate-900" title={reference?.id}>
             {reference?.id ?? t.noReference}
           </p>
         </section>
@@ -100,7 +101,7 @@ export function MsaInspectorContent({
                 value={selectionLabel ?? selection.sequenceId ?? selection.rowKey}
               />
               <Stat label={t.alignmentPosition} value={alignmentPosition} />
-              {showReferenceContext ? (
+              {showReferenceContext && reference ? (
                 <Stat label={t.referencePosition} value={referencePosition ?? "—"} />
               ) : null}
               <Stat label={d.results.viewer.selectedBase} value={base || d.results.viewer.emptyCell} />
@@ -119,9 +120,10 @@ export function MsaInspectorContent({
                   value={columnStats.hasInformativeBases === false ? "—" : percent(columnStats.conservation)}
                 />
                 <Stat label={d.results.viewer.columnGap} value={percent(columnStats.gapFraction)} />
+                </div><details><summary>{w.moreMetrics}</summary><div className="grid grid-cols-2 gap-2">
                 <Stat label={t.tracks.coverage} value={percent(columnStats.coverage)} />
                 <Stat
-                  label={t.tracks.entropy}
+                  label={w.entropyBits}
                   value={columnStats.hasInformativeBases === false ? "—" : `${(columnStats.entropyBits ?? columnStats.normalizedEntropy ?? columnStats.entropy ?? 0).toFixed(3)} bits`}
                 />
                 <Stat label={science.metrics.informativeCoverage} value={percent(columnStats.informativeCoverage)} />
@@ -130,12 +132,12 @@ export function MsaInspectorContent({
                 <div className="col-span-2">
                   <Stat label={t.stats.baseComposition} value={columnSummary || "—"} />
                 </div>
-              </div>
+              </div></details>
             </section>
           ) : null}
         </>
       ) : (
-        <p className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm leading-6 text-slate-600">
+        <p className="py-3 text-sm leading-6 text-slate-600">
           {d.results.viewer.noSelection}
         </p>
       )}
@@ -150,9 +152,11 @@ export function MsaInspectorContent({
           </h3>
           <div className="grid grid-cols-2 gap-2">
             <Stat label={d.results.viewer.rangeLength} value={rangeStats.length} />
-            <Stat label={t.stats.gcContent} value={percent(rangeStats.gcFraction)} />
+
             <Stat label={d.results.viewer.rangeConservation} value={percent(rangeStats.averageConservation)} />
             <Stat label={d.results.viewer.rangeGap} value={percent(rangeStats.averageGapFraction)} />
+          </div><details><summary>{w.moreMetrics}</summary><div className="grid grid-cols-2 gap-2">
+            <Stat label={t.stats.gcContent} value={percent(rangeStats.gcFraction)} />
             <Stat label={t.stats.averageCoverage} value={percent(rangeStats.averageCoverage)} />
             <Stat label={t.stats.averageEntropy} value={rangeStats.averageEntropy.toFixed(3)} />
             {showReferenceContext && reference ? (
@@ -193,7 +197,7 @@ export function MsaInspectorContent({
                 <Stat label={t.stats.transversions} value={rangeStats.transversionCount} />
               </>
             ) : null}
-          </div>
+          </div></details>
         </section>
       ) : null}
       {showReferenceContext && range && !rangeStats && rangeError ? (
@@ -221,8 +225,7 @@ export function MsaInspector({
 
   if (docked) {
     return (
-      <div className="p-4">
-        <h2 className="mb-4 text-base font-semibold text-slate-950">{title}</h2>
+      <div>
         {content}
       </div>
     );

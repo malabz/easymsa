@@ -282,7 +282,6 @@ function hideRows(state: ViewerState, values: Iterable<string>): ViewerState {
   const pinnedRowKeys = new Set(state.pinnedRowKeys);
   candidates.forEach((rowKey) => {
     hiddenRowKeys.add(rowKey);
-    selectedRowKeys.delete(rowKey);
     pinnedRowKeys.delete(rowKey);
   });
   const selectedHidden = state.selection

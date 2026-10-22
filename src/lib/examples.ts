@@ -133,6 +133,7 @@ export async function loadExampleResult(
     source: {
       type: "public-example",
       name: `${example.id}:${example.version}:${stage}`,
+      stage,
     },
     algorithm: {
       requested: summary.algorithm?.name ?? null,

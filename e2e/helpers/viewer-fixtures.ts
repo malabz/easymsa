@@ -151,8 +151,8 @@ export async function loadNamedFixture(page: Page, name: ViewerFixtureName) {
 }
 
 export async function openSettings(page: Page) {
-  await page.getByRole("button", { name: "Workspace settings" }).click();
-  const dialog = page.getByRole("dialog", { name: "View", exact: true });
+  await page.getByRole("button", { name: "Display" }).click();
+  const dialog = page.getByRole("dialog", { name: "Display", exact: true });
   const dock = page.locator("[data-msa-settings-dock='true']");
   await expect(dock).toBeVisible();
   return dialog.isVisible().then((visible) => visible ? dialog : dock);
@@ -160,14 +160,14 @@ export async function openSettings(page: Page) {
 
 export async function closeSettings(page: Page) {
   await page.getByRole("button", { name: "Close panel" }).click();
-  await expect(page.getByRole("dialog", { name: "View", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("dialog", { name: "Display", exact: true })).toHaveCount(0);
   await expect(page.locator("[data-msa-settings-dock='true']")).toHaveCount(0);
   await settleBrowser(page);
 }
 
 export async function setViewMode(page: Page, mode: "detail" | "overview") {
   await openSettings(page);
-  await page.getByLabel("Matrix display mode").selectOption(mode);
+  await page.getByLabel("Display mode").selectOption(mode);
   await closeSettings(page);
   await expect(page.locator("[data-msa-status='true']"))
     .toHaveAttribute("data-msa-view-mode", mode);
@@ -215,19 +215,18 @@ export async function locatorBox(locator: Locator) {
 }
 export async function openMotif(page: Page) {
   await page.getByLabel("Search and navigation type").selectOption("motif");
-  await page.getByLabel("Motif options and results").click();
+  await page.getByLabel("More search options").click();
 }
 export async function openExport(page: Page) {
   await page.locator(".msa-export-menu > summary").click();
-  await page.getByRole("button", { name: "Export results" }).click();
+  await page.getByRole("button", { name: "Export image" }).click();
 }
 export async function openQc(page: Page) {
-  await page.getByRole("button", { name: "Selection details", exact: true }).click();
-  await page.getByRole("tab", { name: "Quality checks", exact: true }).click();
+  await page.getByRole("button", { name: "Check", exact: true }).click();
+  await page.getByRole("tab", { name: "Sequence checks", exact: true }).click();
 }
 export async function chooseScope(page: Page, scope: string) {
-  await openSettings(page);
-  await page.getByText("Analysis scope and workspace", { exact:true }).click();
-  await page.getByLabel("Analysis scope",{exact:true}).selectOption(scope);
-  await closeSettings(page);
+  await page.getByRole("button", { name: "Check", exact: true }).click();
+  await page.getByLabel("Statistics scope", {exact:true}).selectOption(scope);
+  await page.getByRole("button", { name: "Close panel" }).click();
 }

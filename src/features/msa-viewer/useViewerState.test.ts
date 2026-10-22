@@ -71,7 +71,7 @@ describe("viewerReducer", () => {
 
     expect(selected.selectedRowKeys).toEqual(new Set(["row-1", "row-2"]));
     expect(hidden.hiddenRowKeys).toEqual(new Set(["row-1", "row-2"]));
-    expect(hidden.selectedRowKeys.size).toBe(0);
+    expect(hidden.selectedRowKeys).toEqual(new Set(["row-1", "row-2"]));
     expect(restored.hiddenRowKeys.size).toBe(0);
   });
 

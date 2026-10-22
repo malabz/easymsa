@@ -835,7 +835,7 @@ export function MsaDomMatrix({
           ))}
 
           {showLogo && <div role="row" aria-rowindex={activeTracks.length+1} className="grid border-b border-slate-200 bg-white" style={{gridTemplateColumns:`${settings.labelWidth}px 1fr`,height:LOGO_HEIGHT}}>
-            <div role="rowheader" className="sticky left-0 z-20 flex items-center justify-between border-r border-slate-200 bg-white px-3 text-xs text-slate-500"><span>{locale === "zh" ? "碱基频率" : "Base frequency"}</span><span className="text-[9px]">100%<br/>0%</span></div>
+            <div role="rowheader" className="sticky left-0 z-20 flex items-center justify-between border-r border-slate-200 bg-white px-3 text-xs text-slate-500"><span>{d.viewerWorkflow.logo}</span><span className="text-[9px]">100%<br/>0%</span></div>
             <div role="gridcell" aria-colindex={2} className="px-3"><MsaFrequencyLogo columns={renderColumns} store={stats && !Array.isArray(stats) ? stats : null} width={columnContentWidth} cellWidth={settings.cellWidth} rna={rna}/></div>
           </div>}
           {motifColumnHitCounts && <div role="row" aria-rowindex={activeTracks.length+(showLogo?1:0)+1} className="grid border-b border-slate-200 bg-white" style={{gridTemplateColumns:`${settings.labelWidth}px 1fr`,height:20}}>

@@ -154,7 +154,7 @@ const zh: DocsSection[] = [
               "在线比对至少需要两条序列。",
               "每条记录的第一行必须以 > 开头，后面的文本作为序列名称。",
               "序列可以分成多行；提交时会连接为一条连续序列。",
-              "建议使用唯一且简短的序列名称，便于搜索、设为 参考序列 和导出。"
+              "建议使用唯一且简短的序列名称，便于搜索、设为对照序列和导出。"
             ]
           }
         ]
@@ -457,16 +457,16 @@ const zh: DocsSection[] = [
             "type": "list",
             "items": [
               "拖动概览图或滚动条，移动到目标行列。",
-              "按序列名称、序列片段或位置搜索。",
-              "片段搜索支持精确匹配或兼容简并碱基，可选择正向或双链。",
-              "点击碱基查看选区；Shift + 点击可选择连续区间。打开“分析”查看详情。"
+              "按名称查找 ID 或描述，点击结果定位；勾选“只显示匹配序列”才会筛选矩阵。位置搜索输入单个有效整数。",
+              "片段搜索显示命中数及上一处、下一处。“更多搜索选项”可设置精确／简并匹配和反向互补链。",
+              "点击碱基或按住 Shift 点击选择区间，再从底部查看统计、导出区域或添加标记。"
             ]
           }
         ]
       },
       {
         "id": "reference-analysis",
-        "title": "参考序列与差异",
+        "title": "对照序列与差异",
         "summary": "",
         "keywords": [
           "参考序列",
@@ -478,7 +478,7 @@ const zh: DocsSection[] = [
         "blocks": [
           {
             "type": "paragraph",
-            "text": "从序列菜单选择参考序列，可突出替换、插入和缺失，并查看参考坐标。差异统计以所选参考为比较对象。"
+            "text": "打开“比较”，搜索并选择一条对照序列，然后点击“开始比较”。也可从序列菜单直接设为对照。结束比较会恢复比对位置，保留其他显示设置。"
           }
         ]
       },
@@ -500,10 +500,10 @@ const zh: DocsSection[] = [
           {
             "type": "list",
             "items": [
-              "在“视图”中调整颜色、统计轨道、排序和筛选。",
-              "从序列菜单固定、隐藏或选择序列。质量检查和人工标记位于“分析”中。",
-              "导出 FASTA、SVG 或 PNG；选择 ZIP 可同时保存导出设置、序列与位置对应表和标记。",
-              "查看设置自动保存在当前浏览器，可导出设置文件用于恢复。"
+              "在“显示”中调整颜色、顶部统计图和序列排序。列筛选先预览保留数量，点击“应用”后生效。",
+              "“检查 → 序列检查”支持搜索、排序、分页和完整表格。修改列表不会隐藏矩阵中的序列；需要时点击“只显示匹配序列”，并可撤销。",
+              "“导出 → 下载序列”分别选择序列和列的范围，确认数量与结果版本后下载。连续区间包含其中隐藏的列；不连续列下载 ZIP，附原始列位置表。图片另从“导出图片”设置。",
+              "“保存查看记录”保存位置、筛选、对照和标记，不包含原始序列。统计默认使用全部序列；隐藏和筛选不会自动改变统计范围。"
             ]
           }
         ]
@@ -572,9 +572,19 @@ const zh: DocsSection[] = [
                 "可结合邻近区域检查插入、缺失和覆盖情况。"
               ],
               [
-                "香农熵",
-                "−Σ p log₂(p)，仅使用明确碱基；归一化熵为该值除以 2",
-                "碱基种类越均匀，熵越高。四类等频时为 2 bit。"
+                "香农熵（bits）",
+                "−Σ p log₂(p)，仅使用明确碱基",
+                "碱基种类越均匀，熵越高。四类等频时为 2 bits。"
+              ],
+              [
+                "碱基多样性（0–1）",
+                "香农熵 / 2",
+                "顶部多样性统计图使用此刻度；四类明确碱基等频时为 1。"
+              ],
+              [
+                "非缺口比例",
+                "不含缺口的序列数 / 当前统计范围内序列数",
+                "与缺口比例互补；简并字符计作非缺口。"
               ],
               [
                 "共识序列",
@@ -608,7 +618,7 @@ const zh: DocsSection[] = [
         "blocks": [
           {
             "type": "paragraph",
-            "text": "结合保守性、缺口比例和碱基组成，检查感兴趣的区域。共识序列汇总各列主要碱基；如需比较差异，请自行选择参考序列。"
+            "text": "结合保守性、缺口比例和碱基组成，检查感兴趣的区域。共识序列汇总各列主要碱基；如需比较差异，请选择一条对照序列。"
           }
         ]
       }
@@ -1136,9 +1146,9 @@ const en: DocsSection[] = [
             "type": "list",
             "items": [
               "Drag the overview or scrollbars to navigate rows and columns.",
-              "Search by sequence name, motif or position.",
-              "Motif search supports exact or IUPAC-compatible matching, on the forward or both strands.",
-              "Click a base to select it; Shift-click selects a continuous interval. Open Analyze for details."
+              "Find an ID or description, then click a result to locate it. Only “Show only matching sequences” filters the matrix. Position search accepts one valid integer.",
+              "Motif search shows the match count with previous/next navigation. More search options provides exact or IUPAC matching and the reverse-complement strand.",
+              "Click a base or Shift-click a region, then use the bottom bar to view statistics, export the region or add a note."
             ]
           }
         ]
@@ -1157,7 +1167,7 @@ const en: DocsSection[] = [
         "blocks": [
           {
             "type": "paragraph",
-            "text": "Choose a reference from a sequence menu to highlight substitutions, insertions and deletions and view reference coordinates. Difference statistics use the selected reference."
+            "text": "Open Compare, find and select a reference, then Start comparison. The sequence menu offers the same action. End comparison restores alignment positions and keeps other display settings."
           }
         ]
       },
@@ -1179,10 +1189,10 @@ const en: DocsSection[] = [
           {
             "type": "list",
             "items": [
-              "Use View to adjust colors, statistic tracks, sorting and filters.",
-              "Pin, hide or select sequences from their menus. Quality checks and annotations are in Analyze.",
-              "Export FASTA, SVG or PNG. ZIP also includes export settings, sequence and position mappings, and annotations.",
-              "Viewer settings are saved in this browser and can be exported for later recovery."
+              "Display controls colors, top statistics and sequence order. Preview the retained column count before applying a column filter.",
+              "Check → Sequence checks provides search, sorting, pages and a full table. Changing the list does not hide matrix rows. Show only matching sequences applies the list explicitly and can be undone.",
+              "Export → Download sequences lets you choose rows and columns and confirm their counts and result stage. A continuous region includes hidden columns. Non-contiguous columns download as ZIP with the original column mapping. Use Export image for PNG or SVG.",
+              "Save view records positions, filters, the reference and notes, without the original sequences. Statistics default to all sequences; display filters do not change their scope automatically."
             ]
           }
         ]
@@ -1251,12 +1261,22 @@ const en: DocsSection[] = [
                 "Inspect alongside neighboring regions for insertions, deletions and coverage."
               ],
               [
-                "Shannon entropy",
-                "−Σ p log₂(p) over unambiguous bases; divide by 2 to normalize",
+                "Entropy (bits)",
+                "−Σ p log₂(p) over unambiguous bases",
                 "Higher for more evenly distributed bases. Four equally frequent bases give 2 bits."
               ],
               [
-                "Consensus",
+                "Base diversity (0–1)",
+                "Entropy / 2",
+                "The diversity track uses this scale; four equally frequent unambiguous bases give 1."
+              ],
+              [
+                "Non-gap fraction",
+                "Non-gap sequences / sequences in the statistics scope",
+                "Complements the gap fraction. Ambiguous characters count as non-gap."
+              ],
+              [
+                "Consensus sequence",
                 "The most frequent unambiguous base in each column",
                 "Ties use a fixed order and are marked in majority mode, or an ambiguity code in IUPAC mode. No unambiguous base gives N."
               ],

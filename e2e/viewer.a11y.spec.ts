@@ -72,7 +72,7 @@ test("axe covers input, detail, settings, Inspector and QC", async ({ page }) =>
 
 
 
-  await page.getByRole("button", { name: "Workspace settings" }).click();
+  await page.getByRole("button", { name: "Display" }).click();
 
   await expectAxeClean(page, "settings");
 
@@ -82,7 +82,7 @@ test("axe covers input, detail, settings, Inspector and QC", async ({ page }) =>
 
   await page.locator("[data-msa-sequence-cell='true']").first().click();
 
-  await page.getByRole("button", { name: "Selection details", exact: true }).click();
+  await page.getByRole("button", { name: "Check", exact: true }).click();
 
   await expectAxeClean(page, "inspector");
 
@@ -114,6 +114,7 @@ test("axe covers normal and over-limit export states", async ({ page }) => {
 
   await page.getByRole("button", { name: "Original full alignment", exact: true }).click();
 
+  await page.getByText("More image options", {exact:true}).click();
   await page.getByRole("button", { name: "Keep one line", exact: true }).click();
 
   await page.getByLabel("PNG scale", { exact: true }).fill("4");
@@ -214,7 +215,7 @@ test("forced colors, reduced motion, 200% text zoom, and 320/360 reflow remain o
 
   await expectNoHorizontalOverflow(page);
 
-  await expect(page.getByRole("button", { name: "Workspace settings" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Display" })).toBeVisible();
 
   await expectAxeClean(page, "text-zoom-320");
 

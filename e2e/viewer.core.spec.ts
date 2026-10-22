@@ -19,11 +19,11 @@ test("reference, scope, QC annotation, restoration, motif, minimap, and bundle e
   await loadViewerFasta(page, fasta);
 
   await expect(page.getByRole("group", { name: /Overview navigation/ })).toBeVisible();
-  await runRowAction(page, "reference", "Set as reference reference", "Set as reference");
+  await runRowAction(page, "reference", "Use as reference reference", "Use as reference");
   await expect(page.getByText("Reference: reference", { exact: true })).toBeVisible();
 
-  await openSettings(page);
-  await page.getByLabel("Difference view").check();
+  await page.getByRole("button", { name: "Compare", exact: true }).click();
+  await expect(page.getByLabel("Highlight differences")).toBeChecked();
   await page.getByRole("button", { name: "Close panel" }).click();
 
   const dragStart = page.getByRole("gridcell", { name: /sample-2; Position 2; T/ });
@@ -53,12 +53,12 @@ test("reference, scope, QC annotation, restoration, motif, minimap, and bundle e
   await chooseScope(page, "selected");
   await expect(page.locator("[data-msa-status='true']"))
     .toHaveAttribute("data-msa-analysis-status", "ready");
-  await expect(page.getByText(/Explicitly selected rows · 1/)).toBeVisible();
+  await expect(page.getByText(/Selected sequences · 1/)).toBeVisible();
 
-  await openQc(page);
+  await page.getByRole("button", { name: "Add note", exact: true }).click();
   await page.getByLabel("New annotation: Category").selectOption("review");
   await page.getByLabel("New annotation: Note").fill("review interval");
-  await page.getByRole("button", { name: "Add" }).click();
+  await page.getByRole("button", { name: "Add", exact: true }).click();
   await expect(page.locator("textarea").first()).toHaveValue("review interval");
   await page.getByRole("button", { name: "Close panel" }).click();
 
@@ -81,13 +81,14 @@ test("reference, scope, QC annotation, restoration, motif, minimap, and bundle e
   await expect(page.locator("[data-msa-status='true']"))
     .toHaveAttribute("data-msa-analysis-status", "ready");
   await expect(page.getByText(/Reference: reference/)).toBeVisible();
-  await expect(page.getByText(/Explicitly selected rows · 1/)).toBeVisible();
-  await openQc(page);
+  await expect(page.getByText(/Selected sequences · 1/)).toBeVisible();
+  await page.getByRole("button", { name: "Check", exact: true }).click();
+  await page.locator(".msa-annotation-details > summary").click();
   await expect(page.locator("textarea").first()).toHaveValue("review interval");
   await page.getByRole("button", { name: "Close panel" }).click();
 
   await openExport(page);
-  await page.getByRole("button", { name: "FASTA" }).click();
+  await page.getByRole("button", { name: "SVG", exact: true }).click();
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export", exact: true }).click();
   const download = await downloadPromise;
@@ -129,12 +130,12 @@ test("the matrix is one real Tab stop with complete keyboard and overlay focus b
   expect(activeDescendant).toBeTruthy();
   await expect(page.locator(`#${activeDescendant}`)).toHaveCount(1);
 
-  const settingsButton = page.getByRole("button", { name: "Workspace settings" });
+  const settingsButton = page.getByRole("button", { name: "Display" });
   await settingsButton.click();
   await expect(page.locator("[data-msa-settings-dock='true']")).toBeVisible();
   await page.getByRole("button", { name: "Close panel" }).click();
 
-  const exportButton = page.getByRole("button", { name: "Export results" });
+  const exportButton = page.getByRole("button", { name: "Export image" });
   await page.locator(".msa-export-menu > summary").click();
   await exportButton.click();
   const exportDialog = page.getByRole("dialog", { name: "Export alignment" });

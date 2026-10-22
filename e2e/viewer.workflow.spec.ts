@@ -1,0 +1,123 @@
+import { expect, test } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
+import { unzipSync, strFromU8 } from 'fflate';
+import { loadViewerFasta, prepareViewerPage, openQc, runRowAction } from './helpers/viewer-fixtures';
+
+const fixture = '>alpha sample 中文 description\nACGT-ACG\n>beta second sample\nAC-TTACG\n>gamma long description\nACGT-ACG';
+test.beforeEach(async ({page}) => { await prepareViewerPage(page); });
+
+test('name search locates full headers without filtering, and explicitly reveals hidden rows', async ({page}) => {
+  await loadViewerFasta(page, fixture);
+  const query = page.getByRole('searchbox', {name:'Search sequence name'});
+  await query.fill('中文');
+  await expect(page.locator('.msa-name-results')).toContainText('1 matching sequences');
+  await expect(page.locator('[data-msa-sequence-cell]:not([data-msa-row-key="easymsa:consensus"])[data-msa-position="1"]')).toHaveCount(3);
+  await page.getByLabel('Show only matching sequences', {exact:true}).check();
+  await expect(page.locator('[data-msa-sequence-cell]:not([data-msa-row-key="easymsa:consensus"])[data-msa-position="1"]')).toHaveCount(1);
+  await query.fill('');
+  await expect(page.getByLabel('Show only matching sequences', {exact:true})).not.toBeChecked();
+  await expect(page.locator('[data-msa-sequence-cell]:not([data-msa-row-key="easymsa:consensus"])[data-msa-position="1"]')).toHaveCount(3);
+  await runRowAction(page, 'beta second sample', 'Hide sequence beta second sample', 'Hide sequence');
+  await query.fill('second');
+  await expect(page.locator('.msa-name-results')).toContainText('Currently hidden');
+  await page.locator('.msa-name-results button').filter({hasText:'Show and locate'}).click();
+  await expect(page.locator('[data-msa-sequence-cell]:not([data-msa-row-key="easymsa:consensus"])[data-msa-position="1"]')).toHaveCount(3);
+  await expect(page.locator('[data-msa-status]')).toHaveAttribute('data-msa-selected-position','1');
+  await expect(page.locator('[data-msa-workspace-dock]')).toHaveCount(0);
+});
+
+test('reference selection starts comparison and ending preserves independent filters', async ({page}) => {
+  await loadViewerFasta(page, fixture);
+  await page.getByRole('button',{name:'Compare',exact:true}).click();
+  const choices = page.getByLabel('Choose a reference sequence',{exact:true});
+  await choices.selectOption({label:'alpha sample 中文 description'});
+  await page.getByRole('button',{name:'Start comparison',exact:true}).click();
+  await expect(page.getByLabel('Highlight differences')).toBeChecked();
+  await page.getByLabel('Coordinate mode',{exact:true}).selectOption('reference');
+  await page.getByRole('button',{name:'Close panel'}).click();
+  const query = page.getByRole('searchbox', {name:'Search sequence name'});
+  await query.fill('beta');
+  await page.getByLabel('Show only matching sequences',{exact:true}).check();
+  await expect(page.locator('[data-msa-status]')).toContainText('plus 1 reference');
+  await page.getByRole('button',{name:'Compare',exact:true}).click();
+  await page.getByRole('button',{name:'End comparison',exact:true}).click();
+  await expect(page.locator('[data-msa-sequence-cell]:not([data-msa-row-key="easymsa:consensus"])[data-msa-position="1"]')).toHaveCount(1);
+  await expect(page.getByLabel('Highlight differences')).toHaveCount(0);
+  await page.getByRole('button',{name:'Close panel'}).click();
+  await page.getByLabel('Search and navigation type').selectOption('position');
+  await expect(page.locator('#msa-position-feedback')).toContainText('Alignment position: 1–8');
+});
+
+test('position validation and explicit column apply preserve original coordinates in downloads', async ({page}) => {
+  await loadViewerFasta(page, fixture);
+  await page.getByLabel('Search and navigation type').selectOption('position');
+  const input=page.getByRole('searchbox',{name:'Go to position'});
+  await input.fill('9'); await input.press('Enter');
+  await expect(page.getByRole('alert')).toContainText('between 1 and 8');
+  await page.getByRole('button',{name:'Display',exact:true}).click();
+  const group=page.locator('[data-msa-settings-dock] details').filter({has:page.locator('summary',{hasText:'Displayed columns'})});
+  await group.locator('summary').click();
+  await page.getByLabel('Column filter',{exact:true}).selectOption('custom');
+  await group.getByLabel('Gap fraction at most (%)',{exact:true}).fill('20');
+  await expect(page.locator('[data-msa-sequence-cell]:not([data-msa-row-key="easymsa:consensus"])[data-msa-position="3"]')).toHaveCount(3);
+  await group.getByRole('button',{name:'Apply',exact:true}).click();
+  await page.getByRole('button',{name:'Close panel'}).click();
+  await expect(page.locator('[data-msa-sequence-cell]:not([data-msa-row-key="easymsa:consensus"])[data-msa-position="3"]')).toHaveCount(0);
+  await page.locator('.msa-export-menu > summary').click();
+  await page.getByRole('button',{name:'Download sequences',exact:true}).click();
+  const dialog=page.getByRole('dialog',{name:'Download alignment sequences'});
+  await expect(dialog).toContainText('Columns are non-contiguous');
+  const downloadPromise=page.waitForEvent('download');
+  await dialog.getByRole('button',{name:'Download',exact:true}).click();
+  const download=await downloadPromise;
+  const archive=unzipSync(await readFile((await download.path())!));
+  expect(strFromU8(archive['alignment.fasta'])).toContain('>alpha sample 中文 description\nACTACG');
+  expect(strFromU8(archive['columns.tsv'])).toContain('3\t4');
+  await page.keyboard.press('Escape');
+  await input.fill('3');await input.press('Enter');
+  await expect(page.getByRole('alert')).toContainText('hidden by a column filter');
+  await page.getByRole('button',{name:'Show all columns and locate'}).click();
+  await expect(page.locator('[data-msa-status]')).toHaveAttribute('data-msa-selected-position','3');
+});
+
+test('checks page beyond 200, filters independent of matrix, full table and undo', async ({page}) => {
+  const fasta=Array.from({length:255},(_,i)=>`>sample-${String(i+1).padStart(3,'0')} full description\n${i===254?'AC-T':'ACGT'}`).join('\n');
+  await loadViewerFasta(page,fasta);
+  await openQc(page);
+  const checks=page.locator('[data-msa-qc-panel]');
+  await expect(checks).toContainText('255 results');
+  for(let i=0;i<5;i++) await checks.getByRole('button',{name:'Next page',exact:true}).click();
+  await expect(checks.locator('.msa-check-list')).toContainText('sample-255');
+  await checks.getByRole('searchbox').fill('sample-255');
+  await expect(checks).toContainText('1 results');
+  await expect(page.locator('[data-msa-status]')).toContainText('/255');
+  await checks.getByRole('button',{name:'Expand full table'}).click();
+  const table=page.getByRole('dialog',{name:'Expand full table'});
+  await expect(table.getByRole('table')).toContainText('sample-255');
+  await page.keyboard.press('Escape');
+  await checks.getByRole('button',{name:'Show only matching sequences',exact:true}).click();
+  await expect(page.locator('[data-msa-sequence-cell]:not([data-msa-row-key="easymsa:consensus"])[data-msa-position="1"]')).toHaveCount(1);
+  await checks.getByRole('button',{name:'Undo display change',exact:true}).click();
+  await expect(page.locator('[data-msa-status]')).toContainText('/255');
+  const overflow=await checks.evaluate(el=>el.scrollWidth-el.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+});
+
+test('selected hidden rows and original interval export keep complete headers and stage', async ({page}) => {
+  await loadViewerFasta(page,fixture);
+  await runRowAction(page,'beta second sample','Select sequence beta second sample','Select sequence');
+  await runRowAction(page,'beta second sample','Hide sequence beta second sample','Hide sequence');
+  await page.locator('.msa-export-menu > summary').click();
+  await page.locator('.msa-export-menu').getByRole('button',{name:'Export selected sequences',exact:true}).click();
+  const dialog=page.getByRole('dialog',{name:'Download alignment sequences'});
+  await expect(dialog).toContainText('Export 1 sequences × 8 columns');
+  await expect(dialog).toContainText('currently hidden');
+  const downloadPromise=page.waitForEvent('download');await dialog.getByRole('button',{name:'Download',exact:true}).click();
+  const download=await downloadPromise;
+  expect(await readFile((await download.path())!,'utf8')).toBe('>beta second sample\nAC-TTACG\n');
+  await page.keyboard.press('Escape');
+  await page.goto('./#/examples/realignment-small?tab=alignment&stage=refined');
+  await expect(page.locator('[data-msa-status]')).toHaveAttribute('data-msa-analysis-status','ready');
+  await page.locator('.msa-export-menu > summary').click();await page.getByRole('button',{name:'Download sequences',exact:true}).click();
+  await expect(page.getByRole('dialog')).toContainText('Result version: Refined result');
+});

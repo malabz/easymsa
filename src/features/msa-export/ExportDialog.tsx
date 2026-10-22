@@ -345,7 +345,7 @@ export function ExportDialog({
                   {t.format}
                 </h3>
                 <div className="inline-flex">
-                  {(["svg", "png", "fasta"] as ExportFormat[]).map((format) => (
+                  {(["svg", "png"] as ExportFormat[]).map((format) => (
                     <SegmentedButton
                       active={options.format === format}
                       key={format}
@@ -383,6 +383,7 @@ export function ExportDialog({
                 ) : null}
               </section>
 
+              <details className="msa-image-options border-t border-slate-200 pt-3"><summary className="cursor-pointer text-sm font-medium text-teal-800">{d.viewerWorkflow.imageOptions}</summary><div className="space-y-5 pt-4">
               {options.format !== "fasta" ? (
                 <section className="space-y-2">
                   <h3 className="text-xs font-semibold uppercase text-slate-500">
@@ -456,7 +457,7 @@ export function ExportDialog({
                           />
                           <CheckboxRow
                             checked={Boolean(options.includeLogo)}
-                            label={locale === "zh" ? "碱基频率 Logo" : "Base frequency logo"}
+                            label={d.viewerWorkflow.logo}
                             onChange={(checked) => onUpdate({ includeLogo: checked })}
                           />
                           <CheckboxRow
@@ -557,6 +558,7 @@ export function ExportDialog({
                     : t.bundle.bareWarning}
                 </p>
               </section>
+              </div></details>
             </div>
 
             <aside className="space-y-3 border-t border-slate-200 pt-4 md:border-l md:border-t-0 md:pl-5 md:pt-0">

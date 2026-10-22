@@ -1,3 +1,8 @@
+import { viewerText } from "../../lib/i18n/viewerWorkflow";
+import { matchesSequenceName, parseViewerPosition, type SequenceExportSnapshot, type ExportRows, type ExportColumns } from "./viewerWorkflowModel";
+import { SequenceExportDialog } from "./SequenceExportDialog";
+import { MsaComparisonPanel } from "./MsaComparisonPanel";
+import { MsaColumnFilterPanel } from "./MsaColumnFilterPanel";
 import { Download, Loader2, MousePointer2, RotateCcw, X } from "lucide-react";
 import {
   useDeferredValue,
@@ -31,8 +36,8 @@ import {
 import { buildReferenceCoordinateMap } from "./analysis";
 import {
   identityColumnPositionView,
-  lowerBoundVisibleIndex,
   materializePositionArray,
+  lowerBoundVisibleIndex,
   positionAt,
   visibleIndexOfPosition
 } from "./columnStatsStore";
@@ -165,16 +170,6 @@ function downloadText(filename: string, text: string, type = "text/plain;charset
   window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
-function fastaForPositions(sequences: MSASequence[], positions: number[]) {
-  return `${sequences
-    .map((sequence) =>
-      `>${sequence.id}\n${positions
-        .map((position) => sequence.sequence[position - 1] ?? "")
-        .join("")}`
-    )
-    .join("\n")}\n`;
-}
-
 function selectedRangeLabel(range: ColumnRange | null) {
   if (!range) return "";
   return range.start === range.end ? String(range.start) : `${range.start}-${range.end}`;
@@ -228,6 +223,9 @@ export function MsaViewerRoot({
 }) {
   const { dictionary: d, locale } = useLanguage();
   const mobile = useMobileLayout();
+  const w = d.viewerWorkflow;
+  const [coarsePointer, setCoarsePointer] = useState(false);
+  useEffect(() => { if (!window.matchMedia) return; const query = window.matchMedia("(pointer: coarse)"); const update=()=>setCoarsePointer(query.matches); update(); query.addEventListener?.("change",update); return()=>query.removeEventListener?.("change",update); }, []);
   const alignment = useMemo(() => prepareAlignment(sourceAlignment), [sourceAlignment]);
   const descriptor = alignment.descriptor!;
   const alignmentLength = alignment.alignmentLength ?? descriptor.alignmentLength;
@@ -245,6 +243,18 @@ export function MsaViewerRoot({
     legacyJobId: alignment.jobId
   });
   const [jumpPosition, setJumpPosition] = useState("");
+  const [jumpError, setJumpError] = useState<string | null>(null);
+  const [hiddenJump, setHiddenJump] = useState<number | null>(null);
+  const [comparisonOpen, setComparisonOpen] = useState(false);
+  const [nameQuery, setNameQuery] = useState(state.search);
+  const [nameFilterEnabled, setNameFilterEnabled] = useState(Boolean(state.search));
+  const [sequenceExport, setSequenceExport] = useState<SequenceExportSnapshot | null>(null);
+  const [displayUndo, setDisplayUndo] = useState<{ hiddenRowKeys: Set<string>; search: string } | null>(null);
+  const pendingLocate = useRef<{ rowKey: string; position?: number; range?: ColumnRange } | null>(null);
+  const annotationRef = useRef<HTMLDetailsElement>(null);
+  useEffect(() => { if (state.search) { setNameQuery(state.search); setNameFilterEnabled(true); } else setNameFilterEnabled(false); }, [state.search]);
+  useEffect(() => { setSequenceExport(null); setComparisonOpen(false); setJumpError(null); setHiddenJump(null); setDisplayUndo(null); setNameQuery(state.search); }, [sourceFingerprint, workspaceScope]);
+  useEffect(() => { if (state.analysisScope === "selected" && state.selectedRowKeys.size === 0) { dispatch({ type: "patch", patch: { analysisScope: "all" } }); setWorkspaceMessage(w.scopeReset); } }, [state.analysisScope, state.selectedRowKeys.size, dispatch, w.scopeReset]);
   const viewportAnchorRef = useRef<{rowKey?:string;position?:number}>({});
   const layoutSourceRef = useRef<string|null>(null);
   const [workspaceMessage, setWorkspaceMessage] = useState<string | null>(null);
@@ -348,7 +358,7 @@ export function MsaViewerRoot({
     () => rowRecords.filter(({ rowKey, sequence }) => {
       if (rowKey === state.referenceRowKey) return true;
       if (state.hiddenRowKeys.has(rowKey)) return false;
-      return !deferredSearch || sequence.id.toLocaleLowerCase().includes(deferredSearch);
+      return !deferredSearch || matchesSequenceName(sequence, deferredSearch);
     }),
     [deferredSearch, rowRecords, state.hiddenRowKeys, state.referenceRowKey]
   );
@@ -408,6 +418,9 @@ export function MsaViewerRoot({
     [displayedRowKeys]
   );
   const displayedRowKeySet = useMemo(() => new Set(displayedRowKeys), [displayedRowKeys]);
+  const deferredNameQuery = useDeferredValue(nameQuery);
+  const nameResults = useMemo(() => deferredNameQuery.trim() ? rowRecords.filter(row => matchesSequenceName(row.sequence, deferredNameQuery)).map(row => ({ key: row.rowKey, label: rowLabels.get(row.rowKey) ?? row.sequence.id, visible: displayedRowKeySet.has(row.rowKey) })) : [], [deferredNameQuery, rowRecords, rowLabels, displayedRowKeySet]);
+  const extraReference = Boolean(reference && (state.hiddenRowKeys.has(state.referenceRowKey!) || !matchesSequenceName(reference, state.search)));
   const scopeSequences = useMemo(
     () => resolveAnalysisScopeSequences(alignment.sequences, state.analysisScope, {
       visibleRowKeys: baseVisibleRowKeys,
@@ -448,7 +461,7 @@ export function MsaViewerRoot({
       ),
       conservationScale: state.conservationScale ?? "high"
     };
-    return mobile && settings.showCharacters
+    return mobile && coarsePointer && settings.showCharacters
       ? {
           ...settings,
           cellWidth: Math.max(44, settings.cellWidth),
@@ -456,7 +469,7 @@ export function MsaViewerRoot({
           rowHeight: Math.max(48, settings.rowHeight)
         }
       : settings;
-  }, [mobile, state.conservationScale, state.density, state.labelWidth, state.viewMode, state.zoomLevel]);
+  }, [mobile, coarsePointer, state.conservationScale, state.density, state.labelWidth, state.viewMode, state.zoomLevel]);
   const activeTracks = canAnalyze ? state.activeTracks : [];
   const navigationRowKeys = useMemo(
     () => [
@@ -474,17 +487,8 @@ export function MsaViewerRoot({
     () => canAnalyze && reference ? buildReferenceCoordinateMap(reference.sequence) : null,
     [canAnalyze, reference]
   );
-  const displayedMotifMatches = useMemo(
-    () => analysis.motifMatches.filter((match) => displayedRowKeySet.has(match.rowKey)),
-    [analysis.motifMatches, displayedRowKeySet]
-  );
-  const motifMatchCount = useMemo(
-    () => displayedRowKeys.reduce(
-      (total, rowKey) => total + (analysis.motifRowTotals[rowKey] ?? 0),
-      0
-    ),
-    [analysis.motifRowTotals, displayedRowKeys]
-  );
+  const displayedMotifMatches = analysis.motifMatches;
+  const motifMatchCount = analysis.motifMatchCount;
   const motifPositionMap = useMemo(() => {
     const map = new Map<string, Set<number>>();
     displayedMotifMatches.forEach((match) => {
@@ -585,7 +589,9 @@ export function MsaViewerRoot({
         rowKey:displayedSequences[Math.min(displayedSequences.length-1,Math.floor(element.scrollTop/viewSettings.rowHeight))]?.rowKey
       };
       window.clearTimeout(timeout);
-      timeout = window.setTimeout(() => dispatch({
+      timeout = window.setTimeout(captureViewport, 120);
+    };
+    const captureViewport = () => dispatch({
         type: "patch",
         patch: {
           viewport: {
@@ -597,8 +603,7 @@ export function MsaViewerRoot({
             clientHeight: element.clientHeight
           }
         }
-      }), 120);
-    };
+      });
     const resizeObserver = typeof ResizeObserver === "undefined"
       ? null
       : new ResizeObserver(updateViewport);
@@ -613,6 +618,7 @@ export function MsaViewerRoot({
   }, [dispatch, displayedSequences, visiblePositions, viewSettings.rowHeight, viewSettings.cellWidth, viewSettings.cellGap]);
 
   function patchState(patch: Partial<ViewerState>) {
+    if (patch.settingsOpen || patch.inspectorOpen || patch.qcPanelOpen) setComparisonOpen(false);
     dispatch({ type: "patch", patch });
   }
 
@@ -640,6 +646,43 @@ export function MsaViewerRoot({
     }
   }
 
+  useLayoutEffect(() => {
+    const pending = pendingLocate.current;
+    if (!pending || !displayedRowKeySet.has(pending.rowKey) || !visiblePositions.length) return;
+    const position = pending.position ?? positionAt(visiblePositions, 0)!;
+    if (visibleIndexOfPosition(visiblePositions, position) < 0) return;
+    pendingLocate.current = null;
+    const frame = requestAnimationFrame(() => { scrollToAlignmentPosition(position, pending.rowKey); dispatch({ type: "select", selection: { rowKey: pending.rowKey, position }, range: pending.range ?? { start: position, end: position } }); });
+    return () => cancelAnimationFrame(frame);
+  }, [displayedRecords, visiblePositions, state.hiddenRowKeys, state.search]);
+  function locateSequence(rowKey: string, position?: number, range?: ColumnRange) {
+    pendingLocate.current = { rowKey, position, range };
+    const hiddenRowKeys = new Set(state.hiddenRowKeys); hiddenRowKeys.delete(rowKey);
+    const blockedByName = state.search && !matchesSequenceName(rowByKey.get(rowKey)!, state.search);
+    if (blockedByName) setNameFilterEnabled(false);
+    patchState({ hiddenRowKeys, ...(blockedByName ? { search: "" } : {}) });
+    if (!displayedRowKeySet.has(rowKey)) setWorkspaceMessage(w.revealed);
+  }
+  function showCheckedRows(keys: string[]) {
+    if (!keys.length) return;
+    setDisplayUndo({ hiddenRowKeys: new Set(state.hiddenRowKeys), search: state.search });
+    const retained = new Set(keys);
+    setNameFilterEnabled(false);
+    patchState({ search: "", hiddenRowKeys: new Set(rowRecords.filter(row => !retained.has(row.rowKey)).map(row => row.rowKey)) });
+  }
+  function undoDisplay() {
+    if (displayUndo) {
+      setNameFilterEnabled(Boolean(displayUndo.search));
+      if (displayUndo.search) setNameQuery(displayUndo.search);
+      patchState(displayUndo);
+      setDisplayUndo(null);
+    }
+  }
+  function openComparison() { const next=!comparisonOpen; patchState({ settingsOpen:false, inspectorOpen:false, qcPanelOpen:false }); setComparisonOpen(next); }
+  function addSelectionNote() {
+    patchState({ inspectorOpen: true, qcPanelOpen: false, settingsOpen: false });
+    requestAnimationFrame(() => { if (annotationRef.current) { annotationRef.current.open=true; annotationRef.current.scrollIntoView({ block: "nearest" }); annotationRef.current.querySelector<HTMLElement>("textarea, input, select")?.focus(); } });
+  }
   function handleSelect(next: CellSelection, extendRange = false) {
     const anchor = extendRange
       ? state.selectedRange?.start ?? state.selection?.position ?? next.position
@@ -706,7 +749,12 @@ export function MsaViewerRoot({
         selectedRange: { start: Number.isFinite(start) ? start : match.start, end: end || match.start }
       }
     });
-    scrollToAlignmentPosition(match.start, match.rowKey);
+    const range = { start: Number.isFinite(start) ? start : match.start, end: end || match.start };
+    locateSequence(match.rowKey, match.start, range);
+    if (visibleIndexOfPosition(visiblePositions, match.start) < 0) {
+      patchState({ columnFilter: "all" });
+      setWorkspaceMessage(w.revealedColumns);
+    }
   }
 
   function navigateMotif(delta: number) {
@@ -735,71 +783,32 @@ export function MsaViewerRoot({
   }
 
   function jumpToPosition() {
-    const parsed = Number.parseInt(jumpPosition, 10);
-    if (Number.isNaN(parsed)) return;
-    let alignmentPosition = Math.max(1, Math.min(alignmentLength, parsed));
-    if (state.coordinateMode === "reference" && referenceMap) {
-      const referencePosition = Math.max(1, Math.min(referenceMap.referenceLength, parsed));
-      alignmentPosition = referenceMap.referenceToAlignment[referencePosition - 1] ?? alignmentPosition;
-      setJumpPosition(String(referencePosition));
-    } else {
-      setJumpPosition(String(alignmentPosition));
-    }
-    scrollToAlignmentPosition(alignmentPosition);
-    const rowKey = state.referenceRowKey ?? displayedRowKeys[0];
-    if (rowKey) handleSelect({ rowKey, position: alignmentPosition });
+    const maximum = state.coordinateMode === "reference" && referenceMap ? referenceMap.referenceLength : alignmentLength;
+    const parsed = parseViewerPosition(jumpPosition, maximum);
+    setHiddenJump(null);
+    if (parsed === null) { setJumpError(viewerText(w.invalidPosition, { max: maximum })); return; }
+    const position = state.coordinateMode === "reference" && referenceMap ? referenceMap.referenceToAlignment[parsed - 1] : parsed;
+    if (visibleIndexOfPosition(visiblePositions, position) < 0) { setHiddenJump(position); setJumpError(w.hiddenPosition); return; }
+    setJumpError(null); scrollToAlignmentPosition(position);
+    const rowKey = state.referenceRowKey ?? displayedRowKeys[0]; if(rowKey) handleSelect({ rowKey, position });
   }
-
   function setReference(rowKey: string) {
     if (!canAnalyze) return;
-    const nextReferenceRowKey = state.referenceRowKey === rowKey ? null : rowKey;
-    patchState({
-      coordinateMode: nextReferenceRowKey ? state.coordinateMode : "alignment",
-      differenceMode: nextReferenceRowKey ? state.differenceMode : false,
-      referenceRowKey: nextReferenceRowKey
-    });
+    patchState(rowKey ? { referenceRowKey: rowKey, differenceMode: true } : { referenceRowKey: null, differenceMode: false, coordinateMode: "alignment" });
   }
-
-  function exportVisibleFasta() {
-    if (displayedSequences.length && visiblePositions.length) {
-      downloadText(
-        "easymsa-filtered-view.fasta",
-        fastaForPositions(displayedSequences, materializePositionArray(visiblePositions))
-      );
-    }
+  function openSequenceExport(initialRows: ExportRows = "displayed", initialColumns: ExportColumns = "filtered", consensusOnly = false) {
+    const consensusRow = { id: "consensus", sequence: consensus ?? "" };
+    const all = consensusOnly ? [consensusRow] : alignment.sequences;
+    setSequenceExport({ all, displayed: consensusOnly ? all : displayedSequences,
+      selected: consensusOnly ? all : rowRecords.filter(row => state.selectedRowKeys.has(row.rowKey)).map(row => row.sequence),
+      positions: visiblePositions, length: alignmentLength, range: state.selectedRange ? { ...state.selectedRange } : null,
+      source: (sourceName ?? descriptor.sourceName ?? "MSA") + (consensusOnly ? " · " + w.consensus + " · " + d.results.viewer.stageTwo.analysisScopes[state.analysisScope] + " · " + analysis.scopeRowCount : ""),
+      stage: context?.source.stage ?? workspaceScope?.match(/:(initial|refined|final)$/)?.[1] as SequenceExportSnapshot["stage"], initialRows, initialColumns });
   }
-
-  function exportRangeFasta() {
-    if (!state.selectedRange || !displayedSequences.length) return;
-    const positions = Array.from(
-      { length: state.selectedRange.end - state.selectedRange.start + 1 },
-      (_, index) => state.selectedRange!.start + index
-    );
-    downloadText(
-      `easymsa-selected-interval-${state.selectedRange.start}-${state.selectedRange.end}.fasta`,
-      fastaForPositions(displayedSequences, positions)
-    );
-  }
-
-  function exportConsensusRange() {
-    if (!canAnalyze || !state.selectedRange || !rangeStats) return;
-    downloadText(
-      `easymsa-consensus-${state.selectedRange.start}-${state.selectedRange.end}.fasta`,
-      `>${alignment.jobId || "easymsa"}:consensus:${state.selectedRange.start}-${state.selectedRange.end}\n${rangeStats.consensusSegment}\n`
-    );
-  }
-
-  function exportSelectedRows() {
-    const rows = displayedRecords
-      .filter((row) => state.selectedRowKeys.has(row.rowKey))
-      .map((row) => row.sequence);
-    if (rows.length) {
-      downloadText(
-        "easymsa-selected-rows.fasta",
-        fastaForPositions(rows, materializePositionArray(visiblePositions))
-      );
-    }
-  }
+  function exportVisibleFasta() { openSequenceExport(); }
+  function exportRangeFasta() { openSequenceExport("displayed", "interval"); }
+  function exportSelectedRows() { openSequenceExport("selected", "filtered"); }
+  function exportConsensusRange() { openSequenceExport("all", "interval", true); }
 
   function getExportViewerState() {
     const viewport = scrollRef.current
@@ -853,8 +862,10 @@ export function MsaViewerRoot({
   }
 
   const imageExport = useMsaExport(viewerAlignment, getExportViewerState, canAnalyze);
+  useEffect(() => { imageExport.closeDialog(); }, [sourceFingerprint, workspaceScope]);
 
   function exportWorkspaceFile() {
+    setWorkspaceMessage(w.viewHint);
     downloadText(
       `easymsa-workspace-${sourceFingerprint.replace(/[^a-z0-9_-]+/gi, "-").slice(-32)}.easymsa-view.json`,
       exportWorkspace(),
@@ -867,13 +878,13 @@ export function MsaViewerRoot({
     event.target.value = "";
     if (!file) return;
     if (file.size > 3_000_000) {
-      setWorkspaceMessage(locale === "zh" ? "工作区文件超过 3 MB 上限。" : "The workspace file exceeds the 3 MB limit.");
+      setWorkspaceMessage(locale === "zh" ? "查看记录文件超过 3 MB 上限。" : "The view record file exceeds the 3 MB limit.");
       return;
     }
     try {
       const result = importWorkspace(await file.text());
       setWorkspaceMessage(result.ok
-        ? locale === "zh" ? "工作区状态已恢复。" : "Workspace state restored."
+        ? locale === "zh" ? "查看记录已恢复。" : "View restored."
         : result.message);
     } catch {
       setWorkspaceMessage(locale === "zh" ? "无法读取工作区文件。" : "The workspace file could not be read.");
@@ -900,16 +911,16 @@ export function MsaViewerRoot({
       ? d.results.viewer.stageTwo.motifErrors.failed
       : null;
   const activeAnnotationTarget = useMemo<QcAnnotation["target"] | null>(() => {
-    if (!state.selection && !state.selectedRange) return null;
+    if (!state.selection && !state.selectedRange && state.selectedRowKeys.size !== 1) return null;
     const rowKey = state.selection && rowByKey.has(state.selection.rowKey)
       ? state.selection.rowKey
-      : null;
+      : state.selectedRowKeys.size === 1 ? [...state.selectedRowKeys][0] : null;
     return {
       rowKey,
       start: state.selectedRange?.start ?? state.selection?.position ?? null,
       end: state.selectedRange?.end ?? state.selection?.position ?? null
     };
-  }, [rowByKey, state.selectedRange, state.selection]);
+  }, [rowByKey, state.selectedRange, state.selection, state.selectedRowKeys]);
 
   function jumpToAnnotation(annotation: QcAnnotation) {
     const rowKey = annotation.target.rowKey ?? displayedRowKeys[0];
@@ -965,6 +976,19 @@ export function MsaViewerRoot({
     review: "复核",
     excludeCandidate: "排除候选"
   } : undefined;
+  const annotationContent = <details className="msa-view-group msa-panel-content msa-annotation-details" ref={annotationRef}><summary>{w.addNote}</summary>      <MsaAnnotationPanel
+        activeTarget={activeAnnotationTarget}
+        annotations={state.annotations}
+        labels={annotationLabels}
+        onCreate={(category, text, target) => dispatch({
+          type: "addAnnotation",
+          annotation: createQcAnnotation({ category, text, target })
+        })}
+        onDelete={(id) => dispatch({ type: "removeAnnotation", id })}
+        onJump={jumpToAnnotation}
+        onUpdate={(id, patch) => dispatch({ type: "updateAnnotation", id, patch })}
+        rowLabels={rowLabels}
+      /></details>;
   const inspector = (
     <MsaInspector
       alignmentPosition={state.selection?.position ?? null}
@@ -987,26 +1011,21 @@ export function MsaViewerRoot({
     />
   );
   const qcWorkspace = (
-    <div className="grid gap-4 p-3">
+    <div>
       <MsaQcPanel
         analysisScope={state.analysisScope}
         filteredColumnCount={visiblePositions.length}
         filters={qcFilters}
         labels={qcLabels}
+        rowLabels={rowLabels} status={analysis.status} onRetry={analysis.retry}
+        onSelectRows={keys => patchState({ selectedRowKeys: new Set(keys) })}
+        onShowRows={showCheckedRows} onUndoDisplay={displayUndo ? undoDisplay : undefined}
         onFiltersChange={setQcFilters}
-        onReviewRow={(rowKey) => {
-          const position = state.selection?.position ?? positionAt(visiblePositions, 0) ?? 1;
-          handleSelect({ rowKey, position });
-          patchState({ inspectorOpen: false, qcPanelOpen: true });
-        }}
+        onReviewRow={locateSequence}
         onSortChange={(key, direction) => {
           patchState({ qcSortMode: key });
           setQcSortDirection(direction);
         }}
-        onColumnThresholdsChange={(column) => patchState({
-          columnFilter: "custom",
-          qcThresholds: { ...state.qcThresholds, column }
-        })}
         onThresholdsChange={(qcThresholds) => patchState({ qcThresholds })}
         rows={analysis.rowQc}
         scopeRowCount={analysis.scopeRowCount}
@@ -1016,19 +1035,7 @@ export function MsaViewerRoot({
         totalColumnCount={alignmentLength}
         totalRowCount={alignment.sequences.length}
       />
-      <MsaAnnotationPanel
-        activeTarget={activeAnnotationTarget}
-        annotations={state.annotations}
-        labels={annotationLabels}
-        onCreate={(category, text, target) => dispatch({
-          type: "addAnnotation",
-          annotation: createQcAnnotation({ category, text, target })
-        })}
-        onDelete={(id) => dispatch({ type: "removeAnnotation", id })}
-        onJump={jumpToAnnotation}
-        onUpdate={(id, patch) => dispatch({ type: "updateAnnotation", id, patch })}
-        rowLabels={rowLabels}
-      />
+
     </div>
   );
 
@@ -1036,10 +1043,11 @@ export function MsaViewerRoot({
   const canExport = displayedSequences.length > 0 && visiblePositions.length > 0;
   const qcPanelOpen = canAnalyze && state.qcPanelOpen;
   const immersive = presentation === "immersive" || state.immersive;
-  const panelOpen = state.settingsOpen || qcPanelOpen || state.inspectorOpen;
+  const panelOpen = comparisonOpen || state.settingsOpen || qcPanelOpen || state.inspectorOpen;
   const dockOpen = !mobile && panelOpen;
   const closePanel = () => {
-    const label = state.settingsOpen ? d.results.viewer.stageTwo.settings : d.results.viewer.stageTwo.inspector;
+    const label = comparisonOpen ? w.compare : state.settingsOpen ? w.display : w.check;
+    setComparisonOpen(false);
     patchState({ settingsOpen: false, inspectorOpen: false, qcPanelOpen: false });
     window.requestAnimationFrame(() => {
       document.querySelectorAll<HTMLButtonElement>("[data-msa-command-bar] button").forEach(button => {
@@ -1057,12 +1065,25 @@ export function MsaViewerRoot({
     immersive={immersive} onReturn={onReturn} onToggle={() => patchState({ immersive: !state.immersive })}
     onReplace={onReplaceInput} extra={headerActions} example={example} />;
   const controls: MsaViewerToolbarProps = {
+    nameQuery, nameFilterEnabled, nameResults,
+    onNameQueryChange: query => {
+      setNameQuery(query);
+      if (!query.trim()) setNameFilterEnabled(false);
+      if (nameFilterEnabled || !query.trim()) patchState({ search: query.trim() ? query : "" });
+    },
+    onNameFilterChange: enabled => { setNameFilterEnabled(enabled); patchState({ search: enabled ? nameQuery : "" }); },
+    onLocateName: locateSequence,
+    comparisonOpen, onOpenComparison: openComparison,
+    jumpError, positionMaximum: state.coordinateMode === "reference" && referenceMap ? referenceMap.referenceLength : alignmentLength,
+    onRevealPosition: hiddenJump === null ? undefined : () => { const rowKey=state.referenceRowKey ?? displayedRowKeys[0]; if (rowKey) pendingLocate.current={rowKey,position:hiddenJump}; patchState({ columnFilter:"all" }); setHiddenJump(null); setJumpError(null); },
+    onSaveView: exportWorkspaceFile,
     actualScopeRowCount: analysis.scopeRowCount,
     alignmentLength: alignmentLength,
     analysisDisabled: !canAnalyze,
-    canExport: canExport,
-    canExportSelectedRows: state.selectedRowKeys.size > 0 && visiblePositions.length > 0,
-    canUndoHide: state.lastHiddenRowKeys.length > 0,
+    canExport: alignment.sequences.length > 0,
+    canExportImage: canExport,
+    canExportSelectedRows: state.selectedRowKeys.size > 0,
+    canUndoHide: Boolean(displayUndo) || state.lastHiddenRowKeys.length > 0,
     hiddenCount: state.hiddenRowKeys.size,
     isSearchingMotif: analysis.isSearchingMotif,
     jumpPosition: jumpPosition,
@@ -1071,7 +1092,7 @@ export function MsaViewerRoot({
     motifMatchesTruncated: analysis.motifMatchesTruncated,
     motifValidationError: motifValidationError,
     neutralReason: neutralReason,
-    onClearReference: () => setReference(state.referenceRowKey ?? ""),
+    onClearReference: () => setReference(""),
     onExportConsensusRange: exportConsensusRange,
     onExportImage: imageExport.openDialog,
     onExportSelectedRange: exportRangeFasta,
@@ -1079,10 +1100,10 @@ export function MsaViewerRoot({
     onExportVisible: exportVisibleFasta,
     onHideSelected: () => dispatch({ type: "batchRows", operation: "hide", rowKeys: state.selectedRowKeys }),
     onJump: jumpToPosition,
-    onJumpPositionChange: setJumpPosition,
+    onJumpPositionChange: value => { setJumpPosition(value); setJumpError(null); setHiddenJump(null); },
     onMotifNavigate: navigateMotif,
     onMotifSelect: selectMotif,
-    onOpenInspector: () => patchState({ inspectorOpen: true, qcPanelOpen: false }),
+    onOpenInspector: () => patchState({ settingsOpen: false, inspectorOpen: true, qcPanelOpen: false }),
     onOpenQc: () => patchState({ qcPanelOpen: !state.qcPanelOpen, inspectorOpen: false }),
     onPatch: patchState,
     onPinSelected: () => dispatch({ type: "batchRows", operation: "pin", rowKeys: state.selectedRowKeys }),
@@ -1091,7 +1112,7 @@ export function MsaViewerRoot({
     onShowAll: () => dispatch({ type: "showAllRows" }),
     onToggleTrack: (track) => dispatch({ type: "toggleTrack", track }),
     onToggleWorkspace: () => patchState({ immersive: !state.immersive }),
-    onUndoHide: () => dispatch({ type: "undoLastHide" }),
+    onUndoHide: displayUndo ? undoDisplay : () => dispatch({ type: "undoLastHide" }),
     onUnpinSelected: () => dispatch({ type: "batchRows", operation: "unpin", rowKeys: state.selectedRowKeys }),
     onZoom: changeZoom,
     referenceLabel: state.referenceRowKey ? rowLabels.get(state.referenceRowKey) : null,
@@ -1103,38 +1124,21 @@ export function MsaViewerRoot({
     fullResultHref: context?.downloads?.fullResultHref,
   };
   const workspaceActions = <div className="msa-view-settings">
-    {canAnalyze && <label className="flex min-h-11 items-center gap-2"><input type="checkbox" checked={state.showLogo} onChange={e=>patchState({showLogo:e.target.checked})}/>{locale==='zh'?'碱基频率 Logo':'Base frequency logo'}</label>}
-    {canAnalyze && <label className="flex min-h-11 items-center gap-2"><input type="checkbox" checked={state.showConsensus} onChange={e=>patchState({showConsensus:e.target.checked})}/>{d.results.viewer.consensus}</label>}
-
-    <details className="msa-view-group"><summary>{locale === "zh" ? "分析范围与工作区" : "Analysis scope and workspace"}</summary><div>
-      {canAnalyze && <label className="block text-sm">{d.results.viewer.stageTwo.analysisScope}
-        <select className="h-11 w-full rounded border px-2" aria-label={d.results.viewer.stageTwo.analysisScope} value={state.analysisScope}
-          onChange={e => patchState({ analysisScope: e.target.value as ViewerState["analysisScope"] })}>
-          {(["all", "visible", "selected"] as const).map(scope => <option key={scope} value={scope}
-            disabled={scope === "selected" && !state.selectedRowKeys.size}>{d.results.viewer.stageTwo.analysisScopes[scope]}</option>)}
-        </select>
-      </label>}
-      <button type="button" className="min-h-11 text-left text-teal-800" onClick={exportWorkspaceFile}>{locale === "zh" ? "导出工作区状态" : "Export workspace state"}</button>
-      <button type="button" className="min-h-11 text-left text-teal-800" onClick={() => workspaceFileRef.current?.click()}>{locale === "zh" ? "导入状态" : "Import state"}</button>
-      <button type="button" className="min-h-11 text-left text-teal-800" onClick={() => dispatch({ type: "resetView" })}>{d.results.viewer.stageTwo.resetView}</button>
+    {canAnalyze && <MsaColumnFilterPanel state={state} store={analysis.columnStore} length={alignmentLength} onPatch={patchState}/>}
+    <details className="msa-view-group"><summary>{w.records}</summary><div><p>{w.viewHint}</p>
+      <button type="button" onClick={exportWorkspaceFile}>{w.saveView}</button>
+      <button type="button" onClick={()=>workspaceFileRef.current?.click()}>{w.restoreView}</button>
+      <button type="button" onClick={()=>dispatch({type:"resetView"})}>{d.results.viewer.stageTwo.resetView}</button>
     </div></details>
-    {canAnalyze && <details className="msa-view-group"><summary>{d.results.viewer.legend}</summary><div>
-      {state.differenceMode && reference ? <DifferenceLegend /> : <MSAColorLegend scheme={state.colorScheme}/>}
-    </div></details>}
+    {canAnalyze && <details className="msa-view-group"><summary>{d.results.viewer.legend}</summary>{state.differenceMode&&reference?<DifferenceLegend/>:<MSAColorLegend scheme={state.colorScheme}/>}</details>}
   </div>;
   const dockContent = <div id="msa-shared-panel">
-    {state.settingsOpen ? <>
-      <h2 className="px-3 py-2 font-semibold">{locale === "zh" ? "视图" : "View"}</h2>
-      <MsaSettingsDock {...controls} isOpen onClose={closePanel} presentation="content" workspaceActions={workspaceActions}/>
-    </> : <>
-      <div className="msa-panel-tabs" role="tablist" aria-label={locale === "zh" ? "分析工具" : "Analysis tools"}>
-        <button role="tab" aria-selected={!qcPanelOpen} aria-controls="msa-analysis-detail" type="button"
-          onClick={() => patchState({ inspectorOpen: true, qcPanelOpen: false })}>{locale === "zh" ? "选区详情" : "Selection"}</button>
-        <button role="tab" aria-selected={qcPanelOpen} aria-controls="msa-analysis-detail" type="button" disabled={!canAnalyze}
-          onClick={() => patchState({ inspectorOpen: false, qcPanelOpen: true })}>{locale === "zh" ? "质量检查" : "Quality checks"}</button>
-      </div>
-      <div id="msa-analysis-detail" role="tabpanel">{qcPanelOpen ? qcWorkspace : inspector}</div>
-    </>}
+    {comparisonOpen ? <MsaComparisonPanel rows={alignment.sequences} state={state} onChoose={setReference} onEnd={()=>setReference("")} onPatch={patchState}/>
+      : state.settingsOpen ? <MsaSettingsDock {...controls} isOpen onClose={closePanel} presentation="content" workspaceActions={workspaceActions}/>
+      : <><div className="msa-panel-tabs" role="tablist" aria-label={w.check}>
+        <button id="msa-selection-tab" role="tab" aria-selected={!qcPanelOpen} aria-controls="msa-analysis-detail" type="button" onClick={()=>patchState({inspectorOpen:true,qcPanelOpen:false})}>{w.selectionDetails}</button>
+        <button id="msa-checks-tab" role="tab" aria-selected={qcPanelOpen} aria-controls="msa-analysis-detail" disabled={!canAnalyze} type="button" onClick={()=>patchState({inspectorOpen:false,qcPanelOpen:true})}>{w.checks}</button>
+      </div>{canAnalyze && <label className="block msa-panel-content">{w.statisticalScope}<select aria-label={w.statisticalScope} value={state.analysisScope} onChange={e => patchState({analysisScope:e.target.value as ViewerState["analysisScope"]})}>{(["all","visible","selected"] as const).map(scope=><option key={scope} value={scope} disabled={scope==="selected"&&!state.selectedRowKeys.size}>{d.results.viewer.stageTwo.analysisScopes[scope]}</option>)}</select><small className="sr-only">{w.scopeHint}</small></label>}<div id="msa-analysis-detail" role="tabpanel" aria-labelledby={qcPanelOpen?"msa-checks-tab":"msa-selection-tab"}>{qcPanelOpen?qcWorkspace:<>{inspector}{annotationContent}</>}</div></>}
   </div>;
   const liveStatus = state.selection
     ? `${rowLabels.get(state.selection.rowKey) ?? state.selection.rowKey}; ${d.results.viewer.position} ${state.selection.position}; ${selectedReferencePosition ?? ""}; ${selectedBase || d.results.viewer.emptyCell}; ${canAnalyze ? d.results.viewer.stageTwo.analysisScopes[state.analysisScope] : d.results.viewer.scienceV2.neutralTitle}; ${rangeText}`
@@ -1160,7 +1164,7 @@ export function MsaViewerRoot({
         onRangeSelect={handleRangeSelect}
         onSelect={handleSelect}
         onSelectSequence={(rowKey) => dispatch({ type: "toggleRowSet", field: "selectedRowKeys", rowKey })}
-        onSetReference={setReference}
+        onSetReference={rowKey => setReference(rowKey === state.referenceRowKey ? "" : rowKey)}
         onZoomGesture={(factor) => changeZoom(state.zoomLevel * factor)}
         pinnedSequenceIds={state.pinnedRowKeys}
         rangeSelectionMode={state.rangeSelectionMode}
@@ -1210,26 +1214,32 @@ export function MsaViewerRoot({
       data-msa-view-mode={state.viewMode}
       data-msa-zoom={state.zoomLevel.toFixed(2)}
     >
-      <div className="flex shrink-0 items-center gap-3">
+      <div className="flex shrink-0 items-center gap-3" tabIndex={0}>
         <span>{state.selection ? `${d.results.viewer.position} ${state.selection.position}` : locale === "zh" ? "未选择" : "No selection"}</span>
-        {rangeText && <span>{locale === "zh" ? "选区" : "Range"}: {rangeText}</span>}
+        {rangeText && state.selectedRange && <span>{viewerText(w.selectedInterval,{start:state.selectedRange.start,end:state.selectedRange.end,count:state.selectedRange.end-state.selectedRange.start+1})}{state.columnFilter!=="all" && " · "+viewerText(w.currentlyShown,{count:lowerBoundVisibleIndex(visiblePositions,state.selectedRange.end+1)-lowerBoundVisibleIndex(visiblePositions,state.selectedRange.start)})}</span>}
+        {extraReference && <span>{viewerText(w.referenceExtra,{count:displayedSequences.length-1})}</span>}
         <span>{canAnalyze ? `${d.results.viewer.stageTwo.analysisScopes[state.analysisScope]} · ${analysis.scopeRowCount}` : d.results.viewer.scienceV2.neutralTitle}</span>
-        <span>{locale==='zh'?'行':'Rows'} {Math.min(displayedSequences.length,Math.floor((state.viewport?.scrollTop??0)/viewSettings.rowHeight)+1)}–{Math.min(displayedSequences.length,Math.ceil(((state.viewport?.scrollTop??0)+Math.max(0,(state.viewport?.clientHeight??0)-frozenHeight(activeTracks.length,canAnalyze&&state.showLogo,canAnalyze&&state.showConsensus,Boolean(analysis.motifColumnHitCounts))))/viewSettings.rowHeight))}/{displayedSequences.length} · {locale==='zh'?'列':'Columns'} {positionAt(visiblePositions,Math.floor((state.viewport?.scrollLeft??0)/(viewSettings.cellWidth+viewSettings.cellGap)))??1}–{positionAt(visiblePositions,Math.min(visiblePositions.length-1,Math.floor(((state.viewport?.scrollLeft??0)+Math.max(0,(state.viewport?.clientWidth??0)-viewSettings.labelWidth-24))/(viewSettings.cellWidth+viewSettings.cellGap))))??alignmentLength}/{alignmentLength}</span>
+        {state.viewport ? <span>{locale==='zh'?'行':'Rows'} {Math.min(displayedSequences.length,Math.floor((state.viewport?.scrollTop??0)/viewSettings.rowHeight)+1)}–{Math.min(displayedSequences.length,Math.ceil(((state.viewport?.scrollTop??0)+Math.max(0,(state.viewport?.clientHeight??0)-frozenHeight(activeTracks.length,canAnalyze&&state.showLogo,canAnalyze&&state.showConsensus,Boolean(analysis.motifColumnHitCounts))))/viewSettings.rowHeight))}/{displayedSequences.length} · {locale==='zh'?'列':'Columns'} {positionAt(visiblePositions,Math.floor((state.viewport?.scrollLeft??0)/(viewSettings.cellWidth+viewSettings.cellGap)))??1}–{positionAt(visiblePositions,Math.min(visiblePositions.length-1,Math.floor(((state.viewport?.scrollLeft??0)+Math.max(0,(state.viewport?.clientWidth??0)-viewSettings.labelWidth-24))/(viewSettings.cellWidth+viewSettings.cellGap))))??alignmentLength}/{alignmentLength}</span> : <span>{viewerText(w.retainedRows,{count:displayedSequences.length})} · {viewerText(w.columnsCount,{count:visiblePositions.length})}</span>}
         {(state.search || state.hiddenRowKeys.size > 0 || state.columnFilter !== "all") && <button type="button" className="text-teal-800 underline"
-          onClick={() => { dispatch({ type: "showAllRows" }); patchState({search: "", columnFilter: "all"}); }}>{locale === "zh" ? "清除筛选" : "Clear filters"}</button>}
+          onClick={() => { setNameFilterEnabled(false); dispatch({ type: "showAllRows" }); patchState({search: "", columnFilter: "all"}); }}>{locale === "zh" ? "清除筛选" : "Clear filters"}</button>}
         {state.selectedRowKeys.size > 0 && <span>{state.selectedRowKeys.size} {locale === "zh" ? "行已选" : "rows selected"}</span>}
         {state.motifQuery && <button type="button" title={state.motifQuery} onClick={() => patchState({ motifQuery: "", activeMotifIndex: 0 })}>
           {locale === "zh" ? "清除片段搜索" : "Clear motif search"}
         </button>}
         {state.hiddenRowKeys.size > 0 && <span>{locale === "zh" ? "隐藏" : "Hidden"}: {state.hiddenRowKeys.size}</span>}
-        {state.referenceRowKey && <span className="max-w-36 truncate" title={rowLabels.get(state.referenceRowKey)}>{locale === "zh" ? "参考" : "Reference"}: {rowLabels.get(state.referenceRowKey)}</span>}
+        {state.referenceRowKey && <span className="max-w-36 truncate" title={rowLabels.get(state.referenceRowKey)}>{locale === "zh" ? "对照" : "Reference"}: {rowLabels.get(state.referenceRowKey)}</span>}
         {descriptor.warnings.includes("duplicate_headers") && <span title={locale === "zh" ? "同名序列按独立记录处理" : "Rows with duplicate names remain independently addressable"}>{locale === "zh" ? "存在同名序列" : "Duplicate headers detected"}</span>}
         {workspaceMessage && <span role="status">{workspaceMessage}</span>}
       </div>
       <div className="flex shrink-0 items-center gap-2">
+        {(state.selection||state.selectedRowKeys.size>0) && <><button type="button" onClick={()=>patchState({settingsOpen:false,inspectorOpen:true,qcPanelOpen:false})}>{w.inspectSelection}</button>
+          {state.selectedRange && <button type="button" onClick={exportRangeFasta}>{w.exportSelection}</button>}
+          {!state.selectedRange && state.selectedRowKeys.size>0 && <button type="button" onClick={exportSelectedRows}>{w.exportSelectedRows}</button>}
+          <button type="button" disabled={!activeAnnotationTarget} title={!activeAnnotationTarget ? w.selectOneNote : undefined} onClick={addSelectionNote}>{w.addNote}</button></>}
+        {displayUndo && <button type="button" onClick={undoDisplay}>{w.undoDisplay}</button>}
         {canAnalyze && (state.differenceMode && reference ? <DifferenceLegend compact/> : <span className="msa-inline-legend" aria-label={d.results.viewer.legend}>{legendItems(renderColorScheme,d.results.viewer.legendLabels).map(item=><span key={item.label} title={item.title}><i className={item.className}/>{item.label==='T / U' ? (descriptor.alphabet==='rna'?'U':'T') : item.label}</span>)}</span>)}
         {state.lastHiddenRowKeys.length > 0 && <button type="button" onClick={() => dispatch({ type:"undoLastHide" })}>{d.results.viewer.stageTwo.undoHide}</button>}
-        {state.selection && <button type="button" onClick={() => dispatch({ type:"clearSelection" })}>{d.results.viewer.clearSelection}</button>}
+        {(state.selection || state.selectedRowKeys.size > 0) && <button type="button" onClick={() => { dispatch({ type:"clearSelection" }); patchState({selectedRowKeys:new Set()}); }}>{d.results.viewer.clearSelection}</button>}
       </div>
       <span aria-live="polite" className="sr-only" role="status">{liveStatus}</span>
     </div>
@@ -1268,7 +1278,7 @@ export function MsaViewerRoot({
         )}
         dock={dockContent}
         dockCloseLabel={locale === "zh" ? "关闭面板" : "Close panel"}
-        dockLabel={state.settingsOpen ? d.results.viewer.stageTwo.settings : d.results.viewer.stageTwo.inspector}
+        dockLabel={comparisonOpen?w.compare:state.settingsOpen?w.display:w.check}
         dockOpen={dockOpen}
         dockResizeLabel={d.results.viewer.stageTwo.resizeDock}
         dockWidth={state.inspectorWidth}
@@ -1284,7 +1294,7 @@ export function MsaViewerRoot({
         onDockWidthChange={(inspectorWidth) => patchState({ inspectorWidth })}
         statusBar={statusBar}
         workspaceLabel={canAnalyze
-          ? (locale === "zh" ? "MSA 科研 QC 工作区" : "MSA scientific QC workspace")
+          ? (locale === "zh" ? "MSA 查看器" : "MSA viewer")
           : (locale === "zh" ? "MSA 中性矩阵浏览工作区" : "MSA neutral matrix browser")}
         {...(immersive
           ? {
@@ -1295,13 +1305,14 @@ export function MsaViewerRoot({
           : { mode: "embedded" as const })}
       />
 
-      <input accept=".easymsa-view.json,application/json" aria-label={locale === "zh" ? "导入工作区状态文件" : "Import workspace state file"}
+      <input accept=".easymsa-view.json,application/json" aria-label={locale === "zh" ? "恢复查看记录文件" : "Restore view file"}
         className="hidden" onChange={importWorkspaceFile} ref={workspaceFileRef} type="file"/>
       <OverlayDialog closeLabel={locale === "zh" ? "关闭面板" : "Close panel"} isOpen={mobile && panelOpen} onClose={closePanel}
-        title={state.settingsOpen ? (locale === "zh" ? "视图" : "View") : (locale === "zh" ? "分析" : "Analyze")} variant="bottom-sheet">
+        title={comparisonOpen?w.compare:state.settingsOpen?w.display:w.check} variant="bottom-sheet">
         {dockContent}
       </OverlayDialog>
 
+      {sequenceExport && <SequenceExportDialog key={workspaceScope ?? sourceFingerprint} snapshot={sequenceExport} onClose={()=>setSequenceExport(null)}/>}
       <ExportDialog
         error={imageExport.error}
         hasSelection={imageExport.hasSelection}
