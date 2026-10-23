@@ -10,6 +10,16 @@ import {
 afterEach(() => vi.useRealTimers());
 
 describe("viewer workspace state conversion", () => {
+  it.each(["beforeunload", "pagehide"])("flushes pending changes on %s without waiting for the debounce", event => {
+    vi.useFakeTimers();
+    const state = createInitialViewerState({rows:[{id:"a",rowKey:"a",sequence:"AC"}],storage:null,sourceFingerprint:"pending-flush"});
+    localStorage.clear();
+    const {unmount} = renderHook(() => useWorkspacePersistence({state:{...state,conservationScale:"full",motifQuery:"AC"},source:{fingerprint:"pending-flush",sequenceCount:1,alignmentLength:2},storage:localStorage,onRestore:()=>undefined}));
+    act(() => window.dispatchEvent(new Event(event)));
+    const saved=JSON.parse(localStorage.getItem("easymsa.viewer.workspaces.v1")!).entries["pending-flush"].snapshot.view;
+    expect(saved).toMatchObject({conservationScale:"full",motifQuery:"AC"});
+    unmount();
+  });
   it("ignores old panel flags while restoring the scientific view", () => {
     const base = createInitialViewerState({rows: [{id:"a",rowKey:"a",sequence:"AC"}],storage:null,sourceFingerprint:"matrix-first"});
     const snapshot = viewerStateToSnapshot({...base, zoomLevel:1.4, selection:{rowKey:"a",position:2}, selectedRange:{start:1,end:2}},

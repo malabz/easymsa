@@ -21,6 +21,7 @@ export function MsaComparisonPanel({ rows, state, onChoose, onEnd, onPatch }: {
       <option value="" disabled>{t.chooseReference}</option>
       {results.slice(page * 50, (page + 1) * 50).map(row => <option key={row.rowKey} value={row.rowKey} title={row.id}>{row.id}</option>)}
     </select></label>
+    {chosen && <p className="break-words text-sm" role="status">{rows.find(row => row.rowKey === chosen)?.id}</p>}
     {!results.length && <p role="status">{t.noMatches}</p>}
     <div className="msa-pagination"><button type="button" disabled={!page} onClick={() => { setPage(page - 1); setChosen(""); }}>{t.previous}</button><span>{viewerText(t.searchPage, { page: page + 1, pages })}</span><button type="button" disabled={page + 1 >= pages} onClick={() => { setPage(page + 1); setChosen(""); }}>{t.next}</button></div>
     <button type="button" className="msa-primary" disabled={!chosen} onClick={() => onChoose(chosen)}>{reference ? t.changeReference : t.startComparison}</button>

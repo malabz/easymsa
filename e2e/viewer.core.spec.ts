@@ -76,7 +76,7 @@ test("reference, scope, QC annotation, restoration, motif, minimap, and bundle e
     );
   });
   await page.reload({waitUntil:"domcontentloaded"});
-  await page.getByLabel("Paste FASTA").fill(fasta);
+  await page.getByRole("textbox", { name: "Paste FASTA", exact: true }).fill(fasta);
   await page.getByRole("button", { name: "Open alignment" }).click();
   await expect(page.locator("[data-msa-status='true']"))
     .toHaveAttribute("data-msa-analysis-status", "ready");

@@ -1,10 +1,14 @@
 import { Download } from "lucide-react";
-import { ExternalButtonLink } from "../common/Button";
+import { Button } from "../common/Button";
+import { useNamedDownload } from "../../lib/hooks/useNamedDownload";
+import { refinementText } from "../../lib/i18n/refinements";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import type { ResultFile } from "../../lib/types/result";
 
 export function DownloadPanel({ files, artifacts = [] }: { files: ResultFile[]; artifacts?: string[] }) {
   const { dictionary: d, locale } = useLanguage();
+  const ui = refinementText[locale];
+  const {busy, failed, download, cancel} = useNamedDownload(files.map(file => `${file.name}\n${file.href}`).join("\n"));
   const descriptions = locale === "zh" ? {
     archive: "完整结果包",
     "alignment-gzip": "比对序列 · FASTA，gzip 压缩",
@@ -17,16 +21,21 @@ export function DownloadPanel({ files, artifacts = [] }: { files: ResultFile[]; 
   const primaryFiles = files.filter(file => file.kind !== "alignment-gzip-xz");
   const additionalFiles = files.filter(file => file.kind === "alignment-gzip-xz");
   function fileRow(file: ResultFile) {
-    const description = file.kind ? descriptions[file.kind] : file.description;
+    const description = file.kind === "archive" ? ui.archiveHint : file.kind === "alignment-gzip" ? ui.fastaHint : file.kind ? descriptions[file.kind] : file.description;
     return <div className="flex min-w-0 flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between" key={file.name}>
       <div className="min-w-0 flex-1">
-        <p className="break-all font-mono text-sm font-semibold text-slate-900">{file.name}</p>
+        <p className="text-base font-semibold text-slate-900">{file.kind === "archive" ? ui.archive : file.kind === "alignment-gzip" ? ui.fasta : ui.extraFormats}</p>
+        <p className="mt-1 break-all font-mono text-xs text-slate-500">{file.name}</p>
         {description && <p className="mt-1 text-sm text-slate-600">{description}</p>}
         {file.size && file.size !== "remote" && <p className="mt-1 text-xs text-slate-500">{file.size}</p>}
       </div>
-      <ExternalButtonLink className="shrink-0" download={file.name} href={file.href} aria-label={`${d.common.download} ${file.name}`}>
-        <Download className="h-4 w-4" aria-hidden="true" />{d.common.download}
-      </ExternalButtonLink>
+      <div className="flex shrink-0 flex-wrap items-center gap-2">
+      <Button disabled={busy !== null} onClick={() => void download(file)} aria-label={`${d.common.download} ${file.name}`}>
+        <Download className="h-4 w-4" aria-hidden="true" />{busy === file.name ? ui.downloading : d.common.download}
+      </Button>
+      {busy === file.name && <Button variant="ghost" onClick={cancel}>{ui.cancel}</Button>}
+      {failed === file.name && <p role="alert" className="text-sm text-rose-700">{ui.downloadFailed}</p>}
+      </div>
     </div>;
   }
 

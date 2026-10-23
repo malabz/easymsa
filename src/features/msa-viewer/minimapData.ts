@@ -1,3 +1,4 @@
+import { drainTask, type CooperativeTask } from "./cooperativeTask";
 import { classifyDifference } from './analysis';
 import { differenceColorStyle } from './differenceColors';
 import { rowKeyForSequence } from './alignmentModel';
@@ -16,7 +17,8 @@ export type MinimapPair = { horizontal: MinimapImage; vertical: MinimapImage };
 type Size = { width: number; height: number; layout: 'vertical' | 'horizontal' };
 
 /** Both overviews average exactly the same visible cells in one traversal. */
-function calculateImages(input: MinimapInput, sizes: Size[]): MinimapImage[] {
+function* calculateImages(input: MinimapInput, sizes: Size[]): CooperativeTask<MinimapImage[]> {
+  let checkpoint = 0;
   const { rows, positions, scheme, store, reference, differenceMode, scopeRowKeys } = input;
   const grids = sizes.map(size => {
     const width = Math.max(1, Math.min(size.layout === 'horizontal' ? 2048 : 88, size.width, positions.length));
@@ -42,6 +44,7 @@ function calculateImages(input: MinimapInput, sizes: Size[]): MinimapImage[] {
       const sequence = rows[r].sequence;
       const offsets = grids.map(grid => grid.rowBins[r] * grid.width);
       for (const column of columns) {
+        if ((++checkpoint & 16383) === 0) yield;
         const base = sequence[column.position - 1] ?? '-';
         const colors = compare[r] ? column.compared : column.ordinary;
         let rgb = colors.get(base);
@@ -71,12 +74,14 @@ function calculateImages(input: MinimapInput, sizes: Size[]): MinimapImage[] {
   });
 }
 export function calculateMinimap(input: MinimapInput): MinimapImage {
-  return calculateImages(input, [{ width: input.width ?? 80, height: input.height ?? 512, layout: input.layout ?? 'vertical' }])[0];
+  return drainTask(calculateImages(input, [{ width: input.width ?? 80, height: input.height ?? 512, layout: input.layout ?? 'vertical' }]))[0];
 }
-export function calculateMinimapPair(input: MinimapInput): MinimapPair {
-  const [horizontal, vertical] = calculateImages(input, [
+export function* calculateMinimapPairCooperative(input: MinimapInput): CooperativeTask<MinimapPair> {
+  const [horizontal, vertical] = yield* calculateImages(input, [
     { width: 2048, height: 18, layout: 'horizontal' },
     { width: input.width ?? 80, height: input.height ?? 512, layout: 'vertical' }
   ]);
   return { horizontal, vertical };
 }
+
+export function calculateMinimapPair(...args: Parameters<typeof calculateMinimapPairCooperative>) { return drainTask(calculateMinimapPairCooperative(...args)); }

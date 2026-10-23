@@ -1,3 +1,4 @@
+import { HELP_LINKS } from "../../lib/docs/links";
 import { ArrowLeft, Expand, Minimize2, Upload } from "lucide-react";
 import type { ReactNode } from "react";
 import { useLanguage } from "../../lib/i18n/useLanguage";
@@ -17,7 +18,7 @@ export function MsaWorkspaceHeader({ title, sequences, columns, immersive, onTog
       {example && <span className="msa-example-label"> · {zh ? "示例已载入" : "Example loaded"}</span>}
     </span></div>
     <div className="msa-source-actions">{extra}
-      <a className="msa-viewer-help" href={`${import.meta.env.BASE_URL}#/docs`} target="_blank" rel="noreferrer" aria-label={zh?'使用帮助（新标签页）':'Help (new tab)'}>?</a>
+      <a className="msa-viewer-help" href={`${import.meta.env.BASE_URL}#${HELP_LINKS.viewer}`} target="_blank" rel="noreferrer" aria-label={zh?'使用帮助（新标签页）':'Help (new tab)'}>?</a>
       {onReplace && !immersive && <button className="msa-replace" type="button" aria-label={zh ? "更换文件" : "Change file"} onClick={onReplace}><Upload size={15}/><span>{zh ? "更换文件" : "Change file"}</span></button>}
       {!onReturn && onToggle && <button className="msa-expand" type="button" onClick={onToggle}>
         {immersive ? <Minimize2 size={16}/> : <Expand size={16}/>}{immersive ? (zh ? "退出全屏" : "Exit full screen") : (zh ? "全屏查看" : "Full screen")}

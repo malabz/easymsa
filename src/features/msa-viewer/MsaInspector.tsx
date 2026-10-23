@@ -1,3 +1,4 @@
+import { refinementText } from "../../lib/i18n/refinements";
 import { BarChart3, Dna, MousePointer2 } from "lucide-react";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import type { MSASequence } from "../../lib/types/msa";
@@ -41,7 +42,7 @@ export function MsaInspectorContent({
   selectionLabel,
   showReferenceContext = true,
   analysisScope = "all",
-  scopeRowCount
+  scopeRowCount, touchLayout = false, rangeSelectionMode = false, onToggleRangeSelection
 }: {
   alignmentPosition: number | null;
   base: string;
@@ -57,8 +58,9 @@ export function MsaInspectorContent({
   showReferenceContext?: boolean;
   analysisScope?: AnalysisScope;
   scopeRowCount?: number;
+  touchLayout?: boolean; rangeSelectionMode?: boolean; onToggleRangeSelection?: () => void;
 }) {
-  const { dictionary: d } = useLanguage();
+  const { dictionary: d, locale } = useLanguage();
   const t = d.results.viewer.stageTwo;
   const science = d.results.viewer.scienceV2;
   const w = d.viewerWorkflow;
@@ -83,7 +85,7 @@ export function MsaInspectorContent({
             {t.reference}
           </p>
           <p className="mt-2 truncate font-mono text-sm text-slate-900" title={reference?.id}>
-            {reference?.id ?? t.noReference}
+            {reference?.id || t.noReference}
           </p>
         </section>
       ) : null}
@@ -138,7 +140,8 @@ export function MsaInspectorContent({
         </>
       ) : (
         <p className="py-3 text-sm leading-6 text-slate-600">
-          {d.results.viewer.noSelection}
+          {touchLayout ? refinementText[locale].touchHint : d.results.viewer.noSelection}
+          {touchLayout && onToggleRangeSelection && <button type="button" className="work-link block mt-2" onClick={onToggleRangeSelection}>{rangeSelectionMode ? refinementText[locale].browseMatrix : refinementText[locale].selectRegion}</button>}
         </p>
       )}
 
@@ -219,7 +222,7 @@ export function MsaInspector({
   mobileOpen: boolean;
   onClose: () => void;
 }) {
-  const { dictionary: d } = useLanguage();
+  const { dictionary: d, locale } = useLanguage();
   const title = d.results.viewer.stageTwo.inspector;
   const content = <MsaInspectorContent {...contentProps} />;
 

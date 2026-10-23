@@ -1,3 +1,4 @@
+import { HELP_LINKS } from "../lib/docs/links";
 import { ResultPanels } from "../components/results/ResultPanels";
 import { useJobStatus } from "../lib/query/useJobStatus";
 import { RealignmentNotice } from "../components/job/RealignmentNotice";
@@ -84,7 +85,7 @@ export function ResultsPage() {
   return (
     <AnalysisWorkspace sidebar={<ResultSidebar title={jobQuery.data?.jobName ?? d.results.title} summary={summaryQuery.data} job={jobQuery.data} onDownload={() => setActiveTab("downloads")} />} >
       <div className="analysis-heading"><h1>{jobQuery.data?.jobName ?? d.results.title}</h1>
-        <Link className="work-link" to="/docs">{workspaceText[locale].help}</Link>
+        <Link className="work-link" to={HELP_LINKS.results}>{workspaceText[locale].help}</Link>
       </div>
       <div className="analysis-toolbar">
       <ResultTabs value={activeTab} onChange={setActiveTab} />

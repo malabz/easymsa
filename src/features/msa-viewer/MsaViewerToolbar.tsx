@@ -14,6 +14,7 @@ export type MsaViewerToolbarProps = {
   onSaveView?: () => void;
   actualScopeRowCount?: number;
   fullResultHref?: string;
+  fullResultName?: string;
   alignmentLength: number;
   analysisDisabled?: boolean;
   canExport: boolean;

@@ -1,3 +1,6 @@
+import { measureAlignmentText, readAlignmentSize, type AlignmentSize } from "../lib/submit/alignmentSize";
+import { HELP_LINKS } from "../lib/docs/links";
+import { refinementText } from "../lib/i18n/refinements";
 import { ExampleInputLoader } from "../components/submit/ExampleInputLoader";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -31,6 +34,7 @@ export function RealignPage() {
   const { locale, dictionary: d } = useLanguage();
   const t = realignText[locale];
   const w = workspaceText[locale];
+  const ui = refinementText[locale];
   useRememberWork("realign");
   const [exampleLoaded, setExampleLoaded] = useDraftState("realign:example", false);
   const health = useServiceHealth();
@@ -42,6 +46,15 @@ export function RealignPage() {
     ? new File([pastedFasta], "pasted-alignment.fasta", { type: "text/plain" }) : null, [pastedFasta]);
   const activeFile = inputMethod === "paste" ? pastedFile : file;
   const sequenceCount = useMemo(() => estimateFastaSequenceCount(pastedFasta), [pastedFasta]);
+  const pasteSize = useMemo(() => pastedFasta.length <= 4 * 1024 * 1024 ? measureAlignmentText(pastedFasta) : null, [pastedFasta]);
+  const [fileSize, setFileSize] = useState<AlignmentSize | null>(null);
+  useEffect(() => {
+    setFileSize(null); if (!file || inputMethod !== "upload") return;
+    const controller = new AbortController();
+    void readAlignmentSize(file, controller.signal).then(size => { if (!controller.signal.aborted) setFileSize(size); }).catch(() => {});
+    return () => controller.abort();
+  }, [file, inputMethod]);
+  const inputSize = inputMethod === "paste" ? pasteSize : fileSize;
   const inputSummary = inputMethod === "paste"
     ? pastedFile ? (locale === "zh" ? `粘贴 FASTA · ${sequenceCount.toLocaleString()} 条序列` : `Pasted FASTA · ${sequenceCount.toLocaleString()} sequences`) : w.inputPending
     : file?.name || w.inputPending;
@@ -153,7 +166,7 @@ export function RealignPage() {
               <Link to="/examples/realignment-small">{w.exampleResult}</Link>
             </div>}
             <div className="submission-input-notes">
-              <Link className="work-link" to="/docs">{w.help}</Link>
+              <Link className="work-link" to={HELP_LINKS.realign}>{w.help}</Link>
               <p className="submission-audit-note"><ShieldCheck size={14} aria-hidden="true" />{locale === "zh" ? "初始结果会保留。" : "The initial alignment is retained."}</p>
             </div>
           </div>
@@ -171,12 +184,14 @@ export function RealignPage() {
             </details>
             <section className="realignment-requirements" aria-label={t.inputRequirements}>
               <h3 className="work-label">{locale === "zh" ? "输入要求" : "Input requirements"}</h3>
-              <p className="work-hint">{locale === "zh" ? "序列名称不能重复；仅支持 A、C、G、T/U 和“-”。" : "Use unique sequence names and only A, C, G, T/U and gaps (-)."}</p>
+              <p className="work-hint">{ui.inputRules}</p>
               {refinement ? <dl className="realignment-limits">
                 <div><dt>{locale === "zh" ? "序列" : "Sequences"}</dt><dd>≤ {refinement.maxSequences.toLocaleString()}</dd></div>
                 <div><dt>{locale === "zh" ? "比对列" : "Columns"}</dt><dd>≤ {refinement.maxColumns.toLocaleString()}</dd></div>
                 <div><dt>{locale === "zh" ? "比对字符数" : "Alignment characters"}</dt><dd>≤ {refinement.maxCells.toLocaleString()}</dd></div>
               </dl> : <p className="work-hint">{t.limits}</p>}
+              <p className="work-hint">{ui.cellFormula}</p>
+              {inputSize && <p role="status" className="work-hint text-teal-800">{locale === "zh" ? "当前输入：" : "Current input: "}{inputSize.rows.toLocaleString()} {ui.sequences} × {inputSize.minColumns !== inputSize.maxColumns ? `${inputSize.minColumns.toLocaleString()}–` : ""}{inputSize.maxColumns.toLocaleString()} {ui.columns} · {ui.totalCells} {inputSize.cells.toLocaleString()}</p>}
               <p className="work-hint realignment-citation"><Link className="work-link" to="/about">{locale === "zh" ? "引用方法" : "Cite this method"}</Link></p>
             </section>
             {Boolean(error) && <p id="realignment-error" tabIndex={-1} role="alert" className="work-error py-2">{apiErrorMessage(error, locale)}</p>}

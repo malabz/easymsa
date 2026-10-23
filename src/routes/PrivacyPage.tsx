@@ -1,3 +1,4 @@
+import { HELP_LINKS } from "../lib/docs/links";
 import { useState } from "react";
 import { forgetWork } from "../lib/workspace";
 import { Link } from "react-router-dom";
@@ -139,7 +140,7 @@ export function PrivacyPage() {
         {message && <p role="status">{message}</p>}
       </section>
       <p className="text-sm">
-        <Link className="text-teal-800 underline" to="/docs">
+        <Link className="text-teal-800 underline" to={HELP_LINKS.recovery}>
           {zh ? "任务恢复帮助" : "Job recovery help"}
         </Link>{" "}
         ·{" "}

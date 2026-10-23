@@ -164,3 +164,16 @@
   .workspace-timeline li { gap: 6px; min-height: 24px; }
   .workspace-timeline li::after { display: none; }
 }
+
+.result-information > summary { cursor:pointer; font-size:14px; font-weight:600; color:var(--color-text); padding-block:10px; }
+.result-information-body { display:flex; flex-direction:column; gap:14px; }
+.workspace-parameters > summary { cursor:pointer; padding-block:10px; color:var(--color-accent); font-size:13px; }
+.result-facts-skeleton { display:grid; gap:14px; padding-block:12px; }
+.result-facts-skeleton span { background:#e2e8f0; border-radius:3px; height:16px; width:85%; }
+@media (min-width:701px) { .result-information > summary { display:none; } }
+@media (max-width:700px) {
+  .analysis-workspace:has(.result-information) .analysis-main { order:0; }
+  .analysis-workspace:has(.result-information) .analysis-sidebar { order:1; }
+  .result-information .workspace-task-title, .result-back, .result-download-actions { display:none; }
+  .result-information > summary { min-height:44px; }
+}

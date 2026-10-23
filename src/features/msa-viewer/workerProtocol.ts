@@ -1,10 +1,11 @@
+import { drainTask, type CooperativeTask } from "./cooperativeTask";
 import type {
   MSASequence,
   SequenceAlphabet
 } from "../../lib/types/msa";
 import {
-  calculateMsaAnalysisStore,
-  calculateRowQcStats,
+  calculateMsaAnalysisStoreCooperative,
+  calculateRowQcStatsCooperative,
   classifyDifference
 } from "./analysis";
 import { normalizeAlignmentSequence, rowKeyForSequence } from "./alignmentModel";
@@ -209,7 +210,7 @@ export function analysisWorkerError(
   };
 }
 
-function assertAnalyzableInput(
+function* assertAnalyzableInput(
   sequences: MSASequence[],
   alignmentLength: number,
   alphabet?: SequenceAlphabet
@@ -230,6 +231,7 @@ function assertAnalyzableInput(
     return;
   }
   const invalid = new Set<string>();
+  let checkpoint = 0;
   for (const sequence of sequences) {
     const normalized = normalizeAlignmentSequence(sequence.sequence);
     if (normalized.length !== alignmentLength) {
@@ -239,6 +241,7 @@ function assertAnalyzableInput(
       );
     }
     for (const symbol of normalized) {
+      if ((++checkpoint & 16383) === 0) yield;
       if (!"ACGTURYSWKMBDHVN-".includes(symbol)) {
         invalid.add(symbol);
       }
@@ -316,14 +319,14 @@ function isTransition(left: string, right: string) {
   return pair === "AG" || pair === "CT";
 }
 
-function addComparisonStats(
+function* addComparisonStats(
   row: MSASequence,
   comparator: string,
   comparisonTarget: RowReferenceQc["comparisonTarget"],
   comparisonRowKey: string | null,
   isComparisonTarget: boolean,
   informativeStore?: ColumnStatsStoreV2
-): RowReferenceQc {
+): CooperativeTask<RowReferenceQc> {
   let validComparisonCount = 0;
   let matchCount = 0;
   let compatibleAmbiguityCount = 0;
@@ -337,6 +340,7 @@ function addComparisonStats(
 
   if (!isComparisonTarget) {
     for (let index = 0; index < comparator.length; index += 1) {
+      if ((index & 8191) === 0) yield;
       if (informativeStore && informativeStore.canonicalCounts[index] === 0) continue;
       const observed = sequence[index] ?? "";
       const expected = comparator[index] ?? "";
@@ -393,7 +397,7 @@ function addComparisonStats(
   };
 }
 
-function buildRowQc(
+function* buildRowQc(
   sequences: MSASequence[],
   alignmentLength: number,
   alphabet: SequenceAlphabet | undefined,
@@ -401,8 +405,8 @@ function buildRowQc(
   columnStore: ColumnStatsStoreV2,
   referenceRowKey?: string | null,
   referenceSequence?: MSASequence | null
-): RowQcStatsV2[] {
-  const basic = calculateRowQcStats(sequences, alignmentLength, { alphabet });
+): CooperativeTask<RowQcStatsV2[]> {
+  const basic = yield* calculateRowQcStatsCooperative(sequences, alignmentLength, { alphabet });
   const resolvedReferenceIndex = referenceRowKey
     ? sequences.findIndex((sequence, index) =>
         rowKeyForSequence(sequence, index) === referenceRowKey
@@ -424,11 +428,12 @@ function buildRowQc(
     ? undefined
     : columnStore;
 
-  return basic.map((stats, index) => {
+  const result: RowQcStatsV2[] = [];
+  for (const [index, stats] of basic.entries()) {
     const source = sequences[index];
     const isComparisonTarget = resolvedReferenceRowKey !== null &&
       stats.rowKey === resolvedReferenceRowKey;
-    const reference = addComparisonStats(
+    const reference = yield* addComparisonStats(
       source,
       comparator,
       comparisonTarget,
@@ -436,7 +441,7 @@ function buildRowQc(
       isComparisonTarget,
       scopeConsensusInformativeStore
     );
-    return {
+    result.push({
       ...stats,
       rawLength: source?.sequence.length ?? 0,
       ungappedLength: stats.ungappedLength ?? stats.nonGapLength ?? 0,
@@ -454,11 +459,12 @@ function buildRowQc(
       transversionCount: reference.transversionCount,
       unclassifiedSubstitutionCount: reference.unclassifiedSubstitutionCount,
       reference
-    };
-  });
+    });
+  }
+  return result;
 }
 
-export function calculateMsaAnalysisPayloadV4({
+export function* calculateMsaAnalysisPayloadV4Cooperative({
   sourceFingerprint,
   scope,
   scopeRowKeys,
@@ -468,15 +474,15 @@ export function calculateMsaAnalysisPayloadV4({
   referenceRowKey,
   referenceSequence,
   overviewBinCount
-}: Extract<MsaAnalysisWorkerRequest, { type: "analyze" }>): MsaAnalysisPayloadV4 {
-  assertAnalyzableInput(sequences, alignmentLength, alphabet);
+}: Extract<MsaAnalysisWorkerRequest, { type: "analyze" }>): CooperativeTask<MsaAnalysisPayloadV4> {
+  yield* assertAnalyzableInput(sequences, alignmentLength, alphabet);
   if (scope !== "all" && sequences.length === 0) {
     throw new MsaAnalysisWorkerError(
       "ANALYSIS_EMPTY_SCOPE",
       "The selected analysis scope contains no sequences."
     );
   }
-  const analysis = calculateMsaAnalysisStore(sequences, alignmentLength, { alphabet });
+  const analysis = yield* calculateMsaAnalysisStoreCooperative(sequences, alignmentLength, { alphabet });
   const majority = analysis.columnStore.majorityConsensus;
   const iupac = analysis.columnStore.iupacConsensus;
   const payload: MsaAnalysisPayloadV4 = {
@@ -488,7 +494,7 @@ export function calculateMsaAnalysisPayloadV4({
     columnStore: analysis.columnStore,
     overview: analysis.overview,
     overviewBins: buildOverviewBins(analysis.columnStore, overviewBinCount),
-    rowQc: buildRowQc(
+    rowQc: yield* buildRowQc(
       sequences,
       alignmentLength,
       alphabet,
@@ -510,3 +516,5 @@ export function estimateMsaAnalysisPayloadBytes(result: MsaAnalysisPayloadV4) {
     (result.consensus.majority.length + result.consensus.iupac.length) * 2 +
     result.scopeRowKeys.reduce((sum, key) => sum + key.length * 2, 0);
 }
+
+export function calculateMsaAnalysisPayloadV4(...args: Parameters<typeof calculateMsaAnalysisPayloadV4Cooperative>) { return drainTask(calculateMsaAnalysisPayloadV4Cooperative(...args)); }

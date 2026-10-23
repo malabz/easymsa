@@ -22,6 +22,7 @@ import {
   type RefObject
 } from "react";
 import { useLanguage } from "../../lib/i18n/useLanguage";
+import { refinementText } from "../../lib/i18n/refinements";
 import type { MSASequence } from "../../lib/types/msa";
 import { cn } from "../../lib/utils/cn";
 import {
@@ -55,6 +56,11 @@ import type {
 import { markMsaPerformance, MSA_PERFORMANCE_MARKS } from "./performanceMarks";
 
 const CONSENSUS_ROW_KEY = "easymsa:consensus";
+
+/** Rendering strategy, not an input limit. Keep the keyboard grid for both. */
+export function shouldUseCanvasMatrix(rows: number, columns: number, showCharacters: boolean) {
+  return !showCharacters || rows * columns >= 1_000_000;
+}
 
 /**
  * Resolve a row's internal identity without treating its display header as a
@@ -244,7 +250,7 @@ const SequenceCells = memo(function SequenceCells({
             aria-label={`${sequence.id}; ${d.results.viewer.position} ${position}; ${missingTail ? d.results.viewer.scienceV2.neutralReasons.rawUnequal : base || d.results.viewer.emptyCell}${consensusTie ? `; ${d.results.viewer.stageTwo.consensusTie}` : ""}`}
             aria-selected={selectedCell || inSelectedRange}
             className={cn(
-              "absolute left-0 top-0 inline-flex items-center justify-center font-mono font-semibold outline-none transition",
+              "absolute left-0 top-0 inline-flex items-center justify-center font-mono font-semibold outline-none",
               settings.showCharacters ? "rounded-none border-0" : "border-0",
               consensusTie ? "border-dashed border-slate-700" : "",
               missingTail ? "border-slate-200 bg-slate-50 text-transparent" : colorClass,
@@ -493,6 +499,7 @@ export function MsaDomMatrix({
 }) {
   const { dictionary: d, locale } = useLanguage();
   const coarsePointer = useCoarsePointer();
+  const canvasMatrix = shouldUseCanvasMatrix(sequences.length, alignmentLength, settings.showCharacters);
   const maxMotifCount = useMemo(()=>motifColumnHitCounts?.reduce((m,n)=>Math.max(m,n),1)??1,[motifColumnHitCounts]);
   const [globalRowMenuPosition, setGlobalRowMenuPosition] = useState<{ left: number; top: number } | null>(null);
   const reactGridId = useId();
@@ -536,13 +543,15 @@ export function MsaDomMatrix({
     estimateSize: () => pitch,
     getScrollElement: () => scrollRef.current,
     horizontal: true,
-    overscan: Math.ceil((settings.labelWidth + 24) / pitch) + 8
+    overscan: 4
   });
   const rowVirtualizer = useVirtualizer({
     count: sequences.length,
+    // All rows have this fixed height; observing every virtual row adds layout
+    // work on scroll and cannot provide a more accurate measurement.
     estimateSize: () => settings.rowHeight,
     getScrollElement: () => scrollRef.current,
-    overscan: settings.showCharacters ? 10 : 4
+    overscan: 4
   });
   useEffect(() => {
     // Coarse-pointer and zoom changes must invalidate cached column sizes.
@@ -674,16 +683,6 @@ export function MsaDomMatrix({
     return () => window.removeEventListener("pointerup", clearDrag);
   }, []);
 
-  useEffect(() => {
-    const viewport = viewportRef.current;
-    if (!viewport) {
-      return;
-    }
-    viewport.querySelectorAll<HTMLElement>("[data-msa-cell='true']").forEach((cell) => {
-      cell.tabIndex = -1;
-    });
-  }, [activeTracks, settings.showCharacters, virtualColumns, virtualRows]);
-
   const callbacks = useRef({ onSelect, onRangeSelect });
   useLayoutEffect(() => { callbacks.current = { onSelect, onRangeSelect }; }, [onSelect, onRangeSelect]);
   const selectCell = useCallback((...args: Parameters<typeof onSelect>) => callbacks.current.onSelect(...args), []);
@@ -770,7 +769,7 @@ export function MsaDomMatrix({
         onPointerUpCapture={(event) => releaseTouch(event.pointerId)}
     >
       <p className="sr-only" id={`${gridId}-shortcut-help`}>
-        {d.results.viewer.stageTwo.shortcutHint}
+        {coarsePointer ? refinementText[locale].touchHint : d.results.viewer.stageTwo.shortcutHint}
       </p>
       <div
         aria-activedescendant={activeDescendantId}
@@ -946,7 +945,6 @@ export function MsaDomMatrix({
                   data-index={virtualRow.index}
                   data-msa-row-key={rowKey}
                   key={rowKey}
-                  ref={rowVirtualizer.measureElement}
                   role="row"
                   style={{
                     gridTemplateColumns: `${settings.labelWidth}px 1fr`,
@@ -993,7 +991,7 @@ export function MsaDomMatrix({
                       ]}/>}
          </div>
                   <div className="flex items-center px-3" style={{ height: settings.rowHeight }}>
-                    {settings.showCharacters ? (
+                    {!canvasMatrix ? (
                       <SequenceCells
                         colorScheme={colorScheme}
                         differenceMode={differenceMode && (!analysisRowKeys || analysisRowKeys.has(rowKey))}
@@ -1042,7 +1040,7 @@ export function MsaDomMatrix({
         </div>
       ) : null}
 
-      {!settings.showCharacters ? (
+      {canvasMatrix ? (
         <MsaCanvasMatrix
           colorScheme={colorScheme}
           columns={stats}
@@ -1052,7 +1050,7 @@ export function MsaDomMatrix({
           motifPositionMap={motifPositionMap}
           onNavigate={onNavigate}
           onRangeSelect={selectRange}
-          onSelect={(next) => onSelect(next)}
+          onSelect={selectCell}
           rangeSelectionMode={rangeSelectionMode}
           reference={reference}
           scrollRef={scrollRef}

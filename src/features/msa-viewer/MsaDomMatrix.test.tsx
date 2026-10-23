@@ -6,6 +6,7 @@ import { calculateColumnStats } from "./analysis";
 import {
   matrixNavigationDelta,
   matrixSequenceRowKey,
+  shouldUseCanvasMatrix,
   MsaDomMatrix
 } from "./MsaDomMatrix";
 import type { MsaViewSettings } from "./types";
@@ -403,6 +404,12 @@ describe("MsaDomMatrix hybrid rendering", () => {
 });
 
 describe("matrix identity and navigation helpers", () => {
+  it("selects a drawing strategy without rejecting or truncating input", () => {
+    expect(shouldUseCanvasMatrix(20, 515, true)).toBe(false);
+    expect(shouldUseCanvasMatrix(1000, 1000, true)).toBe(true);
+    expect(shouldUseCanvasMatrix(100000, 1000, true)).toBe(true);
+    expect(shouldUseCanvasMatrix(20, 515, false)).toBe(true);
+  });
   it("generates distinct legacy row keys for duplicate headers", () => {
     const sequence = { id: "duplicate", sequence: "AC" };
     expect(matrixSequenceRowKey(sequence, 0)).not.toBe(

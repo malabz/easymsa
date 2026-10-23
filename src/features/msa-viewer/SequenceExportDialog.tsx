@@ -1,3 +1,4 @@
+import { resultFilename } from "../../lib/utils/downloadName";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMsaDataSession } from "./sharedDataSession";
 import { OverlayDialog } from "../../components/common/OverlayDialog";
@@ -32,7 +33,7 @@ export function SequenceExportDialog({ snapshot, onClose }: { snapshot: Sequence
       const blob = await session.run<Blob>("export", request, abort.signal, value => {
         if (active.current && controller.current === abort) setProgress(value);
       });
-      if (active.current && !abort.signal.aborted) save(blob, !selection.contiguous ? "easymsa-filtered-alignment.zip" : columnScope === "interval" ? `easymsa-region-${selection.start}-${selection.end}.fasta` : "easymsa-alignment.fasta");
+      if (active.current && !abort.signal.aborted) save(blob, resultFilename(snapshot.source, snapshot.stage, !selection.contiguous ? "filtered-alignment.zip" : columnScope === "interval" ? `region-${selection.start}-${selection.end}.fasta` : `${rowScope}-alignment.fasta`));
     } catch (failure) { if (active.current && (failure as Error)?.name !== "AbortError") setError(true); }
     finally { if (controller.current === abort) { controller.current = null; if (active.current) setBusy(false); } }
   }

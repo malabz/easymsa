@@ -15,6 +15,9 @@
   --page-space: 24px;
   --page-title-size: 30px;
   --control-height: 40px;
+  --control-compact-height: 36px;
+  --control-touch-height: 44px;
+  --control-font-size: 13px;
   --control-radius: 6px;
   --color-accent: #0f766e;
   --color-text: #0f172a;
@@ -82,9 +85,13 @@ textarea {
   .app-navigation-link { min-height: 36px; padding: 6px 10px; }
 }
 @media (max-width: 700px) {
-  :root { --page-title-size: 26px; --page-space: 20px; }
+  :root { --page-title-size: 26px; --page-space: 20px; --control-height: var(--control-touch-height); --control-compact-height: var(--control-touch-height); }
   .app-footer-inner { padding-block: 10px; }
-  .app-footer nav a { min-height: 36px; }
+  .app-footer nav a, .work-link, .workspace-back { min-height: var(--control-touch-height); }
+  .app-header-inner { flex-wrap:wrap; }
+  .app-header-inner > div:last-child { margin-left:auto; }
+  .app-mobile-navigation .app-navigation { grid-template-columns:repeat(auto-fit,minmax(min(140px,100%),1fr)); }
+  .app-mobile-navigation .app-navigation-link { white-space:normal; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -101,3 +108,8 @@ textarea {
     transition-duration: 0.01ms !important;
   }
 }
+
+.route-skeleton { display:grid; gap:18px; min-height:250px; }
+.route-skeleton > div { background:rgb(226 232 240 / .5); border-radius:var(--control-radius); }
+.route-skeleton > div:last-child { width:70%; }
+@media(min-width:1024px) { .route-skeleton--form { grid-template-columns:3fr 2fr; min-height:340px; } .route-skeleton--form > div:last-child { grid-column:1/-1; height:36px; width:100%; } }

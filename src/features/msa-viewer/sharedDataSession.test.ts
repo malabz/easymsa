@@ -5,9 +5,10 @@ class MockWorker {
   onerror: (() => void) | null = null;
   postMessage = vi.fn<(message: SessionMessage) => void>();
   terminate = vi.fn();
-  complete(result: unknown) {
-    const message = this.postMessage.mock.calls[this.postMessage.mock.calls.length - 1][0];
-    if (message.type === 'run') this.onmessage?.({ data: { id: message.id, result } } as MessageEvent);
+  completed = new Set<number>();
+  complete(result: unknown, id?: number) {
+    const message = this.postMessage.mock.calls.map(([message]) => message).find(message => message.type === 'run' && (id !== undefined ? message.id === id : !this.completed.has(message.id)));
+    if (message?.type === 'run') { this.completed.add(message.id); this.onmessage?.({ data: { id: message.id, result } } as MessageEvent); }
   }
 }
 const rows = [{ id: 'a', sequence: 'ACGT' }, { id: 'b', sequence: 'A-GT' }];
@@ -42,13 +43,15 @@ describe('one alignment data owner', () => {
     worker.complete('done'); expect(await first).toBe('done');
     expect(worker.terminate).not.toHaveBeenCalled(); expect(session.diagnostics.dataTransfers).toBe(1); session.dispose();
   });
-  it('hard-cancels active work, ignores late replies and continues queued work', async () => {
+  it('cancels active work cooperatively, ignores late replies and retains the data owner', async () => {
     const workers: MockWorker[] = []; const session = new MsaDataSession(rows, () => { const worker = new MockWorker(); workers.push(worker); return worker as unknown as Worker; });
     const controller = new AbortController(); const first = session.run('motif', { sequences: rows }, controller.signal);
     const rejected = expect(first).rejects.toMatchObject({ name: 'AbortError' });
     const next = session.run('overview', { rows }); controller.abort(); await rejected;
-    expect(workers[0].terminate).toHaveBeenCalledOnce(); expect(workers).toHaveLength(2);
-    workers[0].complete('stale'); workers[1].complete('current'); expect(await next).toBe('current'); session.dispose();
+    expect(workers[0].terminate).not.toHaveBeenCalled(); expect(workers).toHaveLength(1);
+    expect(workers[0].postMessage.mock.calls.some(([message]) => message.type === 'cancel')).toBe(true);
+    workers[0].complete('stale'); workers[0].complete('current'); expect(await next).toBe('current');
+    expect(session.diagnostics.dataTransfers).toBe(1); session.dispose();
   });
   it('keeps the session through a strict-mode remount and releases after the last consumer', async () => {
     vi.useFakeTimers(); const worker = new MockWorker(); const session = new MsaDataSession(rows, () => worker as unknown as Worker);

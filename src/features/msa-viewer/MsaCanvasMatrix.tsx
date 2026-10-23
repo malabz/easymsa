@@ -119,7 +119,7 @@ export function MsaCanvasMatrix({
   motifPositionMap: Map<string, Set<number>>;
   onNavigate: (deltaRow: number, deltaColumn: number, extendRange: boolean) => void;
   onRangeSelect: (rowKey: string, start: number, end: number) => void;
-  onSelect: (selection: CellSelection) => void;
+  onSelect: (selection: CellSelection, extendRange?: boolean) => void;
   rangeSelectionMode?: boolean;
   reference: MSASequence | null;
   scrollRef: RefObject<HTMLDivElement>;
@@ -139,6 +139,23 @@ export function MsaCanvasMatrix({
       : visiblePositions,
     [visiblePositions]
   );
+
+  // Native wheel handling must be non-passive to keep the document still.
+  // React's delegated wheel listener can be passive in Chromium.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const wheel = (event: WheelEvent) => {
+      const scrollElement = scrollRef.current;
+      if (!scrollElement) return;
+      event.preventDefault();
+      const unit = event.deltaMode === 1 ? settings.rowHeight : event.deltaMode === 2 ? scrollElement.clientHeight : 1;
+      scrollElement.scrollLeft += (event.shiftKey ? event.deltaY : event.deltaX) * unit;
+      scrollElement.scrollTop += (event.shiftKey ? 0 : event.deltaY) * unit;
+    };
+    canvas.addEventListener("wheel", wheel, {passive: false});
+    return () => canvas.removeEventListener("wheel", wheel);
+  }, [scrollRef, settings.rowHeight]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -171,6 +188,9 @@ export function MsaCanvasMatrix({
       context.clearRect(0, 0, width, height);
       context.fillStyle = "#ffffff";
       context.fillRect(0, 0, width, height);
+      context.font = `600 ${settings.fontSize}px "JetBrains Mono", monospace`;
+      context.textAlign = "center";
+      context.textBaseline = "middle";
 
       const pitch = settings.cellWidth + settings.cellGap;
       const matrixScrollTop = Math.max(0, scrollElement.scrollTop);
@@ -211,11 +231,12 @@ export function MsaCanvasMatrix({
         }
         const y = rowIndex * settings.rowHeight - matrixScrollTop +
           Math.max(0, (settings.rowHeight - settings.cellHeight) / 2);
+        const rowKey = canvasSequenceRowKey(sequence, rowIndex);
+        const rowMotifs = motifPositionMap.get(rowKey);
         for (const { columnIndex, position, colorContext } of renderColumns) {
           const missingTail = position > sequence.sequence.length;
           const base = sequence.sequence[position - 1] ?? "";
           const referenceBase = reference?.sequence[position - 1] ?? "";
-          const rowKey = canvasSequenceRowKey(sequence, rowIndex);
           const style = differenceMode && reference &&
               (!differenceRowKeys || differenceRowKeys.has(rowKey))
             ? differenceColorStyle(classifyDifference(base, referenceBase))
@@ -223,6 +244,10 @@ export function MsaCanvasMatrix({
           const x = 12 + columnIndex * pitch - scrollElement.scrollLeft;
           context.fillStyle = missingTail ? "#f8fafc" : style.background;
           context.fillRect(x, y, settings.cellWidth, settings.cellHeight);
+          if (settings.showCharacters && !missingTail) {
+            context.fillStyle = style.text;
+            context.fillText(base, x + settings.cellWidth / 2, y + settings.cellHeight / 2);
+          }
           if (missingTail) {
             context.strokeStyle = "rgba(148, 163, 184, 0.45)";
             context.lineWidth = 1;
@@ -236,14 +261,12 @@ export function MsaCanvasMatrix({
 
           const selectedCell =
             selection !== null &&
-            selectionRowKey(selection) === canvasSequenceRowKey(sequence, rowIndex) &&
+            selectionRowKey(selection) === rowKey &&
             selection.position === position;
           const inRange = selectedRange
             ? position >= selectedRange.start && position <= selectedRange.end
             : false;
-          const motifHit = motifPositionMap
-            .get(canvasSequenceRowKey(sequence, rowIndex))
-            ?.has(position) ?? false;
+          const motifHit = rowMotifs?.has(position) ?? false;
           if (selectedCell || inRange || motifHit) {
             context.strokeStyle = selectedCell
               ? "#0f766e"
@@ -327,6 +350,7 @@ export function MsaCanvasMatrix({
       aria-hidden="true"
       className="absolute z-10 cursor-crosshair bg-white outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500"
       data-msa-canvas="true"
+      data-msa-canvas-characters={settings.showCharacters || undefined}
       data-msa-cell-pitch={settings.cellWidth + settings.cellGap}
       data-msa-row-height={settings.rowHeight}
       onPointerDown={(event) => {
@@ -365,12 +389,9 @@ export function MsaCanvasMatrix({
         scrollRef.current?.focus({ preventScroll: true });
         event.currentTarget.setPointerCapture(event.pointerId);
         const sequence = sequences[location.rowIndex];
-        onSelect(
-          rowSelection(
-            canvasSequenceRowKey(sequence, location.rowIndex),
-            location.position
-          )
-        );
+        const selected = rowSelection(canvasSequenceRowKey(sequence, location.rowIndex), location.position);
+        if (event.shiftKey) onSelect(selected, true);
+        else onSelect(selected);
       }}
       onPointerMove={(event) => {
         const gesture = gestureRef.current;
@@ -436,15 +457,6 @@ export function MsaCanvasMatrix({
       }}
       onPointerCancel={() => {
         gestureRef.current = null;
-      }}
-      onWheel={(event) => {
-        const scrollElement = scrollRef.current;
-        if (!scrollElement) {
-          return;
-        }
-        event.preventDefault();
-        scrollElement.scrollLeft += event.shiftKey ? event.deltaY : event.deltaX;
-        scrollElement.scrollTop += event.shiftKey ? 0 : event.deltaY;
       }}
       ref={canvasRef}
       role="presentation"

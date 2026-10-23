@@ -5,8 +5,8 @@ import type { MinimapInput } from './minimapData';
 import { useMinimapImages } from './useMinimapImages';
 import { parseViewerPosition } from './viewerWorkflowModel';
 
-export function MsaGlobalOverview({input, scrollRef, pitch, rowHeight, headerHeight, labelWidth, alignmentLength, onRevealColumn}: {
-  input:MinimapInput; scrollRef:RefObject<HTMLDivElement>; pitch:number; rowHeight:number; headerHeight:number; labelWidth:number; alignmentLength?:number; onRevealColumn?:(position:number)=>void;
+export function MsaGlobalOverview({input, scrollRef, pitch, rowHeight, headerHeight, labelWidth, alignmentLength, onRevealColumn, onClose}: {
+  input:MinimapInput; scrollRef:RefObject<HTMLDivElement>; pitch:number; rowHeight:number; headerHeight:number; labelWidth:number; alignmentLength?:number; onClose?:()=>void; onRevealColumn?:(position:number)=>void;
 }) {
   const {locale} = useLanguage(); const zh=locale==='zh';
   const canvas=useRef<HTMLCanvasElement>(null); const area=useRef<HTMLDivElement>(null);
@@ -46,7 +46,7 @@ export function MsaGlobalOverview({input, scrollRef, pitch, rowHeight, headerHei
     if(col >= 0) el.scrollLeft=col*pitch;
   };
   return <aside className="msa-global-overview" aria-label={zh?'全局缩略图':'Global overview'}>
-    <span className="msa-map-title">{zh?'全局':'Overview'}</span>
+    <div className="msa-map-title">{zh?'全局':'Overview'}{onClose && <button type="button" className="msa-overview-close" aria-label={zh?'关闭缩略图':'Close overview'} onClick={onClose}>×</button>}</div>
     <div ref={area} className="msa-map-area" tabIndex={0} role="group" aria-label={zh?'缩略图定位，方向键平移':'Overview navigation, arrow keys to pan'}
       onKeyDown={e=>{const el=scrollRef.current;if(!el)return; if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(e.key)){e.preventDefault();if(e.key==='Home'){el.scrollTop=0;el.scrollLeft=0;}else if(e.key==='End'){el.scrollTop=el.scrollHeight;el.scrollLeft=el.scrollWidth;}else if(e.key==='ArrowLeft')el.scrollLeft-=pitch*10;else if(e.key==='ArrowRight')el.scrollLeft+=pitch*10;else el.scrollTop+=(e.key==='ArrowUp'?-1:1)*rowHeight*5;}}}
       onPointerDown={e=>{const rect=e.currentTarget.getBoundingClientRect();const x=(e.clientX-rect.left)/rect.width,y=(e.clientY-rect.top)/rect.height;

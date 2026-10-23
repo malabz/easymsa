@@ -26,6 +26,7 @@ export type MsaViewerContext = {
   downloads?: {
     /** UI-only link. Never serialize this value into scientific metadata. */
     fullResultHref?: string;
+    fullResultName?: string;
   };
 };
 
@@ -59,7 +60,8 @@ export function createServerViewerContext(
       strictness: summary.preprocess.strictness
     },
     downloads: {
-      fullResultHref: files.find((file) => file.name === "all_results.zip")?.href
+      fullResultHref: files.find((file) => file.kind === "archive" || file.name === "all_results.zip")?.href,
+      fullResultName: files.find((file) => file.kind === "archive" || file.name === "all_results.zip")?.name
     }
   };
 }

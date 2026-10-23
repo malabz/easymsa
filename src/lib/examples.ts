@@ -1,3 +1,4 @@
+import { resultFilename } from "./utils/downloadName";
 import { z } from "zod";
 import {
   adaptServerAlignment,
@@ -101,7 +102,8 @@ export function exampleDownloads(
     [`${stage}.fasta.gz.bin`, "alignment.fasta.gz"],
     [`${stage}.fasta.gz.xz`, "alignment.fasta.gz.xz"],
   ].map(([path, name]) => ({
-    name,
+    name: resultFilename(example.id, stage, name),
+    kind: name.endsWith(".xz") ? "alignment-gzip-xz" as const : name.endsWith(".zip") ? "archive" as const : "alignment-gzip" as const,
     description: "",
     size: `${example.files[path].bytes.toLocaleString()} B`,
     href: exampleUrl(example, path),
@@ -143,7 +145,7 @@ export async function loadExampleResult(
       mode: summary.preprocess.mode,
       strictness: summary.preprocess.strictness,
     },
-    downloads: { fullResultHref: files[0].href },
+    downloads: { fullResultHref: files[0].href, fullResultName: files[0].name },
   };
   return { summary, alignment, files, context };
 }

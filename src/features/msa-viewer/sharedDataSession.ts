@@ -6,7 +6,7 @@ export type SessionTask = {
   type: "run"; id: number; operation: DataOperation; rows: number[] | null;
   reference?: number; referenceSequence?: number; request: Record<string, unknown>;
 };
-export type SessionMessage = { type: "initialize"; sequences: MSASequence[] } | SessionTask;
+export type SessionMessage = { type: "initialize"; sequences: MSASequence[] } | { type: "cancel"; id: number } | SessionTask;
 type Pending = { id: number; message: SessionTask; resolve: (result: unknown) => void; reject: (error: unknown) => void; cleanup: () => void; progress?: (value: number) => void };
 const sessions = new WeakMap<MSASequence[], MsaDataSession>();
 const aborted = () => new DOMException("Operation cancelled", "AbortError");
@@ -14,8 +14,7 @@ const aborted = () => new DOMException("Operation cancelled", "AbortError");
 /** One data owner per mounted alignment. Requests carry row indexes, not sequence copies. */
 export class MsaDataSession {
   private worker: Worker | null = null;
-  private active: Pending | null = null;
-  private queue: Pending[] = [];
+  private pending = new Map<number, Pending>();
   private id = 0;
   private users = 0;
   private disposeTimer: ReturnType<typeof setTimeout> | null = null;
@@ -51,59 +50,57 @@ export class MsaDataSession {
     } catch (error) { return Promise.reject(error); }
     return new Promise<T>((resolve, reject) => {
       const cancel = () => {
-        const queued = this.queue.findIndex(task => task.id === message.id);
-        if (queued >= 0) { this.queue.splice(queued, 1)[0].cleanup(); reject(aborted()); }
-        if (this.active?.id === message.id) {
-          this.active.cleanup(); this.active = null;
-          this.worker?.terminate(); this.worker = null;
-          reject(aborted()); queueMicrotask(() => this.pump());
-        }
+        const task = this.pending.get(message.id);
+        if (!task) return;
+        this.pending.delete(message.id); task.cleanup();
+        this.worker?.postMessage({ type: "cancel", id: message.id } satisfies SessionMessage);
+        reject(aborted());
       };
       signal?.addEventListener("abort", cancel, { once: true });
-      this.queue.push({ id: message.id, message, progress, resolve: result => resolve(result as T), reject, cleanup: () => signal?.removeEventListener("abort", cancel) });
-      this.pump();
+      const task = { id: message.id, message, progress, resolve: (result: unknown) => resolve(result as T), reject, cleanup: () => signal?.removeEventListener("abort", cancel) };
+      this.pending.set(message.id, task);
+      this.send(task);
     });
   }
-  private pump() {
-    if (this.active || !this.queue.length) return;
-    this.active = this.queue.shift()!;
+  private send(pending: Pending) {
     try {
       if (!this.worker) {
         const worker = this.createWorker();
         this.worker = worker;
         this.diagnostics.workerStarts++;
         worker.onmessage = event => {
-          if (worker !== this.worker || event.data.id !== this.active?.id) return;
-          if (typeof event.data.progress === "number") { this.active?.progress?.(event.data.progress); return; }
-          const task = this.active!; this.active = null; task.cleanup();
+          if (worker !== this.worker) return;
+          const task = this.pending.get(event.data.id);
+          if (!task) return;
+          if (typeof event.data.progress === "number") { task.progress?.(event.data.progress); return; }
+          this.pending.delete(task.id); task.cleanup();
           if (event.data.error) task.reject(Object.assign(new Error(event.data.error.message), event.data.error));
           else task.resolve(event.data.result);
-          this.pump();
         };
         worker.onerror = () => {
           if (worker !== this.worker) return;
-          const task = this.active; this.active = null;
           worker.terminate(); this.worker = null;
-          task?.cleanup(); task?.reject(new Error("Alignment worker failed.")); this.pump();
+          this.failAll(new Error("Alignment worker failed."));
         };
         worker.postMessage({ type: "initialize", sequences: this.sequences } satisfies SessionMessage);
         this.diagnostics.dataTransfers++;
       }
       this.diagnostics.tasks++;
-      this.worker.postMessage(this.active.message);
+      this.worker.postMessage(pending.message);
     } catch (error) {
-      const task = this.active; this.active = null;
       this.worker?.terminate(); this.worker = null;
-      task?.cleanup(); task?.reject(error); this.pump();
+      this.failAll(error);
     }
+  }
+  private failAll(error: unknown) {
+    const pending = [...this.pending.values()]; this.pending.clear();
+    pending.forEach(task => { task.cleanup(); task.reject(error); });
   }
   dispose() {
     if (this.disposeTimer) clearTimeout(this.disposeTimer);
     this.disposeTimer = null;
     this.worker?.terminate(); this.worker = null;
-    const pending = [...this.queue, ...(this.active ? [this.active] : [])];
-    this.queue = []; this.active = null;
-    pending.forEach(task => { task.cleanup(); task.reject(aborted()); });
+    this.failAll(aborted());
   }
 }
 

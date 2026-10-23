@@ -1,6 +1,7 @@
+import { drainTask, type CooperativeTask } from "./cooperativeTask";
 import type { MSASequence } from "../../lib/types/msa";
 import {
-  searchIupacMotifMatches,
+  searchIupacMotifMatchesCooperative,
   validateIupacMotif
 } from "./analysis";
 import { rowKeyForSequence } from "./alignmentModel";
@@ -108,14 +109,14 @@ export function motifWorkerError(error: unknown) {
   };
 }
 
-export function calculateMotifSearchPayload({
+export function* calculateMotifSearchPayloadCooperative({
   sourceFingerprint,
   sequences,
   query: rawQuery,
   matchMode,
   strandMode,
   maxMatches
-}: Extract<MotifWorkerRequest, { type: "search" }>): MotifSearchPayloadV3 {
+}: Extract<MotifWorkerRequest, { type: "search" }>): CooperativeTask<MotifSearchPayloadV3> {
   const validation = validateIupacMotif(rawQuery);
   if (!validation.valid) {
     throw new MotifWorkerError(
@@ -134,11 +135,14 @@ export function calculateMotifSearchPayload({
   const columnHitCounts = new Uint32Array(sequences.reduce((length, row) => Math.max(length, row.sequence.length), 0));
 
   const columnFirstRows = new Int32Array(columnHitCounts.length).fill(-1);
-  sequences.forEach((sequence, index) => {
+  for (const [index, sequence] of sequences.entries()) {
+    // A short row never reaches the inner character checkpoint. Yield across
+    // rows too, so large collections of short sequences remain cancellable.
+    if ((index & 31) === 0) yield;
     const rowKey = rowKeyForSequence(sequence, index);
     const row = { ...sequence, rowKey };
     const remaining = Math.max(0, resolvedLimit - matches.length);
-    const result = searchIupacMotifMatches([row], query, {
+    const result = yield* searchIupacMotifMatchesCooperative([row], query, {
       maxMatches: remaining,
       matchMode,
       strandMode,
@@ -147,7 +151,7 @@ export function calculateMotifSearchPayload({
     matches.push(...result.matches);
     totalCount += result.totalCount;
     rowTotals.push({ rowKey, totalCount: result.totalCount });
-  });
+  }
 
   return {
     sourceFingerprint,
@@ -162,3 +166,5 @@ export function calculateMotifSearchPayload({
     truncated: totalCount > matches.length
   };
 }
+
+export function calculateMotifSearchPayload(...args: Parameters<typeof calculateMotifSearchPayloadCooperative>) { return drainTask(calculateMotifSearchPayloadCooperative(...args)); }

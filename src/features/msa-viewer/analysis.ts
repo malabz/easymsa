@@ -1,3 +1,4 @@
+import { drainTask, type CooperativeTask } from "./cooperativeTask";
 import type { MSASequence, SequenceAlphabet } from "../../lib/types/msa";
 import { normalizeAlignmentSequence, rowKeyForSequence } from "./alignmentModel";
 import { materializeAllColumnStats } from "./columnStatsStore";
@@ -151,15 +152,16 @@ function overviewBase(base: string): AlignmentOverviewBase {
   return "other";
 }
 
-export function calculateMsaAnalysisStore(
+export function* calculateMsaAnalysisStoreCooperative(
   sequences: Array<{ sequence: string }>,
   alignmentLength: number,
   options: NucleotideAnalysisOptions = {}
-): MsaAnalysisStoreResult {
-  const normalizedSequences = sequences.map((sequence) => ({
-    ...sequence,
-    sequence: normalizeAlignmentSequence(sequence.sequence)
-  }));
+): CooperativeTask<MsaAnalysisStoreResult> {
+  const normalizedSequences = [];
+  for (const sequence of sequences) {
+    normalizedSequences.push({ ...sequence, sequence: normalizeAlignmentSequence(sequence.sequence) });
+    if ((normalizedSequences.length & 127) === 0) yield;
+  }
   const baseCounts = Object.fromEntries(
     OVERVIEW_BASES.map((base) => [base, 0])
   ) as Record<AlignmentOverviewBase, number>;
@@ -184,6 +186,7 @@ export function calculateMsaAnalysisStore(
   const flags = new Uint8Array(alignmentLength);
   const majorityConsensus = new Array<string>(alignmentLength);
   const iupacConsensus = new Array<string>(alignmentLength);
+  let checkpoint = 0;
   const totalRows = normalizedSequences.length;
   const fourthBase = isRnaAlphabet(options.alphabet) ? "U" : "T";
 
@@ -197,6 +200,7 @@ export function calculateMsaAnalysisStore(
     let gapCount = 0;
 
     for (const sequence of normalizedSequences) {
+      if ((++checkpoint & 16383) === 0) yield;
       const base = (sequence.sequence[index] ?? "").toUpperCase();
       baseCounts[overviewBase(base)] += 1;
       const symbol = classifyColumnSymbol(base, options.alphabet);
@@ -350,16 +354,18 @@ export function calculateColumnStats(
   );
 }
 
-export function calculateRowQcStats(
+export function* calculateRowQcStatsCooperative(
   sequences: MSASequence[],
   alignmentLength?: number,
   options: NucleotideAnalysisOptions = {}
-): RowQcStats[] {
+): CooperativeTask<RowQcStats[]> {
   const resolvedAlignmentLength = alignmentLength ?? sequences.reduce(
     (maximum, sequence) => Math.max(maximum, sequence.sequence.length),
     0
   );
-  return sequences.map((sequence, index) => {
+  const result: RowQcStats[] = [];
+  let checkpoint = 0;
+  for (const [index, sequence] of sequences.entries()) {
     let canonicalCount = 0;
     let ambiguityCount = 0;
     let unknownCount = 0;
@@ -368,6 +374,7 @@ export function calculateRowQcStats(
     let gcCount = 0;
     const normalized = normalizeAlignmentSequence(sequence.sequence);
     for (let position = 0; position < resolvedAlignmentLength; position += 1) {
+      if ((++checkpoint & 16383) === 0) yield;
       const symbol = classifyColumnSymbol(normalized[position] ?? "", options.alphabet);
       if (symbol.kind === "canonical") {
         canonicalCount += 1;
@@ -386,7 +393,7 @@ export function calculateRowQcStats(
       }
     }
     const divisor = resolvedAlignmentLength > 0 ? resolvedAlignmentLength : 1;
-    return {
+    result.push({
       rowKey: rowKeyForSequence(sequence, index),
       sequenceId: sequence.id,
       originalIndex: sequence.originalIndex ?? index,
@@ -407,8 +414,9 @@ export function calculateRowQcStats(
       ambiguityFraction: resolvedAlignmentLength > 0 ? ambiguityCount / divisor : 0,
       unknownFraction: resolvedAlignmentLength > 0 ? unknownCount / divisor : 0,
       gcFraction: canonicalCount > 0 ? gcCount / canonicalCount : null
-    };
-  });
+    });
+  }
+  return result;
 }
 
 export function buildReferenceCoordinateMap(
@@ -568,11 +576,11 @@ function resolveMotifOptions(
   };
 }
 
-export function searchIupacMotifMatches(
+export function* searchIupacMotifMatchesCooperative(
   sequences: MSASequence[],
   motif: string,
   maxMatchesOrOptions: number | MotifSearchOptions = Number.POSITIVE_INFINITY
-): MotifSearchResult {
+): CooperativeTask<MotifSearchResult> {
   const validation = validateIupacMotif(motif);
   if (!validation.valid) {
     throw new Error(validation.error ?? "Invalid IUPAC motif.");
@@ -592,14 +600,18 @@ export function searchIupacMotifMatches(
 
   const matches: MotifMatch[] = [];
   let totalCount = 0;
-  sequences.forEach((sequence, sequenceIndex) => {
+  let checkpoint = 0;
+  for (const [sequenceIndex, sequence] of sequences.entries()) {
     const ungapped: Array<{
       base: string;
       alignmentPosition: number;
       sequencePosition: number;
     }> = [];
     let sequencePosition = 0;
-    normalizeAlignmentSequence(sequence.sequence).split("").forEach((base, index) => {
+    const normalized = normalizeAlignmentSequence(sequence.sequence);
+    for (let index = 0; index < normalized.length; index++) {
+      if ((++checkpoint & 8191) === 0) yield;
+      const base = normalized[index];
       if (!isGap(base)) {
         sequencePosition += 1;
         ungapped.push({
@@ -608,11 +620,12 @@ export function searchIupacMotifMatches(
           sequencePosition
         });
       }
-    });
+    }
     const searchable = ungapped.map((item) => item.base).join("");
 
     for (const strandQuery of strandQueries) {
       for (let start = 0; start <= searchable.length - strandQuery.query.length; start += 1) {
+        if ((++checkpoint & 4095) === 0) yield;
         if (!motifMatchesAt(searchable, strandQuery.query, start, options.matchMode)) {
           continue;
         }
@@ -636,7 +649,7 @@ export function searchIupacMotifMatches(
         });
       }
     }
-  });
+  }
   return {
     matches,
     totalCount,
@@ -659,7 +672,7 @@ function isTransition(left: string, right: string) {
   return pair === "AG" || pair === "CT";
 }
 
-export function calculateRangeStats({
+export function* calculateRangeStatsCooperative({
   sequences,
   columns: _columns,
   range,
@@ -675,11 +688,12 @@ export function calculateRangeStats({
   consensusMode?: ConsensusMode;
   reference?: MSASequence | null;
   alphabet?: SequenceAlphabet;
-}): RangeStats | null {
-  const normalizedSequences = sequences.map((sequence) => ({
-    ...sequence,
-    sequence: normalizeAlignmentSequence(sequence.sequence)
-  }));
+}): CooperativeTask<RangeStats | null> {
+  const normalizedSequences = [];
+  for (const sequence of sequences) {
+    normalizedSequences.push({ ...sequence, sequence: normalizeAlignmentSequence(sequence.sequence) });
+    if ((normalizedSequences.length & 127) === 0) yield;
+  }
   const alignmentLength = normalizedSequences.reduce(
     (maximum, sequence) => Math.max(maximum, sequence.sequence.length),
     0
@@ -693,13 +707,13 @@ export function calculateRangeStats({
     Math.max(start, Math.trunc(range.end))
   );
   const rangeLength = end - start + 1;
-  const rangeStore = calculateMsaAnalysisStore(
+  const rangeStore = (yield* calculateMsaAnalysisStoreCooperative(
     normalizedSequences.map((sequence) => ({
       sequence: sequence.sequence.slice(start - 1, end)
     })),
     rangeLength,
     { alphabet }
-  ).columnStore;
+  )).columnStore;
   const rangeColumns = materializeAllColumnStats(rangeStore);
   if (!rangeColumns.length) {
     return null;
@@ -731,8 +745,10 @@ export function calculateRangeStats({
         )
       )
     : -1;
+  let checkpoint = 0;
   for (const [sequenceIndex, sequence] of normalizedSequences.entries()) {
     for (let position = start; position <= end; position += 1) {
+      if ((++checkpoint & 16383) === 0) yield;
       const base = (sequence.sequence[position - 1] ?? "").toUpperCase();
       if (!isGap(base)) {
         baseCounts[base] = (baseCounts[base] ?? 0) + 1;
@@ -821,3 +837,11 @@ export function calculateRangeStats({
     transversionCount
   };
 }
+
+export function calculateMsaAnalysisStore(...args: Parameters<typeof calculateMsaAnalysisStoreCooperative>) { return drainTask(calculateMsaAnalysisStoreCooperative(...args)); }
+
+export function calculateRowQcStats(...args: Parameters<typeof calculateRowQcStatsCooperative>) { return drainTask(calculateRowQcStatsCooperative(...args)); }
+
+export function searchIupacMotifMatches(...args: Parameters<typeof searchIupacMotifMatchesCooperative>) { return drainTask(searchIupacMotifMatchesCooperative(...args)); }
+
+export function calculateRangeStats(...args: Parameters<typeof calculateRangeStatsCooperative>) { return drainTask(calculateRangeStatsCooperative(...args)); }

@@ -1,3 +1,4 @@
+import { HELP_LINKS } from "../../lib/docs/links";
 import { ExampleInputLoader } from "./ExampleInputLoader";
 import { TaskMetadataFields } from "./TaskMetadataFields";
 import { workspaceText } from "../../lib/i18n/workspace";
@@ -249,7 +250,7 @@ export function SubmitJobForm() {
           </div>}
           <div className="submission-input-notes">
             <div className="submission-input-help">
-              <Link className="work-link" to="/docs">{t.help}</Link>
+              <Link className="work-link" to={HELP_LINKS.input}>{t.help}</Link>
             </div>
             {preprocessMode === "filter" && <p className="submission-audit-note"><ShieldCheck size={14} aria-hidden="true" />{t.automaticFilter}</p>}
           </div>

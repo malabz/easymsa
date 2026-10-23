@@ -3,7 +3,8 @@ import type { MSASequence } from "../../lib/types/msa";
 import {
   MOTIF_WORKER_PROTOCOL_VERSION,
   MotifWorkerError,
-  calculateMotifSearchPayload
+  calculateMotifSearchPayload,
+  calculateMotifSearchPayloadCooperative
 } from "./motifWorkerProtocol";
 
 function request(
@@ -26,6 +27,20 @@ function request(
 }
 
 describe("motif worker protocol v2", () => {
+  it("yields between short rows and preserves exact search results", () => {
+    const rows = Array.from({length: 513}, (_, index) => ({
+      id: `row_${index}`, rowKey: `row:${index}`, sequence: "ATGCATGC"
+    }));
+    const input = request(rows, "ATG", {maxMatches: 10});
+    const task = calculateMotifSearchPayloadCooperative(input);
+    let pauses = 0;
+    let step = task.next();
+    while (!step.done) { pauses++; step = task.next(); }
+    expect(pauses).toBeGreaterThanOrEqual(17);
+    expect(step.value).toEqual(calculateMotifSearchPayload(input));
+    expect(step.value.totalCount).toBe(1026);
+  });
+
   it("rejects invalid characters instead of silently deleting them", () => {
     expect(() => calculateMotifSearchPayload(request([], "AXG")))
       .toThrowError(MotifWorkerError);

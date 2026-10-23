@@ -137,7 +137,7 @@ export async function disableVisualNoise(page: Page) {
 
 export async function loadViewerFasta(page: Page, fasta: string) {
   await page.goto("./#/viewer");
-  await page.getByLabel("Paste FASTA").fill(fasta);
+  await page.getByRole("textbox", { name: "Paste FASTA", exact: true }).fill(fasta);
   await page.getByRole("button", { name: "Open alignment" }).click();
   const status = page.locator("[data-msa-status='true']");
   await expect(status).toBeVisible();

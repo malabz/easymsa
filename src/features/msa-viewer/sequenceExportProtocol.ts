@@ -1,3 +1,4 @@
+import { drainTask } from "./cooperativeTask";
 import { Zip, ZipDeflate } from 'fflate';
 import type { MSASequence } from '../../lib/types/msa';
 import { positionAt } from './columnStatsStore';
@@ -36,8 +37,8 @@ export function* sequenceMappingChunks(request: SequenceExportRequest): Generato
     yield encoder.encode(lines.join(''));
   }
 }
-/** Runs in the shared data Worker; cancelling terminates the current operation. */
-export function createSequenceExport(request: SequenceExportRequest, onProgress?: (value: number) => void) {
+/** Runs in the shared data Worker; cancelling discards the iterator while retaining shared alignment data. */
+export function* createSequenceExportCooperative(request: SequenceExportRequest, onProgress?: (value: number) => void) {
   const chunks: Uint8Array[] = [];
   let processed = 0;
   let previous = -1;
@@ -47,16 +48,18 @@ export function createSequenceExport(request: SequenceExportRequest, onProgress?
     if (percent !== previous) { previous = percent; onProgress?.(percent / 100); }
   };
   if (request.contiguous) {
-    for (const chunk of sequenceFastaChunks(request)) { chunks.push(chunk); progress(chunk.length); }
+    for (const chunk of sequenceFastaChunks(request)) { chunks.push(chunk); progress(chunk.length); yield; }
   } else {
     const zip = new Zip((error, chunk) => { if (error) throw error; chunks.push(chunk); });
     const fasta = new ZipDeflate('alignment.fasta', { level: 3 }); zip.add(fasta);
-    for (const chunk of sequenceFastaChunks(request)) { fasta.push(chunk); progress(chunk.length); }
+    for (const chunk of sequenceFastaChunks(request)) { fasta.push(chunk); progress(chunk.length); yield; }
     fasta.push(new Uint8Array(), true);
     const mapping = new ZipDeflate('columns.tsv', { level: 3 }); zip.add(mapping);
-    for (const chunk of sequenceMappingChunks(request)) mapping.push(chunk);
+    for (const chunk of sequenceMappingChunks(request)) { mapping.push(chunk); yield; }
     mapping.push(new Uint8Array(), true); zip.end();
   }
   onProgress?.(1);
   return new Blob(chunks as BlobPart[], { type: request.contiguous ? 'text/plain;charset=utf-8' : 'application/zip' });
 }
+
+export function createSequenceExport(...args: Parameters<typeof createSequenceExportCooperative>) { return drainTask(createSequenceExportCooperative(...args)); }

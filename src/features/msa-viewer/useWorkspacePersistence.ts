@@ -133,14 +133,14 @@ export function viewerStateFromSnapshot(
     coordinateMode: snapshot.view.coordinateMode,
     density: snapshot.view.density,
     conservationScale: snapshot.view.conservationScale ?? "high",
-    showLogo: snapshot.view.showLogo,
+    showLogo: typeof window !== "undefined" && window.innerWidth < 1024 ? false : snapshot.view.showLogo,
     showConsensus: snapshot.view.showConsensus,
     differenceMode: snapshot.view.differenceMode,
     hiddenRowKeys,
     inspectorOpen: false,
     inspectorWidth: snapshot.view.inspectorWidth,
     labelWidth: snapshot.view.labelWidth,
-    minimapCollapsed: snapshot.view.minimapCollapsed,
+    minimapCollapsed: typeof window !== "undefined" && window.innerWidth < 1024 ? true : snapshot.view.minimapCollapsed,
     motifMatchMode: snapshot.view.motifMatchMode,
     motifQuery: snapshot.view.motifQuery,
     motifStrandMode: snapshot.view.motifStrandMode,
@@ -192,7 +192,15 @@ export function useWorkspacePersistence({
       try { saveWorkspaceSnapshot(current.storage, viewerStateToSnapshot(current.state, current.source), current.source.storageKey); } catch { /* Optional browser storage. */ }
     };
     window.addEventListener("pagehide", flush);
-    return () => { window.removeEventListener("pagehide", flush); flush(); };
+    window.addEventListener("beforeunload", flush);
+    const onVisibility = () => { if (document.visibilityState === "hidden") flush(); };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("pagehide", flush);
+      window.removeEventListener("beforeunload", flush);
+      document.removeEventListener("visibilitychange", onVisibility);
+      flush();
+    };
   }, []);
   useEffect(() => {
     if (!enabled || !storage) {

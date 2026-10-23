@@ -9,17 +9,15 @@ import { AboutPage } from "./AboutPage";
 describe("AboutPage method presentation", () => {
   afterEach(() => { cleanup(); localStorage.clear(); });
 
-  it.each(["en", "zh"] as const)("keeps canonical method names, publications and optional versions in %s", (locale) => {
+  it.each(["en", "zh"] as const)("keeps canonical method names, publications and visible versions in %s", (locale) => {
     localStorage.setItem("easymsa.locale", locale);
     render(<LanguageProvider><MemoryRouter><AboutPage /></MemoryRouter></LanguageProvider>);
 
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(locale === "zh" ? "关于 EasyMSA" : "About EasyMSA");
-    for (const method of methods) {
+    for (const method of methods.filter(method => method.origin === "lab")) {
       const heading = screen.getByRole("heading", { level: 3, name: method.name });
       const article = heading.closest("article")!;
-      const version = article.querySelector("details")!;
-      expect(version).not.toHaveAttribute("open");
-      expect(version.querySelector("summary")).toHaveTextContent(locale === "zh" ? "部署版本" : "Deployed version");
+      expect(within(article).getByText(method.version, { exact: true })).toBeVisible();
       expect(within(article).getByRole("link", { name: method.title })).toHaveAttribute("href", method.paper);
       expect(within(article).getByText(method.journal, { exact: true })).toBeVisible();
       expect(within(article).getByRole("link", { name: locale === "zh" ? "软件与文档" : "Software & docs" })).toHaveAttribute("href", method.source);
@@ -30,6 +28,8 @@ describe("AboutPage method presentation", () => {
         }
       }
     }
+    expect(document.querySelector("details")).toBeNull();
+    expect(screen.queryByRole("heading", { name: /External tools|外部工具/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /MiniPOA|HAlign[ -][34]/ })).not.toBeInTheDocument();
   });
 });

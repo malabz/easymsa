@@ -1,7 +1,9 @@
+import { HELP_LINKS } from "../lib/docs/links";
 import { CheckCircle2, FilePlus2, FileText, Loader2, Upload } from "lucide-react";
-import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { type ChangeEvent, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Button } from "../components/common/Button";
 import { PageContainer } from "../components/layout/PageContainer";
+import { focusMainContent } from "../components/layout/RouteNavigation";
 import { InputMethodTabs } from "../components/submit/InputMethodTabs";
 import type { InputMethod } from "../lib/types/job";
 import { MSAViewer } from "../components/results/MSAViewer";
@@ -34,6 +36,12 @@ export function ViewerPage() {
   const [inputMethod, setInputMethod] = useDraftState<InputMethod>("viewer:input-method", "paste");
   const [sourceName, setSourceName] = useDraftState("viewer:name", d.viewerPage.uploadedSource);
   const [alignment, setAlignment] = useDraftState<MSAResult | null>("viewer:alignment", null);
+  const hasAlignment = alignment !== null;
+  useLayoutEffect(() => {
+    // Loading replaces a tall input form. Keep the source bar below the sticky
+    // site header instead of retaining the input button's document scroll.
+    if (hasAlignment) focusMainContent();
+  }, [hasAlignment]);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => () => { loadGenerationRef.current += 1; }, []);
   const pastedCharacterCount = pastedFasta.length;
@@ -248,7 +256,7 @@ export function ViewerPage() {
     <PageContainer className="workflow-page">
       <div className="work-heading">
         <div><h1>{d.viewerPage.title}</h1><p>{d.viewerPage.subtitle}</p></div>
-        <Link className="work-link" to="/docs">{t.help}</Link>
+        <Link className="work-link" to={HELP_LINKS.viewer}>{t.help}</Link>
       </div>
 
       {inputPanel}

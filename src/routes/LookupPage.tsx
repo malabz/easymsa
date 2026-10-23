@@ -1,3 +1,6 @@
+import { RecoveryImportDialog } from "../components/job/RecoveryImportDialog";
+import { parseRecoveryBackup, type RecoveryEntry } from "../lib/api/recoveryBackup";
+import { refinementText } from "../lib/i18n/refinements";
 import { ArrowRight, ChevronDown, Download, History, Search, Trash2, Upload } from "lucide-react";
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { zipSync, strToU8 } from "fflate";
@@ -39,6 +42,8 @@ type RecoveryError = "missingFields" | "invalidJobId" | "invalidJson" | "readJso
 export function LookupPage() {
   const { dictionary: d, locale } = useLanguage();
   const navigate = useNavigate();
+  const ui = refinementText[locale];
+  const [importEntries, setImportEntries] = useState<RecoveryEntry[] | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const jobIdRef = useRef<HTMLInputElement | null>(null);
   const tokenRef = useRef<HTMLInputElement | null>(null);
@@ -112,6 +117,12 @@ export function LookupPage() {
 
     setOtherMethodsOpen(true);
     try {
+      if (file.name.toLowerCase().endsWith(".zip")) {
+          if (file.size > 8 * 1024 * 1024) throw new Error("RECOVERY_TOO_LARGE");
+        setImportEntries(parseRecoveryBackup(new Uint8Array(await file.arrayBuffer())));
+        setError(null); return;
+      }
+      if (file.size > 128 * 1024) throw new Error("RECOVERY_TOO_LARGE");
       const parsed = JSON.parse(await file.text());
       const access = validateJobAccess(parsed);
       if (!access) {
@@ -227,7 +238,7 @@ export function LookupPage() {
           <Button size="sm" variant="outline" disabled={currentPage === pageCount - 1} onClick={() => setPage(currentPage + 1)}>{locale === "zh" ? "下一页" : "Next"}</Button>
         </nav>}
         <p className="work-hint lookup-storage-note">{d.lookup.cachedDescription}</p>
-        {cachedAccess.length > 0 && <p className="work-hint shrink-0">{locale === "zh" ? "恢复文件含访问密钥，请妥善保存。解压后可导入单个任务的 JSON 文件。" : "Recovery files contain access keys. Keep them private; extract the ZIP to import a job’s JSON file."}</p>}
+        {cachedAccess.length > 0 && <p className="work-hint shrink-0">{locale === "zh" ? "备份含访问密钥，请妥善保存；可直接导入 ZIP 或单个 JSON。" : "Backups contain access keys. Keep them private; import the ZIP or a single JSON directly."}</p>}
       </section>
 
       <section aria-labelledby="other-recovery-heading" className="lookup-alternatives">
@@ -283,7 +294,7 @@ export function LookupPage() {
           </form>
           <div className="lookup-import">
             <input
-              accept="application/json,.json"
+              accept="application/json,application/zip,.json,.zip"
               aria-label={d.lookup.uploadTitle}
               className="hidden"
               onChange={handleFileChange}
@@ -294,11 +305,12 @@ export function LookupPage() {
               <Upload aria-hidden="true" size={15} />
               {d.lookup.importJson}
             </Button>
-            <span className="work-hint">{d.lookup.importHint}</span>
+            <span className="work-hint">{ui.recoveryHint}</span>
           </div>
           {error && <p className="work-error lookup-error" id="lookup-error" role="alert">{error === "invalidJobId" ? invalidJobIdMessage : d.lookup[error]}</p>}
         </div>
       </section>
+      {importEntries && <RecoveryImportDialog entries={importEntries} onClose={() => setImportEntries(null)} />}
     </PageContainer>
   );
 }

@@ -93,6 +93,8 @@ describe("MsaViewerToolbar", () => {
   });
   it("switches between name, motif and position without losing their values", () => {
     const { shared } = renderToolbar({statePatch:{search:"row",motifQuery:"ACG"},propOverrides:{jumpPosition:"12"}});
+    expect((screen.getByRole("searchbox") as HTMLInputElement).value).toBe("ACG");
+    fireEvent.change(screen.getByLabelText("Search and navigation type"), { target: { value: "name" } });
     expect((screen.getByRole("searchbox") as HTMLInputElement).value).toBe("row");
     motif();
     expect((screen.getByRole("searchbox") as HTMLInputElement).value).toBe("ACG");

@@ -1,3 +1,4 @@
+import { refinementText } from "../../lib/i18n/refinements";
 import { viewerText } from "../../lib/i18n/viewerWorkflow";
 import { matchesSequenceName, parseViewerPosition, type SequenceExportSnapshot, type ExportRows, type ExportColumns } from "./viewerWorkflowModel";
 import { SequenceExportDialog } from "./SequenceExportDialog";
@@ -240,6 +241,7 @@ export function MsaViewerRoot({
     alignmentLength,
     legacyJobId: alignment.jobId
   });
+  useEffect(() => { if (mobile) dispatch({type:"patch", patch:{minimapCollapsed:true,showLogo:false}}); }, [mobile, dispatch]);
   const [jumpPosition, setJumpPosition] = useState("");
   const [jumpError, setJumpError] = useState<string | null>(null);
   const [hiddenJump, setHiddenJump] = useState<number | null>(null);
@@ -993,6 +995,9 @@ export function MsaViewerRoot({
       columnStats={selectedColumnStats}
       columnSummary={columnSummary}
       docked
+      touchLayout={mobile}
+      rangeSelectionMode={state.rangeSelectionMode}
+      onToggleRangeSelection={() => {patchState({rangeSelectionMode:!state.rangeSelectionMode}); closePanel();}}
       mobileOpen={false}
       onClose={() => patchState({ inspectorOpen: false })}
       range={state.selectedRange}
@@ -1007,7 +1012,7 @@ export function MsaViewerRoot({
     />
   );
   const qcWorkspace = (
-    <div>
+    <div className="msa-qc-host">
       <MsaQcPanel
         analysisScope={state.analysisScope}
         filteredColumnCount={visiblePositions.length}
@@ -1118,6 +1123,7 @@ export function MsaViewerRoot({
     visibleColumnCount: visiblePositions.length,
     visibleSequenceCount: displayedSequences.length,
     fullResultHref: context?.downloads?.fullResultHref,
+    fullResultName: context?.downloads?.fullResultName,
   };
   const workspaceActions = <div className="msa-view-settings">
     {canAnalyze && <MsaColumnFilterPanel state={state} store={analysis.columnStore} length={alignmentLength} onPatch={patchState}/>}
@@ -1128,7 +1134,7 @@ export function MsaViewerRoot({
     </div></details>
     {canAnalyze && <details className="msa-view-group"><summary>{d.results.viewer.legend}</summary>{state.differenceMode&&reference?<DifferenceLegend/>:<MSAColorLegend scheme={state.colorScheme}/>}</details>}
   </div>;
-  const dockContent = <div id="msa-shared-panel">
+  const dockContent = <div id="msa-shared-panel" data-checks={qcPanelOpen || undefined}>
     {comparisonOpen ? <MsaComparisonPanel rows={alignment.sequences} state={state} onChoose={setReference} onEnd={()=>setReference("")} onPatch={patchState}/>
       : state.settingsOpen ? <MsaSettingsDock {...controls} isOpen onClose={closePanel} presentation="content" workspaceActions={workspaceActions}/>
       : <><div className="msa-panel-tabs" role="tablist" aria-label={w.check}>
@@ -1138,7 +1144,7 @@ export function MsaViewerRoot({
   </div>;
   const liveStatus = state.selection
     ? `${rowLabels.get(state.selection.rowKey) ?? state.selection.rowKey}; ${d.results.viewer.position} ${state.selection.position}; ${selectedReferencePosition ?? ""}; ${selectedBase || d.results.viewer.emptyCell}; ${canAnalyze ? d.results.viewer.stageTwo.analysisScopes[state.analysisScope] : d.results.viewer.scienceV2.neutralTitle}; ${rangeText}`
-    : `${d.results.viewer.noSelection}; ${canAnalyze ? `${d.results.viewer.stageTwo.analysisScopes[state.analysisScope]}; ${analysis.scopeRowCount}` : d.results.viewer.scienceV2.neutralTitle}`;
+    : `${mobile ? refinementText[locale].touchHint : d.results.viewer.noSelection}; ${canAnalyze ? `${d.results.viewer.stageTwo.analysisScopes[state.analysisScope]}; ${analysis.scopeRowCount}` : d.results.viewer.scienceV2.neutralTitle}`;
   const matrix = displayedSequences.length === 0 ? (
     <EmptyState message={d.results.viewer.noMatches} />
   ) : visiblePositions.length === 0 ? (
@@ -1268,7 +1274,7 @@ export function MsaViewerRoot({
     <>
       <MsaWorkspaceShell
         sourceBar={sourceBar}
-        onCloseTransient={() => { if (panelOpen) { closePanel(); return true; } return false; }}
+        onCloseTransient={() => { if (panelOpen) { closePanel(); return true; } if (mobile && !state.minimapCollapsed) { patchState({minimapCollapsed: true}); return true; } return false; }}
         commandBar={(
 <MsaViewerToolbar {...controls} />
         )}
@@ -1284,6 +1290,7 @@ export function MsaViewerRoot({
           input={overviewInput} scrollRef={scrollRef} pitch={viewSettings.cellWidth + viewSettings.cellGap}
           labelWidth={viewSettings.labelWidth}/> : undefined}
         overview={state.minimapCollapsed || panelOpen ? undefined : <MsaGlobalOverview input={overviewInput} scrollRef={scrollRef} alignmentLength={alignmentLength}
+          onClose={() => patchState({minimapCollapsed:true})}
           onRevealColumn={position => {const rowKey=state.referenceRowKey ?? displayedRowKeys[0]; if(rowKey) pendingLocate.current={rowKey,position}; patchState({columnFilter:"all"});}}
           pitch={viewSettings.cellWidth+viewSettings.cellGap} rowHeight={viewSettings.rowHeight}
           headerHeight={frozenHeight(activeTracks.length,canAnalyze&&state.showLogo,canAnalyze&&state.showConsensus,Boolean(analysis.motifColumnHitCounts))} labelWidth={viewSettings.labelWidth}/>}
@@ -1305,6 +1312,7 @@ export function MsaViewerRoot({
       <input accept=".easymsa-view.json,application/json" aria-label={locale === "zh" ? "恢复查看记录文件" : "Restore view file"}
         className="hidden" onChange={importWorkspaceFile} ref={workspaceFileRef} type="file"/>
       <OverlayDialog closeLabel={locale === "zh" ? "关闭面板" : "Close panel"} isOpen={mobile && panelOpen} onClose={closePanel}
+        className={qcPanelOpen ? "msa-checks-sheet" : undefined} bodyClassName={qcPanelOpen ? "msa-checks-sheet-body" : undefined}
         title={comparisonOpen?w.compare:state.settingsOpen?w.display:w.check} variant="bottom-sheet">
         {dockContent}
       </OverlayDialog>

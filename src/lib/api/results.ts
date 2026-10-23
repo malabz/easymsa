@@ -1,3 +1,4 @@
+import { resultFilename } from "../utils/downloadName";
 import type { ResultStage } from "../types/job";
 import { apiUrl, parseApiError } from "./client";
 import { z } from "zod";
@@ -209,7 +210,7 @@ export async function getAlignmentResult(
 export function getDownloadFiles(jobId: string, token: string, stage: ResultStage = "final"): ResultFile[] {
   return [
     {
-      name: "all_results.zip",
+      name: resultFilename(jobId, stage, "all_results.zip"),
       kind: "archive",
       description: "",
       size: "",
@@ -218,7 +219,7 @@ export function getDownloadFiles(jobId: string, token: string, stage: ResultStag
       )
     },
     {
-      name: "alignment.fasta.gz",
+      name: resultFilename(jobId, stage, "alignment.fasta.gz"),
       kind: "alignment-gzip",
       description: "",
       size: "",
@@ -227,7 +228,7 @@ export function getDownloadFiles(jobId: string, token: string, stage: ResultStag
       )
     },
     {
-      name: "alignment.fasta.gz.xz",
+      name: resultFilename(jobId, stage, "alignment.fasta.gz.xz"),
       kind: "alignment-gzip-xz",
       description: "",
       size: "",

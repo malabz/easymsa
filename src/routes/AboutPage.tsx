@@ -1,9 +1,21 @@
+import { CopyCitation } from "../components/common/CopyCitation";
+import { refinementText } from "../lib/i18n/refinements";
 import { Link } from "react-router-dom";
 import { PageContainer } from "../components/layout/PageContainer";
 import { useLanguage } from "../lib/i18n/useLanguage";
 import { methods } from "../lib/methods";
 
 type Method = (typeof methods)[number];
+
+function Publication({ publication, locale, current = false }: { publication: { paper: string; title: string; journal: string; year: number }; locale: "zh" | "en"; current?: boolean }) {
+  return <div className="grid gap-1 lg:grid-cols-[minmax(14rem,2fr)_minmax(9rem,1.1fr)] lg:gap-4">
+    <div>{current && <span className="mb-1 block text-xs text-slate-500">{refinementText[locale].currentPaper}</span>}
+      <a className="w-fit break-words font-medium leading-5 text-teal-800 underline underline-offset-2 hover:text-teal-950" href={publication.paper} rel="noreferrer" target="_blank" title={publication.title}>{publication.title}</a>
+      <CopyCitation {...publication}/>
+    </div>
+    <p className="text-xs leading-5 text-slate-600 lg:text-sm"><span className="font-medium">{publication.journal}</span><span className="block text-xs text-slate-500">{publication.year}</span></p>
+  </div>;
+}
 
 function MethodList({ entries, locale }: { entries: readonly Method[]; locale: "en" | "zh" }) {
   const zh = locale === "zh";
@@ -24,21 +36,18 @@ function MethodList({ entries, locale }: { entries: readonly Method[]; locale: "
           <p className="leading-5 text-slate-600">{method.role[locale]} · {method.input[locale]}</p>
           <div className="flex flex-wrap gap-x-4 gap-y-1 lg:contents">
             <div className="flex flex-col gap-3 lg:col-span-2">
-              {[...("additionalPapers" in method ? method.additionalPapers : []), { paper: method.paper, title: method.title, journal: method.journal, year: method.year }].sort((a, b) => a.year - b.year).map((publication) => (
-                <div key={publication.paper} className="grid gap-1 lg:grid-cols-[minmax(14rem,2fr)_minmax(9rem,1.1fr)] lg:gap-4">
-                <a className="w-fit break-words font-medium leading-5 text-teal-800 underline underline-offset-2 hover:text-teal-950" href={publication.paper} rel="noreferrer" target="_blank" title={publication.title}>
-                  {publication.title}
-                </a>
-                <p className="text-xs leading-5 text-slate-600 lg:text-sm"><span className="font-medium">{publication.journal}</span><span className="block text-xs text-slate-500">{publication.year}</span></p>
-                </div>
-              ))}
+              <Publication publication={method} locale={locale} current />
+              {"additionalPapers" in method && <div className="space-y-3 text-sm">
+                <p className="text-xs text-slate-500">{refinementText[locale].relatedPaper}</p>
+                {method.additionalPapers.map(publication => <Publication key={publication.paper} publication={publication} locale={locale} />)}
+              </div>}
             </div>
             <div className="min-w-0 space-y-2"><a className="w-fit font-medium text-teal-800 underline underline-offset-2 hover:text-teal-950" href={method.source} rel="noreferrer" target="_blank">
               {zh ? "软件与文档" : "Software & docs"}
             </a>
-            <details className="text-xs text-slate-600"><summary className="cursor-pointer py-1">{zh ? "部署版本" : "Deployed version"}</summary>
+            <div className="text-xs text-slate-600"><p>{zh ? "部署版本" : "Deployed version"}</p>
               <code className="block break-all py-1">{method.version}</code>
-            </details></div>
+            </div></div>
           </div>
         </article>
       ))}
@@ -69,12 +78,6 @@ export function AboutPage() {
             <h2 className="text-xl font-semibold text-slate-950" id="lab-methods-title">{zh ? "自主研发方法" : "Our methods"}</h2>
           </div>
           <MethodList entries={methods.filter((method) => method.origin === "lab")} locale={locale} />
-        </section>
-        <section aria-labelledby="external-methods-title">
-          <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="text-xl font-semibold text-slate-950" id="external-methods-title">{zh ? "外部工具" : "External tools"}</h2>
-          </div>
-          <MethodList entries={methods.filter((method) => method.origin === "external")} locale={locale} />
         </section>
       </div>
 

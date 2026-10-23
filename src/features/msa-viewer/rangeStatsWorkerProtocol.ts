@@ -1,5 +1,6 @@
+import { drainTask } from "./cooperativeTask";
 import type { MSASequence, SequenceAlphabet } from "../../lib/types/msa";
-import { calculateRangeStats } from "./analysis";
+import { calculateRangeStatsCooperative } from "./analysis";
 import type {
   ColumnRange,
   ConsensusMode,
@@ -73,7 +74,7 @@ export function normalizeRangeStatsError(error: unknown) {
   };
 }
 
-export function calculateMsaRangeStatsTask(
+export function* calculateMsaRangeStatsTaskCooperative(
   request: Extract<MsaRangeStatsWorkerRequest, { type: "calculate" }>
 ) {
   if (
@@ -87,10 +88,10 @@ export function calculateMsaRangeStatsTask(
       "The selected alignment range is invalid."
     );
   }
-  return calculateRangeStats({
+  return yield* calculateRangeStatsCooperative({
     sequences: request.sequences,
     // Range workers intentionally avoid cloning the full ColumnStats object
-    // array. calculateRangeStats derives only the selected columns when this
+    // array. calculateRangeStatsCooperative derives only the selected columns when this
     // array is empty.
     columns: [],
     range: request.range,
@@ -99,3 +100,5 @@ export function calculateMsaRangeStatsTask(
     alphabet: request.alphabet
   });
 }
+
+export function calculateMsaRangeStatsTask(...args: Parameters<typeof calculateMsaRangeStatsTaskCooperative>) { return drainTask(calculateMsaRangeStatsTaskCooperative(...args)); }
