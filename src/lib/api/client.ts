@@ -44,7 +44,7 @@ export async function parseApiError(response: Response, fallback: string) {
     if (payload.error?.code && payload.error.message) {
       return new EasyMsaApiError({
         code: payload.error.code,
-        message: humanizeApiError(payload.error.code, payload.error.message),
+        message: payload.error.message,
         status: response.status,
         details: payload.error.details
       });

@@ -1,40 +1,40 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { strToU8, zip } from "fflate";
+import { useMsaDataSession } from "./sharedDataSession";
 import { OverlayDialog } from "../../components/common/OverlayDialog";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import { viewerText } from "../../lib/i18n/viewerWorkflow";
-import { resolveSequenceExport, sequenceExportText, type ExportRows, type ExportColumns, type SequenceExportSnapshot } from "./viewerWorkflowModel";
+import { resolveSequenceExport, type ExportRows, type ExportColumns, type SequenceExportSnapshot } from "./viewerWorkflowModel";
 
 function save(data: BlobPart, filename: string) {
   const url = URL.createObjectURL(new Blob([data])); const anchor = document.createElement("a");
   anchor.href = url; anchor.download = filename; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 export function SequenceExportDialog({ snapshot, onClose }: { snapshot: SequenceExportSnapshot; onClose: () => void }) {
-  const { dictionary: d } = useLanguage(); const t = d.viewerWorkflow;
+  const { dictionary: d, locale } = useLanguage(); const t = d.viewerWorkflow;
   const [rowScope, setRows] = useState<ExportRows>(snapshot.initialRows);
   const [columnScope, setColumns] = useState<ExportColumns>(snapshot.initialColumns);
   const [busy, setBusy] = useState(false), [error, setError] = useState(false);
   const active = useRef(true);
-  const cancelZip = useRef<(() => void) | null>(null);
+  const session = useMsaDataSession(snapshot.all)!;
+  const controller = useRef<AbortController | null>(null);
+  const [progress, setProgress] = useState(0);
   useEffect(() => {
     active.current = true;
-    return () => { active.current = false; cancelZip.current?.(); };
+    return () => { active.current = false; controller.current?.abort(); };
   }, [snapshot]);
   const selection = useMemo(() => resolveSequenceExport(snapshot, rowScope, columnScope), [snapshot, rowScope, columnScope]);
   const displayed = useMemo(() => new Set(snapshot.displayed), [snapshot]);
   async function download() {
-    setBusy(true); setError(false);
+    setBusy(true); setError(false); setProgress(0);
+    const abort = new AbortController(); controller.current = abort;
     try {
-      await new Promise(resolve => setTimeout(resolve, 0));
-      if (!active.current) return;
-      const { fasta, mapping } = sequenceExportText(selection);
-      if (mapping) {
-        const bytes = await new Promise<Uint8Array>((resolve, reject) => {
-          cancelZip.current = zip({ "alignment.fasta": strToU8(fasta), "columns.tsv": strToU8(mapping) }, { level: 3 }, (failure, result) => failure ? reject(failure) : resolve(result));
-        });
-        if (active.current) save(bytes as BlobPart, "easymsa-filtered-alignment.zip");
-      } else if (active.current) save(fasta, columnScope === "interval" ? `easymsa-region-${selection.start}-${selection.end}.fasta` : "easymsa-alignment.fasta");
-    } catch { if (active.current) setError(true); } finally { if (active.current) setBusy(false); }
+      const { position: _position, ...request } = selection;
+      const blob = await session.run<Blob>("export", request, abort.signal, value => {
+        if (active.current && controller.current === abort) setProgress(value);
+      });
+      if (active.current && !abort.signal.aborted) save(blob, !selection.contiguous ? "easymsa-filtered-alignment.zip" : columnScope === "interval" ? `easymsa-region-${selection.start}-${selection.end}.fasta` : "easymsa-alignment.fasta");
+    } catch (failure) { if (active.current && (failure as Error)?.name !== "AbortError") setError(true); }
+    finally { if (controller.current === abort) { controller.current = null; if (active.current) setBusy(false); } }
   }
   return <OverlayDialog isOpen title={t.sequenceExport} closeLabel={t.close} onClose={onClose}>
     <div className="msa-export-selection">
@@ -55,6 +55,7 @@ export function SequenceExportDialog({ snapshot, onClose }: { snapshot: Sequence
         {(!selection.rows.length || !selection.length) && <p>{t.emptyExport}</p>}
       </section>
       {error && <p role="alert" className="text-rose-700">{t.exportFailed}</p>}
+      {busy && <div role="status">{t.exporting} {Math.round(progress * 100)}% <button type="button" onClick={() => controller.current?.abort()}>{locale === "zh" ? "取消导出" : "Cancel export"}</button></div>}
       <button className="msa-primary" type="button" disabled={busy || !selection.rows.length || !selection.length} onClick={download}>{busy ? t.exporting : t.download}</button>
     </div>
   </OverlayDialog>;

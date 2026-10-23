@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import { homeContent } from "../../lib/homeContent";
+import { layoutText } from "./layoutText";
 
 export function PageMetadata() {
   const location = useLocation();
@@ -25,7 +26,7 @@ export function PageMetadata() {
     const label = labels.find(([pattern]) => pattern.test(location.pathname))?.[1];
     document.title = label
       ? `${label} · ${dictionary.common.appName}`
-      : dictionary.common.appName;
+      : `${layoutText[locale].notFound} · ${dictionary.common.appName}`;
 
     const description = document.querySelector<HTMLMetaElement>(
       'meta[name="description"]'

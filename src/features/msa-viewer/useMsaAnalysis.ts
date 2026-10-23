@@ -13,6 +13,7 @@ import type {
   MotifMatchMode,
   MotifStrandMode
 } from "./types";
+import { useMsaDataSession } from "./sharedDataSession";
 import { useMotifSearch } from "./useMotifSearch";
 import {
   MSA_ANALYSIS_PROTOCOL_VERSION,
@@ -49,6 +50,7 @@ let nextGeneration = 1;
 let nextRequestId = 1;
 
 export type UseMsaAnalysisOptions = {
+  dataSource?: MSASequence[];
   /** Content-derived normalized SHA/FNV source identity, never a job token. */
   sourceFingerprint?: string;
   /** Backward-compatible alias used by AlignmentDescriptor. */
@@ -197,10 +199,11 @@ export function useMsaAnalysis(
   const motifQuery = typeof motifQueryOrOptions === "string"
     ? motifQueryOrOptions
     : options.motifQuery ?? "";
+  const session = useMsaDataSession(options.dataSource);
   const scope = options.analysisScope ?? "all";
-  const explicitScopeRows = asStringArray(options.scopeRowKeys);
-  const visibleRows = asStringArray(options.visibleRowKeys);
-  const selectedRows = asStringArray(options.selectedRowKeys);
+  const explicitScopeRows = useMemo(() => asStringArray(options.scopeRowKeys), [options.scopeRowKeys]);
+  const visibleRows = useMemo(() => asStringArray(options.visibleRowKeys), [options.visibleRowKeys]);
+  const selectedRows = useMemo(() => asStringArray(options.selectedRowKeys), [options.selectedRowKeys]);
   const membershipRows = options.scopeRowKeys !== undefined
     ? explicitScopeRows
     : scope === "visible"
@@ -208,7 +211,7 @@ export function useMsaAnalysis(
       : scope === "selected"
         ? selectedRows
         : [];
-  const membershipKey = JSON.stringify(membershipRows);
+  const membershipKey = useMemo(() => JSON.stringify(membershipRows), [membershipRows]);
   const allRowKeys = useMemo(
     () => sequences.map((sequence, index) => rowKeyForSequence(sequence, index)),
     [sequences]
@@ -233,7 +236,7 @@ export function useMsaAnalysis(
     const included = new Set<string>(JSON.parse(membershipKey) as string[]);
     return allRowKeys.filter((rowKey) => included.has(rowKey));
   }, [allRowKeys, membershipKey, scope]);
-  const scopeRowKey = JSON.stringify(scopeRowKeys);
+  const scopeRowKey = useMemo(() => JSON.stringify(scopeRowKeys), [scopeRowKeys]);
   const providedFingerprint = options.sourceFingerprint ?? options.sourceKey;
   const fallbackFingerprint = useMemo(
     () => providedFingerprint ? null : canonicalAlignmentSourceKey(sequences),
@@ -261,7 +264,7 @@ export function useMsaAnalysis(
     scope,
     scopedSequences.length
   );
-  const cacheKey = createMsaAnalysisCacheKey({
+  const cacheKey = useMemo(() => createMsaAnalysisCacheKey({
     sourceFingerprint,
     alignmentLength,
     alphabet,
@@ -269,7 +272,7 @@ export function useMsaAnalysis(
     scopeRowKeys,
     referenceRowKey,
     overviewBinCount
-  });
+  }), [sourceFingerprint, alignmentLength, alphabet, scope, scopeRowKeys, referenceRowKey, overviewBinCount]);
   const initial = disabled ? null : cachePeek(cacheKey);
   const [result, setResult] = useState<MsaAnalysisPayloadV4 | null>(initial);
   const [resultCacheKey, setResultCacheKey] = useState<string | null>(
@@ -391,12 +394,20 @@ export function useMsaAnalysis(
     };
 
     let fallbackTimeout: number | null = null;
+    const abort = new AbortController();
     if (typeof Worker === "undefined") {
       if (import.meta.env.MODE === "test") {
         fallbackTimeout = window.setTimeout(calculateWithoutWorker, 0);
       } else {
         fail(null, "ANALYSIS_WORKER_UNAVAILABLE", "MSA analysis Worker is unavailable.");
       }
+    } else if (session) {
+      markMsaPerformance(MSA_PERFORMANCE_MARKS.analysisWorkerStart);
+      session.run<MsaAnalysisPayloadV4>("analysis", request, abort.signal).then(payload => {
+        if (cancelled) return;
+        try { assertMsaAnalysisPayloadV4(payload); markMsaPerformance(MSA_PERFORMANCE_MARKS.analysisWorkerDone); complete(payload); }
+        catch (error) { fail(error); }
+      }, error => { if (error?.name !== "AbortError") fail(error, error.code, error.message); });
     } else {
       try {
         const worker = new Worker(
@@ -459,6 +470,7 @@ export function useMsaAnalysis(
 
     return () => {
       cancelled = true;
+      abort.abort();
       if (fallbackTimeout !== null) {
         window.clearTimeout(fallbackTimeout);
       }
@@ -482,6 +494,7 @@ export function useMsaAnalysis(
       }
     };
   }, [
+    session,
     alignmentLength,
     alphabet,
     cacheKey,
@@ -498,6 +511,7 @@ export function useMsaAnalysis(
   ]);
 
   const motif = useMotifSearch(scopedSequences, motifQuery, {
+    dataSource: options.dataSource,
     sourceFingerprint,
     matchMode: options.motifMatchMode,
     strandMode: options.motifStrandMode,

@@ -124,7 +124,7 @@
  .msa-source-bar {height:52px;min-height:52px;}
  .msa-command {min-height:96px;}
  .msa-status {height:36px;}
- .msa-row-menu-trigger {height:44px;width:44px;}
+ .msa-row-menu-trigger {height:20px;width:22px;}
  .msa-global-overview {position:absolute;right:0;top:0;bottom:0;z-index:40;width:112px;box-shadow:-4px 0 20px #0f172a10;}
  .msa-map-jump input,.msa-map-jump button {min-height:44px;font-size:12px;}
 }

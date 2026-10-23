@@ -9,6 +9,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { taskMetadataSchema } from "../../lib/submit/taskMetadata";
+import { focusFormField } from "../../lib/submit/formFocus";
+import { readInputText } from "../../lib/submit/readInputText";
+import { apiErrorMessage } from "../../lib/i18n/apiErrors";
 import { createJob } from "../../lib/api/jobs";
 import { jobRoute } from "../../lib/api/tokens";
 import { useLanguage } from "../../lib/i18n/useLanguage";
@@ -59,7 +62,8 @@ export function SubmitJobForm() {
   } | null>(null);
   const [pastedSequence, setPastedSequence] = useDraftState("submit:paste", "");
   const [file, setFile] = useDraftState<File | null>("submit:file", null);
-  const [formError, setFormError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<"pasteTooLong" | "paste" | "upload" | "algorithmParams" | null>(null);
+  const [requestError, setRequestError] = useState<unknown>(null);
   const [submitting, setSubmitting] = useState(false);
   const submissionInFlight = useRef(false);
   const serviceHealth = useServiceHealth();
@@ -82,12 +86,7 @@ export function SubmitJobForm() {
   useDraftMetadata("submit:metadata", watch);
 
   function revealSetting(id: string) {
-    const panel = settingsRef.current;
-    const target = panel?.querySelector<HTMLElement>(`#${id}`);
-    if (!panel || !target) return;
-    target.focus({ preventScroll: true });
-    panel.scrollTop += target.getBoundingClientRect().top - panel.getBoundingClientRect().top - 20;
-    if (window.matchMedia("(max-width: 1023px)").matches) target.scrollIntoView({ block: "center" });
+    focusFormField(settingsRef.current, id);
   }
 
   useEffect(() => {
@@ -98,10 +97,10 @@ export function SubmitJobForm() {
   }, [algorithmParameterError, advancedOpen]);
 
   useEffect(() => {
-    if (!formError || algorithmParameterError) return;
+    if ((!formError && !requestError) || algorithmParameterError) return;
     const frame = requestAnimationFrame(() => revealSetting("submission-error"));
     return () => cancelAnimationFrame(frame);
-  }, [formError, algorithmParameterError]);
+  }, [formError, requestError, algorithmParameterError]);
 
   function suggestName(input: HTMLInputElement) {
     if (getValues("jobName").trim()) return false;
@@ -114,12 +113,14 @@ export function SubmitJobForm() {
     return true;
   }
 
-  function loadExample(file: File) {
+  async function loadExample(next: File) {
+    if (inputMethod === "paste") setPastedSequence(await readInputText(next));
+    else setFile(next);
     setExampleLoaded(true);
-    setInputMethod("upload");setFile(file);setAlgorithm("minipoa");
+    setAlgorithm("minipoa");
     setPreprocessMode("audit");
     setRealignEnabled(false);setRealignPattern(1);setAlgorithmParameterDraft({...DEFAULT_ALGORITHM_PARAMETER_DRAFT});
-    setAlgorithmParameterError(null);setFormError(null);setValue("jobName", "Synthetic DNA example");
+    setAlgorithmParameterError(null);setFormError(null);setRequestError(null);setValue("jobName", "Synthetic DNA example");
   }
 
   function algorithmUnavailable(value: AlignmentAlgorithm) {
@@ -140,28 +141,31 @@ export function SubmitJobForm() {
     setAlgorithmParameterDraft(value);
     setAlgorithmParameterError(null);
     setFormError(null);
+    setRequestError(null);
   }
 
   function handleMethodChange(method: InputMethod) {
     setInputMethod(method);
+    setExampleLoaded(false);
     setFormError(null);
+    setRequestError(null);
   }
 
   async function onSubmit(values: FormValues) {
     if (submissionInFlight.current || submissionBlocked) return;
     setFormError(null);
+    setRequestError(null);
 
     const fastaValidation = validateFasta(pastedSequence);
     const fileValidation = file ? validateInputFile(file, "alignment", locale) : null;
 
     if (inputMethod === "paste" && !fastaValidation.valid) {
-      setFormError(fastaValidation.characterCount > MAX_FASTA_CHARACTERS
-        ? d.submit.pasteTooLong : d.submit.errors.paste);
+      setFormError(fastaValidation.characterCount > MAX_FASTA_CHARACTERS ? "pasteTooLong" : "paste");
       return;
     }
 
     if (inputMethod === "upload" && (!file || !fileValidation?.valid)) {
-      setFormError(d.submit.errors.upload);
+      setFormError("upload");
       return;
     }
 
@@ -172,7 +176,7 @@ export function SubmitJobForm() {
     );
     if (!parameterValidation.valid) {
       setAlgorithmParameterError(parameterValidation);
-      setFormError(d.submit.errors.algorithmParams);
+      setFormError("algorithmParams");
       return;
     }
 
@@ -202,18 +206,20 @@ export function SubmitJobForm() {
           : `/job/${encodeURIComponent(response.jobId)}`
       );
     } catch (submitError) {
-      setFormError(
-        submitError instanceof Error
-          ? submitError.message
-          : d.submit.errors.submitFailed
-      );
+      setRequestError(submitError);
     } finally {
       submissionInFlight.current = false;
       setSubmitting(false);
     }
   }
 
-  const sequenceCount = useMemo(() => validateFasta(pastedSequence).sequenceCount, [pastedSequence]);
+  const pasteValidation = useMemo(() => validateFasta(pastedSequence), [pastedSequence]);
+  const sequenceCount = pasteValidation.sequenceCount;
+  const validInput = inputMethod === "paste" ? pasteValidation.valid : Boolean(file && validateInputFile(file, "alignment", locale).valid);
+  const name = watch("jobName");
+  const email = watch("email");
+  const hasDraft = Boolean(file || pastedSequence.trim() || name.trim() || email.trim() || algorithm !== "auto" || realignEnabled || preprocessMode !== "audit" || Object.keys(algorithmParameterDraft).some(key => algorithmParameterDraft[key as keyof AlgorithmParameterDraft] !== DEFAULT_ALGORITHM_PARAMETER_DRAFT[key as keyof AlgorithmParameterDraft]));
+  const formErrorMessage = formError === "pasteTooLong" ? d.submit.pasteTooLong : formError ? d.submit.errors[formError] : null;
   const summaryInput = inputMethod === "upload" ? file?.name || t.inputPending
     : pastedSequence.trim() ? `${sequenceCount} ${t.pasteReady}` : t.inputPending;
 
@@ -224,20 +230,20 @@ export function SubmitJobForm() {
         <div className="work-input">
           <div className="work-input-heading">
             <h2>{t.input}</h2>
-            <ExampleInputLoader kind="alignment" disabled={submitting} hasInput={Boolean(file || pastedSequence.trim())}
+            <ExampleInputLoader kind="alignment" disabled={submitting} hasInput={hasDraft}
               onLoad={loadExample} />
           </div>
           <InputMethodTabs value={inputMethod} onChange={handleMethodChange} />
           <div aria-labelledby="input-tab-paste" hidden={inputMethod !== "paste"} id="input-panel-paste" role="tabpanel">
             <div className="work-paste">
-              <PasteSequenceInput value={pastedSequence} onChange={value => { setPastedSequence(value); setExampleLoaded(false); setFormError(null); }} />
+              <PasteSequenceInput value={pastedSequence} onChange={value => { setPastedSequence(value); setExampleLoaded(false); setFormError(null); setRequestError(null); }} />
             </div>
           </div>
           <div aria-labelledby="input-tab-upload" hidden={inputMethod !== "upload"} id="input-panel-upload" role="tabpanel">
             <FileUploadCard compact file={file} disabled={submitting}
-              onChange={value => { setFile(value); setExampleLoaded(false); setFormError(null); }} />
+              onChange={value => { setFile(value); setExampleLoaded(false); setFormError(null); setRequestError(null); }} />
           </div>
-          {exampleLoaded && inputMethod === "upload" && file && <div className="work-feedback" role="status">
+          {exampleLoaded && validInput && <div className="work-feedback" role="status">
             <CheckCircle2 size={16} aria-hidden="true" /><span>{t.exampleLoaded}</span>
             <Link to="/examples/alignment-small">{t.exampleResult}</Link>
           </div>}
@@ -256,7 +262,7 @@ export function SubmitJobForm() {
           <div className="work-field">
             <p id="alignmentAlgorithmLabel" className="work-label">{d.submit.algorithm}</p>
             <AlgorithmPicker compact value={algorithm} labelledBy="alignmentAlgorithmLabel" isDisabled={algorithmUnavailable}
-              onChange={value => { setAlgorithm(value); setAlgorithmParameterError(null); setFormError(null); }} />
+              onChange={value => { setAlgorithm(value); setAlgorithmParameterError(null); setFormError(null); setRequestError(null); }} />
           </div>
           <details className="work-parameters" open={advancedOpen} onToggle={event => setAdvancedOpen(event.currentTarget.open)}>
             <summary><span><SlidersHorizontal size={15} />{t.advanced}</span><ChevronDown size={15} /></summary>
@@ -270,12 +276,12 @@ export function SubmitJobForm() {
             </div>
             <AlgorithmParameterFields algorithm={algorithm} error={algorithmParameterError}
               maxThreadPerJob={maxThreadPerJob} value={algorithmParameterDraft} onChange={handleAlgorithmParameterChange}
-              onReset={() => { setPreprocessMode("audit"); setAlgorithmParameterDraft({ ...DEFAULT_ALGORITHM_PARAMETER_DRAFT }); setAlgorithmParameterError(null); setFormError(null); }} />
+              onReset={() => { setPreprocessMode("audit"); setAlgorithmParameterDraft({ ...DEFAULT_ALGORITHM_PARAMETER_DRAFT }); setAlgorithmParameterError(null); setFormError(null); setRequestError(null); }} />
           </details>
           {serviceHealth.data?.realignment?.enabled && <RealignmentOptions limits={serviceHealth.data.realignment}
             enabled={realignEnabled} onEnabled={setRealignEnabled} pattern={realignPattern} onPattern={setRealignPattern}
             disabled={submitting} unavailable={!serviceHealth.data.realignment.available} />}
-          {formError && <p id="submission-error" tabIndex={-1} className="work-error py-2" role="alert">{formError}</p>}
+          {Boolean(formError || requestError) && <p id="submission-error" tabIndex={-1} className="work-error py-2" role="alert">{requestError ? apiErrorMessage(requestError, locale, d.submit.errors.submitFailed) : formErrorMessage}</p>}
           {selectedAlgorithmBlocked && <p className="text-sm text-amber-900 py-2" role="alert">{d.submit.selectedAlgorithmUnavailable}</p>}
         </div>
       </fieldset>
@@ -285,7 +291,7 @@ export function SubmitJobForm() {
           <span className="max-w-64 truncate" title={summaryInput}>{summaryInput}</span>
           <span>{algorithm === "minipoa" ? "minipoa" : d.submit.algorithms[algorithm]}</span>
         </div>
-        <Button disabled={submitting || submissionBlocked} type="submit">
+        <Button disabled={submitting || submissionBlocked || !validInput} type="submit">
           {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
           {submitting ? d.submit.submitting : d.common.submit}
         </Button>

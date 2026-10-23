@@ -99,22 +99,24 @@ export function DocsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const sections = docsContent[locale];
   const requestedSection = searchParams.get("section");
+  const requestedArticle = searchParams.get("article");
   const [activeSection, setActiveSection] = useState<DocsSectionId>(
     validSection(requestedSection) ? requestedSection : DOCS_SECTION_IDS[0]
   );
   const [query, setQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
   const mobileTocRef = useRef<HTMLDetailsElement>(null);
-  const sectionParamRef = useRef<string | null>(requestedSection);
+  const sectionParamRef = useRef(`${requestedSection ?? ""}:${requestedArticle ?? ""}`);
   const internalParamUpdateRef = useRef(false);
   const results = useMemo(() => searchDocs(sections, query), [query, sections]);
   const normalizedQuery = query.trim();
 
-  const syncSectionParam = useCallback((sectionId: DocsSectionId, replace: boolean) => {
-    if (sectionParamRef.current === sectionId) return;
+  const syncSectionParam = useCallback((sectionId: DocsSectionId, replace: boolean, articleId?: string) => {
+    const key = `${sectionId}:${articleId ?? ""}`;
+    if (sectionParamRef.current === key) return;
     internalParamUpdateRef.current = true;
-    sectionParamRef.current = sectionId;
-    setSearchParams({ section: sectionId }, { replace });
+    sectionParamRef.current = key;
+    setSearchParams({ section: sectionId, ...(articleId ? { article: articleId } : {}) }, { replace, preventScrollReset: true });
   }, [setSearchParams]);
 
   const navigateTo = useCallback((
@@ -132,26 +134,31 @@ export function DocsPage() {
     const focusTarget = target?.querySelector<HTMLElement>(articleId ? "summary" : "h2");
     focusTarget?.focus({ preventScroll: true });
     target?.scrollIntoView({ behavior: "smooth", block: "start" });
-    syncSectionParam(sectionId, replace);
+    syncSectionParam(sectionId, replace, articleId);
     mobileTocRef.current?.removeAttribute("open");
   }, [syncSectionParam]);
 
   useEffect(() => {
-    sectionParamRef.current = requestedSection;
+    sectionParamRef.current = `${requestedSection ?? ""}:${requestedArticle ?? ""}`;
     if (internalParamUpdateRef.current) {
       internalParamUpdateRef.current = false;
       return;
     }
     const sectionId = validSection(requestedSection) ? requestedSection : DOCS_SECTION_IDS[0];
     setActiveSection(sectionId);
+    if (!requestedSection && !requestedArticle) return;
+    const article = sections.find(section => section.id === sectionId)?.articles.find(item => item.id === requestedArticle);
     const frame = requestAnimationFrame(() => {
-      document.getElementById(`docs-section-${sectionId}`)?.scrollIntoView({
+      const target = document.getElementById(article ? `docs-article-${article.id}` : `docs-section-${sectionId}`);
+      if (target instanceof HTMLDetailsElement) target.open = true;
+      target?.querySelector<HTMLElement>(article ? "summary" : "h2")?.focus({ preventScroll: true });
+      target?.scrollIntoView({
         behavior: "auto",
         block: "start"
       });
     });
     return () => cancelAnimationFrame(frame);
-  }, [requestedSection]);
+  }, [requestedSection, requestedArticle, sections]);
 
   useEffect(() => {
     const focusSearch = (event: KeyboardEvent) => {
@@ -304,7 +311,9 @@ export function DocsPage() {
                   {section.summary && <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">{section.summary}</p>}
                 </header>
                 <div className="divide-y divide-slate-200">
-                  {orderedArticles.map((article, articleIndex) => <DocsArticle article={article} defaultOpen={articleIndex === 0 && section.id !== "faq"} key={article.id} />)}
+                  {orderedArticles.map((article, articleIndex) => <DocsArticle article={article} sectionId={section.id}
+                    requestedOpen={requestedArticle === article.id && requestedSection === section.id}
+                    defaultOpen={articleIndex === 0 && section.id !== "faq"} key={article.id} />)}
                 </div>
               </section>
             );

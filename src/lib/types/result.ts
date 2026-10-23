@@ -21,6 +21,7 @@ export type ResultSummary = {
 };
 
 export type ResultFile = {
+  kind?: "archive" | "alignment-gzip" | "alignment-gzip-xz";
   name: string;
   description: string;
   size: string;

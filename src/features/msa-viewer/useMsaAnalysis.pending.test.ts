@@ -59,4 +59,20 @@ describe("stable analysis placeholders", () => {
     expect(result.current.overviewBins).toBe(initial.overviewBins);
     expect(result.current.consensus).toBe(initial.consensus);
   });
+
+  it("does not serialize row membership again for unrelated renders", () => {
+    vi.stubGlobal("Worker", undefined);
+    const rows = Array.from({ length: 1000 }, (_, index) => ({ id: `row-${index}`, rowKey: `row:${index}`, sequence: "ACGT" }));
+    const { rerender } = renderHook(() => useMsaAnalysis(rows, 4, {
+      sourceFingerprint: "test:memoized-membership",
+      alignmentMode: "neutral"
+    }));
+    const stringify = vi.spyOn(JSON, "stringify");
+    rerender(); rerender();
+    const largeKeyCalls = stringify.mock.calls.filter(([value]) => Array.isArray(value) && (
+      value.length >= rows.length || value.some(item => Array.isArray(item) && item.length >= rows.length)
+    ));
+    expect(largeKeyCalls).toHaveLength(0);
+    stringify.mockRestore();
+  });
 });

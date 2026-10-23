@@ -1,4 +1,4 @@
-import { browserStorage, reportStorageFailure } from "../storage";
+import { browserStorage, notifyLocalRecordsChanged, reportStorageFailure } from "../storage";
 
 const STORAGE_KEY = "easymsa.jobAccess.v1";
 const LEGACY_STORAGE_KEY = "easymsa.jobTokens";
@@ -10,6 +10,7 @@ export type JobAccess = {
   token: string;
   statusUrl: string;
   createdAt: string;
+  lastOpenedAt?: string;
 };
 
 function canUseStorage() {
@@ -67,7 +68,9 @@ function normalizeAccess(access: JobAccess): JobAccess {
     jobId: access.jobId,
     token: access.token,
     statusUrl: access.statusUrl || jobStatusUrl(access.jobId, access.token),
-    createdAt: access.createdAt || new Date().toISOString()
+    createdAt: access.createdAt || new Date().toISOString(),
+    ...(typeof access.lastOpenedAt === "string" && Number.isFinite(Date.parse(access.lastOpenedAt))
+      ? { lastOpenedAt: access.lastOpenedAt } : {})
   };
 }
 
@@ -122,9 +125,11 @@ export function readJobAccessRecords(): JobAccess[] {
 function writeJobAccessRecords(records: JobAccess[]) {
   try {
     const storage = browserStorage();
-    if (!storage) { reportStorageFailure(); return; }
+    if (!storage) { reportStorageFailure(); return false; }
     storage.setItem(STORAGE_KEY, JSON.stringify(records));
-  } catch { reportStorageFailure(); }
+    notifyLocalRecordsChanged();
+    return true;
+  } catch { reportStorageFailure(); return false; }
 }
 
 export function createJobAccess({
@@ -161,7 +166,9 @@ export function saveJobAccess(access: JobAccess) {
     records.unshift(normalized);
   }
 
-  writeJobAccessRecords(records.slice(0, 50));
+  // Credentials are not disposable cache entries. Keep saved records until
+  // their owner explicitly removes them; storage failure leaves old data intact.
+  return writeJobAccessRecords(records);
 }
 
 export function deleteJobAccess(jobId: string, token: string) {
@@ -169,7 +176,7 @@ export function deleteJobAccess(jobId: string, token: string) {
     (record) => !(record.jobId === jobId && record.token === token)
   );
 
-  writeJobAccessRecords(nextRecords);
+  return writeJobAccessRecords(nextRecords);
 }
 
 export function findJobAccessByToken(jobId: string, token: string) {

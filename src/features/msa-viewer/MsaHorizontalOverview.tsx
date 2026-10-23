@@ -1,13 +1,14 @@
 import { ChevronsLeftRight } from "lucide-react";
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type RefObject } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import { positionAt } from "./columnStatsStore";
 import {
   horizontalOverviewGeometry, overviewClickScroll, overviewDragScroll
 } from "./horizontalOverviewGeometry";
-import { calculateMinimap, type MinimapImage, type MinimapInput } from "./minimapData";
+import type { MinimapInput } from "./minimapData";
+import { useMinimapImages } from "./useMinimapImages";
 
-const imageCache = new WeakMap<MinimapInput, MinimapImage>();
+
 
 export function MsaHorizontalOverview({input, scrollRef, pitch, labelWidth}: {
   input: MinimapInput; scrollRef: RefObject<HTMLDivElement>; pitch: number; labelWidth: number;
@@ -17,41 +18,11 @@ export function MsaHorizontalOverview({input, scrollRef, pitch, labelWidth}: {
   const label = zh ? "横向概览" : "Horizontal overview";
   const trackRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const generation = useRef(0);
+
   const drag = useRef<{pointerId: number; x: number; scroll: number; travel: number; max: number} | null>(null);
-  const [image, setImage] = useState<MinimapImage | null>(null);
-  const [failed, setFailed] = useState(false);
-  const [retry, setRetry] = useState(0);
+  const { images, failed, retry } = useMinimapImages(input);
+  const image = images?.horizontal ?? null;
   const [viewport, setViewport] = useState({scrollLeft: 0, clientWidth: 0, trackWidth: 0});
-  const imageInput = useMemo<MinimapInput>(() => ({
-    ...input, layout: "horizontal", width: 2048, height: 18
-  }), [input]);
-
-  useEffect(() => {
-    const current = ++generation.current;
-    const cached = imageCache.get(input);
-    setFailed(false);
-    if (cached) { setImage(cached); return; }
-    setImage(null);
-    let worker: Worker | undefined;
-    try {
-      if (typeof Worker === "undefined") {
-        if (import.meta.env.MODE === "test") setImage(calculateMinimap(imageInput));
-        else setFailed(true);
-      } else {
-        worker = new Worker(new URL("../../workers/minimap.worker.ts", import.meta.url), {type: "module"});
-        worker.onmessage = event => {
-          if (current !== generation.current || event.data.generation !== current) return;
-          if (event.data.error) setFailed(true);
-          else { imageCache.set(input, event.data.image); setImage(event.data.image); }
-        };
-        worker.onerror = () => { if (current === generation.current) setFailed(true); };
-        worker.postMessage({generation: current, input: imageInput});
-      }
-    } catch { setFailed(true); }
-    return () => { generation.current++; worker?.terminate(); };
-  }, [imageInput, input, retry]);
-
   // The image is painted once per data/colour change. Scrolling only moves the thumb.
   useEffect(() => {
     if (!image || !canvasRef.current) return;
@@ -159,7 +130,7 @@ export function MsaHorizontalOverview({input, scrollRef, pitch, labelWidth}: {
         <span aria-hidden="true"/>
       </div>
     </div>
-    {failed && <button type="button" className="msa-horizontal-retry" onClick={() => setRetry(value => value + 1)}>
+    {failed && <button type="button" className="msa-horizontal-retry" onClick={retry}>
       {zh ? "重试概览" : "Retry overview"}
     </button>}
   </div>;

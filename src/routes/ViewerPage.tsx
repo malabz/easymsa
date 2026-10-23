@@ -2,6 +2,8 @@ import { CheckCircle2, FilePlus2, FileText, Loader2, Upload } from "lucide-react
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "../components/common/Button";
 import { PageContainer } from "../components/layout/PageContainer";
+import { InputMethodTabs } from "../components/submit/InputMethodTabs";
+import type { InputMethod } from "../lib/types/job";
 import { MSAViewer } from "../components/results/MSAViewer";
 import { useLanguage } from "../lib/i18n/useLanguage";
 import type { MSAResult } from "../lib/types/msa";
@@ -29,6 +31,7 @@ export function ViewerPage() {
   const loadGenerationRef = useRef(0);
   const { cancel: cancelInput, processInput } = useAlignmentInput();
   const [pastedFasta, setPastedFasta] = useDraftState("viewer:paste", "");
+  const [inputMethod, setInputMethod] = useDraftState<InputMethod>("viewer:input-method", "paste");
   const [sourceName, setSourceName] = useDraftState("viewer:name", d.viewerPage.uploadedSource);
   const [alignment, setAlignment] = useDraftState<MSAResult | null>("viewer:alignment", null);
   const [error, setError] = useState<string | null>(null);
@@ -170,7 +173,9 @@ export function ViewerPage() {
           {examplePending ? t.exampleLoading : t.sample}
         </button>
       </div>
+      <InputMethodTabs value={inputMethod} onChange={setInputMethod} />
       <div className="mt-4 space-y-4">
+        <div id="input-panel-upload" role="tabpanel" aria-labelledby="input-tab-upload" hidden={inputMethod !== "upload"}>
         <input
           accept=".fa,.fasta,.fna,.faa,.txt,text/plain"
           aria-label={d.viewerPage.uploadFasta}
@@ -188,7 +193,9 @@ export function ViewerPage() {
           <Upload className="h-4 w-4" />
           {d.viewerPage.uploadFasta}
         </Button>
-        <div className="space-y-2">
+        <p className="work-hint mt-3">{d.viewerPage.inputHint}</p>
+        </div>
+        <div className="space-y-2" id="input-panel-paste" role="tabpanel" aria-labelledby="input-tab-paste" hidden={inputMethod !== "paste"}>
           <label className="text-sm font-medium text-slate-800" htmlFor="viewerFasta">
             {d.viewerPage.pasteFasta}
           </label>

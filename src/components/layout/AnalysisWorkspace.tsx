@@ -4,6 +4,8 @@ import { Link, useLocation } from "react-router-dom";
 import { useWorkEntries } from "../../lib/workspace";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import { workspaceText } from "../../lib/i18n/workspace";
+import { layoutText } from "./layoutText";
+import { workspaceReturn } from "./workReturn";
 import "./analysis-workspace.css";
 
 /** Fit the workspace between the actual navigation and footer, including zoom. */
@@ -13,13 +15,13 @@ export function AnalysisWorkspace({ sidebar, children }: { sidebar: ReactNode; c
     const element = ref.current;
     if (!element) return;
     const measure = () => {
-      const footer = document.querySelector("#root > div > footer");
+      const footer = document.querySelector(".app-footer");
       const top = element.getBoundingClientRect().top + window.scrollY;
-      const available = Math.floor(window.innerHeight - top - (footer?.getBoundingClientRect().height ?? 69));
-      element.style.setProperty("--analysis-height", `${Math.max(400, available)}px`);
+      const available = Math.floor(window.innerHeight - top - (footer?.getBoundingClientRect().height ?? 44));
+      element.style.setProperty("--analysis-height", `${Math.max(160, available)}px`);
     };
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
-    [document.querySelector("header"), document.querySelector("footer"), element.parentElement].forEach(node => {
+    [document.querySelector(".app-header"), document.querySelector(".app-footer"), element.parentElement].forEach(node => {
       if (node) observer?.observe(node);
     });
     measure();
@@ -33,11 +35,12 @@ export function AnalysisWorkspace({ sidebar, children }: { sidebar: ReactNode; c
 }
 
 export function WorkspaceBackLink() {
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const { locale } = useLanguage();
-  const entry = useWorkEntries().find(item => item.path.split("?")[0] !== pathname);
-  return <Link className="workspace-back" to={entry?.path ?? "/lookup"}>
+  const target = workspaceReturn(pathname, search, useWorkEntries());
+  const label = target.label === "job" ? workspaceText[locale].job : layoutText[locale][target.label];
+  return <Link className="workspace-back" to={target.path}>
     <ArrowLeft size={15} aria-hidden="true" />
-    {entry ? workspaceText[locale][entry.kind] : locale === "zh" ? "返回任务列表" : "Back to jobs"}
+    {label}
   </Link>;
 }

@@ -310,7 +310,9 @@ describe("MsaDomMatrix hybrid rendering", () => {
     expect(queryByText("Set as reference")).toBeNull();
   });
 
-  it("uses the 44px row action menu at every coarse-pointer breakpoint", () => {
+  it("keeps compact cells and exposes a single 44px action menu for the selected touch row", () => {
+    vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockReturnValue(600);
+    vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(800);
     vi.stubGlobal("matchMedia", vi.fn().mockImplementation((query: string) => ({
       matches: query === "(any-pointer: coarse)",
       media: query,
@@ -341,7 +343,7 @@ describe("MsaDomMatrix hybrid rendering", () => {
           scrollRef={createRef<HTMLDivElement>()}
           selectedRange={null}
           selectedSequenceIds={new Set()}
-          selection={null}
+          selection={{rowKey:"row:touch",position:1}}
           sequences={sequences}
           settings={testViewSettings(true)}
           stats={stats}
@@ -352,7 +354,8 @@ describe("MsaDomMatrix hybrid rendering", () => {
 
     expect(queryByLabelText("Select sequence touch-row")).toBeNull();
     const menu = getByLabelText("touch-row row actions");
-    expect(menu.className).toContain("msa-row-menu-trigger");
+    expect(menu.className).toContain("msa-global-row-menu-trigger");
+    expect(container.querySelector<HTMLElement>("[data-msa-sequence-cell]")?.style.width).toBe("20px");
     expect(menu.getAttribute("aria-haspopup")).toBe("menu");
   });
 

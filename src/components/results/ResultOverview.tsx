@@ -16,6 +16,7 @@ const BASE_COLORS: Record<AlignmentOverviewBase, string> = {
 type ResultOverviewProps = {
   summary: ResultSummary; alignment?: MSAResult; alignmentPending: boolean;
   alignmentError?: string | null; onOpenAlignment: () => void; onOpenDownloads: () => void;
+  onLoadAlignment?: () => void;
 };
 function count(value: number | null) { return value === null ? "—" : value.toLocaleString(); }
 function percentFromFraction(value: number | null) { return value === null ? "—" : formatPercent(value * 100); }
@@ -61,8 +62,8 @@ function OutputFiles({ files, onOpenDownloads }: { files: string[]; onOpenDownlo
     }) : <p className="work-hint">{t.empty}</p>}
   </section>;
 }
-export function ResultOverview({ summary, alignment, alignmentPending, alignmentError, onOpenDownloads }: ResultOverviewProps) {
-  const { dictionary: d } = useLanguage();
+export function ResultOverview({ summary, alignment, alignmentPending, alignmentError, onOpenDownloads, onLoadAlignment }: ResultOverviewProps) {
+  const { dictionary: d, locale } = useLanguage();
   const t = d.results.overview;
   const descriptor = alignment?.descriptor;
   const canAnalyze = Boolean(alignment && !alignment.truncated && alignment.sequences.length > 0 &&
@@ -110,7 +111,11 @@ export function ResultOverview({ summary, alignment, alignmentPending, alignment
     {state === "error" && <p className="overview-analysis-message text-amber-800" role="status">{t.science.failed}</p>}
     {state === "truncated" && <p className="overview-analysis-message text-amber-800" role="status">{t.science.truncated}</p>}
     {state === "neutral" && <p className="overview-analysis-message" role="status">{d.results.viewer.neutralTitle} · {d.results.viewer.neutralDescription}</p>}
-    {state === "empty" && <p className="overview-analysis-message">{t.science.empty}</p>}
+    {state === "empty" && (onLoadAlignment ? <div className="overview-analysis-message">
+      <button type="button" className="work-link" onClick={onLoadAlignment}>
+        {locale === "zh" ? "加载详细统计与质量图" : "Load detailed statistics and quality plots"}
+      </button>
+    </div> : <p className="overview-analysis-message">{t.science.empty}</p>)}
     {state === "ready" && derived && <>
       {analysis.columnStore && <AlignmentQualityOverview columnStore={analysis.columnStore} />}
       <Composition overview={derived} />

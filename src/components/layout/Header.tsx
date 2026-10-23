@@ -1,5 +1,5 @@
 import { Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import { cn } from "../../lib/utils/cn";
@@ -18,20 +18,33 @@ const navItems = [
 
 export function Header() {
   const { pathname } = useLocation();
-  const workspace = /^\/(submit|realign|results|viewer|examples|lookup|jobs?)(\/|$)/.test(pathname);
   const { dictionary: d } = useLanguage();
   const [open, setOpen] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
+
+  useEffect(() => { setOpen(false); }, [pathname]);
+  useEffect(() => {
+    if (!open) return;
+    const close = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      setOpen(false);
+      headerRef.current?.querySelector<HTMLButtonElement>("#primary-navigation-toggle")?.focus();
+    };
+    document.addEventListener("keydown", close);
+    return () => document.removeEventListener("keydown", close);
+  }, [open]);
 
   const nav = (
     <nav
       aria-label={d.common.primaryNavigation}
-      className="flex flex-col gap-1 lg:flex-row lg:items-center lg:gap-0.5"
+      className="app-navigation"
     >
       {navItems.map((item) => (
         <NavLink
           className={({ isActive }) =>
             cn(
-              "rounded px-2.5 py-1.5 text-sm font-medium transition",
+              "app-navigation-link rounded text-sm font-medium transition",
               isActive
                 ? "bg-slate-100 text-slate-950"
                 : "text-slate-600 hover:bg-slate-100 hover:text-slate-950"
@@ -49,8 +62,10 @@ export function Header() {
   );
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
-      <div className={cn("mx-auto flex min-h-16 max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-2 sm:px-6 lg:px-8", workspace && "workspace-navigation")}>
+    <header ref={headerRef} onBlur={event => {
+      if (open && event.relatedTarget instanceof Node && !event.currentTarget.contains(event.relatedTarget)) setOpen(false);
+    }} className="app-header sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
+      <div className="app-header-inner">
         <NavLink className="flex items-center gap-2" to="/">
           <img src={`${import.meta.env.BASE_URL}brand/easymsa-mark.svg`} width={36} height={36} className="h-9 w-9" alt="" />
           <span className="text-base font-semibold tracking-tight text-slate-950">easymsa</span>
@@ -65,8 +80,10 @@ export function Header() {
           <LanguageToggle />
           <Button
             aria-expanded={open}
+            aria-controls="mobile-primary-navigation"
             aria-label={open ? d.common.closeNavigation : d.common.openNavigation}
-            className="h-9 w-9 px-0"
+            className="h-11 w-11 px-0"
+            id="primary-navigation-toggle"
             onClick={() => setOpen((value) => !value)}
             size="sm"
             variant="ghost"
@@ -77,9 +94,15 @@ export function Header() {
       </div>
 
       {open ? (
-        <div className="border-t border-slate-200 bg-white px-4 py-3 lg:hidden">
-          {nav}
-        </div>
+        <>
+          <div aria-hidden="true" className="app-navigation-scrim lg:hidden" onClick={() => {
+            setOpen(false);
+            headerRef.current?.querySelector<HTMLButtonElement>("#primary-navigation-toggle")?.focus();
+          }} />
+          <div className="app-mobile-navigation lg:hidden" id="mobile-primary-navigation">
+            {nav}
+          </div>
+        </>
       ) : null}
     </header>
   );

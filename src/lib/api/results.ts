@@ -210,24 +210,27 @@ export function getDownloadFiles(jobId: string, token: string, stage: ResultStag
   return [
     {
       name: "all_results.zip",
-      description: "Compressed result archive from the EasyMSA server",
-      size: "remote",
+      kind: "archive",
+      description: "",
+      size: "",
       href: apiUrl(
         `/jobs/${jobPathSegment(jobId)}/download?token=${encodeURIComponent(token)}${stage === "final" ? "" : `&stage=${stage}`}`
       )
     },
     {
       name: "alignment.fasta.gz",
-      description: "Gzip-compressed alignment FASTA",
-      size: "remote",
+      kind: "alignment-gzip",
+      description: "",
+      size: "",
       href: apiUrl(
         `/jobs/${jobPathSegment(jobId)}/download/alignment/gz?token=${encodeURIComponent(token)}${stage === "final" ? "" : `&stage=${stage}`}`
       )
     },
     {
       name: "alignment.fasta.gz.xz",
-      description: "Gzip alignment FASTA additionally compressed with xz",
-      size: "remote",
+      kind: "alignment-gzip-xz",
+      description: "",
+      size: "",
       href: apiUrl(
         `/jobs/${jobPathSegment(jobId)}/download/alignment/gz.xz?token=${encodeURIComponent(token)}${stage === "final" ? "" : `&stage=${stage}`}`
       )

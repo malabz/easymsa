@@ -1,3 +1,5 @@
+import { apiErrorMessage } from "./apiErrors";
+
 export const realignText = {
   zh: {
     uploadTitle: "选择或拖拽已比对文件", uploadDescription: "上传 FASTA 或 FASTA.gz，各序列应等长。文件大小不超过 100 MiB。",
@@ -37,19 +39,6 @@ export const realignText = {
   }
 };
 
-export function realignmentError(locale: 'zh'|'en', code: string, message: string) {
-  if(locale==='en')return message;
-  const messages:Record<string,string>={
-    REALIGN_NOT_COMPLETED:'任务未能完成，重比对尚未成功执行。',REALIGN_TOO_FEW_SEQUENCES:'至少需要两条序列。',REALIGN_DUPLICATE_ID:'序列标识重复，请检查对应记录。',
-    REALIGN_EMPTY_SEQUENCE:'存在空序列或全 gap 序列，请检查对应记录。',REALIGN_INVALID_BASE:'存在不支持的碱基，请仅使用 ACGT 或 ACGU 和 gap（-）。',
-    REALIGN_MIXED_ALPHABET:'同一文件不能混用 DNA 的 T 和 RNA 的 U。',REALIGN_UNALIGNED_INPUT:'已比对文件中的序列长度必须一致。',
-    REALIGN_SIZE_LIMIT:'输入超过重比对试运行的序列数、列数或总字符数限制。',REALIGN_INVALID_FASTA:'无法解析 FASTA，请检查文件格式。',
-    REALIGN_INVALID_ID:'FASTA 标识为空或含有不支持的控制字符。',REALIGN_INPUT_MISMATCH:'初始比对与清洗后的序列内容不一致。',
-    REALIGN_DISABLED:'重比对服务暂未开放。',REALIGN_UNAVAILABLE:'重比对服务暂不可用。',REALIGN_TIMEOUT:'重比对超时，初始比对已保留。',
-    REALIGN_EXECUTION_FAILED:'重比对工具未成功完成，初始比对已保留。',REALIGN_OUTPUT_INVALID:'重比对输出未通过序列完整性检查，初始比对已保留。',
-    REALIGN_INTERNAL_ERROR:'重比对未能完成，初始比对已保留。',UPLOAD_TOO_LARGE:'上传文件或解压后的 FASTA 超过大小限制。',
-    UNSUPPORTED_FILE_TYPE:'请上传 FASTA 或 gzip 压缩的 FASTA 文件。',QUEUE_FULL:'任务队列已满，请稍后重试。'
-  };
-  const position=message.match(/(?:at record|at line) (\d+)(?:: (.*))?/);
-  return (messages[code]??message)+(position?`（位置 ${position[1]}${position[2]?`：${position[2]}`:''}）`:'');
+export function realignmentError(locale: "zh" | "en", code: string, message: string) {
+  return apiErrorMessage({ code, message }, locale);
 }

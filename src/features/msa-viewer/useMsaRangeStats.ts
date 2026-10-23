@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useMsaDataSession } from "./sharedDataSession";
+import { useEffect, useMemo, useState } from "react";
 import type { MSASequence, SequenceAlphabet } from "../../lib/types/msa";
 import type {
   ColumnRange,
@@ -21,6 +22,7 @@ const rangeCache = new Map<string, RangeStats>();
 let nextRangeRequestId = 1;
 
 export type UseMsaRangeStatsOptions = {
+  dataSource?: MSASequence[];
   sourceFingerprint: string;
   scopeRowKeys: readonly string[];
   sequences: MSASequence[];
@@ -82,11 +84,12 @@ export function clearMsaRangeStatsCacheForTests() {
 }
 
 export function useMsaRangeStats(options: UseMsaRangeStatsOptions) {
+  const session = useMsaDataSession(options.dataSource);
   const enabled = (options.enabled ?? true) &&
     options.range !== null &&
     options.sequences.length > 0;
   const debounceMs = Math.max(0, Math.trunc(options.debounceMs ?? 150));
-  const cacheKey = createMsaRangeStatsCacheKey(options);
+  const cacheKey = useMemo(() => createMsaRangeStatsCacheKey(options), [options.sourceFingerprint, options.scopeRowKeys, options.range?.start, options.range?.end, options.consensusMode, options.reference, options.alphabet]);
   const initial = enabled ? rangeCache.get(cacheKey) ?? null : null;
   const [result, setResult] = useState<RangeStats | null>(initial);
   const [resultKey, setResultKey] = useState<string | null>(
@@ -122,6 +125,7 @@ export function useMsaRangeStats(options: UseMsaRangeStatsOptions) {
 
     const requestId = nextRangeRequestId++;
     let cancelled = false;
+    const abort = new AbortController();
     let worker: Worker | null = null;
     let fallbackTimer: number | null = null;
     setResult(null);
@@ -203,6 +207,12 @@ export function useMsaRangeStats(options: UseMsaRangeStatsOptions) {
         }
         return;
       }
+      if (session) {
+        session.run<RangeStats | null>("range", request, abort.signal).then(complete, error => {
+          if (error?.name !== "AbortError") fail(error, error.code, error.message);
+        });
+        return;
+      }
       try {
         worker = new Worker(
           new URL("../../workers/rangeStats.worker.ts", import.meta.url),
@@ -239,6 +249,7 @@ export function useMsaRangeStats(options: UseMsaRangeStatsOptions) {
 
     return () => {
       cancelled = true;
+      abort.abort();
       window.clearTimeout(debounceTimer);
       if (fallbackTimer !== null) {
         window.clearTimeout(fallbackTimer);
@@ -258,6 +269,7 @@ export function useMsaRangeStats(options: UseMsaRangeStatsOptions) {
       closeWorker();
     };
   }, [
+    session,
     cacheKey,
     debounceMs,
     enabled,

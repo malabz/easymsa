@@ -34,7 +34,7 @@ export function useDraftMetadata(key: string, watch: UseFormWatch<{ jobName: str
 }
 
 type WorkKind = "submit" | "realign" | "result" | "viewer" | "job" | "example";
-type WorkEntry = { kind: WorkKind; path: string };
+export type WorkEntry = { kind: WorkKind; path: string };
 let entries: WorkEntry[] = [];
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach(listener => listener());
@@ -43,11 +43,19 @@ export function forgetWork(kind: WorkKind) {
   emit();
 }
 export function forgetJobWork(jobId: string, token: string) {
+  const removed: WorkEntry[] = [];
   entries = entries.filter(entry => {
     if (entry.kind !== "result" && entry.kind !== "job") return true;
     const [path, query] = entry.path.split("?");
-    return path.split("/").pop() !== encodeURIComponent(jobId) || new URLSearchParams(query).get("token") !== token;
+    const keep = path.split("/").pop() !== encodeURIComponent(jobId) || new URLSearchParams(query).get("token") !== token;
+    if (!keep) removed.push(entry);
+    return keep;
   });
+  emit();
+  return removed;
+}
+export function restoreJobWork(previous: WorkEntry[]) {
+  entries = [...entries, ...previous.filter(entry => !entries.some(current => current.kind === entry.kind))].slice(0, 5);
   emit();
 }
 export function useRememberWork(kind: WorkKind, enabled = true) {

@@ -1,8 +1,10 @@
 import { StorageNotice } from "./components/common/StorageNotice";
 import { lazy, Suspense } from "react";
-import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
-import { LoadingState } from "./components/common/LoadingState";
+import { RouteLoadingState } from "./components/layout/RouteLoadingState";
+import { focusMainContent, RouteNavigation } from "./components/layout/RouteNavigation";
+import { NotFoundPage } from "./routes/NotFoundPage";
 import { Footer } from "./components/layout/Footer";
 import { Header } from "./components/layout/Header";
 import { PageMetadata } from "./components/layout/PageMetadata";
@@ -50,7 +52,7 @@ function AppRoutes() {
       retryLabel={d.common.retry}
       title={d.common.appErrorTitle}
     >
-      <Suspense fallback={<LoadingState label={d.common.loadingPage} />}>
+      <Suspense fallback={<RouteLoadingState />}>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/realign" element={<RealignPage />} />
@@ -65,7 +67,7 @@ function AppRoutes() {
           <Route path="/license" element={<LicensePage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/about" element={<AboutPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
     </ErrorBoundary>
@@ -75,20 +77,24 @@ function AppRoutes() {
 export function App() {
   const { dictionary: d } = useLanguage();
   const { pathname } = useLocation();
+  const form = ["/submit", "/realign"].includes(pathname);
+  const analysis = /^\/(job|results|examples)\/.+/.test(pathname);
 
   return (
-    <div className={`flex min-h-screen flex-col${["/submit", "/realign"].includes(pathname) ? " submission-shell" : ""}`}>
+    <div className={`app-shell flex min-h-screen flex-col${form ? " submission-shell" : ""}${analysis ? " analysis-shell" : ""}${pathname === "/lookup" ? " lookup-shell" : ""}`}>
       <a
         className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-lg transition focus:translate-y-0"
         href="#main-content"
+        onClick={event => { event.preventDefault(); focusMainContent(); }}
       >
         {d.common.skipToContent}
       </a>
       <PageMetadata />
+      <RouteNavigation />
       <Header />
       <StorageNotice />
       <main className="flex-1" id="main-content" tabIndex={-1}>
-        <WorkReturnBar />
+        {!analysis && <WorkReturnBar />}
         <AppRoutes />
       </main>
       <Footer />

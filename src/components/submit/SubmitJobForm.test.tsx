@@ -77,4 +77,19 @@ it('preserves the example name on focus and keeps refinement opt-in', async () =
   const name = screen.getByLabelText('Job name'); await waitFor(() => expect(name).toHaveValue('Synthetic DNA example'));
   await user.click(name); expect(name).toHaveValue('Synthetic DNA example');
   expect(screen.getByRole('checkbox', { name: 'Refine alignment quality' })).not.toBeChecked();
+  expect(screen.getByRole('tab', { name: 'Paste FASTA' })).toHaveAttribute('aria-selected', 'true');
+  expect(screen.getByLabelText('FASTA sequences')).toHaveValue('>a\nACGT\n>b\nACGA\n');
+});
+it('disables empty input and protects a restored draft from an example URL', async () => {
+  const initial = show(); expect(submitButton()).toBeDisabled();
+  const user = await validInput();
+  const oldName = (screen.getByLabelText('Job name') as HTMLInputElement).value;
+  initial.unmount();
+  render(<MemoryRouter initialEntries={['/submit?example=alignment-small']}><LanguageProvider><SubmitJobForm /></LanguageProvider></MemoryRouter>);
+  expect(screen.getByRole('button', { name: 'Replace input' })).toBeVisible();
+  expect(mocks.load).not.toHaveBeenCalled();
+  expect(screen.getByLabelText('Job name')).toHaveValue(oldName);
+  expect(screen.getByLabelText('FASTA sequences')).toHaveValue('>a\nACGT\n>b\nACGA\n');
+  await user.click(screen.getByRole('button', { name: 'Cancel' }));
+  expect(screen.getByLabelText('Job name')).toHaveValue(oldName);
 });

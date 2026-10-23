@@ -1,6 +1,6 @@
 /* Task-owned desktop workspace. Other routes retain their existing layout. */
 #main-content:has(.analysis-workspace) > .work-return { display: none; }
-.analysis-workspace { display: grid; grid-template-columns: 280px minmax(0, 1fr); max-width: 1440px; margin: 0 auto; position: relative; }
+.analysis-workspace { display: grid; grid-template-columns: 280px minmax(0, 1fr); max-width: var(--layout-analysis-width); margin: 0 auto; position: relative; }
 .analysis-sidebar { display: flex; flex-direction: column; gap: 14px; padding: 22px 22px 20px; border-right: 1px solid #dfe8ee; background: #f3f9f9; min-width: 0; position: relative; }
 .analysis-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; padding: 23px 28px 18px; position: relative; }
 .workspace-back { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: #0f766e; line-height: 1.5; }
@@ -97,8 +97,8 @@
 .job-credentials code { display: block; overflow-wrap: anywhere; color: #475569; font-size: 12px; margin-bottom: 8px; }
 .job-preprocess-details { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
 .job-preprocess-details h3 { color: #334155; font-weight: 600; }
-@media (min-width: 1024px) and (min-height: 700px) {
-  .analysis-workspace { height: var(--analysis-height, calc(100dvh - 134px)); }
+@media (min-width: 1024px) {
+  .analysis-workspace { height: var(--analysis-height, calc(100dvh - 109px)); }
   .analysis-sidebar { min-height: 0; overflow-y: auto; overscroll-behavior-y: contain; scrollbar-width: thin; }
   .analysis-main { overflow: hidden; }
 }
@@ -110,7 +110,7 @@
   .overview-metric { padding-block: 7px; }
   .overview-quality canvas { height: 112px; }
 }
-@media (min-width: 1024px) and (min-height: 700px) and (max-height: 760px) {
+@media (min-width: 1024px) and (max-height: 760px) {
   .analysis-sidebar { gap: 7px; padding-top: 12px; padding-bottom: 12px; }
   .analysis-main { padding-top: 12px; padding-bottom: 12px; }
   .analysis-heading { margin-bottom: 8px; }

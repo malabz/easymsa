@@ -1,5 +1,6 @@
-import { ArrowRight, ChevronDown, History, Trash2, Upload } from "lucide-react";
-import { type ChangeEvent, useRef, useState } from "react";
+import { ArrowRight, ChevronDown, Download, History, Search, Trash2, Upload } from "lucide-react";
+import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { zipSync, strToU8 } from "fflate";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/common/Button";
 import { savedKeyLabel } from "../components/job/SavedJobAccessChoices";
@@ -9,19 +10,20 @@ import {
   type JobAccess,
   isValidJobId,
   jobRoute,
-  readJobAccessRecords,
+  downloadableAccessJson,
+  saveJobAccess,
   validateJobAccess
 } from "../lib/api/tokens";
 import { useLanguage } from "../lib/i18n/useLanguage";
-import { forgetJobWork } from "../lib/workspace";
+import { forgetJobWork, restoreJobWork, type WorkEntry } from "../lib/workspace";
+import { useJobAccessRecords } from "../lib/query/useJobAccessRecords";
 
 function sortCachedAccess(records: JobAccess[]) {
   return [...records]
     .sort(
       (left, right) =>
-        new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime()
-    )
-    .slice(0, 50);
+        new Date(right.lastOpenedAt ?? right.createdAt).getTime() - new Date(left.lastOpenedAt ?? left.createdAt).getTime()
+    );
 }
 
 function formatCreatedAt(createdAt: string, locale: string) {
@@ -43,19 +45,24 @@ export function LookupPage() {
   const [jobId, setJobId] = useState("");
   const [token, setToken] = useState("");
   const [error, setError] = useState<RecoveryError | null>(null);
-  const [cachedAccess, setCachedAccess] = useState<JobAccess[]>(() =>
-    sortCachedAccess(readJobAccessRecords())
-  );
+  const records = useJobAccessRecords();
+  const cachedAccess = useMemo(() => sortCachedAccess(records), [records]);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(0);
+  const filteredAccess = useMemo(() => cachedAccess.filter(record => record.jobId.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())), [cachedAccess, search]);
+  const pageCount = Math.max(1, Math.ceil(filteredAccess.length / 50));
+  const currentPage = Math.min(page, pageCount - 1);
+  const visibleAccess = filteredAccess.slice(currentPage * 50, (currentPage + 1) * 50);
+  const [removed, setRemoved] = useState<{ access: JobAccess; work: WorkEntry[] } | null>(null);
+  useEffect(() => {
+    if (!removed) return;
+    const timeout = window.setTimeout(() => setRemoved(null), 10_000);
+    return () => window.clearTimeout(timeout);
+  }, [removed]);
   const [otherMethodsOpen, setOtherMethodsOpen] = useState(cachedAccess.length === 0);
   const invalidJobIdMessage = locale === "zh"
     ? "请输入有效任务号（最多 64 个字符），可包含文字、数字、空格、下划线、连字符、点和括号，不能包含连续两个点。"
     : "Enter a valid job ID (up to 64 characters): letters, numbers, spaces, underscores, hyphens, dots and parentheses are supported; consecutive dots are not allowed.";
-
-  function refreshCachedAccess() {
-    const records = sortCachedAccess(readJobAccessRecords());
-    setCachedAccess(records);
-    if (records.length === 0) setOtherMethodsOpen(true);
-  }
 
   function restore(nextJobId: string, nextToken: string) {
     const trimmedJobId = nextJobId.trim();
@@ -81,10 +88,21 @@ export function LookupPage() {
   }
 
   function removeCachedAccess(access: JobAccess) {
-    forgetJobWork(access.jobId, access.token);
-    deleteJobAccess(access.jobId, access.token);
+    if (!deleteJobAccess(access.jobId, access.token)) return;
+    const work = forgetJobWork(access.jobId, access.token);
+    setRemoved({ access, work });
     setError(null);
-    refreshCachedAccess();
+  }
+
+  function downloadRecoveryFiles() {
+    const files = Object.fromEntries(cachedAccess.map((access, index) => [
+      `job-${String(index + 1).padStart(4, "0")}.json`, strToU8(downloadableAccessJson(access))
+    ]));
+    const bytes = zipSync(files);
+    const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: "application/zip" }));
+    const anchor = document.createElement("a");
+    anchor.href = url; anchor.download = "easymsa-job-recovery.zip"; anchor.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
@@ -129,18 +147,36 @@ export function LookupPage() {
             {d.lookup.cachedTitle}
             <span className="lookup-count">{cachedAccess.length}</span>
           </h2>
-          {cachedAccess.length > 0 && <span className="work-hint">{d.lookup.cachedOrder}</span>}
+          {cachedAccess.length > 0 && <span className="work-hint">{locale === "zh" ? "按最近访问排序" : "Most recently opened first"}</span>}
         </div>
+
+        {cachedAccess.length > 0 && <div className="flex shrink-0 flex-wrap items-center gap-3 py-2">
+          <label className="relative min-w-0 flex-1 sm:max-w-sm">
+            <Search size={15} aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+            <input className="work-control !pl-9" type="search" value={search}
+              aria-label={locale === "zh" ? "查找已保存任务" : "Find saved jobs"}
+              placeholder={locale === "zh" ? "查找任务" : "Find a job"}
+              onChange={event => { setSearch(event.target.value); setPage(0); }} />
+          </label>
+          <Button size="sm" variant="outline" onClick={downloadRecoveryFiles}><Download size={15} />{locale === "zh" ? "导出恢复文件" : "Export recovery files"}</Button>
+        </div>}
+        {removed && <div role="status" className="flex shrink-0 flex-wrap items-center gap-3 border-l-2 border-teal-600 px-3 py-2 text-sm">
+          <span>{locale === "zh" ? "已移除本机记录。" : "Local record removed."}</span>
+          <button type="button" className="work-link" onClick={() => {
+            if (!saveJobAccess(removed.access)) return;
+            restoreJobWork(removed.work); setRemoved(null);
+          }}>{locale === "zh" ? "撤销" : "Undo"}</button>
+        </div>}
 
         {cachedAccess.length > 0 ? (
           <div className="lookup-list">
             <div aria-hidden="true" className="lookup-column-labels">
               <span>{d.lookup.jobId}</span>
-              <span>{d.lookup.cachedCreatedAt}</span>
+              <span>{locale === "zh" ? "最近访问 / 创建时间" : "Last opened / created"}</span>
               <span />
             </div>
             <ul aria-labelledby="cached-jobs-heading" className="lookup-rows">
-              {cachedAccess.map((access) => {
+              {visibleAccess.map((access) => {
                 const matchingRecords = cachedAccess.filter(record => record.jobId === access.jobId);
                 const keyLabel = matchingRecords.length > 1
                   ? savedKeyLabel(access, matchingRecords.indexOf(access), locale)
@@ -153,8 +189,8 @@ export function LookupPage() {
                     {keyLabel && <span className="block text-xs font-normal text-slate-500">{keyLabel}</span>}
                   </div>
                   <div className="lookup-created">
-                    <span className="lookup-created-label">{d.lookup.cachedCreatedAt}: </span>
-                    <time dateTime={access.createdAt}>{formatCreatedAt(access.createdAt, locale)}</time>
+                    <span className="lookup-created-label">{locale === "zh" ? "最近访问" : "Last opened"}: </span>
+                    <time dateTime={access.lastOpenedAt ?? access.createdAt}>{formatCreatedAt(access.lastOpenedAt ?? access.createdAt, locale)}</time>
                   </div>
                   <div className="lookup-row-actions">
                     <Button
@@ -180,11 +216,18 @@ export function LookupPage() {
                 );
               })}
             </ul>
+            {filteredAccess.length === 0 && <p role="status" className="lookup-empty">{locale === "zh" ? "没有匹配的任务。" : "No matching jobs."}</p>}
           </div>
         ) : (
           <p className="lookup-empty">{d.lookup.cachedEmpty}</p>
         )}
+        {pageCount > 1 && <nav aria-label={locale === "zh" ? "任务列表分页" : "Job list pages"} className="flex shrink-0 items-center justify-end gap-3 py-2 text-sm">
+          <Button size="sm" variant="outline" disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>{locale === "zh" ? "上一页" : "Previous"}</Button>
+          <span>{currentPage + 1} / {pageCount}</span>
+          <Button size="sm" variant="outline" disabled={currentPage === pageCount - 1} onClick={() => setPage(currentPage + 1)}>{locale === "zh" ? "下一页" : "Next"}</Button>
+        </nav>}
         <p className="work-hint lookup-storage-note">{d.lookup.cachedDescription}</p>
+        {cachedAccess.length > 0 && <p className="work-hint shrink-0">{locale === "zh" ? "恢复文件含访问密钥，请妥善保存。解压后可导入单个任务的 JSON 文件。" : "Recovery files contain access keys. Keep them private; extract the ZIP to import a job’s JSON file."}</p>}
       </section>
 
       <section aria-labelledby="other-recovery-heading" className="lookup-alternatives">

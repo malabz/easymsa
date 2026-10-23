@@ -9,6 +9,7 @@ import { ResultPanels } from "../components/results/ResultPanels";
 import { ResultTabs } from "../components/results/ResultTabs";
 import { AnalysisWorkspace } from "../components/layout/AnalysisWorkspace";
 import { ResultSidebar } from "../components/results/ResultSidebar";
+import { ResultStageControl, ResultStageNotice } from "../components/results/ResultStageControl";
 import {
   exampleTitle,
   exampleUrl,
@@ -140,12 +141,7 @@ function ExampleResult({ example }: { example: PublicExample }) {
       ? "示例文件缺失或完整性校验失败，请重新加载。"
       : "Example files are missing or failed integrity verification. Please reload."
     : null;
-  const stageControl = Object.keys(example.stages).length > 1 ? (<label>
-          {zh ? "结果版本" : "Result version"}
-          <select aria-label={zh ? "结果版本" : "Result version"} value={stage} onChange={e => setStage(e.target.value as ResultStage)}>
-            {Object.keys(example.stages).map(s => <option key={s} value={s}>{zh ? { final: "最终", initial: "初始", refined: "重比对" }[s] : s}</option>)}
-          </select>
-        </label>) : null;
+  const stageControl = <ResultStageControl stage={stage} stages={Object.keys(example.stages) as ResultStage[]} onChange={setStage} />;
   return (
     <AnalysisWorkspace sidebar={<ResultSidebar
       title={exampleTitle(example, locale)}
@@ -169,11 +165,7 @@ function ExampleResult({ example }: { example: PublicExample }) {
       <div className="analysis-panels">
       {example.kind === "realignment" && (
         <section className="flex flex-wrap gap-x-4 gap-y-1 border-l-2 border-teal-700 pl-3 text-xs leading-6 text-slate-600">
-          <p>
-            {zh
-              ? "当前显示重比对结果。"
-              : "Showing the refined alignment."}
-          </p>
+          <ResultStageNotice stage={stage === "final" ? example.stages.refined ? "refined" : "initial" : stage} />
           {example.sameInitialAndRefined && <p>
             {zh
                 ? "重比对结果与初始比对一致。"

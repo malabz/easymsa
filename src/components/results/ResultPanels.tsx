@@ -23,7 +23,7 @@ export function ResultPanels({
   error,
   files,
   context,
-  sourceName, workspaceScope, headerActions, onRetry,
+  sourceName, workspaceScope, headerActions, onRetry, onLoadAlignment,
 }: {
   activeTab: ResultTab;
   setActiveTab: (tab: ResultTab) => void;
@@ -39,6 +39,7 @@ export function ResultPanels({
   workspaceScope?: string;
   headerActions?: ReactNode;
   onRetry?: () => void;
+  onLoadAlignment?: () => void;
 }) {
   const { dictionary: d, locale } = useLanguage();
   const onReturn = () => setActiveTab("overview");
@@ -69,6 +70,7 @@ export function ResultPanels({
             alignmentPending={alignmentPending}
             onOpenAlignment={() => setActiveTab("alignment")}
             onOpenDownloads={() => setActiveTab("downloads")}
+            onLoadAlignment={onLoadAlignment}
             summary={summary}
           />
         ) : null}

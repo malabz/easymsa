@@ -9,6 +9,8 @@ import {
   SquareCheckBig
 } from "lucide-react";
 import {
+  memo,
+  useCallback,
   useEffect,
   useId,
   useLayoutEffect,
@@ -31,6 +33,7 @@ import { rowKeyForSequence } from "./alignmentModel";
 import { differenceColorClass } from "./differenceColors";
 import { MsaRowMenu } from "./MsaRowMenu";
 import { MsaCanvasMatrix } from "./MsaCanvasMatrix";
+import { MsaColumnGuide } from "./MsaColumnGuide";
 import { MsaFrequencyLogo } from "./MsaFrequencyLogo";
 import { AXIS_HEIGHT, TRACK_HEIGHT, LOGO_HEIGHT, CONSENSUS_HEIGHT, frozenHeight } from "./viewerGeometry";
 import { MsaStatisticTrack } from "./MsaStatisticTrack";
@@ -176,7 +179,7 @@ export function sortedPositionIndex(values: number[], target: number) {
   return -1;
 }
 
-function SequenceCells({
+const SequenceCells = memo(function SequenceCells({
   colorScheme,
   differenceMode,
   dragAnchorRef,
@@ -343,7 +346,7 @@ function SequenceCells({
       })}
     </div>
   );
-}
+});
 
 function CoordinateRuler({
   alignmentLength,
@@ -491,7 +494,6 @@ export function MsaDomMatrix({
   const { dictionary: d, locale } = useLanguage();
   const coarsePointer = useCoarsePointer();
   const maxMotifCount = useMemo(()=>motifColumnHitCounts?.reduce((m,n)=>Math.max(m,n),1)??1,[motifColumnHitCounts]);
-  const [hoverIndex,setHoverIndex]=useState<number|null>(null);
   const [globalRowMenuPosition, setGlobalRowMenuPosition] = useState<{ left: number; top: number } | null>(null);
   const reactGridId = useId();
   const gridId = `msa-grid-${reactGridId.replace(/[^a-zA-Z0-9_-]/g, "")}`;
@@ -594,7 +596,7 @@ export function MsaDomMatrix({
 
   useLayoutEffect(() => {
     const viewport = scrollRef.current;
-    if (settings.showCharacters || activeSequenceRowIndex < 0 || !viewport) {
+    if ((settings.showCharacters && !coarsePointer) || activeSequenceRowIndex < 0 || !viewport) {
       setGlobalRowMenuPosition(null);
       return;
     }
@@ -626,7 +628,7 @@ export function MsaDomMatrix({
       observer?.disconnect();
       window.removeEventListener("resize", positionMenu);
     };
-  }, [activeSequenceRowIndex, headerHeight, scrollRef, settings.labelWidth, settings.rowHeight, settings.showCharacters]);
+  }, [activeSequenceRowIndex, coarsePointer, headerHeight, scrollRef, settings.labelWidth, settings.rowHeight, settings.showCharacters]);
 
   const activeBase = selection && activeSequenceRow
     ? activeSequenceRow.sequence.sequence[selection.position - 1] ?? ""
@@ -682,9 +684,13 @@ export function MsaDomMatrix({
     });
   }, [activeTracks, settings.showCharacters, virtualColumns, virtualRows]);
 
-  function focusGrid() {
+  const callbacks = useRef({ onSelect, onRangeSelect });
+  useLayoutEffect(() => { callbacks.current = { onSelect, onRangeSelect }; }, [onSelect, onRangeSelect]);
+  const selectCell = useCallback((...args: Parameters<typeof onSelect>) => callbacks.current.onSelect(...args), []);
+  const selectRange = useCallback((...args: Parameters<typeof onRangeSelect>) => callbacks.current.onRangeSelect(...args), []);
+  const focusGrid = useCallback(() => {
     scrollRef.current?.focus({ preventScroll: true });
-  }
+  }, [scrollRef]);
 
   function handleMatrixKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
     const target = event.target as HTMLElement;
@@ -752,11 +758,6 @@ export function MsaDomMatrix({
     <div
       className="relative h-full min-h-0 overflow-hidden"
       ref={viewportRef}
-      onPointerLeave={()=>setHoverIndex(null)}
-      onPointerMove={event=>{
-        const el=scrollRef.current;if(!el)return; const x=event.clientX-el.getBoundingClientRect().left-settings.labelWidth-12;
-        setHoverIndex(x<0?null:Math.floor((x+el.scrollLeft)/pitch));
-      }}
         onPointerCancelCapture={(event) => releaseTouch(event.pointerId)}
         onPointerDownCapture={(event) => {
           if (event.pointerType === "touch") updatePinch(event.pointerId, event.clientX, event.clientY);
@@ -861,7 +862,7 @@ export function MsaDomMatrix({
               >
                 <MsaStatisticTrack
                   renderColumns={renderColumns}
-                  onSelect={onSelect}
+                  onSelect={selectCell}
                   selectedRange={selectedRange}
                   selection={selection}
                   settings={{...settings, cellHeight: 22}}
@@ -906,8 +907,8 @@ export function MsaDomMatrix({
                   dragAnchorRef={dragAnchorRef}
                   dragMovedRef={dragMovedRef}
                   focusGrid={focusGrid}
-                  onRangeSelect={onRangeSelect}
-                  onSelect={onSelect}
+                  onRangeSelect={selectRange}
+                  onSelect={selectCell}
                   positionView={positionView}
                   renderColumns={renderColumns}
                   rangeSelectionMode={rangeSelectionMode}
@@ -964,6 +965,7 @@ export function MsaDomMatrix({
                           : "bg-white"
                     )}
                     role="rowheader"
+                    onClick={coarsePointer ? () => onSelect({ rowKey, position: positionAt(positionView, 0) ?? 1 }) : undefined}
                     style={{ height: settings.rowHeight }}
                   >
                     {settings.showCharacters && !coarsePointer ? (
@@ -982,7 +984,7 @@ export function MsaDomMatrix({
                     <span className="min-w-0 flex-1 truncate" title={sequence.id}>{sequence.id}</span>
                     {isPinned && <Pin size={12} className="shrink-0 text-teal-700" aria-label={d.results.viewer.stageTwo.pinSequence}/>}
                     {isReference && <Flag size={12} className="shrink-0 text-amber-700" aria-label={d.results.viewer.stageTwo.setReference}/>}
-                    {settings.showCharacters && <MsaRowMenu label={d.results.viewer.stageTwo.rowActions.replace("{name}", sequence.id)}
+                    {settings.showCharacters && !coarsePointer && <MsaRowMenu label={d.results.viewer.stageTwo.rowActions.replace("{name}", sequence.id)}
                       actions={[
                         {label:d.results.viewer.stageTwo.selectSequence,active:isSelected,run:() => onSelectSequence(rowKey)},
                         {label:isPinned ? d.results.viewer.stageTwo.unpinSequence : d.results.viewer.stageTwo.pinSequence,active:isPinned,disabled:isReference,run:() => onPinSequence(rowKey)},
@@ -999,8 +1001,8 @@ export function MsaDomMatrix({
                         dragMovedRef={dragMovedRef}
                         focusGrid={focusGrid}
                         motifPositions={motifPositionMap.get(rowKey)}
-                        onRangeSelect={onRangeSelect}
-                        onSelect={onSelect}
+                        onRangeSelect={selectRange}
+                        onSelect={selectCell}
                         positionView={positionView}
                         renderColumns={renderColumns}
                         rangeSelectionMode={rangeSelectionMode}
@@ -1022,8 +1024,9 @@ export function MsaDomMatrix({
         </div>
       </div>
 
-      {(hoverIndex !== null || selection) && <div aria-hidden="true" style={{position:"absolute",inset:0,zIndex:31,pointerEvents:"none",clipPath:`inset(0 0 0 ${settings.labelWidth+12}px)`}}><div className="msa-column-guide" style={{left:`calc(${settings.labelWidth+12+(hoverIndex ?? visibleIndexOfPosition(positionView,selection!.position))*pitch}px - var(--msa-scroll-x, 0px))`,width:settings.cellWidth}}/></div>}
-      {!settings.showCharacters && activeSequenceRow && globalRowMenuPosition ? (
+      <MsaColumnGuide viewportRef={viewportRef} scrollRef={scrollRef} positions={positionView}
+        position={selection?.position} labelWidth={settings.labelWidth} pitch={pitch} cellWidth={settings.cellWidth}/>
+      {(!settings.showCharacters || coarsePointer) && activeSequenceRow && globalRowMenuPosition ? (
         <div className="absolute z-[55]" style={globalRowMenuPosition}>
           <MsaRowMenu
             key={activeSequenceRow.rowKey}
@@ -1048,7 +1051,7 @@ export function MsaDomMatrix({
           headerHeight={headerHeight}
           motifPositionMap={motifPositionMap}
           onNavigate={onNavigate}
-          onRangeSelect={onRangeSelect}
+          onRangeSelect={selectRange}
           onSelect={(next) => onSelect(next)}
           rangeSelectionMode={rangeSelectionMode}
           reference={reference}

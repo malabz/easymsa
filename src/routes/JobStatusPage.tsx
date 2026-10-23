@@ -21,6 +21,7 @@ import { useLanguage } from "../lib/i18n/useLanguage";
 import { useJobStatus } from "../lib/query/useJobStatus";
 import { copyText } from "../lib/utils/clipboard";
 import { useRememberWork } from "../lib/workspace";
+import { apiErrorMessage } from "../lib/i18n/apiErrors";
 
 type CopyTarget = "jobId" | "token" | "restoreLink" | "json";
 
@@ -41,9 +42,15 @@ export function JobStatusPage() {
   const job = jobQuery.data;
   useRememberWork("job", Boolean(access && jobQuery.isSuccess && job?.jobId === access.jobId));
 
+  // A recovery URL has no creation date. Once authenticated, exports use the
+  // same server-provided date as the saved record rather than the visit time.
+  const downloadAccess = useMemo(() => access && jobQuery.isSuccess && job?.jobId === access.jobId
+    ? { ...access, createdAt: job.createdAt || access.createdAt } : access,
+  [access, jobQuery.isSuccess, job?.jobId, job?.createdAt]);
+
   const accessJson = useMemo(
-    () => (access ? downloadableAccessJson(access) : ""),
-    [access]
+    () => (downloadAccess ? downloadableAccessJson(downloadAccess) : ""),
+    [downloadAccess]
   );
   const restorePath = access ? jobRoute(access.jobId, access.token) : "";
   const restoreLink = restorePath ? hashRouterUrl(restorePath) : "";
@@ -69,7 +76,7 @@ export function JobStatusPage() {
   }
 
   function downloadAccessJson() {
-    if (!access) {
+    if (!downloadAccess) {
       return;
     }
 
@@ -77,14 +84,14 @@ export function JobStatusPage() {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = accessDownloadFilename(access.createdAt);
+    anchor.download = accessDownloadFilename(downloadAccess.createdAt);
     anchor.click();
     URL.revokeObjectURL(url);
   }
 
   useEffect(() => {
     if (access && jobQuery.isSuccess && job?.jobId === access.jobId) {
-      saveJobAccess({ ...access, createdAt: job.createdAt || access.createdAt });
+      saveJobAccess({ ...access, createdAt: job.createdAt || access.createdAt, lastOpenedAt: new Date().toISOString() });
     }
   }, [access, jobQuery.isSuccess, job?.jobId, job?.createdAt]);
 
@@ -97,7 +104,7 @@ export function JobStatusPage() {
       : missingAccess
         ? d.job.missingAccess
         : jobQuery.error instanceof Error
-          ? jobQuery.error.message
+          ? apiErrorMessage(jobQuery.error, locale)
           : null;
   const accessChoices = needsAccessChoice ? <div className="space-y-3">
     <SavedJobAccessChoices records={savedAccess} onSelect={selected => setSearchParams(previous => {
@@ -129,14 +136,18 @@ export function JobStatusPage() {
     error={errorContent}
     recoveryActions={openCredentials => access ? <section className="job-recovery-actions">
       <p>{locale === "zh" ? "可关闭页面，稍后恢复任务。" : "You can close this page and restore the job later."}</p>
-      <Button variant="outline" onClick={() => copyAccessText("restoreLink", restoreLink)}><Copy size={15} />{copyTarget === "restoreLink" ? d.common.copied : d.job.access.copyRestoreLink}</Button>
-      <Button variant="outline" onClick={downloadAccessJson}><Download size={15} />{d.job.access.downloadJson}</Button>
-      <Button variant="ghost" onClick={openCredentials}><Eye size={15} />{locale === "zh" ? "保存与恢复任务" : "Save and recover job"}</Button>
+      <Button variant="outline" onClick={openCredentials}><Download size={15} />{locale === "zh" ? "保存恢复信息" : "Save recovery information"}</Button>
       {copyError && <p className="text-rose-700" role="alert">{copyError}</p>}
       <span className="sr-only" role="status">{copyTarget ? d.common.copied : ""}</span>
     </section> : null}
     credentials={access ? <div className="job-credentials">
       <p className="work-hint">{d.job.access.description}</p>
+      <div className="flex flex-wrap gap-2">
+        <Button size="sm" variant="outline" onClick={() => copyAccessText("restoreLink", restoreLink)}><Copy size={14} />{copyTarget === "restoreLink" ? d.common.copied : d.job.access.copyRestoreLink}</Button>
+        <Button size="sm" variant="outline" onClick={downloadAccessJson}><Download size={14} />{d.job.access.downloadJson}</Button>
+      </div>
+      <span className="sr-only" role="status">{copyTarget ? d.common.copied : ""}</span>
+      <details className="mt-4 border-t border-slate-200 pt-3"><summary className="cursor-pointer text-sm font-medium text-slate-700">{locale === "zh" ? "任务号与访问密钥" : "Job ID and access key"}</summary>
       <section><h3>{d.job.access.jobIdLabel}</h3><code>{access.jobId}</code>
         <Button size="sm" variant="outline" onClick={() => copyAccessText("jobId", access.jobId)}><Copy size={14} />{copyTarget === "jobId" ? d.common.copied : d.job.access.copyJobId}</Button>
       </section>
@@ -147,13 +158,11 @@ export function JobStatusPage() {
           <Button size="sm" variant="ghost" aria-pressed={showSensitiveAccess} onClick={() => setShowSensitiveAccess(value => !value)}>{showSensitiveAccess ? <EyeOff size={14} /> : <Eye size={14} />}{showSensitiveAccess ? d.job.access.hideToken : d.job.access.showToken}</Button>
         </div>
       </section>
-      <section><h3>{d.job.access.restoreLinkLabel}</h3><code>{showSensitiveAccess ? restoreLink : maskedRestoreLink}</code>
-        <Button size="sm" variant="outline" onClick={() => copyAccessText("restoreLink", restoreLink)}><Copy size={14} />{copyTarget === "restoreLink" ? d.common.copied : d.job.access.copyRestoreLink}</Button>
-      </section>
+      <section><h3>{d.job.access.restoreLinkLabel}</h3><code>{showSensitiveAccess ? restoreLink : maskedRestoreLink}</code></section>
       <div className="flex flex-wrap gap-2">
         <Button size="sm" variant="outline" onClick={() => copyAccessText("json", accessJson)}><Copy size={14} />{copyTarget === "json" ? d.common.copied : d.job.access.copyJson}</Button>
-        <Button size="sm" variant="outline" onClick={downloadAccessJson}><Download size={14} />{d.job.access.downloadJson}</Button>
       </div>
+      </details>
       {copyError && <p role="alert" className="text-rose-700">{copyError}</p>}
     </div> : null}
   />;

@@ -1,3 +1,4 @@
+import { useMsaDataSession } from "./sharedDataSession";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { MSASequence } from "../../lib/types/msa";
 import { validateIupacMotif } from "./analysis";
@@ -24,6 +25,7 @@ const motifCache = new Map<string, MotifSearchPayloadV3>();
 let nextMotifRequestId = 1;
 
 export type UseMotifSearchOptions = {
+  dataSource?: MSASequence[];
   sourceFingerprint?: string;
   matchMode?: MotifMatchMode;
   strandMode?: MotifStrandMode;
@@ -63,6 +65,7 @@ export function useMotifSearch(
   motifQuery: string,
   options: UseMotifSearchOptions = {}
 ) {
+  const session = useMsaDataSession(options.dataSource);
   const matchMode = options.matchMode ?? "strict";
   const strandMode = options.strandMode ?? "forward";
   const maxMatches = Math.max(
@@ -86,15 +89,15 @@ export function useMotifSearch(
     ),
     [sequences]
   );
-  const rowOrderKey = JSON.stringify(rowOrder);
-  const cacheKey = JSON.stringify([
+  const rowOrderKey = useMemo(() => JSON.stringify(rowOrder), [rowOrder]);
+  const cacheKey = useMemo(() => JSON.stringify([
     sourceFingerprint,
     rowOrder,
     validation.query,
     matchMode,
     strandMode,
     maxMatches
-  ]);
+  ]), [sourceFingerprint, rowOrder, validation.query, matchMode, strandMode, maxMatches]);
   const cached = validation.valid && validation.query
     ? motifCache.get(cacheKey) ?? null
     : null;
@@ -119,7 +122,9 @@ export function useMotifSearch(
   useEffect(() => {
     const requestId = nextMotifRequestId++;
     const currentValidation = validateIupacMotif(motifQuery);
+    const abort = new AbortController();
     const stopWorker = () => {
+      abort.abort();
       const worker = workerRef.current;
       if (!worker) {
         return;
@@ -140,7 +145,6 @@ export function useMotifSearch(
       }
     };
 
-    stopWorker();
     if (!enabled || !currentValidation.query) {
       setResult(null);
       setResultCacheKey(null);
@@ -238,6 +242,12 @@ export function useMotifSearch(
         }
         return;
       }
+      if (session) {
+        session.run<MotifSearchPayloadV3>("motif", request, abort.signal).then(complete, error => {
+          if (error?.name !== "AbortError") fail(error, error.code ? error : undefined);
+        });
+        return;
+      }
       try {
         const worker = new Worker(
           new URL("../../workers/motif.worker.ts", import.meta.url),
@@ -295,6 +305,7 @@ export function useMotifSearch(
       stopWorker();
     };
   }, [
+    session,
     cacheKey,
     debounceMs,
     enabled,

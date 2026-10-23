@@ -19,10 +19,15 @@ export function clearOwnStorage(keys: readonly string[]): boolean {
     const storage = browserStorage();
     if (!storage) return false;
     keys.forEach((key) => storage.removeItem(key));
+    notifyLocalRecordsChanged();
     return true;
   } catch {
     return false;
   }
+}
+export const LOCAL_RECORDS_CHANGED = "easymsa-local-records-changed";
+export function notifyLocalRecordsChanged() {
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(LOCAL_RECORDS_CHANGED));
 }
 export function reportStorageFailure() {
   if (typeof window !== "undefined")

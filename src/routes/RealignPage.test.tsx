@@ -32,8 +32,19 @@ it('validates task name and email before posting',async()=>{
 it('keeps values after failure and clears the old error on replacement',async()=>{
  mocks.submit.mockRejectedValueOnce(new EasyMsaApiError({code:'REALIGN_UNALIGNED_INPUT',message:'Unequal alignment rows.'}));
  show();const user=await validForm();await user.click(screen.getByRole('button',{name:'Submit Realignment'}));
- expect(await screen.findByRole('alert')).toHaveTextContent('Unequal alignment rows.');expect(screen.getByLabelText('Job name')).toHaveValue('valid-task');expect(screen.getAllByText('aligned.fa')[0]).toBeVisible();
+ expect(await screen.findByRole('alert')).toHaveTextContent('Aligned sequences must have equal lengths.');expect(screen.getByLabelText('Job name')).toHaveValue('valid-task');expect(screen.getAllByText('aligned.fa')[0]).toBeVisible();
+ await waitFor(()=>expect(screen.getByRole('alert')).toHaveFocus());
  await user.upload(screen.getByLabelText('Aligned FASTA file'),new File(['>a\nAC\n>b\nAC\n'],'another.fa'));expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+});
+it('rejects malformed pasted alignments early and keeps the typed content',async()=>{
+ show();const user=userEvent.setup();
+ const input=screen.getByLabelText('FASTA sequences');
+ await user.type(input,'>a\nAC\n>b\nACG');
+ expect(screen.getByText('Aligned sequences must have equal lengths.')).toBeVisible();
+ expect(screen.getByRole('button',{name:'Submit Realignment'})).toBeDisabled();
+ await user.clear(input);await user.type(input,'>a\nAC-\n>b\nACG');
+ expect(screen.getByRole('button',{name:'Submit Realignment'})).toBeEnabled();
+ expect(mocks.submit).not.toHaveBeenCalled();
 });
 it('posts once while busy and navigates after success',async()=>{
  let complete!:(value:unknown)=>void;mocks.submit.mockImplementationOnce(()=>new Promise(resolve=>{complete=resolve;}));

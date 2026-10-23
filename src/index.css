@@ -8,10 +8,27 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  --layout-reading-width: 1280px;
+  --layout-form-width: 1344px;
+  --layout-analysis-width: 1440px;
+  --page-gutter: 16px;
+  --page-space: 24px;
+  --page-title-size: 30px;
+  --control-height: 40px;
+  --control-radius: 6px;
+  --color-accent: #0f766e;
+  --color-text: #0f172a;
+  --color-muted: #64748b;
+  --color-border: #e2e8f0;
 }
 
 html {
   scroll-behavior: smooth;
+  scrollbar-gutter: stable;
+}
+
+@supports not (scrollbar-gutter: stable) {
+  html { overflow-y: scroll; }
 }
 
 body {
@@ -37,6 +54,37 @@ textarea {
 
 :focus-visible {
   scroll-margin: 6rem;
+}
+
+.app-header-inner, .app-footer-inner {
+  width: 100%;
+  max-width: var(--layout-form-width);
+  margin-inline: auto;
+  padding-inline: var(--page-gutter);
+}
+.app-header-inner { display: flex; min-height: 64px; align-items: center; justify-content: space-between; gap: 12px; padding-block: 8px; }
+.app-navigation { display: flex; flex-direction: column; gap: 4px; }
+.app-navigation-link { display: flex; align-items: center; min-height: 44px; padding: 8px 12px; white-space: nowrap; }
+.app-navigation-link:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.app-navigation-scrim { position: fixed; inset: 64px 0 0; height: 100dvh; background: rgb(15 23 42 / .12); }
+.app-mobile-navigation { position: absolute; inset: 100% 0 auto; padding: 12px var(--page-gutter); border-block: 1px solid var(--color-border); background: #fff; box-shadow: 0 10px 18px rgb(15 23 42 / .08); max-height: calc(100dvh - 72px); overflow-y: auto; overscroll-behavior: contain; }
+.app-mobile-navigation .app-navigation { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 12px; }
+.app-footer-inner { display: flex; justify-content: flex-end; align-items: center; min-height: 44px; padding-block: 8px; font-size: 12px; color: var(--color-muted); }
+.app-footer nav a { display: inline-flex; align-items: center; min-height: 28px; text-underline-offset: 3px; }
+.page-container { width: 100%; max-width: var(--layout-reading-width); margin-inline: auto; padding: var(--page-space) var(--page-gutter); }
+.page-container h1 { font-size: var(--page-title-size); line-height: 1.25; font-weight: 650; letter-spacing: -.025em; color: var(--color-text); }
+.page-container h1:focus, #main-content:focus { outline: none; }
+.app-feedback { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 160px; padding: 24px; font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
+@media (min-width: 640px) { :root { --page-gutter: 24px; } }
+@media (min-width: 1024px) {
+  :root { --page-gutter: 32px; }
+  .app-navigation { flex-direction: row; align-items: center; gap: 2px; }
+  .app-navigation-link { min-height: 36px; padding: 6px 10px; }
+}
+@media (max-width: 700px) {
+  :root { --page-title-size: 26px; --page-space: 20px; }
+  .app-footer-inner { padding-block: 10px; }
+  .app-footer nav a { min-height: 36px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

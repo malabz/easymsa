@@ -50,7 +50,7 @@ export function PrivacyPage() {
         ],
         [
           "浏览器本机存储",
-          "浏览器保存语言偏好、最近任务和查看设置。查看设置包括搜索词、筛选、选区和注释。共享电脑上的其他使用者可能读取这些记录。独立本地查看器在浏览器内解析文件，不会自动把文件提交到服务器。",
+          "浏览器保存语言偏好、任务恢复信息和查看记录。查看记录包括搜索词、筛选、选区和标记。输入草稿只在当前页面会话中保留。共享电脑上的其他使用者可能读取这些记录。独立本地查看器在浏览器内解析文件，不会自动把文件提交到服务器。",
         ],
         [
           "Cookie 与跟踪",
@@ -76,7 +76,7 @@ export function PrivacyPage() {
         ],
         [
           "Browser storage",
-          "Your browser stores language preferences, recent jobs and viewer settings. Workspaces may contain searches, motifs, filters, selections, annotations and view settings. Other users of a shared computer may access these records. The standalone local viewer parses files in your browser and does not automatically submit them to the server.",
+          "Your browser stores language preferences, job recovery information and saved views. Saved views include searches, filters, selections and annotations. Input drafts are kept only in the current page session. Other users of a shared computer may access these records. The standalone local viewer parses files in your browser and does not automatically submit them to the server.",
         ],
         [
           "Cookies and tracking",
@@ -120,7 +120,7 @@ export function PrivacyPage() {
               setMessage("");
             }}
           >
-            {zh ? "清除查看器工作区" : "Clear viewer workspaces"}
+            {zh ? "清除查看记录" : "Clear saved views"}
           </Button>
         </div>
         {confirm && (

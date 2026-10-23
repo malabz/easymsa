@@ -33,7 +33,7 @@ export function resolveSequenceExport(snapshot: SequenceExportSnapshot, rowScope
   const start = length ? position(0) : 0;
   const end = length ? position(length - 1) : 0;
   const contiguous = !length || end - start + 1 === length;
-  return { rows, length, start, end, contiguous, position };
+  return { rows, length, start, end, contiguous, position, positions, offset: range ? range.start - 1 : 0 };
 }
 export function sequenceExportText(selection: ReturnType<typeof resolveSequenceExport>) {
   const fasta = selection.rows.map(row => {

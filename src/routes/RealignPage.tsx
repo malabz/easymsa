@@ -1,5 +1,5 @@
 import { ExampleInputLoader } from "../components/submit/ExampleInputLoader";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,12 +11,15 @@ import { estimateFastaSequenceCount } from "../lib/utils/fasta";
 import { FileUploadCard } from "../components/submit/FileUploadCard";
 
 import { useLanguage } from "../lib/i18n/useLanguage";
-import { realignText, realignmentError } from "../lib/i18n/realignment";
+import { realignText } from "../lib/i18n/realignment";
+import { apiErrorMessage } from "../lib/i18n/apiErrors";
 import { useServiceHealth } from "../lib/query/useServiceHealth";
 import { createRealignmentJob } from "../lib/api/jobs";
-import { EasyMsaApiError } from "../lib/api/client";
 import { jobRoute } from "../lib/api/tokens";
 import { taskMetadataSchema } from "../lib/submit/taskMetadata";
+import { focusFormField } from "../lib/submit/formFocus";
+import { validateAlignedPaste } from "../lib/submit/alignedPaste";
+import { readInputText } from "../lib/submit/readInputText";
 import { validateInputFile } from "../lib/utils/fileValidation";
 
 import { TaskMetadataFields } from "../components/submit/TaskMetadataFields";
@@ -44,7 +47,7 @@ export function RealignPage() {
     : file?.name || w.inputPending;
   const [pattern, setPattern] = useDraftState<1 | 2>("realign:pattern", 1);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<{code?: string; message: string} | null>(null);
+  const [error, setError] = useState<unknown>(null);
   const inFlight = useRef(false);
   const settingsRef = useRef<HTMLDivElement>(null);
   const schema = useMemo(() => taskMetadataSchema(d.submit.errors), [d]);
@@ -57,10 +60,22 @@ export function RealignPage() {
     : health.isError || health.data?.coreReady !== true ? "offline"
     : !refinement?.enabled ? "disabled"
     : !refinement.available ? "unavailable" : "ready";
-  const ready = serviceState === "ready";
+  const paused = health.data?.acceptingJobs === false;
+  const ready = serviceState === "ready" && !paused;
   const validation = activeFile ? validateInputFile(activeFile, "realignment", locale) : null;
-  const statusText = t[serviceState];
+  const pasteValidation = useMemo(() => validateAlignedPaste(pastedFasta, locale), [pastedFasta, locale]);
+  const validInput = Boolean(validation?.valid && (inputMethod !== "paste" || pasteValidation.valid));
+  const statusText = paused ? (locale === "zh" ? "服务维护中，暂不接收新任务。" : "Submissions are paused for maintenance.") : t[serviceState];
   const StatusIcon = health.isPending ? Loader2 : ready ? Activity : CircleAlert;
+  const name = watch("jobName");
+  const email = watch("email");
+  const hasDraft = Boolean(file || pastedFasta.trim() || name.trim() || email.trim() || pattern !== 1);
+
+  useEffect(() => {
+    if (!error) return;
+    const frame = requestAnimationFrame(() => focusFormField(settingsRef.current, "realignment-error"));
+    return () => cancelAnimationFrame(frame);
+  }, [error]);
 
   function suggestName(input: HTMLInputElement) {
     if (getValues("jobName").trim()) return false;
@@ -72,16 +87,11 @@ export function RealignPage() {
     input.value = name; input.select(); return true;
   }
   function focusInvalid(invalid: { jobName?: unknown; email?: unknown }) {
-    const panel = settingsRef.current;
-    const target = panel?.querySelector<HTMLInputElement>(invalid.jobName ? "#jobName" : "#email");
-    if (!panel || !target) return;
-    target.focus({ preventScroll: true });
-    panel.scrollTop += target.getBoundingClientRect().top - panel.getBoundingClientRect().top - 16;
-    if (window.innerWidth < 1024) target.scrollIntoView({ block: "center" });
+    focusFormField(settingsRef.current, invalid.jobName ? "jobName" : "email");
   }
 
   async function submit(values: Values) {
-    if (inFlight.current || !ready || !activeFile || !validation?.valid) return;
+    if (inFlight.current || !ready || !activeFile || !validInput) return;
     inFlight.current = true;
     setBusy(true);
     setError(null);
@@ -90,7 +100,7 @@ export function RealignPage() {
       clearDraft("realign"); forgetWork("realign");
       navigate(jobRoute(job.jobId, job.token!));
     } catch (e) {
-      setError(e instanceof EasyMsaApiError ? {code: e.code, message: e.message} : {message: e instanceof Error ? e.message : String(e)});
+      setError(e);
     } finally {
       inFlight.current = false;
       setBusy(false);
@@ -114,8 +124,8 @@ export function RealignPage() {
           <div className="work-input">
             <div className="work-input-heading">
               <h2>{locale === "zh" ? "已比对序列" : "Aligned sequences"}</h2>
-              <ExampleInputLoader kind="realignment" disabled={busy} hasInput={Boolean(activeFile)}
-                onLoad={async next => { if (inputMethod === "paste") setPastedFasta(await next.text()); else setFile(next); setPattern(1); setError(null); setExampleLoaded(true); setValue("jobName", "Synthetic DNA refinement"); }} />
+              <ExampleInputLoader kind="realignment" disabled={busy} hasInput={hasDraft}
+                onLoad={async next => { if (inputMethod === "paste") setPastedFasta(await readInputText(next)); else setFile(next); setPattern(1); setError(null); setExampleLoaded(true); setValue("jobName", "Synthetic DNA refinement"); }} />
             </div>
             <InputMethodTabs value={inputMethod} onChange={method => { setInputMethod(method); setExampleLoaded(false); setError(null); }} />
             <div id="input-panel-paste" role="tabpanel" aria-labelledby="input-tab-paste" hidden={inputMethod !== "paste"}>
@@ -125,11 +135,13 @@ export function RealignPage() {
                   <span className="work-hint">{locale === "zh" ? `字符数：${pastedFasta.length.toLocaleString()} · 序列数：${sequenceCount.toLocaleString()}` : `${pastedFasta.length.toLocaleString()} characters · ${sequenceCount.toLocaleString()} sequences`}</span>
                 </div>
                 <textarea id="alignedFasta" className="work-control font-mono" value={pastedFasta} disabled={busy}
-                  aria-describedby="alignedFasta-hint" aria-invalid={Boolean(pastedFile && !validation?.valid && inputMethod === "paste")}
+                  aria-describedby="alignedFasta-hint alignedFasta-validation" aria-invalid={Boolean(pastedFile && !validInput && inputMethod === "paste")}
                   placeholder={">seq1\nACGT-ACGT\n>seq2\nACGTTAC-T"}
                   onChange={event => { setPastedFasta(event.target.value); setExampleLoaded(false); setError(null); }} />
                 <p id="alignedFasta-hint" className="work-hint mt-2">{locale === "zh" ? "各序列应等长，请保留缺口符号“-”。" : "Sequences must have equal lengths. Preserve gap characters (-)."}</p>
-                {inputMethod === "paste" && pastedFile && validation && !validation.valid && <p role="alert" className="work-error">{locale === "zh" ? "粘贴内容超过上传大小限制，请缩小数据规模。" : "Pasted content exceeds the upload size limit. Please use a smaller dataset."}</p>}
+                <p id="alignedFasta-validation" className={pastedFile && !validInput ? "work-error" : "work-hint"} aria-live="polite">
+                  {inputMethod === "paste" && pastedFile && (!validation?.valid ? validation?.errors[0] : pasteValidation.message)}
+                </p>
               </div></div>
             </div>
             <div id="input-panel-upload" role="tabpanel" aria-labelledby="input-tab-upload" hidden={inputMethod !== "upload"}>
@@ -167,7 +179,7 @@ export function RealignPage() {
               </dl> : <p className="work-hint">{t.limits}</p>}
               <p className="work-hint realignment-citation"><Link className="work-link" to="/about">{locale === "zh" ? "引用方法" : "Cite this method"}</Link></p>
             </section>
-            {error && <p role="alert" className="work-error py-2">{error.code ? realignmentError(locale, error.code, error.message) : error.message}</p>}
+            {Boolean(error) && <p id="realignment-error" tabIndex={-1} role="alert" className="work-error py-2">{apiErrorMessage(error, locale)}</p>}
           </div>
         </fieldset>
         <div className="work-actionbar">
@@ -176,7 +188,7 @@ export function RealignPage() {
             <span className="max-w-64 truncate" title={inputSummary}>{inputSummary}</span>
             <span>{pattern === 1 ? t.localFirst : t.globalFirst}</span>
           </div>
-          <Button type="submit" disabled={busy || !ready || !validation?.valid}>
+          <Button type="submit" disabled={busy || !ready || !validInput}>
             {busy && <Loader2 className="h-4 w-4 animate-spin" />}{busy ? t.pending : t.submit}
           </Button>
         </div>

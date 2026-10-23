@@ -1,10 +1,12 @@
 import "@testing-library/jest-dom/vitest";
 import {
+  act,
   cleanup,
   fireEvent,
   render,
   screen,
-  waitFor
+  waitFor,
+  within
 } from "@testing-library/react";
 import axe from "axe-core";
 import { useLocation, MemoryRouter, Route, Routes } from "react-router-dom";
@@ -73,6 +75,62 @@ describe("DocsPage", () => {
     window.localStorage.clear();
   });
 
+  it("keeps the plain documentation entry at the page heading without scrolling", async () => {
+    renderDocs();
+    await act(async () => {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    });
+
+    expect(screen.getByRole("heading", { level: 1, name: "Documentation" })).toBeVisible();
+    expect(document.getElementById("docs-section-quick-start")).toBeVisible();
+    expect(screen.getByTestId("location-search")).toBeEmptyDOMElement();
+    expect(scrollIntoView).not.toHaveBeenCalled();
+  });
+
+  it("opens and focuses the exact section and article in a guide deep link", async () => {
+    renderDocs("/docs?section=msa-viewer&article=reference-analysis");
+    const article = document.getElementById("docs-article-reference-analysis")!;
+
+    await waitFor(() => expect(article.querySelector("summary")).toHaveFocus());
+    expect(document.getElementById("docs-section-msa-viewer")).toBeVisible();
+    expect(document.getElementById("docs-section-quick-start")).not.toBeVisible();
+    expect(article).toHaveAttribute("open");
+    expect(scrollIntoView.mock.instances[scrollIntoView.mock.instances.length - 1]).toBe(article);
+    expect(screen.getByTestId("location-search")).toHaveTextContent(
+      "?section=msa-viewer&article=reference-analysis"
+    );
+  });
+
+  it.each(["en", "zh"] as const)("copies a shareable guide link in %s without altering the open route", async (locale) => {
+    window.localStorage.setItem("easymsa.locale", locale);
+    renderDocs("/docs?section=msa-viewer&article=reference-analysis");
+    const article = document.getElementById("docs-article-reference-analysis")!;
+    fireEvent.click(within(article).getByRole("button", {
+      name: locale === "zh" ? "复制此说明链接" : "Copy link to this guide"
+    }));
+
+    await waitFor(() => expect(writeText).toHaveBeenCalledOnce());
+    const copied = new URL(writeText.mock.calls[0][0]);
+    expect(copied.origin).toBe(window.location.origin);
+    expect(copied.pathname).toBe(window.location.pathname);
+    expect(copied.hash).toBe("#/docs?section=msa-viewer&article=reference-analysis");
+    expect(within(article).getByRole("status")).toHaveTextContent(locale === "zh" ? "已复制" : "Copied");
+    expect(screen.getByTestId("location-search")).toHaveTextContent(
+      "?section=msa-viewer&article=reference-analysis"
+    );
+  });
+
+  it("keeps a guide readable and reports clipboard failure", async () => {
+    writeText.mockRejectedValueOnce(new Error("Clipboard denied"));
+    renderDocs("/docs?section=msa-viewer&article=reference-analysis");
+    const article = document.getElementById("docs-article-reference-analysis")!;
+    fireEvent.click(within(article).getByRole("button", { name: "Copy link to this guide" }));
+
+    await waitFor(() => expect(within(article).getByRole("status")).toHaveTextContent("Could not copy. Try again."));
+    expect(article).toHaveAttribute("open");
+    expect(within(article).getByText(/Open Compare, find and select a reference/)).toBeVisible();
+  });
+
   it("renders the complete center and opens an initial section deep link", async () => {
     const { container } = renderDocs("/docs?section=msa-viewer");
 
@@ -103,8 +161,10 @@ describe("DocsPage", () => {
     fireEvent.click(result);
     expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "smooth", block: "start" });
     await waitFor(() => {
-      expect(screen.getByTestId("location-search")).toHaveTextContent("?section=msa-viewer");
+      expect(screen.getByTestId("location-search")).toHaveTextContent("?section=msa-viewer&article=navigate-search");
     });
+    expect(document.getElementById("docs-article-navigate-search")).toHaveAttribute("open");
+    expect(document.getElementById("docs-article-navigate-search")?.querySelector("summary")).toHaveFocus();
 
     fireEvent.change(search, { target: { value: "no-such-document-term" } });
     expect(screen.getByText("No matching documentation")).toBeInTheDocument();
@@ -132,7 +192,7 @@ describe("DocsPage", () => {
     expect(document.querySelectorAll("details[data-docs-faq='true']")).toHaveLength(6);
   });
 
-  it("opens an FAQ answer selected from search", () => {
+  it("opens an FAQ answer selected from search and retains its article in the URL", () => {
     renderDocs();
     fireEvent.change(
       screen.getByRole("searchbox", { name: "Search documentation" }),
@@ -143,6 +203,7 @@ describe("DocsPage", () => {
     );
 
     expect(document.querySelector("#docs-article-lost-token")).toHaveAttribute("open");
+    expect(screen.getByTestId("location-search")).toHaveTextContent("?section=faq&article=lost-token");
   });
 
   it("exposes all three product entry routes", () => {

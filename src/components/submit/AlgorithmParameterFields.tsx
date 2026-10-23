@@ -47,8 +47,8 @@ export function AlgorithmParameterFields({
       <legend className="px-1 text-sm font-semibold text-slate-900">
         {t.title}
       </legend>
-      <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
-        <p className="max-w-2xl text-xs leading-5 text-slate-500">{t.hint}</p>
+      <div className="algorithm-parameters-heading mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+        <p className="algorithm-parameters-description max-w-2xl text-xs leading-5 text-slate-500">{t.hint}</p>
         <button
           className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-md px-2.5 py-1.5 text-xs font-medium text-teal-700 transition hover:bg-teal-50 focus:outline-none focus:ring-2 focus:ring-teal-200"
           onClick={onReset}
@@ -59,7 +59,7 @@ export function AlgorithmParameterFields({
         </button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="algorithm-parameters-fields grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <label className="text-sm font-medium text-slate-800" htmlFor="algorithmThread">
             {t.thread}

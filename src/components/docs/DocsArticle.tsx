@@ -7,7 +7,8 @@ import {
   Lightbulb,
   TriangleAlert
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { hashRouterUrl } from "../../lib/api/tokens";
 import type { DocsArticle as DocsArticleType, DocsBlock } from "../../lib/docs/content";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import { copyText } from "../../lib/utils/clipboard";
@@ -178,9 +179,14 @@ function ArticleBlocks({ blocks }: { blocks: DocsBlock[] }) {
   );
 }
 
-export function DocsArticle({ article, defaultOpen = false }: { article: DocsArticleType; defaultOpen?: boolean }) {
+export function DocsArticle({ article, defaultOpen = false, requestedOpen = false, sectionId }: {
+  article: DocsArticleType; defaultOpen?: boolean; requestedOpen?: boolean; sectionId?: string;
+}) {
+  const { locale } = useLanguage();
   const articleId = `docs-article-${article.id}`;
-  const [open, setOpen] = useState(defaultOpen);
+  const [open, setOpen] = useState(defaultOpen || requestedOpen);
+  const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
+  useEffect(() => { if (requestedOpen) setOpen(true); }, [requestedOpen]);
 
   return (
     <details
@@ -200,6 +206,15 @@ export function DocsArticle({ article, defaultOpen = false }: { article: DocsArt
         <ChevronDown aria-hidden="true" className="h-5 w-5 shrink-0 text-slate-500 transition group-open:rotate-180" />
       </summary>
       <div className="max-w-3xl border-t border-slate-100 pb-5 pt-1">
+        {sectionId && <div className="mt-2 flex items-center gap-2 text-xs">
+          <button type="button" className="work-link" onClick={async () => {
+            try {
+              await copyText(hashRouterUrl(`/docs?${new URLSearchParams({ section: sectionId, article: article.id })}`));
+              setCopyState("copied");
+            } catch { setCopyState("failed"); }
+          }}><Copy size={13} aria-hidden="true" />{locale === "zh" ? "复制此说明链接" : "Copy link to this guide"}</button>
+          <span role="status">{copyState === "copied" ? locale === "zh" ? "已复制" : "Copied" : copyState === "failed" ? locale === "zh" ? "复制失败，请重试" : "Could not copy. Try again." : ""}</span>
+        </div>}
         <ArticleBlocks blocks={article.blocks} />
       </div>
     </details>

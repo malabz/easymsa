@@ -5,6 +5,7 @@ import {
   flattenDocsText
 } from "./content";
 import { searchDocs } from "./search";
+import { viewerWorkflowEn, viewerWorkflowZh } from "../i18n/viewerWorkflow";
 
 describe("documentation content", () => {
   it("keeps stable section and article IDs across languages", () => {
@@ -51,5 +52,25 @@ describe("documentation content", () => {
       ])
     );
     expect(searchDocs(docsContent.en, "query-that-does-not-exist")).toEqual([]);
+  });
+
+  it.each(["zh", "en"] as const)("uses the current viewer action names in %s instructions", (locale) => {
+    const labels = locale === "zh" ? viewerWorkflowZh : viewerWorkflowEn;
+    const section = docsContent[locale].find(item => item.id === "msa-viewer")!;
+    // Search aliases may retain historic names, but visible instructions must
+    // describe the controls users can currently find in the viewer.
+    const visibleText = flattenDocsText([{
+      ...section,
+      keywords: [],
+      articles: section.articles.map(article => ({ ...article, keywords: [] }))
+    }]);
+    for (const label of [labels.compare, labels.display, labels.checks, labels.showMatches,
+      labels.saveView, labels.downloadSequences, labels.exportImage]) {
+      expect(visibleText).toContain(label);
+    }
+    expect(visibleText).not.toMatch(/\bQC\b|rowKey|neutral|Analysis inspector|分析检查器|工作区设置|导出可见 FASTA/);
+    expect(visibleText).toContain(locale === "zh"
+      ? "统计默认使用全部序列；隐藏和筛选不会自动改变统计范围"
+      : "Statistics default to all sequences; display filters do not change their scope automatically");
   });
 });

@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useWorkEntries } from "../../lib/workspace";
 import { workspaceText } from "../../lib/i18n/workspace";
 import { useLanguage } from "../../lib/i18n/useLanguage";
+import { continuationEntry } from "./workReturn";
 
 export function WorkReturnBar() {
   const { pathname } = useLocation();
@@ -12,9 +13,10 @@ export function WorkReturnBar() {
   // Keep the homepage cover aligned to the viewport; continuation links belong
   // to task and reference pages, not the cover itself.
   if (pathname === "/") return null;
-  const available = entries.filter(entry => entry.path.split("?")[0] !== pathname).slice(0, 2);
-  if (!available.length) return null;
-  return <nav className="work-return" aria-label={copy.returnTo}>
-    {available.map(entry => <Link key={entry.kind} to={entry.path}><ArrowLeft size={14} aria-hidden="true" />{copy[entry.kind]}</Link>)}
+  const entry = continuationEntry(pathname, entries);
+  const reading = !/^\/(submit|realign|viewer|examples|lookup)(\/|$)/.test(pathname);
+  if (!entry) return <div className={`work-return${reading ? " work-return--reading" : ""}`} aria-hidden="true" />;
+  return <nav className={`work-return${reading ? " work-return--reading" : ""}`} aria-label={copy.returnTo}>
+    <Link to={entry.path}><ArrowLeft size={14} aria-hidden="true" />{copy[entry.kind]}</Link>
   </nav>;
 }
