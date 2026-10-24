@@ -15,7 +15,7 @@ export const methods = [
   },
   {
     name: "HAlign",
-    version: "2.0.0",
+    version: "HAlign-5 · 2.0.0",
     origin: "lab",
     role: {
       en: "Large collections of related sequences",
@@ -23,8 +23,8 @@ export const methods = [
     },
     input: { en: "Unaligned nucleotide sequences", zh: "未比对核酸序列" },
     license: "MIT",
-    source: "https://github.com/malabz/HAlign-4",
-    licenseUrl: "https://github.com/malabz/HAlign-4/blob/main/LICENSE",
+    source: "https://github.com/pinglu-zhang/HAlign-5",
+    licenseUrl: "https://github.com/pinglu-zhang/HAlign-5/blob/b0d5608811d44e30bc323da54f0583ceaaf684d2/LICENSE",
     additionalPapers: [{
       paper: "https://doi.org/10.1093/molbev/msac166",
     journal: "Molecular Biology and Evolution",

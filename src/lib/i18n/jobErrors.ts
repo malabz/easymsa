@@ -1,6 +1,7 @@
 type Locale = "zh" | "en";
 
 const messages: Record<string, [string, string]> = {
+  NO_EFFECTIVE_SEQUENCES: ["没有可用于比对的有效序列，请检查输入内容。", "No usable sequences remain after preprocessing. Please check your input."],
   ALIGNMENT_OUTPUT_INVALID: ["比对输出未通过完整性检查，请重新提交或联系维护人员。", "Alignment output failed integrity checks. Resubmit or contact support."],
   WORKER_INTERRUPTED: ["计算任务已中断，请重新提交。", "The computation was interrupted. Please submit a new job."],
   WORKER_LOST: ["计算服务中断，任务已停止。请重新提交。", "The computation stopped after a service interruption. Please submit a new job."],

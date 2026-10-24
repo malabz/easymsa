@@ -34,6 +34,7 @@ const messages: Record<string, [string, string]> = {
   REALIGN_INTERNAL_ERROR: ["重比对未完成，初始结果已保留。", "Realignment did not complete. The initial alignment is retained."],
   REALIGN_NOT_COMPLETED: ["重比对尚未完成。", "Realignment is not complete yet."],
   REALIGN_INPUT_MISMATCH: ["初始比对与输入序列内容不一致。", "The initial alignment does not match the input sequences."],
+  NO_EFFECTIVE_SEQUENCES: ["没有可用于比对的有效序列，请检查输入内容。", "No usable sequences remain after preprocessing. Please check your input."],
   ALIGNMENT_OUTPUT_INVALID: ["比对输出未通过完整性检查，请重新提交或联系维护人员。", "Alignment output failed integrity checks. Resubmit or contact support."],
   INVALID_SERVER_ALIGNMENT_PAYLOAD: ["结果数据无法读取，请重试或下载完整结果。", "The alignment could not be read. Retry or download the complete result."],
   WORKER_INTERRUPTED: ["计算任务已中断，请重新提交。", "The computation was interrupted. Please submit a new task."],

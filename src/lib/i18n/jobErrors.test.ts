@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { jobError } from "./jobErrors";
 describe("reliability errors", () => {
   it("explains integrity failure and interruption in both languages", () => {
-    for (const code of ["ALIGNMENT_OUTPUT_INVALID", "WORKER_INTERRUPTED", "WORKER_LOST", "ALGORITHM_NOT_SUPPORTED"]) {
+    for (const code of ["NO_EFFECTIVE_SEQUENCES", "ALIGNMENT_OUTPUT_INVALID", "WORKER_INTERRUPTED", "WORKER_LOST", "ALGORITHM_NOT_SUPPORTED"]) {
       expect(jobError("zh", code, "fallback")).not.toBe("fallback");
       expect(jobError("en", code, "fallback")).not.toBe("fallback");
     }
