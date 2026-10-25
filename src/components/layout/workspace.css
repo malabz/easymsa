@@ -282,3 +282,45 @@ div.workflow-page { max-width: var(--layout-form-width); padding-block: var(--pa
 @media (max-width: 1023px) {
   .realignment-upload .work-file { min-height: 240px; }
 }
+
+/* Alignment submission follows the page scroll, including expanded parameters. */
+.submission-shell:has(.submission-form--alignment) { height: auto; min-height: 100dvh; }
+.submission-form--alignment .work-grid { flex: 0 0 auto; align-items: start; }
+.submission-form--alignment .work-input,
+.submission-form--alignment .work-settings { overflow: visible; overscroll-behavior: auto; scrollbar-gutter: auto; }
+.submission-form--alignment .work-settings { gap: 16px; padding-right: 0; }
+.submission-form--alignment .work-paste textarea { flex: none; height: clamp(240px, 34vh, 360px); min-height: 200px; resize: vertical; }
+.submission-form--alignment .work-file { min-height: 260px; flex: none; }
+.submission-form--alignment .work-actionbar { position: sticky; bottom: 0; background: #f8fafc; box-shadow: 0 -8px 16px -16px #334155; }
+.submission-form--alignment .work-summary { flex: 1; gap: 5px 14px; font-size: 13px; }
+.submission-summary-settings { width: 100%; display: flex; flex-wrap: wrap; gap: 4px 18px; line-height: 1.6; }
+.submission-summary-settings > div { display: flex; align-items: baseline; gap: 6px; }
+.submission-summary-settings dt { color: #64748b; }
+.submission-summary-settings dd { color: #334155; font-weight: 500; }
+.submission-form--alignment .work-parameters > summary { min-height: 64px; color: #334155; }
+.submission-form--alignment .work-parameters > summary .submission-advanced-label { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+.submission-advanced-label small { color: #64748b; font-weight: 400; font-size: 12px; line-height: 1.6; }
+.submission-form--alignment .work-parameters[open] > summary > svg { transform: rotate(180deg); }
+.submission-form--alignment .work-example:has(.work-example-confirm) { width: 100%; }
+.submission-form--alignment .work-example-confirm { padding: 12px 14px; background: #f1f5f9; border-left: 3px solid #94a3b8; line-height: 1.7; }
+.submission-form--alignment .work-example-confirm > span { flex-basis: 100%; }
+.submission-form--alignment .work-example-confirm button { min-height: 36px; }
+.submission-form--alignment .submission-example-feedback { align-items: flex-start; padding: 12px 14px; margin-top: 14px; }
+.submission-example-feedback > svg { margin-top: 3px; }
+.submission-example-feedback > div { min-width: 0; }
+.submission-example-feedback strong { font-weight: 600; }
+.submission-example-feedback p { margin-top: 4px; color: #375f58; }
+.submission-example-actions { display: flex; flex-wrap: wrap; gap: 4px 20px; margin-top: 6px; }
+.submission-example-actions > a { margin-left: 0; }
+.submission-example-actions :is(a, button) { min-height: 32px; display: inline-flex; align-items: center; }
+.submission-form--alignment :is(input, select, textarea, summary) { scroll-margin-block: 100px; }
+@media (max-width: 700px) {
+  .submission-form--alignment .work-actionbar { flex-wrap: wrap; gap: 10px; padding-block: 10px; }
+  .submission-form--alignment .work-summary { flex-basis: 100%; font-size: 12px; gap: 4px 12px; }
+  .submission-form--alignment .work-summary > span { max-width: 100%; }
+  .submission-form--alignment .work-actionbar > button { width: 100%; min-height: 44px; }
+  .submission-summary-settings { gap: 2px 12px; }
+  .submission-form--alignment .work-control { min-height: 44px; }
+  .submission-form--alignment .work-example button,
+  .submission-example-actions :is(a, button) { min-height: 44px; }
+}

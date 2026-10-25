@@ -30,6 +30,6 @@ describe("AboutPage method presentation", () => {
     }
     expect(document.querySelector("details")).toBeNull();
     expect(screen.queryByRole("heading", { name: /External tools|外部工具/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: /MiniPOA|HAlign[ -][34]/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /minipoa|HAlign[ -][34]/ })).not.toBeInTheDocument();
   });
 });

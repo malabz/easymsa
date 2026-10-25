@@ -77,8 +77,8 @@ export function ExamplesPage() {
               <p className="text-sm leading-7 text-slate-600">
                 {e.kind === "alignment"
                   ? zh
-                    ? "minipoa 比对示例"
-                    : "minipoa alignment example"
+                    ? "MiniPOA 比对示例"
+                    : "MiniPOA alignment example"
                   : zh
                     ? "已有比对的优化示例"
                     : "Refinement of an existing alignment"}

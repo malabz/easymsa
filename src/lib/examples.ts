@@ -38,8 +38,8 @@ export const EXAMPLE_IDS = ["alignment-small", "realignment-small"] as const;
 export function exampleTitle(example: PublicExample, locale: string) {
   return example.kind === "alignment"
     ? locale === "zh"
-      ? "合成 DNA · minipoa 比对"
-      : "Synthetic DNA · minipoa alignment"
+      ? "合成 DNA · MiniPOA 比对"
+      : "Synthetic DNA · MiniPOA alignment"
     : locale === "zh"
       ? "合成 DNA · ReAlign-N 重比对"
       : "Synthetic DNA · ReAlign-N refinement";

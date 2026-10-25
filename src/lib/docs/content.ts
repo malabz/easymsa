@@ -249,7 +249,7 @@ const zh: DocsSection[] = [
             "items": [
               "点击空白任务名称框可生成名称，也可自行填写，最多 64 个字符。",
               "邮箱可选，用于接收完成通知和结果链接。",
-              "默认自动选择比对方法；也可手动选择 minipoa、MAFFT、HAlign 或 FMAlign2。结果页显示实际使用的方法。"
+              "默认使用 Auto；适用范围外按服务器默认策略处理。也可手动选择 MiniPOA、MAFFT、HAlign-5 或 FMAlign2 + MAFFT。结果页显示实际执行的方法。"
             ]
           },
           {
@@ -939,7 +939,7 @@ const en: DocsSection[] = [
             "items": [
               "Click an empty job name field to generate a name, or enter your own, up to 64 characters.",
               "Email is optional and receives completion notices and a results link.",
-              "Auto selects the alignment method. You can also choose minipoa, MAFFT, HAlign or FMAlign2. Results show the method actually used."
+              "Auto is the default; server defaults apply outside its supported range. You can also choose MiniPOA, MAFFT, HAlign-5 or FMAlign2 + MAFFT. Results show the method actually used."
             ]
           },
           {

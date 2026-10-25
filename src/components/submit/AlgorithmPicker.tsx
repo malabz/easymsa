@@ -1,4 +1,5 @@
 import { Sparkles } from "lucide-react";
+import { useId } from "react";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import type { AlignmentAlgorithm } from "../../lib/types/job";
 
@@ -19,6 +20,7 @@ export function AlgorithmPicker({
 }: AlgorithmPickerProps) {
   const { dictionary: d } = useLanguage();
   const t = d.submit;
+  const descriptionId = useId();
   const options: Array<{
     value: AlignmentAlgorithm;
     label: string;
@@ -54,12 +56,25 @@ export function AlgorithmPicker({
   ];
 
   const selectedOption = options.find((option) => option.value === value);
+  const autoGuidance = value === "auto" ? (
+    <details className="rounded-md border border-slate-200 bg-slate-50/80 px-3 py-2 text-sm leading-6 text-slate-600">
+      <summary className="cursor-pointer font-medium text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-teal-600">
+        {t.autoGuidance.title}
+      </summary>
+      <div className="mt-2 space-y-2">
+        <p>{t.autoGuidance.scope}</p>
+        <p>{t.autoGuidance.default}</p>
+        <p>{t.autoGuidance.result}</p>
+      </div>
+    </details>
+  ) : null;
 
   if (compact) return <div className="work-field">
-    <select className="work-control" value={value} aria-label={labelledBy ? undefined : t.algorithm} aria-labelledby={labelledBy} onChange={event => onChange(event.target.value as AlignmentAlgorithm)}>
-      {options.map(option => <option key={option.value} value={option.value} disabled={isDisabled(option.value)}>{option.value === "minipoa" ? "minipoa" : option.label}</option>)}
+    <select className="work-control" value={value} aria-label={labelledBy ? undefined : t.algorithm} aria-labelledby={labelledBy} aria-describedby={descriptionId} onChange={event => onChange(event.target.value as AlignmentAlgorithm)}>
+      {options.map(option => <option key={option.value} value={option.value} disabled={isDisabled(option.value)}>{option.label}</option>)}
     </select>
-    <p className="work-hint">{selectedOption?.description}</p>
+    <p className="work-hint" id={descriptionId}>{selectedOption?.description}</p>
+    {autoGuidance}
   </div>;
 
   return (
@@ -113,6 +128,7 @@ export function AlgorithmPicker({
           {t.algorithmDataFit[selectedOption.value]}
         </div>
       ) : null}
+      {autoGuidance}
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { LanguageProvider } from "../../lib/i18n/LanguageProvider";
 import type { AlignmentAlgorithm } from "../../lib/types/job";
 import { AlgorithmPicker } from "./AlgorithmPicker";
 
-function Harness() {
+function Harness({ compact = false }: { compact?: boolean }) {
   const [value, setValue] = useState<AlignmentAlgorithm>("auto");
   return (
     <LanguageProvider>
@@ -14,6 +14,7 @@ function Harness() {
         isDisabled={() => false}
         onChange={setValue}
         value={value}
+        compact={compact}
       />
     </LanguageProvider>
   );
@@ -50,15 +51,16 @@ describe("AlgorithmPicker", () => {
     expect(screen.getAllByRole("radio")).toHaveLength(5);
     expect(screen.getByRole("radio", { name: /Auto/ })).toBeChecked();
     expect(screen.getByText("Recommended")).toBeInTheDocument();
-    expect(screen.getByRole("radio", { name: /^HAlign/ })).toBeInTheDocument();
-    expect(screen.getByRole("radio", { name: /^FMAlign2/ })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /^MiniPOA/ })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /^HAlign-5/ })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /^FMAlign2 \+ MAFFT/ })).toBeInTheDocument();
     expect(screen.queryByRole("radio", { name: /FMAlign2 \+ HAlign/ })).not.toBeInTheDocument();
   });
 
   it("shows data-fit guidance and updates it when the method changes", () => {
     render(<Harness />);
 
-    expect(screen.getByText(/fits the adaptive training domain/i)).toBeInTheDocument();
+    expect(screen.getByText(/supported range and default handling depend on the current server configuration/i)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("radio", { name: /^HAlign/ }));
     expect(screen.getByText(/Native high-speed alignment for ultra-large DNA\/RNA/i)).toBeInTheDocument();
@@ -78,5 +80,36 @@ describe("AlgorithmPicker", () => {
 
     fireEvent.click(screen.getByRole("radio", { name: /^MAFFT/ }));
     expect(onChange).toHaveBeenCalledWith("mafft");
+  });
+
+  it.each([
+    ["zh", "Auto 的适用范围与默认处理", "超出适用范围时，服务器按默认策略处理"],
+    ["en", "Auto: supported range and defaults", "Outside that range, the server applies its default strategy"]
+  ] as const)("offers expandable Auto guidance in the compact %s picker", (locale, title, defaultText) => {
+    window.localStorage.setItem("easymsa.locale", locale);
+    render(<Harness compact />);
+
+    const select = screen.getByRole("combobox");
+    const summary = screen.getByText(title);
+    const details = summary.closest("details");
+    expect(details).not.toHaveAttribute("open");
+    expect(select).toHaveAccessibleDescription();
+    fireEvent.click(summary);
+    expect(details).toHaveAttribute("open");
+    expect(screen.getByText((text) => text.startsWith(defaultText))).toBeVisible();
+
+    fireEvent.change(select, { target: { value: "mafft" } });
+    expect(screen.queryByText(title)).not.toBeInTheDocument();
+    expect(select).toHaveValue("mafft");
+  });
+
+  it("preserves API values and unavailable states behind the compact method names", () => {
+    const { onChange } = renderPicker({ compact: true, isDisabled: (value) => value === "halign3" });
+
+    expect(screen.getByRole("option", { name: "MiniPOA" })).toHaveValue("minipoa");
+    expect(screen.getByRole("option", { name: "HAlign-5" })).toBeDisabled();
+    expect(screen.getByRole("option", { name: "FMAlign2 + MAFFT" })).toHaveValue("fmalign2_mafft");
+    fireEvent.change(screen.getByRole("combobox"), { target: { value: "fmalign2_mafft" } });
+    expect(onChange).toHaveBeenCalledWith("fmalign2_mafft");
   });
 });

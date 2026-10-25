@@ -45,16 +45,16 @@ const zh = { viewerWorkflow: viewerWorkflowZh,
     serviceOfflineDescription: "当前无法访问后端，仍可使用 MSA 查看器。",
     queueJobs: "队列 {count} 个任务",
     algorithmNames: {
-      auto: "自动选择",
-      minipoa: "minipoa",
+      auto: "Auto（自动选择）",
+      minipoa: "MiniPOA",
       mafft: "MAFFT",
-      mafft_fast: "MAFFT 快速",
-      halign3: "HAlign",
-      fmalign2_mafft: "FMAlign2",
+      mafft_fast: "MAFFT（快速模式）",
+      halign3: "HAlign-5",
+      fmalign2_mafft: "FMAlign2 + MAFFT",
       realign_n: "重比对",
       fmalign2_halign3: "FMAlign2 + HAlign"
     },
-    algorithmAutoResolved: "自动选择：{value}"
+    algorithmAutoResolved: "Auto · 实际执行：{value}"
   },
   footer: {
     tagline: "友好的多序列比对 Web 工作台。",
@@ -119,16 +119,16 @@ const zh = { viewerWorkflow: viewerWorkflowZh,
       "Auto 根据序列特征自动选择比对方法，也可手动指定。",
     adaptiveBadge: "推荐",
     algorithms: {
-      auto: "自动选择",
-      minipoa: "minipoa",
+      auto: "Auto（自动选择）",
+      minipoa: "MiniPOA",
       mafft: "MAFFT",
-      halign3: "HAlign",
-      fmalign2_mafft: "FMAlign2",
+      halign3: "HAlign-5",
+      fmalign2_mafft: "FMAlign2 + MAFFT",
       realign_n: "Realignment",
       fmalign2_halign3: "FMAlign2 + HAlign"
     },
     algorithmDescriptions: {
-      auto: "根据序列特征自动选择合适的比对方法。",
+      auto: "根据 DNA/RNA 序列特征选择方法；适用范围外按服务器默认策略处理。",
       minipoa: "适合相似度较高的大规模序列。",
       mafft: "经典多序列比对，提供多种模式与迭代参数。",
       halign3: "面向超大规模 DNA/RNA 的原生高速比对，内存占用较高。",
@@ -137,12 +137,18 @@ const zh = { viewerWorkflow: viewerWorkflowZh,
     },
     dataFitLabel: "适用数据",
     algorithmDataFit: {
-      auto: "DNA/RNA；适用于约 50–10,000 条序列、长度中位数约 495–10,000 的训练域，超出时回退 minipoa。",
+      auto: "DNA/RNA；适用范围与默认处理取决于服务器当前配置。",
       minipoa: "中等规模、序列相似度较高的数据集，速度快。",
       mafft: "数百至数千条中等长度序列的通用场景。",
       halign3: "超大规模且整体相似的 DNA/RNA，内存占用高。",
       fmalign2_mafft: "大体量数据的加速管线，内置 MAFFT 后端。",
       fmalign2_halign3: "超大规模且高相似数据的加速管线，内置 HAlign 后端。"
+    },
+    autoGuidance: {
+      title: "Auto 的适用范围与默认处理",
+      scope: "Auto 根据输入序列的特征选择方法，适用范围由服务器当前模型与配置决定。",
+      default: "超出适用范围时，服务器按默认策略处理；你也可以手动指定方法。",
+      result: "任务结果中的“Auto · 实际执行”显示记录的最终方法。这个名称本身不区分模型选择与默认处理。"
     },
     algorithmParameters: {
       title: "算法参数",
@@ -962,7 +968,7 @@ const zh = { viewerWorkflow: viewerWorkflowZh,
     subtitle: "一个面向 DNA/RNA 多序列比对的 Web 工具。",
     project:
       "提供核酸比对与重比对、任务恢复和交互式结果查看。",
-    version: "当前版本：自适应 Auto、minipoa、MAFFT、HAlign、FMAlign2、可选 ReAlign-N 与交互结果。",
+    version: "当前版本：Auto、MiniPOA、MAFFT、HAlign-5、FMAlign2 + MAFFT、可选 ReAlign-N 与交互结果。",
     citation: "引用：发表研究时，建议引用实际使用的方法及软件。",
     contact: "联系：问题与建议请通过 GitHub Issues 提交。",
     repository: "GitHub repository：https://github.com/malabz/easymsa"
@@ -1015,15 +1021,15 @@ const en: typeof zh = {
     queueJobs: "{count} jobs queued",
     algorithmNames: {
       auto: "Auto",
-      minipoa: "minipoa",
+      minipoa: "MiniPOA",
       mafft: "MAFFT",
-      mafft_fast: "MAFFT fast",
-      halign3: "HAlign",
-      fmalign2_mafft: "FMAlign2",
+      mafft_fast: "MAFFT (fast)",
+      halign3: "HAlign-5",
+      fmalign2_mafft: "FMAlign2 + MAFFT",
       realign_n: "Realignment",
       fmalign2_halign3: "FMAlign2 + HAlign"
     },
-    algorithmAutoResolved: "Auto-selected: {value}"
+    algorithmAutoResolved: "Auto · actual method: {value}"
   },
   footer: {
     tagline: "A friendly web workspace for multiple sequence alignment.",
@@ -1089,15 +1095,15 @@ const en: typeof zh = {
     adaptiveBadge: "Recommended",
     algorithms: {
       auto: "Auto",
-      minipoa: "minipoa",
+      minipoa: "MiniPOA",
       mafft: "MAFFT",
-      halign3: "HAlign",
-      fmalign2_mafft: "FMAlign2",
+      halign3: "HAlign-5",
+      fmalign2_mafft: "FMAlign2 + MAFFT",
       realign_n: "Realignment",
       fmalign2_halign3: "FMAlign2 + HAlign"
     },
     algorithmDescriptions: {
-      auto: "Automatically selects a suitable method based on sequence features.",
+      auto: "Selects a method from DNA/RNA sequence features; server defaults apply outside its supported range.",
       minipoa: "For large sets of closely related sequences.",
       mafft: "Classic multiple sequence alignment with multiple modes and iteration parameters.",
       halign3: "Native high-speed alignment for ultra-large DNA/RNA datasets; higher memory usage.",
@@ -1106,12 +1112,18 @@ const en: typeof zh = {
     },
     dataFitLabel: "Data fit",
     algorithmDataFit: {
-      auto: "DNA/RNA; fits the adaptive training domain of roughly 50–10,000 sequences with median length about 495–10,000, falling back to minipoa outside it.",
+      auto: "DNA/RNA; the supported range and default handling depend on the current server configuration.",
       minipoa: "Medium-sized datasets with closely related sequences; fast.",
       mafft: "General-purpose use with hundreds to thousands of medium-length sequences.",
       halign3: "Ultra-large, globally similar DNA/RNA sets; high memory usage.",
       fmalign2_mafft: "Accelerated pipeline for large datasets with a built-in MAFFT backend.",
       fmalign2_halign3: "Accelerated pipeline for ultra-large, high-similarity data with a built-in HAlign backend."
+    },
+    autoGuidance: {
+      title: "Auto: supported range and defaults",
+      scope: "Auto uses input sequence features to choose a method. Its supported range depends on the current server model and configuration.",
+      default: "Outside that range, the server applies its default strategy. You can also choose a method manually.",
+      result: "The job result shows the recorded final method as “Auto · actual method”. This label alone does not distinguish model selection from default handling."
     },
     algorithmParameters: {
       title: "Algorithm parameters",
@@ -1932,7 +1944,7 @@ const en: typeof zh = {
     subtitle: "A web tool for DNA/RNA multiple sequence alignment.",
     project:
       "This project offers server alignment and refinement, task recovery and interactive results.",
-    version: "Current version: adaptive Auto selection, minipoa, MAFFT, HAlign, FMAlign2, optional ReAlign-N and interactive results.",
+    version: "Current version: Auto, MiniPOA, MAFFT, HAlign-5, FMAlign2 + MAFFT, optional ReAlign-N and interactive results.",
     citation: "Citation: when publishing research, please cite the methods and software used.",
     contact: "Contact: submit questions and suggestions through GitHub Issues.",
     repository: "GitHub repository: https://github.com/malabz/easymsa"

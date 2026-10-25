@@ -66,8 +66,8 @@ export function AboutPage() {
         </h1>
         <p className="mt-4 text-base leading-7 text-slate-700">
           {zh
-            ? "EasyMSA 集成 minipoa、HAlign、FMAlign2 和 ReAlign-N，支持自动选择方法、重比对及结果浏览。"
-            : "EasyMSA integrates minipoa, HAlign, FMAlign2 and ReAlign-N, with automatic method selection, realignment and interactive results."}
+            ? "EasyMSA 提供 MiniPOA、HAlign-5、MAFFT 和 FMAlign2 + MAFFT，支持 Auto 自动选择方法、ReAlign-N 重比对及结果浏览。"
+            : "EasyMSA offers MiniPOA, HAlign-5, MAFFT and FMAlign2 + MAFFT, with Auto method selection, ReAlign-N realignment and interactive results."}
         </p>
 
       </header>

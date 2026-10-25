@@ -1,6 +1,6 @@
 export const methods = [
   {
-    name: "minipoa",
+    name: "MiniPOA",
     version: "1.0",
     origin: "lab",
     role: { en: "Partial order nucleotide alignment", zh: "核酸偏序图比对" },
@@ -14,8 +14,8 @@ export const methods = [
     title: "Fast and memory efficient partial order alignment with minipoa",
   },
   {
-    name: "HAlign",
-    version: "HAlign-5 · 2.0.0",
+    name: "HAlign-5",
+    version: "2.0.0",
     origin: "lab",
     role: {
       en: "Large collections of related sequences",
@@ -43,7 +43,7 @@ export const methods = [
       "HAlign 4: a new strategy for rapidly aligning millions of sequences",
   },
   {
-    name: "FMAlign2",
+    name: "FMAlign2 + MAFFT",
     version: "2.0.0",
     origin: "lab",
     role: {

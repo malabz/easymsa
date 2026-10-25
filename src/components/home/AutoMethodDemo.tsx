@@ -8,8 +8,13 @@ import { DecisionTreeCanvas } from "./DecisionTreeCanvas";
 import { HOME_TREE_FEATURES, HOME_TREE_METHODS, HOME_TREE_NODES, HOME_TREE_PATHS } from "./homeDecisionTreeData";
 
 export function AutoMethodDemo() {
-  const { locale } = useLanguage();
+  const { locale, dictionary: d } = useLanguage();
   const copy = homeAdvantagesContent[locale];
+  const methodLabels: Record<string, string> = {
+    minipoa: d.common.algorithmNames.minipoa,
+    HAlign: d.common.algorithmNames.halign3,
+    fmalign2: d.common.algorithmNames.fmalign2_mafft
+  };
   const root = useRef<HTMLElement>(null);
   const animation = useHomeAnimation(root, 24000);
   const caseIndex = Math.min(2, Math.floor(animation.progress * 3));
@@ -46,14 +51,14 @@ export function AutoMethodDemo() {
       <div className="home-decision-methods" aria-label={copy.candidateLabel}>
         <p className="home-decision-label">{copy.selectionLabel}</p>
         <ul>{HOME_TREE_METHODS.map(name => <li key={name} data-selected={complete && name === method}>
-          <span>{name}</span>{complete && name === method ? <Check size={19} aria-hidden="true" /> : null}
+          <span>{methodLabels[name]}</span>{complete && name === method ? <Check size={19} aria-hidden="true" /> : null}
         </li>)}</ul>
         <p className="home-decision-action" data-ready={complete}><ArrowRight size={16} aria-hidden="true" />{copy.runAlignment}</p>
       </div>
     </div>
     <div className="home-decision-footer">
       <p><span className="home-decision-step">{complete ? "03" : step === 0 ? "01" : "02"}</span>
-        {complete ? `${copy.selectedPrefix} ${method}` : step === 0 ? copy.scanning : `${copy.evaluating} ${HOME_TREE_FEATURES[current.feature!][locale]}`}</p>
+        {complete ? `${copy.selectedPrefix} ${methodLabels[method]}` : step === 0 ? copy.scanning : `${copy.evaluating} ${HOME_TREE_FEATURES[current.feature!][locale]}`}</p>
       <button type="button" onClick={() => { animation.setProgress(0); animation.setPlaying(true); }}>
         <RotateCcw size={14} aria-hidden="true" />{copy.replay}
       </button>

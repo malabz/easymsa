@@ -11,9 +11,9 @@ export type DisplayAlgorithmName =
 /**
  * Format the algorithm shown to users.
  *
- * The requested `name` is always preserved for compatibility with older
- * responses. When the backend reports a resolved final tool, auto jobs show
- * "Auto (actual: <tool>)"; explicit jobs simply show their own name.
+ * Prefer the recorded final method, falling back to the requested name for
+ * older responses. Auto's final method does not by itself establish whether
+ * model selection or the server's default strategy led to that method.
  */
 export function displayAlgorithmLabel(
   requestedName: string | null | undefined,
