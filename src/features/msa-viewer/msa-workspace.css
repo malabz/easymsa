@@ -120,6 +120,14 @@
 .msa-map-jump input::-webkit-inner-spin-button {appearance:none;}
 .msa-map-jump button {height:24px;color:#0f766e;border:1px solid #b9d7d3;border-radius:3px;}
 .msa-column-guide {position:absolute;top:0;bottom:0;z-index:31;pointer-events:none;border-inline:1px solid #0f766e80;background:#0f766e08;}
+/* Selection bands sit over the cells of each row and line up into one stripe. */
+.msa-band {position:absolute;box-sizing:border-box;pointer-events:none;}
+.msa-band-range {background:rgb(20 184 166 / .1);border-inline:1.5px solid #14b8a6;}
+.msa-band-column {background:rgb(15 118 110 / .1);border-inline:1px solid rgb(15 118 110 / .45);}
+.msa-label-resizer {position:absolute;top:0;right:-5px;bottom:0;z-index:2;width:9px;cursor:col-resize;touch-action:none;}
+.msa-label-resizer::after {content:"";position:absolute;top:6px;bottom:6px;left:3px;width:3px;border-radius:2px;background:#14b8a6;opacity:0;transition:opacity .15s ease;}
+.msa-label-resizer:hover::after,.msa-label-resizer:active::after {opacity:1;}
+.msa-band-row {background:rgb(15 118 110 / .05);border-block:1px solid rgb(20 184 166 / .6);}
 @media(max-width:1023px) {
  .msa-command {min-height:96px;}
 
@@ -266,3 +274,17 @@
 
 [data-msa-workspace-dock]:has([data-checks="true"]) { overflow:hidden; }
 [data-msa-workspace-dock]:has([data-checks="true"]) > div:last-child { height:100%; min-height:0; }
+
+/* Interaction motion only; the viewer layout is unchanged. */
+.msa-command-action, .msa-row-menu-trigger, .msa-panel-tabs button { transition: background-color .15s ease, color .15s ease, border-color .15s ease, transform .1s ease; }
+@media (prefers-reduced-motion: no-preference) {
+  .msa-command-action:active { transform: scale(.96); }
+  .msa-workspace aside:has(#msa-shared-panel) { animation: msa-dock-up .26s cubic-bezier(.2, .7, .2, 1); }
+  .msa-export-menu[open] > .msa-popup, .msa-row-menu { animation: msa-pop .16s cubic-bezier(.2, .7, .2, 1); transform-origin: top right; }
+}
+@media (prefers-reduced-motion: no-preference) and (min-width: 1024px) {
+  .msa-workspace aside:has(#msa-shared-panel) { animation-name: msa-dock-in; }
+}
+@keyframes msa-dock-in { from { opacity: 0; transform: translateX(18px); } }
+@keyframes msa-dock-up { from { opacity: 0; transform: translateY(14px); } }
+@keyframes msa-pop { from { opacity: 0; transform: scale(.96) translateY(-4px); } }

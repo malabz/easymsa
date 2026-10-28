@@ -17,7 +17,7 @@ export function jobValue(value: string, locale: Locale): string {
 const messages: Record<string, [string, string]> = {
   "Job completed.": ["任务已完成。", "Job completed."],
   "Preprocessing completed.": ["预处理已完成。", "Preprocessing completed."],
-  "ReAlign-N is optimizing the alignment.": ["正在优化比对。", "Refining the alignment."],
+  "ReAlign-N is optimizing the alignment.": ["正在重比对。", "Realigning the alignment."],
   "Initial alignment completed; ReAlign-N did not complete. Initial result retained.":
     ["优化未完成，初始比对已保留。", "Refinement did not complete. The initial alignment is available."],
   "Finishing saved results after an interrupted task.":

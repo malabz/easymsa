@@ -405,7 +405,10 @@ describe("MsaDomMatrix hybrid rendering", () => {
 
 describe("matrix identity and navigation helpers", () => {
   it("selects a drawing strategy without rejecting or truncating input", () => {
-    expect(shouldUseCanvasMatrix(20, 515, true)).toBe(false);
+    expect(shouldUseCanvasMatrix(3, 8, true)).toBe(false);
+    expect(shouldUseCanvasMatrix(4, 512, true)).toBe(false);
+    expect(shouldUseCanvasMatrix(255, 4, true)).toBe(false);
+    expect(shouldUseCanvasMatrix(20, 515, true)).toBe(true);
     expect(shouldUseCanvasMatrix(1000, 1000, true)).toBe(true);
     expect(shouldUseCanvasMatrix(100000, 1000, true)).toBe(true);
     expect(shouldUseCanvasMatrix(20, 515, false)).toBe(true);

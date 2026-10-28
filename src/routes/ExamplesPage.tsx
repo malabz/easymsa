@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { ArrowRight, Download, Send } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { useRememberWork, useResultLocation } from "../lib/workspace";
 import { PageContainer } from "../components/layout/PageContainer";
@@ -60,30 +61,27 @@ export function ExamplesPage() {
           </Link>
         </>
       ) : (
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="example-grid">
           {query.data?.map((e) => (
-            <section
-              key={e.id}
-              className="space-y-4 border-t border-slate-200 py-5"
-            >
-              <h2 className="text-2xl font-semibold">
-                {exampleTitle(e, locale)}
-              </h2>
-              <p>
-                {zh ? "合成 DNA" : "Synthetic DNA"} ·{" "}
-                {e.stages.final.sequenceCount} {zh ? "条序列" : "sequences"} ·{" "}
-                {e.stages.final.alignmentLength} {zh ? "列" : "columns"}
-              </p>
-              <p className="text-sm leading-7 text-slate-600">
-                {e.kind === "alignment"
-                  ? zh
-                    ? "minipoa 比对示例"
-                    : "minipoa alignment example"
-                  : zh
-                    ? "已有比对的优化示例"
-                    : "Refinement of an existing alignment"}
-              </p>
-              <ExampleActions example={e} />
+            <section key={e.id} className="example-card" data-kind={e.kind}>
+              <ExamplePreview seed={e.id} gapped={e.kind === "realignment"} />
+              <div className="example-card-body">
+                <span className="example-kind">
+                  {e.kind === "alignment" ? (zh ? "多序列比对" : "Alignment") : (zh ? "重比对" : "Realignment")}
+                </span>
+                <h2>{exampleTitle(e, locale)}</h2>
+                <p className="example-description">
+                  {e.kind === "alignment"
+                    ? zh ? "从未比对的序列开始，用 minipoa 完成比对。" : "Starts from unaligned sequences and aligns them with minipoa."
+                    : zh ? "从已有的比对开始，重新优化比对结果。" : "Starts from an existing alignment and refines it."}
+                </p>
+                <ul className="example-facts">
+                  <li>{zh ? "合成 DNA" : "Synthetic DNA"}</li>
+                  <li>{e.stages.final.sequenceCount} {zh ? "条序列" : "sequences"}</li>
+                  <li>{e.stages.final.alignmentLength} {zh ? "列" : "columns"}</li>
+                </ul>
+                <ExampleActions example={e} />
+              </div>
             </section>
           ))}
         </div>
@@ -100,28 +98,37 @@ export function ExampleActions({ example, showView = true }: { example: PublicEx
   const { locale } = useLanguage();
   const zh = locale === "zh";
   return (
-    <div className="flex flex-wrap items-center gap-4 text-sm">
+    <div className="example-actions">
       {showView && <ButtonLink to={`/examples/${example.id}`}>
-        {zh ? "查看示例结果" : "View example results"}
+        {zh ? "查看示例结果" : "View example results"}<ArrowRight size={16} aria-hidden="true" />
       </ButtonLink>}
-      <a className={link} href={exampleUrl(example, "input.fasta")} download>
-        {zh ? "下载输入 FASTA" : "Download input FASTA"}
-      </a>
-      {example.kind === "realignment" && (
-        <a
-          className={link}
-          href={exampleUrl(example, "input.fasta.gz.bin")}
-          download="input.fasta.gz"
-        >
-          FASTA.gz
+      <div className="example-secondary">
+        <a className="example-link" href={exampleUrl(example, "input.fasta")} download>
+          <Download size={14} aria-hidden="true" />{zh ? "下载输入 FASTA" : "Download input FASTA"}
         </a>
-      )}
-      <Link
-        className={link}
-        to={`/${example.kind === "alignment" ? "submit" : "realign"}?example=${example.id}`}
-      >
-        {zh ? "用此示例提交任务" : "Submit this example"}
-      </Link>
+        {example.kind === "realignment" && (
+          <a className="example-link" href={exampleUrl(example, "input.fasta.gz.bin")} download="input.fasta.gz">
+            <Download size={14} aria-hidden="true" />FASTA.gz
+          </a>
+        )}
+        <Link className="example-link" to={`/${example.kind === "alignment" ? "submit" : "realign"}?example=${example.id}`}>
+          <Send size={14} aria-hidden="true" />{zh ? "用此示例提交任务" : "Submit this example"}
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+// Decorative alignment strip; the same example always draws the same pattern.
+function ExamplePreview({ seed, gapped }: { seed: string; gapped: boolean }) {
+  let state = [...seed].reduce((hash, char) => (hash * 31 + char.charCodeAt(0)) >>> 0, 7);
+  const next = () => (state = (state * 1103515245 + 12345) >>> 0) / 2 ** 32;
+  const consensus = Array.from({ length: 22 }, () => "ACGT"[Math.floor(next() * 4)]);
+  const rows = Array.from({ length: 4 }, () => consensus.map(base =>
+    next() < (gapped ? .16 : .08) ? "-" : next() < .12 ? "ACGT"[Math.floor(next() * 4)] : base));
+  return (
+    <div className="example-preview" aria-hidden="true">
+      {rows.map((row, r) => <div key={r}>{row.map((base, c) => <i key={c} data-base={base} style={{ animationDelay: `${(r * 22 + c) * 8}ms` }} />)}</div>)}
     </div>
   );
 }

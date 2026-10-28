@@ -1,6 +1,6 @@
 import { HELP_LINKS } from "../lib/docs/links";
-import { CheckCircle2, FilePlus2, FileText, Loader2, Upload } from "lucide-react";
-import { type ChangeEvent, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { FilePlus2, FileText, Loader2, Upload, UploadCloud } from "lucide-react";
+import { type ChangeEvent, type DragEvent, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Button } from "../components/common/Button";
 import { PageContainer } from "../components/layout/PageContainer";
 import { focusMainContent } from "../components/layout/RouteNavigation";
@@ -26,7 +26,6 @@ import {
 export function ViewerPage() {
   const { dictionary: d, locale } = useLanguage();
   const t = workspaceText[locale];
-  useRememberWork("viewer");
   const [examplePending, setExamplePending] = useState(false);
   const [exampleContext, setExampleContext] = useDraftState<MsaViewerContext | null>("viewer:context", null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -37,12 +36,14 @@ export function ViewerPage() {
   const [sourceName, setSourceName] = useDraftState("viewer:name", d.viewerPage.uploadedSource);
   const [alignment, setAlignment] = useDraftState<MSAResult | null>("viewer:alignment", null);
   const hasAlignment = alignment !== null;
+  useRememberWork("viewer", hasAlignment || Boolean(pastedFasta.trim()));
   useLayoutEffect(() => {
     // Loading replaces a tall input form. Keep the source bar below the sticky
     // site header instead of retaining the input button's document scroll.
     if (hasAlignment) focusMainContent();
   }, [hasAlignment]);
   const [error, setError] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
   useEffect(() => () => { loadGenerationRef.current += 1; }, []);
   const pastedCharacterCount = pastedFasta.length;
   const pastedSequenceCount = useMemo(
@@ -100,14 +101,20 @@ export function ViewerPage() {
     }
   }
 
-  async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     event.target.value = "";
+    if (file) void loadFile(file);
+  }
 
-    if (!file) {
-      return;
-    }
+  function handleDrop(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    setDragging(false);
+    const file = event.dataTransfer.files?.[0];
+    if (file) void loadFile(file);
+  }
 
+  async function loadFile(file: File) {
     const generation = loadGenerationRef.current + 1;
     loadGenerationRef.current = generation;
     setExamplePending(false);
@@ -184,24 +191,26 @@ export function ViewerPage() {
       <InputMethodTabs value={inputMethod} onChange={setInputMethod} />
       <div className="mt-4 space-y-4">
         <div id="input-panel-upload" role="tabpanel" aria-labelledby="input-tab-upload" hidden={inputMethod !== "upload"}>
-        <input
-          accept=".fa,.fasta,.fna,.faa,.txt,text/plain"
-          aria-label={d.viewerPage.uploadFasta}
-          className="hidden"
-          onChange={handleFileChange}
-          ref={fileInputRef}
-          type="file"
-        />
-        <Button
-          className="w-full"
-          onClick={() => fileInputRef.current?.click()}
-          type="button"
-          variant="outline"
-        >
-          <Upload className="h-4 w-4" />
-          {d.viewerPage.uploadFasta}
-        </Button>
-        <p className="work-hint mt-3">{d.viewerPage.inputHint}</p>
+          <input
+            accept=".fa,.fasta,.fna,.faa,.txt,text/plain"
+            aria-label={d.viewerPage.uploadFasta}
+            className="hidden"
+            onChange={handleFileChange}
+            ref={fileInputRef}
+            type="file"
+          />
+          <div className={`work-file${dragging ? " is-dragging" : ""}`}
+            onDragOver={event => { event.preventDefault(); setDragging(true); }}
+            onDragLeave={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDragging(false); }}
+            onDrop={handleDrop}>
+            <UploadCloud size={26} className="text-teal-700" aria-hidden="true" />
+            <p className="font-semibold text-slate-900">{d.viewerPage.dropFasta}</p>
+            <p className="work-hint">{d.viewerPage.inputHint}</p>
+            <Button onClick={() => fileInputRef.current?.click()} size="sm" type="button" variant="outline">
+              <Upload className="h-4 w-4" />
+              {d.viewerPage.uploadFasta}
+            </Button>
+          </div>
         </div>
         <div className="space-y-2" id="input-panel-paste" role="tabpanel" aria-labelledby="input-tab-paste" hidden={inputMethod !== "paste"}>
           <label className="text-sm font-medium text-slate-800" htmlFor="viewerFasta">
@@ -253,7 +262,7 @@ export function ViewerPage() {
   }
 
   return (
-    <PageContainer className="workflow-page">
+    <PageContainer className="workflow-page viewer-input-page">
       <div className="work-heading">
         <div><h1>{d.viewerPage.title}</h1><p>{d.viewerPage.subtitle}</p></div>
         <Link className="work-link" to={HELP_LINKS.viewer}>{t.help}</Link>

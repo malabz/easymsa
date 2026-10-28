@@ -60,8 +60,15 @@ export function restoreJobWork(previous: WorkEntry[]) {
 }
 export function useRememberWork(kind: WorkKind, enabled = true) {
   const location = useLocation();
+  const remembered = useRef(false);
   useEffect(() => {
-    if (!enabled) return;
+    // Work this page recorded disappears once its input is cleared.
+    if (!enabled) {
+      if (remembered.current) forgetWork(kind);
+      remembered.current = false;
+      return;
+    }
+    remembered.current = true;
     const path = `${location.pathname}${location.search}`;
     if (entries[0]?.path === path && entries[0]?.kind === kind) return;
     entries = [{ kind, path }, ...entries.filter(entry => entry.kind !== kind)].slice(0, 5);

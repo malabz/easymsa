@@ -20,8 +20,8 @@ function Publication({ publication, locale, current = false }: { publication: { 
 function MethodList({ entries, locale }: { entries: readonly Method[]; locale: "en" | "zh" }) {
   const zh = locale === "zh";
   return (
-    <div className="divide-y divide-slate-200 border-y border-slate-200">
-      <div className="hidden grid-cols-[minmax(6rem,0.7fr)_minmax(10rem,1.5fr)_minmax(14rem,2fr)_minmax(9rem,1.1fr)_minmax(6rem,0.8fr)] gap-4 bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 lg:grid">
+    <div className="about-methods divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="hidden grid-cols-[minmax(6rem,0.7fr)_minmax(10rem,1.5fr)_minmax(14rem,2fr)_minmax(9rem,1.1fr)_minmax(6rem,0.8fr)] gap-4 bg-slate-50 px-4 py-2.5 text-xs font-semibold text-slate-600 lg:grid">
         <span>{zh ? "方法" : "Method"}</span>
         <span>{zh ? "用途与特点" : "Use and input"}</span>
         <span>{zh ? "相关论文" : "Publication"}</span>
@@ -29,13 +29,13 @@ function MethodList({ entries, locale }: { entries: readonly Method[]; locale: "
         <span>{zh ? "源码 / 文档" : "Source / docs"}</span>
       </div>
       {entries.map((method) => (
-        <article className="grid gap-2 py-4 text-sm lg:grid-cols-[minmax(6rem,0.7fr)_minmax(10rem,1.5fr)_minmax(14rem,2fr)_minmax(9rem,1.1fr)_minmax(6rem,0.8fr)] lg:gap-4 lg:px-3 lg:py-3" key={method.name}>
+        <article className="grid gap-2 py-4 text-sm lg:grid-cols-[minmax(6rem,0.7fr)_minmax(10rem,1.5fr)_minmax(14rem,2fr)_minmax(9rem,1.1fr)_minmax(6rem,0.8fr)] lg:gap-4 px-4 lg:py-4" key={method.name}>
           <div className="flex flex-wrap items-baseline gap-x-2">
             <h3 className="font-semibold text-slate-950">{method.name}</h3>
           </div>
           <p className="leading-5 text-slate-600">{method.role[locale]} · {method.input[locale]}</p>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 lg:contents">
-            <div className="flex flex-col gap-3 lg:col-span-2">
+          <div className="grid gap-x-6 gap-y-3 sm:grid-cols-[minmax(0,1fr)_11rem] lg:contents">
+            <div className="flex flex-col gap-3 sm:row-span-2 lg:row-span-1 lg:col-span-2">
               <Publication publication={method} locale={locale} current />
               {"additionalPapers" in method && <div className="space-y-3 text-sm">
                 <p className="text-xs text-slate-500">{refinementText[locale].relatedPaper}</p>
@@ -45,7 +45,7 @@ function MethodList({ entries, locale }: { entries: readonly Method[]; locale: "
             <div className="min-w-0 space-y-2"><a className="w-fit font-medium text-teal-800 underline underline-offset-2 hover:text-teal-950" href={method.source} rel="noreferrer" target="_blank">
               {zh ? "软件与文档" : "Software & docs"}
             </a>
-            <div className="text-xs text-slate-600"><p>{zh ? "部署版本" : "Deployed version"}</p>
+            <div className="text-xs text-slate-600 sm:col-start-2 lg:col-start-auto"><p>{zh ? "部署版本" : "Deployed version"}</p>
               <code className="block break-all py-1">{method.version}</code>
             </div></div>
           </div>

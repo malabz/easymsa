@@ -37,6 +37,13 @@ it('suggests a name on focus and preserves edited names', async () => {
   await user.click(screen.getByLabelText(/Notification email/)); await user.click(name);
   expect(name).toHaveValue('my-analysis');
 });
+it('names a job the user never named', async () => {
+  show(); const user = userEvent.setup();
+  await user.type(screen.getByLabelText('FASTA sequences'), '>a\nACGT\n>b\nACGA\n');
+  expect(screen.getByLabelText('Job name')).toHaveAccessibleDescription('Left blank, the job is named by its submission time.');
+  await user.click(submitButton());
+  await waitFor(() => expect(mocks.submit).toHaveBeenCalledWith(expect.objectContaining({ jobName: expect.stringMatching(/^Alignment-\d{8}-\d{6}$/) })));
+});
 it('defaults to audit, ignores the old filter draft, and removes the size sentence', async () => {
   function LegacyDraft() { const [, set] = useDraftState('submit:preprocess', 'audit'); useEffect(() => set('filter'), [set]); return null; }
   const legacy = render(<LegacyDraft />); legacy.unmount(); show(); const user = await validInput();
@@ -76,7 +83,7 @@ it('preserves the example name on focus and keeps refinement opt-in', async () =
   show(); const user = userEvent.setup(); await user.click(screen.getByRole('button', { name: 'Load example' }));
   const name = screen.getByLabelText('Job name'); await waitFor(() => expect(name).toHaveValue('Synthetic DNA example'));
   await user.click(name); expect(name).toHaveValue('Synthetic DNA example');
-  expect(screen.getByRole('checkbox', { name: 'Refine alignment quality' })).not.toBeChecked();
+  expect(screen.getByRole('checkbox', { name: 'Realign after alignment' })).not.toBeChecked();
   expect(screen.getByRole('tab', { name: 'Paste FASTA' })).toHaveAttribute('aria-selected', 'true');
   expect(screen.getByLabelText('FASTA sequences')).toHaveValue('>a\nACGT\n>b\nACGA\n');
 });

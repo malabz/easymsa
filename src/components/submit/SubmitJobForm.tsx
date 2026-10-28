@@ -4,12 +4,13 @@ import { TaskMetadataFields } from "./TaskMetadataFields";
 import { workspaceText } from "../../lib/i18n/workspace";
 import { clearDraft, forgetWork, readDraft, useDraftMetadata, useDraftState, useRememberWork } from "../../lib/workspace";
 import { RealignmentOptions } from "./RealignmentOptions";
+import { realignText } from "../../lib/i18n/realignment";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle2, ChevronDown, FileText, Loader2, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import { taskMetadataSchema } from "../../lib/submit/taskMetadata";
+import { defaultJobName, taskMetadataSchema } from "../../lib/submit/taskMetadata";
 import { focusFormField } from "../../lib/submit/formFocus";
 import { readInputText } from "../../lib/submit/readInputText";
 import { apiErrorMessage } from "../../lib/i18n/apiErrors";
@@ -49,7 +50,6 @@ export function SubmitJobForm() {
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [preprocessMode, setPreprocessMode] = useDraftState<PreprocessMode>("submit:advanced:preprocess", "audit");
   const settingsRef = useRef<HTMLDivElement>(null);
-  useRememberWork("submit");
   const [exampleLoaded, setExampleLoaded] = useDraftState("submit:example", false);
   const [inputMethod, setInputMethod] = useDraftState<InputMethod>("submit:inputMethod", "paste");
   const [realignEnabled, setRealignEnabled] = useDraftState("submit:realignEnabled", false);
@@ -63,6 +63,7 @@ export function SubmitJobForm() {
   } | null>(null);
   const [pastedSequence, setPastedSequence] = useDraftState("submit:paste", "");
   const [file, setFile] = useDraftState<File | null>("submit:file", null);
+  useRememberWork("submit", Boolean(pastedSequence.trim() || file));
   const [formError, setFormError] = useState<"pasteTooLong" | "paste" | "upload" | "algorithmParams" | null>(null);
   const [requestError, setRequestError] = useState<unknown>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -103,13 +104,11 @@ export function SubmitJobForm() {
     return () => cancelAnimationFrame(frame);
   }, [formError, requestError, algorithmParameterError]);
 
+  const namePrefix = locale === "zh" ? "比对任务" : "Alignment";
+
   function suggestName(input: HTMLInputElement) {
     if (getValues("jobName").trim()) return false;
-    const now = new Date();
-    const pad = (value: number) => String(value).padStart(2, "0");
-    const date = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}`;
-    const time = `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-    setValue("jobName", `${locale === "zh" ? "比对任务" : "Alignment"}-${date}-${time}`, { shouldDirty: true, shouldValidate: true });
+    setValue("jobName", defaultJobName(namePrefix), { shouldDirty: true, shouldValidate: true });
     requestAnimationFrame(() => { if (document.activeElement === input) input.select(); });
     return true;
   }
@@ -225,7 +224,11 @@ export function SubmitJobForm() {
     : pastedSequence.trim() ? `${sequenceCount} ${t.pasteReady}` : t.inputPending;
 
   return (
-    <form className="submission-form" onSubmit={handleSubmit(onSubmit, invalid => revealSetting(invalid.jobName ? "jobName" : "email"))} noValidate aria-busy={submitting}>
+    <form className="submission-form" onSubmit={event => {
+      // An unnamed job gets the same name focusing the field would have suggested.
+      if (!getValues("jobName").trim()) setValue("jobName", defaultJobName(namePrefix));
+      return handleSubmit(onSubmit, invalid => revealSetting(invalid.jobName ? "jobName" : "email"))(event);
+    }} noValidate aria-busy={submitting}>
       <fieldset disabled={submitting} className="work-grid">
         <legend className="sr-only">{d.submit.title}</legend>
         <div className="work-input">
@@ -282,6 +285,8 @@ export function SubmitJobForm() {
           {serviceHealth.data?.realignment?.enabled && <RealignmentOptions limits={serviceHealth.data.realignment}
             enabled={realignEnabled} onEnabled={setRealignEnabled} pattern={realignPattern} onPattern={setRealignPattern}
             disabled={submitting} unavailable={!serviceHealth.data.realignment.available} />}
+          {serviceHealth.data?.realignment?.enabled && <p className="pt-2 text-sm text-slate-600">{realignText[locale].fromSubmitHint}{" "}
+            <Link className="font-medium text-teal-800 underline underline-offset-2" to="/realign">{realignText[locale].fromSubmitLink}</Link></p>}
           {Boolean(formError || requestError) && <p id="submission-error" tabIndex={-1} className="work-error py-2" role="alert">{requestError ? apiErrorMessage(requestError, locale, d.submit.errors.submitFailed) : formErrorMessage}</p>}
           {selectedAlgorithmBlocked && <p className="text-sm text-amber-900 py-2" role="alert">{d.submit.selectedAlgorithmUnavailable}</p>}
         </div>
@@ -289,7 +294,7 @@ export function SubmitJobForm() {
       <div className="work-actionbar">
         <div className="work-summary">
           <strong><FileText size={16} />{t.summary}</strong>
-          <span className="max-w-64 truncate" title={summaryInput}>{summaryInput}</span>
+          <span className="max-w-64 truncate" data-ready={summaryInput !== t.inputPending} title={summaryInput}>{summaryInput}</span>
           <span>{algorithm === "minipoa" ? "minipoa" : d.submit.algorithms[algorithm]}</span>
         </div>
         <Button disabled={submitting || submissionBlocked || !validInput} type="submit">

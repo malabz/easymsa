@@ -36,11 +36,13 @@ export function AlignmentAnimation({ locale }: { locale: Locale }) {
     <div className="alignment-animation" ref={root} data-paused={!active}>
       <div className="alignment-animation-caption">
         <span>{zh ? "从序列，到对齐。" : "Sequences, brought into alignment."}</span>
+        <span className="alignment-animation-legend" aria-hidden="true">{["A", "C", "G", "T"].map(base => <i key={base} data-base={base}>{base}</i>)}</span>
       </div>
       <div className="alignment-animation-matrix" role="img" aria-label={zh ? "五行核酸序列逐步对齐，显示共同位置和缺口" : "Five nucleotide sequences align into shared columns with gaps"}>
         {rows.map((row, rowIndex) => {
           let gaps = 0;
           return <div className="alignment-animation-row" key={rowIndex} aria-hidden="true" style={{ "--row-delay": `${rowIndex * 0.18}s` } as CSSProperties}>
+            <span className="alignment-animation-label">seq{rowIndex + 1}</span>
             {Array.from(row).map((base, column) => {
               const from = offsets[rowIndex] - gaps;
               if (base === "-") gaps += 1;

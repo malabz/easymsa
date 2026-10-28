@@ -274,6 +274,21 @@ export function positionAt(
     : view.positions[visibleIndex];
 }
 
+/** First visible column index whose alignment position is at least `alignmentPosition`. */
+export function visibleIndexAtOrAfter(
+  view: ColumnPositionView,
+  alignmentPosition: number
+) {
+  let low = 0;
+  let high = view.length;
+  while (low < high) {
+    const middle = (low + high) >> 1;
+    if ((positionAt(view, middle) ?? 0) < alignmentPosition) low = middle + 1;
+    else high = middle;
+  }
+  return low;
+}
+
 export function visibleIndexOfPosition(
   view: ColumnPositionView,
   alignmentPosition: number
