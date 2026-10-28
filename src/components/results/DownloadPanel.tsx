@@ -1,4 +1,4 @@
-import { Download } from "lucide-react";
+import { Download, FileArchive, FileText } from "lucide-react";
 import { Button } from "../common/Button";
 import { useNamedDownload } from "../../lib/hooks/useNamedDownload";
 import { refinementText } from "../../lib/i18n/refinements";
@@ -22,7 +22,9 @@ export function DownloadPanel({ files, artifacts = [] }: { files: ResultFile[]; 
   const additionalFiles = files.filter(file => file.kind === "alignment-gzip-xz");
   function fileRow(file: ResultFile) {
     const description = file.kind === "archive" ? ui.archiveHint : file.kind === "alignment-gzip" ? ui.fastaHint : file.kind ? descriptions[file.kind] : file.description;
-    return <div className="flex min-w-0 flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between" key={file.name}>
+    const Icon = file.kind === "archive" ? FileArchive : FileText;
+    return <div className="download-item flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" data-kind={file.kind} key={file.name}>
+      <span className="download-icon" aria-hidden="true"><Icon size={20} /></span>
       <div className="min-w-0 flex-1">
         <p className="text-base font-semibold text-slate-900">{file.kind === "archive" ? ui.archive : file.kind === "alignment-gzip" ? ui.fasta : ui.extraFormats}</p>
         <p className="mt-1 break-all font-mono text-xs text-slate-500">{file.name}</p>
@@ -49,14 +51,14 @@ export function DownloadPanel({ files, artifacts = [] }: { files: ResultFile[]; 
           {d.results.downloads.description}
         </p>
       </div>
-      <div className="divide-y divide-slate-200 border-y border-slate-200">
+      <div className="download-list">
         {primaryFiles.map(fileRow)}
       </div>
-      {additionalFiles.length > 0 && <details className="border-b border-slate-200 pb-3 text-sm">
+      {additionalFiles.length > 0 && <details className="download-more text-sm">
         <summary className="cursor-pointer font-medium text-teal-700">{locale === "zh" ? "其他压缩格式" : "Other compressed formats"}</summary>
         {additionalFiles.map(fileRow)}
       </details>}
-      {artifacts.length > 0 && <details className="border-t border-slate-200 pt-3 text-sm">
+      {artifacts.length > 0 && <details className="download-more text-sm">
         <summary className="cursor-pointer font-medium text-slate-700">{d.results.overview.outputs.title} · {artifacts.length}</summary>
         <ul className="mt-3 grid gap-2 font-mono text-xs text-slate-600 sm:grid-cols-2">
           {artifacts.map(file => <li className="break-all" key={file}>{file}</li>)}

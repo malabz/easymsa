@@ -231,3 +231,79 @@
   .analysis-main > .job-preprocess { padding: 14px 16px; }
   .analysis-main > .job-detail-area { padding: 2px 12px 0; }
 }
+
+/* Result overview: metrics as tiles, each chart and the file list on its own card. */
+.compact-overview { gap: 14px; padding-bottom: 6px; }
+.overview-metric-grid { gap: 10px; }
+.overview-metric { padding: 12px 14px; border: 1px solid #e8edf2; border-radius: 12px; background: #fff; }
+.overview-metric-value { font-size: 26px; letter-spacing: -.02em; }
+.overview-quality, .overview-composition, .compact-overview > .overview-output-row {
+  padding: 16px 18px;
+  border: 1px solid #e3e8ef;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(15 23 42 / .04), 0 14px 32px -26px rgb(15 23 42 / .28);
+}
+.composition-bar { height: 12px; border-radius: 999px; gap: 2px; }
+.composition-bar > span:first-child { border-radius: 999px 0 0 999px; }
+.composition-bar > span:last-child { border-radius: 0 999px 999px 0; }
+.overview-output-link { padding: 8px 12px; margin-block: -8px; border-left: 0; border-radius: 10px; transition: background-color .2s ease; }
+.overview-output-link:hover { background: #f4faf8; }
+.analysis-toolbar .result-tabs button { transition: color .2s ease, border-color .2s ease; }
+.analysis-toolbar .result-tabs button:hover { color: #0f172a; }
+/* Native disclosure triangles become the same small chevron used elsewhere. */
+.analysis-workspace details:not(.result-information) > summary:not(:has(svg)) { display: flex; align-items: center; gap: 8px; list-style: none; cursor: pointer; }
+.analysis-workspace details:not(.result-information) > summary:not(:has(svg))::-webkit-details-marker { display: none; }
+.analysis-workspace details:not(.result-information) > summary:not(:has(svg))::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  margin-left: 2px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform .2s ease;
+}
+.analysis-workspace details:not(.result-information)[open] > summary:not(:has(svg))::before { transform: rotate(45deg); }
+@media (prefers-reduced-motion: no-preference) {
+  .analysis-panels > section:not([hidden]) > .compact-overview > * { animation: work-rise .5s cubic-bezier(.2, .7, .2, 1) backwards; }
+  .compact-overview > :nth-child(2) { animation-delay: .06s; }
+  .compact-overview > :nth-child(3) { animation-delay: .12s; }
+  .compact-overview > :nth-child(n + 4) { animation-delay: .18s; }
+  .composition-bar > span { transform-origin: left; animation: result-grow .8s .25s cubic-bezier(.2, .7, .2, 1) backwards; }
+}
+@keyframes result-grow { from { transform: scaleX(0); } }
+@media (min-width: 1024px) and (max-height: 820px) {
+  .overview-metric { padding-block: 9px; }
+  .overview-metric-value { font-size: 22px; }
+}
+@media (max-width: 700px) {
+  .overview-quality, .overview-composition, .compact-overview > .overview-output-row { padding: 14px; }
+  .overview-metric { padding: 10px 12px; }
+}
+
+/* Downloads: each file is a card with a type tile; the archive leads. */
+.download-list { display: flex; flex-direction: column; gap: 12px; }
+.download-item {
+  padding: 16px 18px;
+  border: 1px solid #e3e8ef;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(15 23 42 / .04), 0 14px 32px -26px rgb(15 23 42 / .28);
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.download-item[data-kind="archive"] { border-color: #bfe3d8; background: linear-gradient(180deg, #f6fcfa, #fff 60%); }
+.download-icon { display: grid; place-items: center; flex: 0 0 auto; width: 44px; height: 44px; border-radius: 12px; background: #eef4f7; color: #476b81; }
+.download-item[data-kind="archive"] .download-icon { background: #e1f3ed; color: #0f766e; }
+.download-more { padding: 12px 16px; border: 1px solid #e8edf2; border-radius: 12px; background: #fff; }
+.download-more > summary { min-height: 24px; }
+@media (prefers-reduced-motion: no-preference) {
+  .download-item { animation: work-rise .5s cubic-bezier(.2, .7, .2, 1) backwards; }
+  .download-item:nth-child(2) { animation-delay: .06s; }
+  .download-item:nth-child(3) { animation-delay: .12s; }
+  .download-more[open] > :not(summary) { animation: work-reveal .3s ease-out; }
+}
+@media (max-width: 639px) {
+  .download-item { padding: 14px; }
+  .download-icon { display: none; }
+}
