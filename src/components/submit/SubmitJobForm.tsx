@@ -63,7 +63,7 @@ export function SubmitJobForm() {
   } | null>(null);
   const [pastedSequence, setPastedSequence] = useDraftState("submit:paste", "");
   const [file, setFile] = useDraftState<File | null>("submit:file", null);
-  useRememberWork("submit", Boolean(pastedSequence.trim() || file));
+  useRememberWork("submit", Boolean(pastedSequence.trim() || file), { clearWhenDisabled: true });
   const [formError, setFormError] = useState<"pasteTooLong" | "paste" | "upload" | "algorithmParams" | null>(null);
   const [requestError, setRequestError] = useState<unknown>(null);
   const [submitting, setSubmitting] = useState(false);

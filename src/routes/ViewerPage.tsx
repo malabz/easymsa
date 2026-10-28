@@ -36,7 +36,7 @@ export function ViewerPage() {
   const [sourceName, setSourceName] = useDraftState("viewer:name", d.viewerPage.uploadedSource);
   const [alignment, setAlignment] = useDraftState<MSAResult | null>("viewer:alignment", null);
   const hasAlignment = alignment !== null;
-  useRememberWork("viewer", hasAlignment || Boolean(pastedFasta.trim()));
+  useRememberWork("viewer", hasAlignment || Boolean(pastedFasta.trim()), { clearWhenDisabled: true });
   useLayoutEffect(() => {
     // Loading replaces a tall input form. Keep the source bar below the sticky
     // site header instead of retaining the input button's document scroll.

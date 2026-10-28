@@ -41,3 +41,54 @@ describe("recovery removal and undo preserve active work", () => {
     expect(result.current.find(entry => entry.kind === "result")?.path).toContain("/results/new");
   });
 });
+
+describe("remembering work and clearing input are separate actions", () => {
+  it.each(["job", "result"] as const)("keeps a verified %s entry when a later request is unavailable", (kind) => {
+    const path = `/${kind === "job" ? "job" : "results"}/verified?token=verified-key`;
+    const { result, rerender } = renderHook(({ enabled }) => {
+      useRememberWork(kind, enabled);
+      return useWorkEntries();
+    }, {
+      initialProps: { enabled: true },
+      wrapper: ({ children }) => <MemoryRouter initialEntries={[path]}>{children}</MemoryRouter>,
+    });
+    expect(result.current).toEqual([{ kind, path }]);
+
+    // Job and result pages disable recording when a background refetch fails.
+    rerender({ enabled: false });
+    expect(result.current).toEqual([{ kind, path }]);
+    rerender({ enabled: true });
+    expect(result.current).toEqual([{ kind, path }]);
+  });
+
+  it.each(["job", "result"] as const)("does not record an unverified %s or delete an earlier verified entry", (kind) => {
+    const previousPath = `/${kind === "job" ? "job" : "results"}/verified?token=verified-key`;
+    remember(kind, previousPath);
+    const { result } = renderHook(() => {
+      useRememberWork(kind, false);
+      return useWorkEntries();
+    }, {
+      wrapper: ({ children }) => <MemoryRouter initialEntries={["/job/unverified?token=unverified-key"]}>{children}</MemoryRouter>,
+    });
+    expect(result.current).toEqual([{ kind, path: previousPath }]);
+  });
+
+  it.each(["submit", "realign", "viewer"] as const)("removes a cleared %s input without removing other work", (kind) => {
+    const jobEntry = { kind: "job" as const, path: "/job/verified?token=verified-key" };
+    remember(jobEntry.kind, jobEntry.path);
+    const path = `/${kind}`;
+    const { result, rerender } = renderHook(({ enabled }) => {
+      useRememberWork(kind, enabled, { clearWhenDisabled: true });
+      return useWorkEntries();
+    }, {
+      initialProps: { enabled: true },
+      wrapper: ({ children }) => <MemoryRouter initialEntries={[path]}>{children}</MemoryRouter>,
+    });
+    expect(result.current).toEqual([{ kind, path }, jobEntry]);
+
+    rerender({ enabled: false });
+    expect(result.current).toEqual([jobEntry]);
+    rerender({ enabled: true });
+    expect(result.current).toEqual([{ kind, path }, jobEntry]);
+  });
+});

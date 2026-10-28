@@ -41,7 +41,7 @@ export function RealignPage() {
   const [file, setFile] = useDraftState<File | null>("realign:file", null);
   const [inputMethod, setInputMethod] = useDraftState<"paste" | "upload">("realign:inputMethod", file ? "upload" : "paste");
   const [pastedFasta, setPastedFasta] = useDraftState("realign:paste", "");
-  useRememberWork("realign", Boolean(pastedFasta.trim() || file));
+  useRememberWork("realign", Boolean(pastedFasta.trim() || file), { clearWhenDisabled: true });
   const pastedFile = useMemo(() => pastedFasta.trim()
     ? new File([pastedFasta], "pasted-alignment.fasta", { type: "text/plain" }) : null, [pastedFasta]);
   const activeFile = inputMethod === "paste" ? pastedFile : file;

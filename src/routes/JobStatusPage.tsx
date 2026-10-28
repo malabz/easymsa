@@ -46,22 +46,33 @@ export function JobStatusPage() {
   // A job that finishes while this page is open opens its results after a short,
   // cancellable countdown; reopening an already completed job stays here.
   const navigate = useNavigate();
-  const previousStatus = useRef<string | undefined>(undefined);
-  const [openResultsIn, setOpenResultsIn] = useState<number | null>(null);
+  const identity = access ? JSON.stringify([access.jobId, access.token]) : null;
+  const currentStatus = access && job?.jobId === access.jobId ? job.status : undefined;
+  const previousStatus = useRef<{ identity: string | null; status: string | undefined }>();
+  const [countdown, setCountdown] = useState<{ identity: string; seconds: number } | null>(null);
+  // Changing only the key keeps this page mounted. Hide the old countdown in
+  // this render, before effects clear it, so it cannot navigate with new access.
+  const openResultsIn = countdown?.identity === identity && currentStatus === "completed" ? countdown?.seconds ?? null : null;
   useEffect(() => {
     const before = previousStatus.current;
-    previousStatus.current = job?.status;
-    if (job?.status === "completed" && before && before !== "completed" && before !== "failed") setOpenResultsIn(3);
-  }, [job?.status]);
+    previousStatus.current = { identity, status: currentStatus };
+    if (!identity || before?.identity !== identity || currentStatus !== "completed") {
+      setCountdown(null);
+      return;
+    }
+    if (before.status && before.status !== "completed" && before.status !== "failed") setCountdown({ identity, seconds: 3 });
+  }, [identity, currentStatus]);
   useEffect(() => {
     if (openResultsIn === null || !access) return;
     if (openResultsIn <= 0) {
       navigate(resultsRoute(access.jobId, access.token));
       return;
     }
-    const timer = window.setTimeout(() => setOpenResultsIn(seconds => seconds === null ? null : seconds - 1), 1000);
+    const timer = window.setTimeout(() => setCountdown(current =>
+      current?.identity === identity ? { ...current, seconds: current.seconds - 1 } : current
+    ), 1000);
     return () => window.clearTimeout(timer);
-  }, [openResultsIn, access, navigate]);
+  }, [openResultsIn, identity, access, navigate]);
 
   // A recovery URL has no creation date. Once authenticated, exports use the
   // same server-provided date as the saved record rather than the visit time.
@@ -176,7 +187,7 @@ export function JobStatusPage() {
       <CheckCircle2 size={17} className="shrink-0 text-teal-700" aria-hidden="true" />
       <span className="min-w-0 flex-1">{locale === "zh" ? `任务已完成，${openResultsIn} 秒后打开结果。` : `Job completed. Opening results in ${openResultsIn} s.`}</span>
       <ButtonLink size="sm" to={resultsRoute(access.jobId, access.token)}>{d.common.viewResults}<ArrowRight size={15} aria-hidden="true" /></ButtonLink>
-      <Button size="sm" variant="ghost" onClick={() => setOpenResultsIn(null)}>{locale === "zh" ? "留在此页" : "Stay here"}</Button>
+      <Button size="sm" variant="ghost" onClick={() => setCountdown(null)}>{locale === "zh" ? "留在此页" : "Stay here"}</Button>
     </div> : undefined}
     error={errorContent}
     recoveryActions={openCredentials => access ? <section className="job-recovery-actions">

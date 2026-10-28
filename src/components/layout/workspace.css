@@ -485,7 +485,7 @@ div.job-message-page { max-width: calc(760px + 2 * var(--page-gutter)); }
 .lookup-page .lookup-section-heading { margin-bottom: 10px; }
 .lookup-page .lookup-count { border-radius: 999px; padding-inline: 8px; }
 .lookup-page input[type="search"] { border-radius: 10px; }
-.lookup-page .lookup-column-labels { padding-block: 6px; background: transparent; border-block: 0; border-bottom: 1px solid #eef2f6; font-size: 11px; letter-spacing: .02em; color: #94a3b8; }
+.lookup-page .lookup-column-labels { padding-block: 6px; background: transparent; border-block: 0; border-bottom: 1px solid #eef2f6; font-size: 12px; letter-spacing: .02em; color: #64748b; }
 .lookup-page .lookup-row { margin-block: 2px; border-bottom: 0; border-radius: 10px; transition: background-color .2s ease; }
 .lookup-page .lookup-row + .lookup-row { box-shadow: 0 -1px 0 #f1f5f9; }
 .lookup-page .lookup-row:hover { background: #f4faf8; }

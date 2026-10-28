@@ -58,13 +58,13 @@ export function restoreJobWork(previous: WorkEntry[]) {
   entries = [...entries, ...previous.filter(entry => !entries.some(current => current.kind === entry.kind))].slice(0, 5);
   emit();
 }
-export function useRememberWork(kind: WorkKind, enabled = true) {
+export function useRememberWork(kind: WorkKind, enabled = true, { clearWhenDisabled = false }: { clearWhenDisabled?: boolean } = {}) {
   const location = useLocation();
   const remembered = useRef(false);
   useEffect(() => {
-    // Work this page recorded disappears once its input is cleared.
+    // Only input pages treat disabled as clearing work; failed requests retain verified entries.
     if (!enabled) {
-      if (remembered.current) forgetWork(kind);
+      if (clearWhenDisabled && remembered.current) forgetWork(kind);
       remembered.current = false;
       return;
     }
@@ -73,7 +73,7 @@ export function useRememberWork(kind: WorkKind, enabled = true) {
     if (entries[0]?.path === path && entries[0]?.kind === kind) return;
     entries = [{ kind, path }, ...entries.filter(entry => entry.kind !== kind)].slice(0, 5);
     emit();
-  }, [kind, enabled, location.pathname, location.search]);
+  }, [kind, enabled, clearWhenDisabled, location.pathname, location.search]);
 }
 export function useWorkEntries() {
   return useSyncExternalStore(
