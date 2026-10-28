@@ -24,10 +24,10 @@ it('shows dedicated queue, default order, and waits for a valid file',()=>{
  expect(screen.getByText(/2 jobs/)).toBeVisible();
  expect(document.querySelector('#realignPattern')).toHaveValue('1');expect(document.querySelector('details')).not.toHaveAttribute('open');
 });
-it('validates task name and email before posting',async()=>{
+it('names an unnamed job and still validates email before posting',async()=>{
  show();const user=userEvent.setup();await user.click(screen.getByRole('tab',{name:'Upload File'}));await user.upload(screen.getByLabelText('Aligned FASTA file'),aligned);
  await user.type(screen.getByLabelText(/Notification email|Email/i),'bad-email');await user.click(screen.getByRole('button',{name:'Submit Realignment'}));
- expect(await screen.findAllByRole('alert')).toHaveLength(2);expect(mocks.submit).not.toHaveBeenCalled();
+ expect(await screen.findAllByRole('alert')).toHaveLength(1);expect((screen.getByLabelText('Job name') as HTMLInputElement).value).toMatch(/^Realignment-\d{8}-\d{6}$/);expect(mocks.submit).not.toHaveBeenCalled();
 });
 it('keeps values after failure and clears the old error on replacement',async()=>{
  mocks.submit.mockRejectedValueOnce(new EasyMsaApiError({code:'REALIGN_UNALIGNED_INPUT',message:'Unequal alignment rows.'}));

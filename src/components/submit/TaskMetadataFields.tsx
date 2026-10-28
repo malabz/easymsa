@@ -13,10 +13,11 @@ export function TaskMetadataFields({ register, errors, disabled, onSuggestName }
     <div className="work-field">
       <label className="work-label" htmlFor="jobName">{d.submit.jobName}</label>
       <input className="work-control" id="jobName" disabled={disabled} placeholder={d.submit.jobNamePlaceholder}
-        aria-invalid={Boolean(errors.jobName)} aria-describedby={errors.jobName ? "jobName-error" : undefined} {...register("jobName")}
+        aria-invalid={Boolean(errors.jobName)} aria-describedby={errors.jobName ? "jobName-error" : "jobName-hint"} {...register("jobName")}
         onFocus={event => { suggestedOnFocus.current = onSuggestName?.(event.currentTarget) ?? false; }}
         onMouseUp={event => { if (suggestedOnFocus.current) { event.preventDefault(); event.currentTarget.select(); suggestedOnFocus.current = false; } }} />
-      {errors.jobName && <p id="jobName-error" className="work-error" role="alert">{errors.jobName.message}</p>}
+      {errors.jobName ? <p id="jobName-error" className="work-error" role="alert">{errors.jobName.message}</p>
+        : <p id="jobName-hint" className="work-hint">{workspaceText[locale].jobNameHint}</p>}
     </div>
     <div className="work-field">
       <label className="work-label" htmlFor="email">{d.submit.email} <span className="font-normal text-slate-500">({d.common.optional})</span></label>

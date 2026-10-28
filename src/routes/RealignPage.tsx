@@ -19,7 +19,7 @@ import { apiErrorMessage } from "../lib/i18n/apiErrors";
 import { useServiceHealth } from "../lib/query/useServiceHealth";
 import { createRealignmentJob } from "../lib/api/jobs";
 import { jobRoute } from "../lib/api/tokens";
-import { taskMetadataSchema } from "../lib/submit/taskMetadata";
+import { defaultJobName, taskMetadataSchema } from "../lib/submit/taskMetadata";
 import { focusFormField } from "../lib/submit/formFocus";
 import { validateAlignedPaste } from "../lib/submit/alignedPaste";
 import { readInputText } from "../lib/submit/readInputText";
@@ -90,15 +90,15 @@ export function RealignPage() {
     return () => cancelAnimationFrame(frame);
   }, [error]);
 
+  const namePrefix = locale === "zh" ? "重比对任务" : "Realignment";
+
   function suggestName(input: HTMLInputElement) {
     if (getValues("jobName").trim()) return false;
-    const now = new Date();
-    const pad = (v: number) => String(v).padStart(2, "0");
-    const stamp = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-    const name = `${locale === "zh" ? "重比对任务" : "Realignment"}-${stamp}`;
+    const name = defaultJobName(namePrefix);
     setValue("jobName", name, { shouldDirty: true });
     input.value = name; input.select(); return true;
   }
+
   function focusInvalid(invalid: { jobName?: unknown; email?: unknown }) {
     focusFormField(settingsRef.current, invalid.jobName ? "jobName" : "email");
   }
@@ -132,7 +132,10 @@ export function RealignPage() {
           {!health.isPending && !ready && <button type="button" aria-label={d.common.retry} onClick={() => health.refetch()}><RefreshCw size={14} /></button>}
         </div>
       </div>
-      <form className="submission-form realignment-form" onSubmit={handleSubmit(submit, focusInvalid)} noValidate aria-busy={busy}>
+      <form className="submission-form realignment-form" onSubmit={event => {
+        if (!getValues("jobName").trim()) setValue("jobName", defaultJobName(namePrefix));
+        return handleSubmit(submit, focusInvalid)(event);
+      }} noValidate aria-busy={busy}>
         <fieldset className="work-grid" disabled={busy}>
           <legend className="sr-only">{t.title}</legend>
           <div className="work-input">
@@ -201,7 +204,7 @@ export function RealignPage() {
         <div className="work-actionbar">
           <div className="work-summary">
             <strong><FileText size={16} />{w.summary}</strong>
-            <span className="max-w-64 truncate" title={inputSummary}>{inputSummary}</span>
+            <span className="max-w-64 truncate" data-ready={inputSummary !== w.inputPending} title={inputSummary}>{inputSummary}</span>
             <span>{pattern === 1 ? t.localFirst : t.globalFirst}</span>
           </div>
           <Button type="submit" disabled={busy || !ready || !validInput}>

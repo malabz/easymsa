@@ -37,6 +37,13 @@ it('suggests a name on focus and preserves edited names', async () => {
   await user.click(screen.getByLabelText(/Notification email/)); await user.click(name);
   expect(name).toHaveValue('my-analysis');
 });
+it('names a job the user never named', async () => {
+  show(); const user = userEvent.setup();
+  await user.type(screen.getByLabelText('FASTA sequences'), '>a\nACGT\n>b\nACGA\n');
+  expect(screen.getByLabelText('Job name')).toHaveAccessibleDescription('Left blank, the job is named by its submission time.');
+  await user.click(submitButton());
+  await waitFor(() => expect(mocks.submit).toHaveBeenCalledWith(expect.objectContaining({ jobName: expect.stringMatching(/^Alignment-\d{8}-\d{6}$/) })));
+});
 it('defaults to audit, ignores the old filter draft, and removes the size sentence', async () => {
   function LegacyDraft() { const [, set] = useDraftState('submit:preprocess', 'audit'); useEffect(() => set('filter'), [set]); return null; }
   const legacy = render(<LegacyDraft />); legacy.unmount(); show(); const user = await validInput();
