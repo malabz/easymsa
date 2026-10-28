@@ -416,3 +416,30 @@ div.viewer-input-page { max-width: calc(920px + 2 * var(--page-gutter)); }
 .viewer-input-page .work-viewer-input > .mt-4 { margin-top: 0; }
 .viewer-input-page .work-file { min-height: 240px; }
 .viewer-input-page .work-file > .work-hint { margin-top: -4px; }
+
+/* Interaction feedback on the input workspaces. */
+.workflow-page :is(.work-input, .work-settings, .work-viewer-input) { transition: border-color .25s ease, box-shadow .25s ease; }
+.workflow-page :is(.work-input, .work-settings, .work-viewer-input):focus-within {
+  border-color: #a7dccf;
+  box-shadow: 0 1px 2px rgb(15 23 42 / .04), 0 18px 40px -24px rgb(15 118 110 / .4);
+}
+.submission-form :is(.work-input-heading h2, .submission-settings-heading)::before { transition: background-color .25s ease, color .25s ease; }
+.submission-form .work-input:focus-within .work-input-heading h2::before,
+.submission-form .work-settings:focus-within .submission-settings-heading::before { background: #0f766e; color: #fff; }
+.workflow-page .work-parameters > summary > svg:last-child { transition: transform .25s ease; }
+.workflow-page .work-parameters[open] > summary > svg:last-child { transform: rotate(180deg); }
+@media (prefers-reduced-motion: no-preference) {
+  /* Cards arrive one after another rather than the page fading in as a block. */
+  .workflow-page :is(.work-input, .work-settings, .work-viewer-input, .work-actionbar) { animation: work-rise .55s cubic-bezier(.2, .7, .2, 1) backwards; }
+  .workflow-page .work-settings { animation-delay: .08s; }
+  .workflow-page .work-actionbar { animation-delay: .16s; }
+  .workflow-page [role="tabpanel"]:not([hidden]),
+  .workflow-page details[open] > :not(summary) { animation: work-reveal .32s cubic-bezier(.2, .7, .2, 1); }
+  .workflow-page :is(.work-feedback, .work-error, [role="alert"]) { animation: work-reveal .3s ease-out; }
+  .workflow-page .work-summary > span[data-ready="true"] { animation: work-pop .4s cubic-bezier(.3, 1.5, .5, 1); }
+  .workflow-page .work-actionbar > button:not(:disabled) { animation: work-ready 1s ease-out; }
+}
+@keyframes work-rise { from { opacity: 0; transform: translateY(14px); } }
+@keyframes work-reveal { from { opacity: 0; transform: translateY(-6px); } }
+@keyframes work-pop { from { transform: scale(.85); } }
+@keyframes work-ready { from { box-shadow: 0 0 0 0 rgb(15 118 110 / .45); } to { box-shadow: 0 0 0 12px rgb(15 118 110 / 0); } }

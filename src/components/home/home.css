@@ -471,3 +471,22 @@
   .home-public-preview { border-radius: 12px; }
   .home-decision-features li { font-size: 12px; }
 }
+
+/* Legal links join the free-use note; the cover bottom keeps only a clear scroll cue. */
+.home-cover-note { flex-wrap: wrap; column-gap: 8px; }
+.home-cover-note > span { color: #cbd5e1; }
+.home-cover-note a { color: #0f766e; text-decoration: underline; text-decoration-color: rgb(15 118 110 / .35); text-underline-offset: 3px; }
+.home-cover-note a:hover { text-decoration-color: currentColor; }
+.home-cover .home-scroll {
+  min-height: 48px;
+  margin-top: 0;
+  padding: 10px 22px;
+  gap: 10px;
+  font-size: 15px;
+  border-radius: 999px;
+  box-shadow: 0 8px 22px -14px rgb(15 118 110 / .55);
+}
+.home-cover .home-scroll svg { width: 18px; height: 18px; }
+@media (prefers-reduced-motion: no-preference) {
+  .home-cover .home-scroll svg { animation: home-bob 1.8s ease-in-out infinite; }
+}
