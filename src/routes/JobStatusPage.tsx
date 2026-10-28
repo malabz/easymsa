@@ -1,7 +1,7 @@
-import { Copy, Download, Eye, EyeOff, Loader2, RefreshCw } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
-import { Button } from "../components/common/Button";
+import { ArrowRight, CheckCircle2, Copy, Download, Eye, EyeOff, Loader2, RefreshCw } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Button, ButtonLink } from "../components/common/Button";
 import { ErrorState } from "../components/common/ErrorState";
 import { LoadingState } from "../components/common/LoadingState";
 import { JobWorkspace } from "../components/job/JobWorkspace";
@@ -15,6 +15,7 @@ import {
   isValidJobId,
   jobRoute,
   resolveJobAccess,
+  resultsRoute,
   saveJobAccess
 } from "../lib/api/tokens";
 import { useLanguage } from "../lib/i18n/useLanguage";
@@ -41,6 +42,26 @@ export function JobStatusPage() {
   const jobQuery = useJobStatus(jobId ?? undefined, access?.token);
   const job = jobQuery.data;
   useRememberWork("job", Boolean(access && jobQuery.isSuccess && job?.jobId === access.jobId));
+
+  // A job that finishes while this page is open opens its results after a short,
+  // cancellable countdown; reopening an already completed job stays here.
+  const navigate = useNavigate();
+  const previousStatus = useRef<string | undefined>(undefined);
+  const [openResultsIn, setOpenResultsIn] = useState<number | null>(null);
+  useEffect(() => {
+    const before = previousStatus.current;
+    previousStatus.current = job?.status;
+    if (job?.status === "completed" && before && before !== "completed" && before !== "failed") setOpenResultsIn(3);
+  }, [job?.status]);
+  useEffect(() => {
+    if (openResultsIn === null || !access) return;
+    if (openResultsIn <= 0) {
+      navigate(resultsRoute(access.jobId, access.token));
+      return;
+    }
+    const timer = window.setTimeout(() => setOpenResultsIn(seconds => seconds === null ? null : seconds - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [openResultsIn, access, navigate]);
 
   // A recovery URL has no creation date. Once authenticated, exports use the
   // same server-provided date as the saved record rather than the visit time.
@@ -133,6 +154,12 @@ export function JobStatusPage() {
       {jobQuery.isFetching && <Loader2 size={13} className="animate-spin" />}
       {jobQuery.isFetching ? d.job.updating : d.job.polling}
     </span> : undefined}
+    notice={openResultsIn !== null && access ? <div className="mt-3 flex flex-wrap items-center gap-3 rounded-lg border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-900" role="status">
+      <CheckCircle2 size={17} className="shrink-0 text-teal-700" aria-hidden="true" />
+      <span className="min-w-0 flex-1">{locale === "zh" ? `任务已完成，${openResultsIn} 秒后打开结果。` : `Job completed. Opening results in ${openResultsIn} s.`}</span>
+      <ButtonLink size="sm" to={resultsRoute(access.jobId, access.token)}>{d.common.viewResults}<ArrowRight size={15} aria-hidden="true" /></ButtonLink>
+      <Button size="sm" variant="ghost" onClick={() => setOpenResultsIn(null)}>{locale === "zh" ? "留在此页" : "Stay here"}</Button>
+    </div> : undefined}
     error={errorContent}
     recoveryActions={openCredentials => access ? <section className="job-recovery-actions">
       <p>{locale === "zh" ? "可关闭页面，稍后恢复任务。" : "You can close this page and restore the job later."}</p>

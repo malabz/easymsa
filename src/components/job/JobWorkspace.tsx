@@ -14,10 +14,10 @@ import { formatDateTime } from "../../lib/utils/format";
 import { resultsRoute } from "../../lib/api/tokens";
 import type { JobDetail } from "../../lib/types/job";
 
-export function JobWorkspace({ job, token, credentials, recoveryActions, polling, error }: {
+export function JobWorkspace({ job, token, credentials, recoveryActions, polling, notice, error }: {
   job: JobDetail; token: string; credentials: ReactNode;
   recoveryActions: (showCredentials: () => void) => ReactNode;
-  polling?: ReactNode; error?: ReactNode;
+  polling?: ReactNode; notice?: ReactNode; error?: ReactNode;
 }) {
   const { dictionary: d, locale } = useLanguage();
   const zh = locale === "zh";
@@ -42,6 +42,7 @@ export function JobWorkspace({ job, token, credentials, recoveryActions, polling
     {recoveryActions(() => { setTab(2); buttons.current[2]?.focus(); })}
   </>}>
     <div className="analysis-heading"><h1>{zh ? "任务进度" : "Job progress"}</h1>{polling}</div>
+    {notice}
     <div className="job-progress-line">
       <div className="job-progress-track" role="progressbar" aria-label={d.job.progress} aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><div style={{ width: `${progress}%` }} /></div>
       <span>{progress}%</span>

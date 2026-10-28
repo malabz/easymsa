@@ -80,7 +80,7 @@ export function ExamplesPage() {
                     ? "minipoa 比对示例"
                     : "minipoa alignment example"
                   : zh
-                    ? "已有比对的优化示例"
+                    ? "已有比对的重比对示例"
                     : "Refinement of an existing alignment"}
               </p>
               <ExampleActions example={e} />

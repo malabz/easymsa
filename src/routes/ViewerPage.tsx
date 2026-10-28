@@ -26,7 +26,6 @@ import {
 export function ViewerPage() {
   const { dictionary: d, locale } = useLanguage();
   const t = workspaceText[locale];
-  useRememberWork("viewer");
   const [examplePending, setExamplePending] = useState(false);
   const [exampleContext, setExampleContext] = useDraftState<MsaViewerContext | null>("viewer:context", null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -37,6 +36,7 @@ export function ViewerPage() {
   const [sourceName, setSourceName] = useDraftState("viewer:name", d.viewerPage.uploadedSource);
   const [alignment, setAlignment] = useDraftState<MSAResult | null>("viewer:alignment", null);
   const hasAlignment = alignment !== null;
+  useRememberWork("viewer", hasAlignment || Boolean(pastedFasta.trim()));
   useLayoutEffect(() => {
     // Loading replaces a tall input form. Keep the source bar below the sticky
     // site header instead of retaining the input button's document scroll.

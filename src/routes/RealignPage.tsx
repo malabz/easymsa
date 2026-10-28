@@ -35,13 +35,13 @@ export function RealignPage() {
   const t = realignText[locale];
   const w = workspaceText[locale];
   const ui = refinementText[locale];
-  useRememberWork("realign");
   const [exampleLoaded, setExampleLoaded] = useDraftState("realign:example", false);
   const health = useServiceHealth();
   const navigate = useNavigate();
   const [file, setFile] = useDraftState<File | null>("realign:file", null);
   const [inputMethod, setInputMethod] = useDraftState<"paste" | "upload">("realign:inputMethod", file ? "upload" : "paste");
   const [pastedFasta, setPastedFasta] = useDraftState("realign:paste", "");
+  useRememberWork("realign", Boolean(pastedFasta.trim() || file));
   const pastedFile = useMemo(() => pastedFasta.trim()
     ? new File([pastedFasta], "pasted-alignment.fasta", { type: "text/plain" }) : null, [pastedFasta]);
   const activeFile = inputMethod === "paste" ? pastedFile : file;
@@ -123,7 +123,8 @@ export function RealignPage() {
   return (
     <PageContainer className="workflow-page submission-page realignment-page">
       <div className="work-heading">
-        <div><h1>{t.title}</h1><p>{locale === "zh" ? "上传或粘贴已比对序列，优化比对结果。" : "Upload or paste aligned sequences to refine the alignment."}</p></div>
+        <div><h1>{t.title}</h1><p>{locale === "zh" ? "上传或粘贴已比对序列，优化比对结果。" : "Upload or paste aligned sequences to refine the alignment."}</p>
+          <p className="mt-1 text-sm text-slate-600">{t.toSubmitHint}{" "}<Link className="font-medium text-teal-800 underline underline-offset-2" to="/submit">{t.toSubmitLink}</Link></p></div>
         <div role="status" className="work-status" data-status={ready ? "ready" : "offline"}>
           <StatusIcon size={15} aria-hidden="true" className={health.isPending ? "animate-spin" : ""} />
           <span>{statusText}</span>

@@ -76,7 +76,7 @@ it('preserves the example name on focus and keeps refinement opt-in', async () =
   show(); const user = userEvent.setup(); await user.click(screen.getByRole('button', { name: 'Load example' }));
   const name = screen.getByLabelText('Job name'); await waitFor(() => expect(name).toHaveValue('Synthetic DNA example'));
   await user.click(name); expect(name).toHaveValue('Synthetic DNA example');
-  expect(screen.getByRole('checkbox', { name: 'Refine alignment quality' })).not.toBeChecked();
+  expect(screen.getByRole('checkbox', { name: 'Realign after alignment' })).not.toBeChecked();
   expect(screen.getByRole('tab', { name: 'Paste FASTA' })).toHaveAttribute('aria-selected', 'true');
   expect(screen.getByLabelText('FASTA sequences')).toHaveValue('>a\nACGT\n>b\nACGA\n');
 });
