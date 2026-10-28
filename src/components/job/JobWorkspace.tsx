@@ -1,5 +1,5 @@
 import { useRef, useState, type ReactNode } from "react";
-import { AlertTriangle, ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle2, Loader2, RotateCcw } from "lucide-react";
 import { AnalysisWorkspace, WorkspaceBackLink } from "../layout/AnalysisWorkspace";
 import { ButtonLink } from "../common/Button";
 import { JobTimeline } from "./JobTimeline";
@@ -43,23 +43,26 @@ export function JobWorkspace({ job, token, credentials, recoveryActions, polling
   </>}>
     <div className="analysis-heading"><h1>{zh ? "任务进度" : "Job progress"}</h1>{polling}</div>
     {notice}
-    <div className="job-progress-line">
+    <section className="job-status-card" data-state={job.status} aria-label={d.job.progress}>
+      <div className="job-status-top">
+        {status}
+        <div className="job-status-end">
+          {job.status === "completed" && <ButtonLink size="sm" to={resultsRoute(job.jobId, token)}>{d.common.viewResults}<ArrowRight size={15} /></ButtonLink>}
+          {job.status === "failed" && <ButtonLink size="sm" variant="outline" to={job.jobKind === "realignment" ? "/realign" : "/submit"}><RotateCcw size={15} aria-hidden="true" />{zh ? "重新提交" : "Submit again"}</ButtonLink>}
+          <span className="job-status-percent">{progress}<small>%</small></span>
+        </div>
+      </div>
       <div className="job-progress-track" role="progressbar" aria-label={d.job.progress} aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><div style={{ width: `${progress}%` }} /></div>
-      <span>{progress}%</span>
-    </div>
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <div className="flex min-w-0 flex-wrap items-center gap-3"><h2 className="text-base font-semibold break-words">{job.jobName ?? d.job.title}</h2>{status}</div>
-      {job.status === "completed" && <ButtonLink size="sm" to={resultsRoute(job.jobId, token)}>{d.common.viewResults}<ArrowRight size={15} /></ButtonLink>}
-    </div>
-    <dl className="job-detail-strip">
-      <div><dt>{d.job.jobId}</dt><dd>{job.jobId}</dd></div>
-      <div><dt>{d.common.createdAt}</dt><dd>{job.createdAt ? formatDateTime(job.createdAt, locale) : "—"}</dd></div>
-      <div><dt>{d.job.algorithmLabel}</dt><dd>{method}</dd></div>
-    </dl>
+      <dl className="job-detail-strip">
+        <div><dt>{d.job.jobId}</dt><dd>{job.jobId}</dd></div>
+        <div><dt>{d.common.createdAt}</dt><dd>{job.createdAt ? formatDateTime(job.createdAt, locale) : "—"}</dd></div>
+        <div><dt>{d.job.algorithmLabel}</dt><dd>{method}</dd></div>
+      </dl>
+    </section>
     <section className="job-preprocess">
       <h2>{t.title}</h2>
       {p.status === "not_applicable" ? <p className="work-hint">{realignText[locale].preprocessNotApplicable}</p> : <dl className="job-counts">
-        {[[t.rawSequences, p.summaryCounts?.raw_sequence_count], [t.cleanSequences, p.summaryCounts?.clean_sequence_count], [t.removedSequences, p.summaryCounts?.removed_sequence_count], [t.collapsedDuplicates, p.summaryCounts?.collapsed_duplicate_count ?? p.dedupSummary?.collapsed_count]].map(([label, value]) => <div key={String(label)}><dt>{label}</dt><dd>{typeof value === "number" ? value.toLocaleString() : "—"}</dd></div>)}
+        {[[t.rawSequences, p.summaryCounts?.raw_sequence_count], [t.cleanSequences, p.summaryCounts?.clean_sequence_count], [t.removedSequences, p.summaryCounts?.removed_sequence_count], [t.collapsedDuplicates, p.summaryCounts?.collapsed_duplicate_count ?? p.dedupSummary?.collapsed_count]].map(([label, value]) => <div key={String(label)}><dt>{label}</dt><dd key={String(value)}>{typeof value === "number" ? value.toLocaleString() : "—"}</dd></div>)}
         <div><dt>{d.results.overview.preprocess.mode}</dt><dd>{p.mode ? values[p.mode] ?? p.mode : "—"}</dd></div>
       </dl>}
     </section>

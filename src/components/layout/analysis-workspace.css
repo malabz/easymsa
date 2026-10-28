@@ -177,3 +177,57 @@
   .result-information .workspace-task-title, .result-back, .result-download-actions { display:none; }
   .result-information > summary { min-height:44px; }
 }
+
+/* Job progress: status, preprocessing and details each sit on their own card. */
+.analysis-main:has(> .job-status-card) { gap: 14px; }
+.analysis-main:has(> .job-status-card) > .analysis-heading { margin-bottom: 0; }
+.job-status-card, .analysis-main > .job-preprocess, .analysis-main > .job-detail-area {
+  border: 1px solid #e3e8ef;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(15 23 42 / .04), 0 14px 32px -26px rgb(15 23 42 / .28);
+}
+.job-status-card { display: flex; flex-direction: column; gap: 14px; padding: 18px 22px 16px; flex: 0 0 auto; }
+.job-status-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.job-status-top > .workspace-state { padding: 5px 12px 5px 10px; border-radius: 999px; background: #e6f4f1; font-size: 14px; }
+.job-status-card[data-state="completed"] .job-status-top > .workspace-state { background: #e3f6ec; color: #047857; }
+.job-status-card[data-state="failed"] .job-status-top > .workspace-state { background: #fff1f3; }
+.job-status-end { display: flex; align-items: center; gap: 16px; }
+.job-status-percent { font-size: 30px; line-height: 1; font-weight: 650; color: #0f172a; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.job-status-percent small { margin-left: 2px; font-size: 16px; font-weight: 600; color: #64748b; }
+.job-status-card .job-progress-track { flex: 0 0 auto; height: 12px; border-radius: 999px; background: #e8eef3; }
+.job-status-card .job-progress-track > div {
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2dd4bf, #0f766e);
+  transition: width .8s cubic-bezier(.2, .7, .2, 1), background-color .3s ease;
+}
+.job-status-card[data-state="completed"] .job-progress-track > div { background: linear-gradient(90deg, #34d399, #047857); }
+.job-status-card[data-state="failed"] .job-progress-track > div { background: #e11d48; }
+.job-status-card .job-detail-strip { padding: 12px 0 0; border-top: 1px solid #eef2f6; border-bottom: 0; }
+.analysis-main > .job-preprocess { padding: 16px 22px 18px; flex: 0 0 auto; }
+.analysis-main > .job-detail-area { padding: 4px 18px 0; overflow: hidden; }
+.job-detail-tabs { border-bottom-color: #eef2f6; }
+.job-detail-tabs button { transition: color .2s ease, border-color .2s ease; }
+.job-detail-tabs button:hover { color: #0f172a; }
+.workspace-timeline li[aria-current="step"] p { color: #0f766e; font-weight: 600; }
+@media (prefers-reduced-motion: no-preference) {
+  .job-status-card, .analysis-main > .job-preprocess, .analysis-main > .job-detail-area { animation: work-rise .55s cubic-bezier(.2, .7, .2, 1) backwards; }
+  .analysis-main > .job-preprocess { animation-delay: .07s; }
+  .analysis-main > .job-detail-area { animation-delay: .14s; }
+  /* Running jobs get slowly drifting stripes so the bar never looks frozen between polls. */
+  .job-status-card:not([data-state="completed"], [data-state="failed"]) .job-progress-track > div {
+    background-image: repeating-linear-gradient(-45deg, rgb(255 255 255 / .22) 0 8px, transparent 8px 16px), linear-gradient(90deg, #2dd4bf, #0f766e);
+    background-size: 22.6px 22.6px, 100% 100%;
+    animation: job-stripes 1s linear infinite;
+  }
+  .job-status-card[data-state="completed"] .job-status-percent { animation: work-pop .5s cubic-bezier(.3, 1.5, .5, 1); }
+  .job-counts dd, .job-detail-panel:not([hidden]) { animation: work-reveal .35s ease-out; }
+  .workspace-timeline svg.text-emerald-700 { animation: work-pop .45s cubic-bezier(.3, 1.5, .5, 1); }
+}
+@keyframes job-stripes { to { background-position: 22.6px 0, 0 0; } }
+@media (max-width: 700px) {
+  .job-status-card { padding: 16px; }
+  .job-status-percent { font-size: 26px; }
+  .analysis-main > .job-preprocess { padding: 14px 16px; }
+  .analysis-main > .job-detail-area { padding: 2px 12px 0; }
+}

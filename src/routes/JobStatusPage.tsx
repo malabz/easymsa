@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle2, Copy, Download, Eye, EyeOff, Loader2, RefreshCw } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle2, Copy, Download, Eye, EyeOff, KeyRound, Loader2, Plus, RefreshCw } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Button, ButtonLink } from "../components/common/Button";
@@ -144,9 +144,27 @@ export function JobStatusPage() {
     </div>
   </div> : null;
 
-  if (!job) return <PageContainer className="workflow-page">
+  // Without a job there is nothing else on the page, so the problem and every way
+  // forward share one card instead of a lone message and a distant link.
+  const fetchFailed = Boolean(error && !invalidJobId && jobId && !missingAccess);
+  const errorCard = error ? <section className="job-message-card" data-tone="error">
+    <span className="job-message-icon" aria-hidden="true">{missingAccess ? <KeyRound size={20} /> : <AlertTriangle size={20} />}</span>
+    <div className="job-message-body">
+      <h2>{fetchFailed ? (locale === "zh" ? "暂时读取不到任务状态" : "Job status is unavailable right now")
+        : (locale === "zh" ? "无法打开这个任务" : "This job can't be opened")}</h2>
+      <p role="alert">{error}</p>
+      <div className="job-message-actions">
+        {fetchFailed && <Button onClick={() => jobQuery.refetch()}><RefreshCw size={15} />{d.common.retry}</Button>}
+        <ButtonLink to="/lookup" variant={fetchFailed ? "outline" : "primary"}>{d.job.lookupLink}<ArrowRight size={15} aria-hidden="true" /></ButtonLink>
+        <ButtonLink to="/submit" variant="ghost"><Plus size={15} aria-hidden="true" />{locale === "zh" ? "提交新任务" : "Submit a new job"}</ButtonLink>
+      </div>
+    </div>
+  </section> : null;
+
+  if (!job) return <PageContainer className="workflow-page job-message-page">
     <div className="work-heading"><h1>{d.job.title}</h1></div>
-    {accessChoices ?? errorContent ?? <LoadingState label={d.job.loadingStatus} />}
+    {accessChoices ? <section className="job-message-card">{accessChoices}</section>
+      : errorCard ?? <LoadingState label={d.job.loadingStatus} />}
   </PageContainer>;
 
   return <JobWorkspace job={job} token={access?.token ?? ""}

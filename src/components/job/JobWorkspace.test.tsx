@@ -48,6 +48,7 @@ describe("JobWorkspace", () => {
     view({ ...job, status: "failed", failure: { code: "FIXTURE_FAILURE", message: "Failed fixture", details: null } });
     expect(screen.getByRole("alert")).toHaveTextContent("Failed fixture");
     expect(screen.queryByRole("link", { name: /View results/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Submit again" })).toHaveAttribute("href", "/submit");
   });
   it("does not turn unavailable preprocessing data into a clean QC result", () => {
     view({ ...job, preprocess: { ...job.preprocess, summaryCounts: null, summaryUnavailable: true } });

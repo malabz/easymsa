@@ -443,3 +443,29 @@ div.viewer-input-page { max-width: calc(920px + 2 * var(--page-gutter)); }
 @keyframes work-reveal { from { opacity: 0; transform: translateY(-6px); } }
 @keyframes work-pop { from { transform: scale(.85); } }
 @keyframes work-ready { from { box-shadow: 0 0 0 0 rgb(15 118 110 / .45); } to { box-shadow: 0 0 0 12px rgb(15 118 110 / 0); } }
+
+/* Job page without a job: the reason and the ways forward in one card. */
+div.job-message-page { max-width: calc(760px + 2 * var(--page-gutter)); }
+.job-message-card {
+  display: flex;
+  gap: 18px;
+  padding: 24px 26px;
+  border: 1px solid #e3e8ef;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(15 23 42 / .04), 0 14px 32px -26px rgb(15 23 42 / .28);
+}
+.job-message-card[data-tone="error"] { border-color: #f3d4dc; }
+.job-message-icon { display: grid; place-items: center; flex: 0 0 auto; width: 42px; height: 42px; border-radius: 12px; background: #fff1f3; color: #be123c; }
+.job-message-body { min-width: 0; }
+.job-message-body h2 { font-size: 18px; line-height: 1.4; font-weight: 650; color: #0f172a; }
+.job-message-body > p { margin-top: 6px; font-size: 14px; line-height: 1.7; color: #475569; overflow-wrap: anywhere; }
+.job-message-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 18px; }
+@media (prefers-reduced-motion: no-preference) {
+  .job-message-card { animation: work-rise .55s cubic-bezier(.2, .7, .2, 1) backwards; }
+  .job-message-icon { animation: work-pop .5s .2s cubic-bezier(.3, 1.5, .5, 1) backwards; }
+}
+@media (max-width: 700px) {
+  .job-message-card { flex-direction: column; gap: 14px; padding: 18px; }
+  .job-message-actions > a, .job-message-actions > button { flex: 1 1 auto; }
+}
