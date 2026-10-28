@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUpRight, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import { homeContent } from "../../lib/homeContent";
@@ -43,6 +43,7 @@ export function HeroSection() {
             <ButtonLink to="/submit" size="lg">{copy.start}<ArrowRight size={18} aria-hidden="true" /></ButtonLink>
             <ButtonLink to="/examples/alignment-small" variant="outline" size="lg">{copy.example}<ArrowUpRight size={18} aria-hidden="true" /></ButtonLink>
           </div>
+          <p className="home-cover-note"><ShieldCheck size={15} aria-hidden="true" />{copy.free}</p>
         </div>
         <AlignmentAnimation locale={locale} />
         </div>

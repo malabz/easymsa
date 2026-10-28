@@ -6,6 +6,7 @@ import { homeBenefitsContent } from "../../lib/homeContent";
 import { ServiceStatus } from "../common/ServiceStatus";
 import { HomeAlignmentCanvas } from "./HomeAlignmentCanvas";
 import { HomeDemoFallback } from "./HomeDemoFallback";
+import { HomeModeBadge } from "./HomeModeBadge";
 import { useHomeDemo } from "./HomeDemoProvider";
 import { homeColumnSummary } from "./homeDemoData";
 import { AutoMethodDemo } from "./AutoMethodDemo";
@@ -26,7 +27,7 @@ export function MethodsSection() {
     <AutoMethodDemo />
     <section className="home-section home-explore" aria-labelledby="home-explore-title">
       <div className="home-explore-heading">
-        <div className="home-benefit-heading"><h2 id="home-explore-title">{copy.exploreTitle}</h2><p>{copy.exploreIntro}</p></div>
+        <div className="home-benefit-heading"><HomeModeBadge mode="interactive" label={copy.interactiveBadge} /><h2 id="home-explore-title">{copy.exploreTitle}</h2><p>{copy.exploreIntro}</p></div>
         <Link className="home-text-link" to="/examples/alignment-small?tab=alignment">{copy.openExample}<ArrowUpRight size={16} aria-hidden="true" /></Link>
       </div>
       <div className="home-public-preview">

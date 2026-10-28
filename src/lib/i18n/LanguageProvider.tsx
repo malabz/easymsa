@@ -5,6 +5,7 @@ import {
   useMemo,
   useState
 } from "react";
+import { flushSync } from "react-dom";
 import {
   dictionary,
   type Dictionary,
@@ -49,7 +50,16 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       locale,
       dictionary: dictionary[locale],
       setLocale,
-      toggleLocale: () => setLocale((current) => (current === "zh" ? "en" : "zh"))
+      toggleLocale: () => {
+        const toggle = () => setLocale((current) => (current === "zh" ? "en" : "zh"));
+        // Cross-fade the language swap where the browser supports view transitions.
+        const transitionDocument = document as Document & { startViewTransition?: (update: () => void) => unknown };
+        if (!transitionDocument.startViewTransition || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+          toggle();
+          return;
+        }
+        transitionDocument.startViewTransition(() => flushSync(toggle));
+      }
     }),
     [locale]
   );
