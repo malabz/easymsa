@@ -29,7 +29,8 @@ export type BuildMsaQcBundleInput = {
 };
 
 const MAX_ZIP32_VALUE = 0xffff_ffff;
-const FIXED_ZIP_MTIME = new Date("1980-01-01T00:00:00.000Z");
+// ZIP stores local date fields; a UTC instant falls in 1979 west of Greenwich.
+const FIXED_ZIP_MTIME = new Date(1980, 0, 1);
 
 function validateZipEntryName(name: string) {
   const normalized = name.replace(/\\/g, "/");
