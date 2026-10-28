@@ -138,6 +138,18 @@ function useMobileLayout() {
   return mobile;
 }
 
+/** Narrow layouts give names about a fifth of the width, never less than 120px. */
+function useNarrowLabelCap() {
+  const read = () => typeof window === "undefined" ? 120 : Math.max(120, Math.round(window.innerWidth * 0.22));
+  const [cap, setCap] = useState(read);
+  useEffect(() => {
+    const update = () => setCap(read());
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+  return cap;
+}
+
 function prepareAlignment(alignment: MSAResult) {
   const sourceKey = alignment.descriptor?.sourceKey ??
     canonicalAlignmentSourceKey(alignment.sequences);
@@ -224,6 +236,7 @@ export function MsaViewerRoot({
 }) {
   const { dictionary: d, locale } = useLanguage();
   const mobile = useMobileLayout();
+  const narrowLabelCap = useNarrowLabelCap();
   const w = d.viewerWorkflow;
   const alignment = useMemo(() => prepareAlignment(sourceAlignment), [sourceAlignment]);
   const descriptor = alignment.descriptor!;
@@ -460,13 +473,13 @@ export function MsaViewerRoot({
         state.zoomLevel,
         state.density,
         state.viewMode,
-        mobile ? Math.min(120, state.labelWidth) : state.labelWidth
+        mobile ? Math.min(narrowLabelCap, state.labelWidth) : state.labelWidth
       ),
       conservationScale: state.conservationScale ?? "high"
     };
     // Matrix density is independent of the hit-area size of toolbar controls.
     return settings;
-  }, [mobile, state.conservationScale, state.density, state.labelWidth, state.viewMode, state.zoomLevel]);
+  }, [mobile, narrowLabelCap, state.conservationScale, state.density, state.labelWidth, state.viewMode, state.zoomLevel]);
   const activeTracks = canAnalyze ? state.activeTracks : [];
   const navigationRowKeys = useMemo(
     () => [
@@ -1167,6 +1180,7 @@ export function MsaViewerRoot({
         onSelect={handleSelect}
         onSelectSequence={(rowKey) => dispatch({ type: "toggleRowSet", field: "selectedRowKeys", rowKey })}
         onSetReference={rowKey => setReference(rowKey === state.referenceRowKey ? "" : rowKey)}
+        onLabelWidthChange={(labelWidth) => patchState({ labelWidth })}
         onZoomGesture={(factor) => changeZoom(state.zoomLevel * factor)}
         pinnedSequenceIds={state.pinnedRowKeys}
         rangeSelectionMode={state.rangeSelectionMode}

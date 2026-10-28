@@ -56,6 +56,8 @@ import type {
 import { markMsaPerformance, MSA_PERFORMANCE_MARKS } from "./performanceMarks";
 
 const CONSENSUS_ROW_KEY = "easymsa:consensus";
+const MemoStatisticTrack = memo(MsaStatisticTrack);
+const MemoFrequencyLogo = memo(MsaFrequencyLogo);
 
 /** Rendering strategy, not an input limit. Keep the keyboard grid for both. */
 export function shouldUseCanvasMatrix(rows: number, columns: number, showCharacters: boolean) {
@@ -140,10 +142,31 @@ function pointerColumnPositionFromView({
 }
 
 type RenderColumn = {
-  virtualColumn: VirtualItem;
+  virtualColumn: Pick<VirtualItem, "index" | "start">;
   position: number;
   stats: ColumnStats | null;
 };
+
+/**
+ * Columns render in fixed blocks that keep their identity while in view, so a
+ * scroll step only mounts the block entering the viewport instead of
+ * re-rendering every visible cell of every row.
+ */
+const COLUMN_BLOCK = 32;
+
+type SelectionBand = { left: number; width: number };
+
+/** First visible column index whose alignment position is at least `position`. */
+function columnIndexFrom(view: ColumnPositionView, position: number) {
+  let low = 0;
+  let high = view.length;
+  while (low < high) {
+    const middle = (low + high) >> 1;
+    if ((positionAt(view, middle) ?? 0) < position) low = middle + 1;
+    else high = middle;
+  }
+  return low;
+}
 
 function useCoarsePointer() {
   const [matches, setMatches] = useState(
@@ -185,7 +208,7 @@ export function sortedPositionIndex(values: number[], target: number) {
   return -1;
 }
 
-const SequenceCells = memo(function SequenceCells({
+const SequenceCellBlock = memo(function SequenceCellBlock({
   colorScheme,
   differenceMode,
   dragAnchorRef,
@@ -195,15 +218,16 @@ const SequenceCells = memo(function SequenceCells({
   onRangeSelect,
   onSelect,
   positionView,
-  renderColumns,
+  columns,
+  rangeEnd,
   rangeSelectionMode,
+  rangeStart,
   reference,
-  selectedRange,
-  selection,
+  rowSelected,
+  selectedPosition,
   sequence,
   sequenceRowKey,
-  settings,
-  totalWidth
+  settings
 }: {
   colorScheme: MSAColorScheme;
   differenceMode: boolean;
@@ -214,29 +238,27 @@ const SequenceCells = memo(function SequenceCells({
   onRangeSelect: (rowKey: string, start: number, end: number) => void;
   onSelect: (selection: CellSelection, extendRange?: boolean) => void;
   positionView: ColumnPositionView;
-  renderColumns: RenderColumn[];
+  columns: RenderColumn[];
+  rangeEnd: number | null;
   rangeSelectionMode: boolean;
+  rangeStart: number | null;
   reference: MSASequence | null;
-  selectedRange: ColumnRange | null;
-  selection: CellSelection | null;
+  rowSelected: boolean;
+  selectedPosition: number | null;
   sequence: MSASequence;
   sequenceRowKey: string;
   settings: MsaViewSettings;
-  totalWidth: number;
 }) {
-  const { dictionary: d, locale } = useLanguage();
+  const { dictionary: d } = useLanguage();
   return (
-    <div className="relative shrink-0" style={{ height: settings.cellHeight, width: totalWidth }}>
-      {renderColumns.map(({ virtualColumn, position, stats }) => {
+    <>
+      {columns.map(({ virtualColumn, position, stats }) => {
         const missingTail = position > sequence.sequence.length;
         const base = sequence.sequence[position - 1] ?? "";
         const referenceBase = reference?.sequence[position - 1] ?? "";
-        const selectedRow = selectionRowKey(selection) === sequenceRowKey;
-        const selectedColumn = selection?.position === position;
-        const selectedCell = selectedRow && selectedColumn;
-        const inSelectedRange = selectedRange
-          ? position >= selectedRange.start && position <= selectedRange.end
-          : false;
+        const selectedCell = rowSelected && selectedPosition === position;
+        const inSelectedRange = rangeStart !== null && rangeEnd !== null &&
+          position >= rangeStart && position <= rangeEnd;
         const motifHit = motifPositions?.has(position) ?? false;
         const consensusTie = sequenceRowKey === CONSENSUS_ROW_KEY &&
           stats?.majorityTie === true;
@@ -255,15 +277,13 @@ const SequenceCells = memo(function SequenceCells({
               consensusTie ? "border-dashed border-slate-700" : "",
               missingTail ? "border-slate-200 bg-slate-50 text-transparent" : colorClass,
               settings.showCharacters ? "" : "text-transparent",
+              // Row, column and range highlights are drawn as continuous bands
+              // over the row; cells only mark themselves.
               selectedCell
                 ? "ring-2 ring-inset ring-teal-700"
-                : inSelectedRange
-                  ? "ring-1 ring-inset ring-teal-500"
-                  : selectedRow || selectedColumn
-                    ? "brightness-95 ring-1 ring-teal-300"
-                    : motifHit
-                      ? "ring-2 ring-inset ring-amber-500"
-                      : "hover:ring-1 hover:ring-slate-400"
+                : motifHit
+                  ? "ring-2 ring-inset ring-amber-500"
+                  : "hover:ring-1 hover:ring-inset hover:ring-slate-500"
             )}
             data-msa-cell="true"
             data-msa-position={position}
@@ -350,11 +370,77 @@ const SequenceCells = memo(function SequenceCells({
           </button>
         );
       })}
+    </>
+  );
+});
+
+const SequenceCells = memo(function SequenceCells({
+  bandHeight,
+  columnBand,
+  columnBlocks,
+  rangeBand,
+  selectedRange,
+  selection,
+  sequenceRowKey,
+  settings,
+  totalWidth,
+  ...blockProps
+}: Omit<
+  Parameters<typeof SequenceCellBlock>[0],
+  "columns" | "rangeEnd" | "rangeStart" | "rowSelected" | "selectedPosition"
+> & {
+  bandHeight: number;
+  columnBand: SelectionBand | null;
+  columnBlocks: RenderColumn[][];
+  rangeBand: SelectionBand | null;
+  selectedRange: ColumnRange | null;
+  selection: CellSelection | null;
+  totalWidth: number;
+}) {
+  const rowSelected = selectionRowKey(selection) === sequenceRowKey;
+  // Bands span the full row pitch so neighbouring rows join into one stripe.
+  const bandTop = (settings.cellHeight - bandHeight) / 2;
+  return (
+    <div className="relative shrink-0" style={{ height: settings.cellHeight, width: totalWidth }}>
+      {columnBlocks.map((columns) => {
+        // Each block only sees the part of the selection that falls inside it,
+        // so selecting or dragging a range leaves the other blocks untouched.
+        const first = columns[0].position;
+        const last = columns[columns.length - 1].position;
+        const overlapsRange = selectedRange !== null &&
+          selectedRange.start <= last && selectedRange.end >= first;
+        const position = selection?.position;
+        return (
+          <SequenceCellBlock
+            {...blockProps}
+            columns={columns}
+            key={columns[0].virtualColumn.index}
+            rangeEnd={overlapsRange ? Math.min(last, selectedRange.end) : null}
+            rangeStart={overlapsRange ? Math.max(first, selectedRange.start) : null}
+            rowSelected={rowSelected}
+            selectedPosition={position !== undefined && position >= first && position <= last ? position : null}
+            sequenceRowKey={sequenceRowKey}
+            settings={settings}
+          />
+        );
+      })}
+      {rangeBand ? (
+        <span aria-hidden="true" className="msa-band msa-band-range"
+          style={{ height: bandHeight, left: rangeBand.left, top: bandTop, width: rangeBand.width }} />
+      ) : null}
+      {columnBand ? (
+        <span aria-hidden="true" className="msa-band msa-band-column"
+          style={{ height: bandHeight, left: columnBand.left, top: bandTop, width: columnBand.width }} />
+      ) : null}
+      {rowSelected ? (
+        <span aria-hidden="true" className="msa-band msa-band-row"
+          style={{ height: bandHeight, left: 0, top: bandTop, width: totalWidth }} />
+      ) : null}
     </div>
   );
 });
 
-function CoordinateRuler({
+const CoordinateRuler = memo(function CoordinateRuler({
   alignmentLength,
   coordinateMode,
   renderColumns,
@@ -421,6 +507,77 @@ function CoordinateRuler({
       })}
     </div>
   );
+});
+
+const LABEL_WIDTH_MIN = 104;
+const LABEL_WIDTH_MAX = 360;
+
+function clampLabelWidth(width: number) {
+  return Math.round(Math.min(LABEL_WIDTH_MAX, Math.max(LABEL_WIDTH_MIN, width)));
+}
+
+/** Drag handle on the name column: drag to resize, double-click to fit the longest name. */
+function LabelResizer({
+  labelWidth,
+  locale,
+  onChange,
+  scrollRef,
+  sequences
+}: {
+  labelWidth: number;
+  locale: string;
+  onChange: (labelWidth: number) => void;
+  scrollRef: RefObject<HTMLDivElement>;
+  sequences: MSASequence[];
+}) {
+  const drag = useRef<{ pointerId: number; x: number; width: number } | null>(null);
+  const frame = useRef(0);
+  const pending = useRef(labelWidth);
+  useEffect(() => () => cancelAnimationFrame(frame.current), []);
+  const schedule = (width: number) => {
+    pending.current = clampLabelWidth(width);
+    if (!frame.current) {
+      frame.current = requestAnimationFrame(() => {
+        frame.current = 0;
+        onChange(pending.current);
+      });
+    }
+  };
+  const fitNames = () => {
+    // Everything in a row header except the name keeps its size, so the fitted
+    // width is that fixed part plus the widest name in the header font.
+    const name = scrollRef.current?.querySelector<HTMLElement>("[data-msa-row-name]");
+    const header = name?.parentElement;
+    const context = document.createElement("canvas").getContext("2d");
+    if (!name || !header || !context) return;
+    context.font = getComputedStyle(name).font;
+    let widest = 0;
+    for (const sequence of sequences) widest = Math.max(widest, context.measureText(sequence.id).width);
+    const fixed = header.getBoundingClientRect().width - name.getBoundingClientRect().width;
+    onChange(clampLabelWidth(fixed + Math.ceil(widest) + 6));
+  };
+  const zh = locale === "zh";
+  return (
+    // Pointer-only shortcut; the settings panel has the accessible width slider.
+    <span
+      aria-hidden="true"
+      className="msa-label-resizer"
+      onDoubleClick={fitNames}
+      onLostPointerCapture={() => { drag.current = null; }}
+      onPointerDown={(event) => {
+        if (event.button !== 0) return;
+        event.preventDefault();
+        drag.current = { pointerId: event.pointerId, x: event.clientX, width: labelWidth };
+        event.currentTarget.setPointerCapture(event.pointerId);
+      }}
+      onPointerMove={(event) => {
+        const active = drag.current;
+        if (active?.pointerId === event.pointerId) schedule(active.width + event.clientX - active.x);
+      }}
+      onPointerUp={() => { drag.current = null; }}
+      title={zh ? "拖动调整名称列宽度，双击按最长名称自适应" : "Drag to resize the name column; double-click to fit the longest name"}
+    />
+  );
 }
 
 export type MsaDomMatrixMetrics = {
@@ -438,6 +595,7 @@ export function MsaDomMatrix({
   differenceMode,
   motifPositionMap,
   onHideSequence,
+  onLabelWidthChange,
   onNavigate,
   onPinSequence,
   onRangeSelect,
@@ -478,6 +636,7 @@ export function MsaDomMatrix({
   onSelect: (selection: CellSelection, extendRange?: boolean) => void;
   onSelectSequence: (rowKey: string) => void;
   onSetReference: (rowKey: string) => void;
+  onLabelWidthChange?: (labelWidth: number) => void;
   onZoomGesture?: (scaleFactor: number) => void;
   pinnedSequenceIds: Set<string>;
   rangeSelectionMode?: boolean;
@@ -564,16 +723,55 @@ export function MsaDomMatrix({
   const virtualRows = rowVirtualizer.getVirtualItems();
   const columnContentWidth = columnVirtualizer.getTotalSize();
   const matrixWidth = settings.labelWidth + 24 + columnContentWidth;
-  const renderColumns = useMemo(() => virtualColumns.flatMap((virtualColumn) => {
-    const position = positionAt(positionView, virtualColumn.index);
-    if (position === undefined) return [];
-    const column = Array.isArray(stats)
-      ? stats[position - 1] ?? null
-      : stats
-        ? columnStatsAtPosition(stats, position)
-        : null;
-    return [{ virtualColumn, position, stats: column }];
-  }), [positionView, stats, virtualColumns]);
+  const firstBlock = Math.floor((virtualColumns[0]?.index ?? 0) / COLUMN_BLOCK);
+  const lastBlock = Math.floor((virtualColumns[virtualColumns.length - 1]?.index ?? -1) / COLUMN_BLOCK);
+  const blockCache = useMemo(
+    () => new Map<number, RenderColumn[]>(),
+    [pitch, positionView, stats]
+  );
+  const columnBlocks = useMemo(() => {
+    const blocks: RenderColumn[][] = [];
+    for (let block = firstBlock; block <= lastBlock; block += 1) {
+      let columns = blockCache.get(block);
+      if (!columns) {
+        columns = [];
+        const end = Math.min(positionView.length, (block + 1) * COLUMN_BLOCK);
+        for (let index = block * COLUMN_BLOCK; index < end; index += 1) {
+          const position = positionAt(positionView, index);
+          if (position === undefined) continue;
+          const column = Array.isArray(stats)
+            ? stats[position - 1] ?? null
+            : stats
+              ? columnStatsAtPosition(stats, position)
+              : null;
+          columns.push({ virtualColumn: { index, start: index * pitch }, position, stats: column });
+        }
+        blockCache.set(block, columns);
+      }
+      if (columns.length > 0) blocks.push(columns);
+    }
+    return blocks;
+  }, [blockCache, firstBlock, lastBlock, pitch, positionView, stats]);
+  const renderColumns = useMemo(() => columnBlocks.flat(), [columnBlocks]);
+  const rangeBand = useMemo<SelectionBand | null>(() => {
+    if (!selectedRange) return null;
+    const first = columnIndexFrom(positionView, selectedRange.start);
+    const last = columnIndexFrom(positionView, selectedRange.end + 1) - 1;
+    return first <= last
+      ? { left: first * pitch - 1, width: (last - first) * pitch + settings.cellWidth + 2 }
+      : null;
+  }, [pitch, positionView, selectedRange, settings.cellWidth]);
+  const selectedColumnIndex = selection ? visibleIndexOfPosition(positionView, selection.position) : -1;
+  const columnBand = useMemo<SelectionBand | null>(
+    () => selectedColumnIndex >= 0
+      ? { left: selectedColumnIndex * pitch - 1, width: settings.cellWidth + 2 }
+      : null,
+    [pitch, selectedColumnIndex, settings.cellWidth]
+  );
+  // Stable props let the memoized header rows skip renders between block changes.
+  const axisSettings = useMemo(() => ({ ...settings, cellHeight: AXIS_HEIGHT }), [settings]);
+  const trackSettings = useMemo(() => ({ ...settings, cellHeight: 22 }), [settings]);
+  const consensusSettings = useMemo(() => ({ ...settings, cellHeight: CONSENSUS_HEIGHT }), [settings]);
   const headerHeight = frozenHeight(activeTracks.length, showLogo, showConsensus, Boolean(motifColumnHitCounts));
   const sequenceRows = useMemo(
     () =>
@@ -583,6 +781,12 @@ export function MsaDomMatrix({
       })),
     [sequences]
   );
+  const consensusSequence = useMemo(() => ({
+    id: d.results.viewer.consensus,
+    originalIndex: sequenceRows.length,
+    rowKey: CONSENSUS_ROW_KEY,
+    sequence: consensus
+  }), [consensus, d.results.viewer.consensus, sequenceRows.length]);
   const sequenceRowIndexByKey = useMemo(
     () => new Map(sequenceRows.map((row, index) => [row.rowKey, index])),
     [sequenceRows]
@@ -781,7 +985,6 @@ export function MsaDomMatrix({
         className="h-full min-h-0 overflow-auto outline-none focus:ring-2 focus:ring-inset focus:ring-teal-100"
         data-msa-scroll-viewport="true"
         id={gridId}
-        onScroll={e=>viewportRef.current?.style.setProperty("--msa-scroll-x",`${e.currentTarget.scrollLeft}px`)}
         onKeyDown={handleMatrixKeyDown}
         ref={scrollRef}
         role="grid"
@@ -816,6 +1019,15 @@ export function MsaDomMatrix({
               {coordinateMode === "reference" && reference
                 ? d.results.viewer.stageTwo.referencePosition
                 : d.results.viewer.position}
+              {onLabelWidthChange ? (
+                <LabelResizer
+                  labelWidth={settings.labelWidth}
+                  locale={locale}
+                  onChange={onLabelWidthChange}
+                  scrollRef={scrollRef}
+                  sequences={sequences}
+                />
+              ) : null}
             </div>
             <div className="flex items-center px-3">
               <CoordinateRuler
@@ -824,7 +1036,7 @@ export function MsaDomMatrix({
                 renderColumns={renderColumns}
                 reference={reference}
                 selectedRange={selectedRange}
-                settings={{...settings, cellHeight: AXIS_HEIGHT}}
+                settings={axisSettings}
                 totalWidth={columnContentWidth}
               />
             </div>
@@ -859,12 +1071,12 @@ export function MsaDomMatrix({
                 role="gridcell"
                 style={{ height: TRACK_HEIGHT }}
               >
-                <MsaStatisticTrack
+                <MemoStatisticTrack
                   renderColumns={renderColumns}
                   onSelect={selectCell}
                   selectedRange={selectedRange}
                   selection={selection}
-                  settings={{...settings, cellHeight: 22}}
+                  settings={trackSettings}
                   totalWidth={columnContentWidth}
                   track={track}
                 />
@@ -874,7 +1086,7 @@ export function MsaDomMatrix({
 
           {showLogo && <div role="row" aria-rowindex={activeTracks.length+1} className="grid border-b border-slate-200 bg-white" style={{gridTemplateColumns:`${settings.labelWidth}px 1fr`,height:LOGO_HEIGHT}}>
             <div role="rowheader" className="sticky left-0 z-20 flex items-center justify-between border-r border-slate-200 bg-white px-3 text-xs text-slate-500"><span>{d.viewerWorkflow.logo}</span><span className="text-[9px]">100%<br/>0%</span></div>
-            <div role="gridcell" aria-colindex={2} className="px-3"><MsaFrequencyLogo columns={renderColumns} store={stats && !Array.isArray(stats) ? stats : null} width={columnContentWidth} cellWidth={settings.cellWidth} rna={rna}/></div>
+            <div role="gridcell" aria-colindex={2} className="px-3"><MemoFrequencyLogo columns={renderColumns} store={stats && !Array.isArray(stats) ? stats : null} width={columnContentWidth} cellWidth={settings.cellWidth} rna={rna}/></div>
           </div>}
           {motifColumnHitCounts && <div role="row" aria-rowindex={activeTracks.length+(showLogo?1:0)+1} className="grid border-b border-slate-200 bg-white" style={{gridTemplateColumns:`${settings.labelWidth}px 1fr`,height:20}}>
             <div role="rowheader" className="sticky left-0 z-20 border-r border-slate-200 bg-white px-3 text-xs text-teal-700">{locale === "zh" ? "搜索命中" : "Search hits"}</div>
@@ -909,19 +1121,17 @@ export function MsaDomMatrix({
                   onRangeSelect={selectRange}
                   onSelect={selectCell}
                   positionView={positionView}
-                  renderColumns={renderColumns}
+                  bandHeight={CONSENSUS_HEIGHT}
+                  columnBand={columnBand}
+                  columnBlocks={columnBlocks}
+                  rangeBand={rangeBand}
                   rangeSelectionMode={rangeSelectionMode}
                   reference={null}
                   selectedRange={selectedRange}
                   selection={selection}
-                  sequence={{
-                    id: d.results.viewer.consensus,
-                    originalIndex: sequenceRows.length,
-                    rowKey: CONSENSUS_ROW_KEY,
-                    sequence: consensus
-                  }}
+                  sequence={consensusSequence}
                   sequenceRowKey={CONSENSUS_ROW_KEY}
-                  settings={{...settings, cellHeight: CONSENSUS_HEIGHT}}
+                  settings={consensusSettings}
                   totalWidth={columnContentWidth}
                 />
               ) : null}
@@ -978,8 +1188,8 @@ export function MsaDomMatrix({
                         {isSelected ? <SquareCheckBig className="h-3.5 w-3.5 text-teal-700" /> : <Square className="h-3.5 w-3.5" />}
                       </button>
                     ) : null}
-                    <span aria-hidden="true" className="w-6 shrink-0 text-right text-[10px] text-slate-500">{virtualRow.index+1}</span>
-                    <span className="min-w-0 flex-1 truncate" title={sequence.id}>{sequence.id}</span>
+                    <span aria-hidden="true" className="hidden w-6 shrink-0 text-right text-[10px] text-slate-500 sm:block">{virtualRow.index+1}</span>
+                    <span className="min-w-0 flex-1 truncate" data-msa-row-name="true" title={sequence.id}>{sequence.id}</span>
                     {isPinned && <Pin size={12} className="shrink-0 text-teal-700" aria-label={d.results.viewer.stageTwo.pinSequence}/>}
                     {isReference && <Flag size={12} className="shrink-0 text-amber-700" aria-label={d.results.viewer.stageTwo.setReference}/>}
                     {settings.showCharacters && !coarsePointer && <MsaRowMenu label={d.results.viewer.stageTwo.rowActions.replace("{name}", sequence.id)}
@@ -1002,7 +1212,10 @@ export function MsaDomMatrix({
                         onRangeSelect={selectRange}
                         onSelect={selectCell}
                         positionView={positionView}
-                        renderColumns={renderColumns}
+                        bandHeight={settings.rowHeight}
+                        columnBand={columnBand}
+                        columnBlocks={columnBlocks}
+                        rangeBand={rangeBand}
                         rangeSelectionMode={rangeSelectionMode}
                         reference={reference}
                         selectedRange={selectedRange}
