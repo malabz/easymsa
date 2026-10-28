@@ -12,7 +12,9 @@ import { differenceColorStyle } from "./differenceColors";
 import {
   columnColorContextAtPosition,
   filteredColumnPositionView,
-  positionAt
+  positionAt,
+  visibleIndexAtOrAfter,
+  visibleIndexOfPosition
 } from "./columnStatsStore";
 import type {
   CellSelection,
@@ -140,22 +142,13 @@ export function MsaCanvasMatrix({
     [visiblePositions]
   );
 
-  // Native wheel handling must be non-passive to keep the document still.
-  // React's delegated wheel listener can be passive in Chromium.
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const wheel = (event: WheelEvent) => {
-      const scrollElement = scrollRef.current;
-      if (!scrollElement) return;
-      event.preventDefault();
-      const unit = event.deltaMode === 1 ? settings.rowHeight : event.deltaMode === 2 ? scrollElement.clientHeight : 1;
-      scrollElement.scrollLeft += (event.shiftKey ? event.deltaY : event.deltaX) * unit;
-      scrollElement.scrollTop += (event.shiftKey ? 0 : event.deltaY) * unit;
-    };
-    canvas.addEventListener("wheel", wheel, {passive: false});
-    return () => canvas.removeEventListener("wheel", wheel);
-  }, [scrollRef, settings.rowHeight]);
+  const selectedRowKey = selectionRowKey(selection);
+  const selectedRowIndex = useMemo(
+    () => selectedRowKey === null
+      ? -1
+      : sequences.findIndex((sequence, index) => canvasSequenceRowKey(sequence, index) === selectedRowKey),
+    [selectedRowKey, sequences]
+  );
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -167,9 +160,17 @@ export function MsaCanvasMatrix({
 
     const draw = () => {
       frameRef.current = null;
-      const bounds = viewport.getBoundingClientRect();
-      const width = Math.max(1, Math.round(bounds.width - settings.labelWidth - 16));
-      const height = Math.max(1, Math.round(bounds.height - headerHeight - 16));
+      // The canvas sticks under the header inside the scroller, so it never
+      // needs to be larger than the visible matrix or the matrix itself.
+      const pitch = settings.cellWidth + settings.cellGap;
+      const width = Math.max(1, Math.round(Math.min(
+        scrollElement.clientWidth - settings.labelWidth,
+        24 + positionView.length * pitch
+      )));
+      const height = Math.max(1, Math.round(Math.min(
+        scrollElement.clientHeight - headerHeight,
+        sequences.length * settings.rowHeight
+      )));
       // Keep CSS dimensions independent of the high-DPI backing buffer.
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
@@ -192,7 +193,6 @@ export function MsaCanvasMatrix({
       context.textAlign = "center";
       context.textBaseline = "middle";
 
-      const pitch = settings.cellWidth + settings.cellGap;
       const matrixScrollTop = Math.max(0, scrollElement.scrollTop);
       const firstColumn = Math.max(0, Math.floor((scrollElement.scrollLeft - 12) / pitch));
       const lastColumn = Math.min(
@@ -263,25 +263,60 @@ export function MsaCanvasMatrix({
             selection !== null &&
             selectionRowKey(selection) === rowKey &&
             selection.position === position;
-          const inRange = selectedRange
-            ? position >= selectedRange.start && position <= selectedRange.end
-            : false;
           const motifHit = rowMotifs?.has(position) ?? false;
-          if (selectedCell || inRange || motifHit) {
-            context.strokeStyle = selectedCell
-              ? "#0f766e"
-              : motifHit
-                ? "#f59e0b"
-                : "#14b8a6";
-            context.lineWidth = selectedCell ? 2 : 1;
+          if (selectedCell || motifHit) {
+            context.strokeStyle = selectedCell ? "#0f766e" : "#f59e0b";
+            context.lineWidth = 2;
             context.strokeRect(
-              x + 0.5,
-              y + 0.5,
-              Math.max(1, settings.cellWidth - 1),
-              Math.max(1, settings.cellHeight - 1)
+              x + 1,
+              y + 1,
+              Math.max(1, settings.cellWidth - 2),
+              Math.max(1, settings.cellHeight - 2)
             );
           }
         }
+      }
+
+      // Row, column and range selections are continuous bands, matching the
+      // DOM matrix, rather than outlines around every cell.
+      const columnX = (index: number) => 12 + index * pitch - scrollElement.scrollLeft;
+      const verticalBand = (left: number, bandWidth: number, fill: string, edge: string, edgeWidth: number) => {
+        context.fillStyle = fill;
+        context.fillRect(left, 0, bandWidth, height);
+        context.fillStyle = edge;
+        context.fillRect(left, 0, edgeWidth, height);
+        context.fillRect(left + bandWidth - edgeWidth, 0, edgeWidth, height);
+      };
+      if (selectedRange) {
+        const first = visibleIndexAtOrAfter(positionView, selectedRange.start);
+        const last = visibleIndexAtOrAfter(positionView, selectedRange.end + 1) - 1;
+        if (first <= last) {
+          verticalBand(
+            columnX(first) - 1,
+            (last - first) * pitch + settings.cellWidth + 2,
+            "rgba(20, 184, 166, 0.1)",
+            "#14b8a6",
+            1.5
+          );
+        }
+      }
+      const selectedColumn = selection ? visibleIndexOfPosition(positionView, selection.position) : -1;
+      if (selectedColumn >= 0) {
+        verticalBand(
+          columnX(selectedColumn) - 1,
+          settings.cellWidth + 2,
+          "rgba(15, 118, 110, 0.1)",
+          "rgba(15, 118, 110, 0.45)",
+          1
+        );
+      }
+      if (selectedRowIndex >= 0) {
+        const top = selectedRowIndex * settings.rowHeight - matrixScrollTop;
+        context.fillStyle = "rgba(15, 118, 110, 0.05)";
+        context.fillRect(0, top, width, settings.rowHeight);
+        context.fillStyle = "rgba(20, 184, 166, 0.6)";
+        context.fillRect(0, top, width, 1);
+        context.fillRect(0, top + settings.rowHeight - 1, width, 1);
       }
     };
 
@@ -313,6 +348,7 @@ export function MsaCanvasMatrix({
     reference,
     scrollRef,
     selectedRange,
+    selectedRowIndex,
     selection,
     sequences,
     settings,
@@ -348,7 +384,7 @@ export function MsaCanvasMatrix({
   return (
     <canvas
       aria-hidden="true"
-      className="absolute z-10 cursor-crosshair bg-white outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500"
+      className="sticky z-10 block cursor-crosshair bg-white outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500"
       data-msa-canvas="true"
       data-msa-canvas-characters={settings.showCharacters || undefined}
       data-msa-cell-pitch={settings.cellWidth + settings.cellGap}
@@ -379,12 +415,9 @@ export function MsaCanvasMatrix({
           startY: event.clientY,
           touchPan
         };
-        if (touchPan) {
-          event.preventDefault();
-          scrollRef.current?.focus({ preventScroll: true });
-          event.currentTarget.setPointerCapture(event.pointerId);
-          return;
-        }
+        // Panning is left to the browser (touch-action) so it keeps momentum;
+        // a touch that never moves still selects on pointerup.
+        if (touchPan) return;
         event.preventDefault();
         scrollRef.current?.focus({ preventScroll: true });
         event.currentTarget.setPointerCapture(event.pointerId);
@@ -403,23 +436,7 @@ export function MsaCanvasMatrix({
         ) {
           gesture.moved = true;
         }
-        if (
-          gesture.touchPan
-        ) {
-          event.preventDefault();
-          const scrollElement = scrollRef.current;
-          if (scrollElement) {
-            scrollElement.scrollLeft = Math.max(
-              0,
-              gesture.startScrollLeft + gesture.startX - event.clientX
-            );
-            scrollElement.scrollTop = Math.max(
-              0,
-              gesture.startScrollTop + gesture.startY - event.clientY
-            );
-          }
-          return;
-        }
+        if (gesture.touchPan) return;
         if (!event.currentTarget.hasPointerCapture(event.pointerId)) {
           return;
         }
@@ -461,11 +478,9 @@ export function MsaCanvasMatrix({
       ref={canvasRef}
       role="presentation"
       style={{
-        bottom: 16,
         left: settings.labelWidth,
-        right: 16,
         top: headerHeight,
-        touchAction: "none"
+        touchAction: rangeSelectionMode ? "none" : "pan-x pan-y"
       }}
       tabIndex={-1}
     />

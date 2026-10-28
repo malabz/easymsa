@@ -42,6 +42,7 @@ import {
   columnStatsAtPosition,
   filteredColumnPositionView,
   positionAt,
+  visibleIndexAtOrAfter,
   visibleIndexOfPosition
 } from "./columnStatsStore";
 import type {
@@ -61,7 +62,11 @@ const MemoFrequencyLogo = memo(MsaFrequencyLogo);
 
 /** Rendering strategy, not an input limit. Keep the keyboard grid for both. */
 export function shouldUseCanvasMatrix(rows: number, columns: number, showCharacters: boolean) {
-  return !showCharacters || rows * columns >= 1_000_000;
+  // Scrolling cost follows the cells a screen can hold, not the alignment
+  // size: one DOM node per base cannot keep up with fast scrolling once a
+  // screen holds about a thousand cells, so only small alignments stay in DOM.
+  const cellsOnScreen = Math.min(rows, 40) * Math.min(columns, 120);
+  return !showCharacters || cellsOnScreen >= 1_000;
 }
 
 /**
@@ -156,17 +161,6 @@ const COLUMN_BLOCK = 32;
 
 type SelectionBand = { left: number; width: number };
 
-/** First visible column index whose alignment position is at least `position`. */
-function columnIndexFrom(view: ColumnPositionView, position: number) {
-  let low = 0;
-  let high = view.length;
-  while (low < high) {
-    const middle = (low + high) >> 1;
-    if ((positionAt(view, middle) ?? 0) < position) low = middle + 1;
-    else high = middle;
-  }
-  return low;
-}
 
 function useCoarsePointer() {
   const [matches, setMatches] = useState(
@@ -755,8 +749,8 @@ export function MsaDomMatrix({
   const renderColumns = useMemo(() => columnBlocks.flat(), [columnBlocks]);
   const rangeBand = useMemo<SelectionBand | null>(() => {
     if (!selectedRange) return null;
-    const first = columnIndexFrom(positionView, selectedRange.start);
-    const last = columnIndexFrom(positionView, selectedRange.end + 1) - 1;
+    const first = visibleIndexAtOrAfter(positionView, selectedRange.start);
+    const last = visibleIndexAtOrAfter(positionView, selectedRange.end + 1) - 1;
     return first <= last
       ? { left: first * pitch - 1, width: (last - first) * pitch + settings.cellWidth + 2 }
       : null;
@@ -1139,6 +1133,29 @@ export function MsaDomMatrix({
           </div> : null}
           </div>
           <div className="relative" style={{ height: rowVirtualizer.getTotalSize(), width: matrixWidth }}>
+            {canvasMatrix ? (
+              <MsaCanvasMatrix
+                colorScheme={colorScheme}
+                columns={stats}
+                differenceMode={differenceMode}
+                differenceRowKeys={analysisRowKeys}
+                headerHeight={headerHeight}
+                motifPositionMap={motifPositionMap}
+                onNavigate={onNavigate}
+                onRangeSelect={selectRange}
+                onSelect={selectCell}
+                rangeSelectionMode={rangeSelectionMode}
+                reference={reference}
+                scrollRef={scrollRef}
+                selectedRange={selectedRange}
+                selection={selection}
+                sequences={sequences}
+                settings={settings}
+                viewportRef={viewportRef}
+                visiblePositions={positionView}
+              />
+            ) : null}
+
             {virtualRows.map((virtualRow) => {
               const sequenceRow = sequenceRows[virtualRow.index];
               if (!sequenceRow) {
@@ -1253,28 +1270,6 @@ export function MsaDomMatrix({
         </div>
       ) : null}
 
-      {canvasMatrix ? (
-        <MsaCanvasMatrix
-          colorScheme={colorScheme}
-          columns={stats}
-          differenceMode={differenceMode}
-          differenceRowKeys={analysisRowKeys}
-          headerHeight={headerHeight}
-          motifPositionMap={motifPositionMap}
-          onNavigate={onNavigate}
-          onRangeSelect={selectRange}
-          onSelect={selectCell}
-          rangeSelectionMode={rangeSelectionMode}
-          reference={reference}
-          scrollRef={scrollRef}
-          selectedRange={selectedRange}
-          selection={selection}
-          sequences={sequences}
-          settings={settings}
-          viewportRef={viewportRef}
-          visiblePositions={positionView}
-        />
-      ) : null}
     </div>
   );
 }
