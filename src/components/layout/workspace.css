@@ -596,3 +596,13 @@ div.job-message-page { max-width: calc(760px + 2 * var(--page-gutter)); }
   .example-preview > div { gap: 3px; }
   .example-card-body { padding: 16px; }
 }
+
+/* About: the methods table sits on one card; rows highlight while read. */
+.about-methods > article { transition: background-color .2s ease; }
+.about-methods > article:hover { background: #fafcfc; }
+@media (prefers-reduced-motion: no-preference) {
+  .about-methods { animation: work-rise .55s cubic-bezier(.2, .7, .2, 1) backwards; }
+}
+.job-message-card:not([data-tone]) .job-message-icon { background: #e6f4f1; color: #0f766e; }
+.job-message-body h1 { font-size: 22px; line-height: 1.35; font-weight: 650; letter-spacing: -.01em; color: #0f172a; }
+.job-message-page:not(:has(.work-heading)) { padding-top: clamp(32px, 10vh, 96px); }
