@@ -451,3 +451,23 @@
   .home-actions a:active { transform: scale(.97); transition-duration: .075s; }
 }
 @keyframes home-bob { 50% { transform: translateY(3px); } }
+
+/* Lower sections: a quiet backdrop with each visualization framed as a card, matching the cover preview. */
+.home-benefits.home-details { background: #f6f8fa; border-top: 0; }
+.home-benefits .home-scale-showcase { background: none; }
+.home-benefits .home-smart-match, .home-benefits .home-explore { border-top: 0; }
+.home-scale-visual, .home-decision-workflow, .home-public-preview { border: 1px solid #dfe7e5; border-radius: 16px; background: #fff; box-shadow: 0 1px 2px rgb(15 23 42 / .04), 0 24px 48px -32px rgb(15 72 66 / .24); }
+.home-scale-visual { padding: 22px 24px 18px; }
+.home-scale-direction { background: #fff; border-radius: 50%; }
+.home-decision-workflow { padding: 26px 28px; }
+@media (min-width: 1101px) { .home-decision-canvas { height: 360px; } .home-decision-features li { font-size: 14px; } }
+.home-decision-footer { border-top: 0; margin-top: 10px; padding-inline: 6px; }
+.home-preview-meta { padding: 14px 18px; font-size: 12px; }
+.home-preview-status { padding: 6px 18px; }
+@media (max-width: 1100px) and (min-width: 768px) { .home-decision-workflow { padding: 22px 20px; } .home-decision-features li { font-size: 12px; } }
+@media (max-width: 767px) {
+  .home-scale-visual { padding: 14px 12px 10px; border-radius: 12px; }
+  .home-decision-workflow { padding: 18px 14px; border-radius: 12px; }
+  .home-public-preview { border-radius: 12px; }
+  .home-decision-features li { font-size: 12px; }
+}
