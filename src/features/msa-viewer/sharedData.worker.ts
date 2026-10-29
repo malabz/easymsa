@@ -1,11 +1,11 @@
-import { createSequenceExportCooperative, type SequenceExportRequest } from "./sequenceExportProtocol";
+import { createSequenceExportCooperative } from "./sequenceExportProtocol";
 /// <reference lib="webworker" />
 import type { MSASequence } from "../../lib/types/msa";
-import type { SessionMessage, SessionTask } from "./sharedDataSession";
-import { calculateMsaAnalysisPayloadV4Cooperative, analysisWorkerError, type MsaAnalysisWorkerRequest } from "./workerProtocol";
-import { calculateMotifSearchPayloadCooperative, motifWorkerError, type MotifWorkerRequest } from "./motifWorkerProtocol";
-import { calculateMsaRangeStatsTaskCooperative, normalizeRangeStatsError, type MsaRangeStatsWorkerRequest } from "./rangeStatsWorkerProtocol";
-import { calculateMinimapPairCooperative, type MinimapInput } from "./minimapData";
+import type { DataOperation, DataResult, SessionMessage, SessionResponse, SessionTask } from "./sharedDataProtocol";
+import { calculateMsaAnalysisPayloadV4Cooperative, analysisWorkerError } from "./workerProtocol";
+import { calculateMotifSearchPayloadCooperative, motifWorkerError } from "./motifWorkerProtocol";
+import { calculateMsaRangeStatsTaskCooperative, normalizeRangeStatsError } from "./rangeStatsWorkerProtocol";
+import { calculateMinimapPairCooperative } from "./minimapData";
 import { columnStatsStoreTransferables } from "./columnStatsStore";
 import { CooperativeScheduler, type CooperativeTask } from "./cooperativeTask";
 // MessageChannel yields to incoming requests without the repeated timer clamp.
@@ -16,21 +16,21 @@ const scheduler = new CooperativeScheduler(8, callback => {
 });
 const priority = { range: 4, motif: 3, analysis: 1, export: 0, overview: 0 };
 let sequences: MSASequence[] = [];
-function* calculate(message: SessionTask): CooperativeTask<{ result: unknown; transfer: Transferable[] }> {
+function* calculate(message: SessionTask): CooperativeTask<{ result: DataResult<DataOperation>; transfer: Transferable[] }> {
   const rows = message.rows === null ? sequences : message.rows.map(index => sequences[index]);
-  const request = { ...message.request, sequences: rows, rows,
+  const selection = { sequences: rows, rows,
     reference: message.reference === undefined ? null : sequences[message.reference],
     referenceSequence: message.referenceSequence === undefined ? null : sequences[message.referenceSequence] };
-    let result: unknown;
+    let result: DataResult<DataOperation>;
     let transfer: Transferable[] = [];
     if (message.operation === "analysis") {
-      const payload = yield* calculateMsaAnalysisPayloadV4Cooperative(request as unknown as Extract<MsaAnalysisWorkerRequest, { type: "analyze" }>);
+      const payload = yield* calculateMsaAnalysisPayloadV4Cooperative({ ...message.request, ...selection });
       transfer = columnStatsStoreTransferables(payload.columnStore); result = payload;
-    } else if (message.operation === "motif") result = yield* calculateMotifSearchPayloadCooperative(request as unknown as Extract<MotifWorkerRequest, { type: "search" }>);
-    else if (message.operation === "range") result = yield* calculateMsaRangeStatsTaskCooperative(request as unknown as Extract<MsaRangeStatsWorkerRequest, { type: "calculate" }>);
-    else if (message.operation === "export") result = yield* createSequenceExportCooperative(request as unknown as SequenceExportRequest, progress => self.postMessage({id: message.id, progress}));
+    } else if (message.operation === "motif") result = yield* calculateMotifSearchPayloadCooperative({ ...message.request, ...selection });
+    else if (message.operation === "range") result = yield* calculateMsaRangeStatsTaskCooperative({ ...message.request, ...selection });
+    else if (message.operation === "export") result = yield* createSequenceExportCooperative({ ...message.request, ...selection }, progress => self.postMessage({id: message.id, progress} satisfies SessionResponse));
     else {
-      const pair = yield* calculateMinimapPairCooperative(request as unknown as MinimapInput);
+      const pair = yield* calculateMinimapPairCooperative({ ...message.request, ...selection });
       result = pair; transfer = [pair.horizontal.pixels.buffer, pair.vertical.pixels.buffer];
     }
     return { result, transfer };
@@ -39,12 +39,12 @@ self.onmessage = (event: MessageEvent<SessionMessage>) => {
   const message = event.data;
   if (message.type === "initialize") { sequences = message.sequences; return; }
   if (message.type === "cancel") { scheduler.cancel(message.id); return; }
-  scheduler.add(message.id, priority[message.operation], calculate(message), ({ result, transfer }) => self.postMessage({ id: message.id, result }, transfer), error => {
+  scheduler.add(message.id, priority[message.operation], calculate(message), ({ result, transfer }) => self.postMessage({ id: message.id, result } satisfies SessionResponse, transfer), error => {
     const normalized = message.operation === "analysis" ? analysisWorkerError(error)
       : message.operation === "motif" ? motifWorkerError(error)
       : message.operation === "range" ? normalizeRangeStatsError(error)
       : { code: message.operation === "export" ? "EXPORT_FAILED" : "OVERVIEW_FAILED", message: error instanceof Error ? error.message : "Overview failed." };
-    self.postMessage({ id: message.id, error: normalized });
+    self.postMessage({ id: message.id, error: normalized } satisfies SessionResponse);
   });
 };
 export {};

@@ -1,0 +1,100 @@
+.about-page {
+  --about-ink: #182e2c;
+  --about-muted: #526460;
+  --about-accent: #115e59;
+  --about-rule: #ced9d5;
+  --about-soft-rule: #e0e7e3;
+  padding-top: 56px;
+  padding-bottom: 64px;
+}
+
+.about-page a, .about-page button { transition: color 160ms ease, background-color 160ms ease; }
+.about-page a:focus-visible, .about-page button:focus-visible { outline: 2px solid var(--about-accent); outline-offset: 4px; }
+.about-page a:active { color: #0f172a; }
+.about-page h1, .about-page h2, .about-page h3 { overflow-wrap: anywhere; }
+.about-page svg { flex-shrink: 0; }
+.about-hero { display: grid; grid-template-columns: minmax(0, 1fr) 252px; gap: 64px; align-items: end; padding-bottom: 48px; }
+.about-eyebrow { color: var(--about-muted); font-size: .75rem; font-weight: 500; letter-spacing: .08em; line-height: 1.6; }
+.about-page .about-hero h1 { font-size: clamp(2.125rem, 4.3vw, 3.625rem); font-weight: 500; letter-spacing: -.045em; line-height: 1.1; color: var(--about-ink); margin-top: 20px; }
+.about-intro { max-width: 46rem; margin-top: 24px; color: var(--about-muted); font-size: 1rem; line-height: 1.85; }
+.about-hero-note { border-left: 1px solid var(--about-rule); padding-left: 28px; padding-block: 8px; color: var(--about-muted); font-size: .8125rem; line-height: 1.8; }
+.about-molecule { font-size: 1.75rem; letter-spacing: -.04em; font-weight: 500; color: var(--about-accent); margin-bottom: 12px; }
+.about-molecule span { color: #81958f; font-weight: 300; padding-inline: 5px; }
+.about-workflow { margin-top: 3px; }
+.about-section-label { display: flex; align-items: baseline; gap: 16px; font-size: .75rem; font-weight: 500; line-height: 1.7; color: var(--about-muted); letter-spacing: .025em; }
+.about-section-label > span { color: var(--about-accent); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .75rem; }
+.about-benchmark { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 32px; align-items: start; border-block: 1px solid var(--about-rule); padding-block: 28px; }
+.about-benchmark > .about-section-label { padding-top: 7px; }
+.about-benchmark-link { display: flex; align-items: center; justify-content: space-between; gap: 32px; margin: -8px; padding: 8px; color: var(--about-accent); }
+.about-benchmark-link > div { min-width: 0; }
+.about-benchmark-link h2 { font-size: 1.75rem; line-height: 1.3; font-weight: 500; letter-spacing: -.03em; }
+.about-benchmark-link p { max-width: 42rem; font-size: .875rem; line-height: 1.8; color: var(--about-muted); margin-top: 8px; }
+.about-benchmark-arrow { flex: 0 0 44px; height: 44px; display: grid; place-items: center; }
+.about-benchmark-link:hover { background: #edf3ef; }
+.about-benchmark-link:hover h2 { text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 1px; }
+.about-research { margin-top: 56px; }
+.about-section-heading { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 32px; align-items: baseline; margin-bottom: 32px; }
+.about-section-heading h2 { color: var(--about-ink); font-size: 1.5625rem; line-height: 1.3; font-weight: 500; letter-spacing: -.025em; }
+.about-section-heading p { color: var(--about-muted); font-size: .875rem; line-height: 1.8; margin-top: 10px; }
+.about-method-list { border-top: 1px solid var(--about-rule); }
+.about-method-columns, .about-method { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2.2fr); gap: 32px; }
+.about-method-columns { color: var(--about-muted); font-size: .75rem; letter-spacing: .04em; padding-block: 14px; border-bottom: 1px solid var(--about-soft-rule); }
+.about-method { padding-block: 28px 32px; border-bottom: 1px solid var(--about-rule); }
+.about-method > div { min-width: 0; }
+.about-method h3 { color: var(--about-ink); font-size: 1.25rem; line-height: 1.35; font-weight: 550; letter-spacing: -.025em; }
+.about-version { display: flex; flex-wrap: wrap; gap: 4px 8px; margin-top: 10px; font-size: .75rem; color: var(--about-muted); line-height: 1.7; }
+.about-version code { font-size: .75rem; overflow-wrap: anywhere; }
+.about-source-link { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; margin-top: 8px; font-size: .75rem; font-weight: 500; color: var(--about-accent); }
+.about-source-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+.about-method-purpose { font-size: .8125rem; line-height: 1.8; color: var(--about-muted); }
+.about-method-purpose p + p { border-top: 1px solid var(--about-soft-rule); padding-top: 10px; margin-top: 12px; font-size: .75rem; }
+.about-publication + .about-publication { margin-top: 22px; }
+.about-publication-label { font-size: .75rem; line-height: 1.5; letter-spacing: .02em; color: var(--about-muted); margin-bottom: 6px; }
+.about-paper-link { color: var(--about-ink); font-size: .875rem; font-weight: 500; line-height: 1.7; text-decoration: underline; text-decoration-color: #9eb5ae; text-underline-offset: 3px; overflow-wrap: anywhere; }
+.about-paper-link:hover { color: var(--about-accent); text-decoration-color: var(--about-accent); }
+.about-publication-meta { display: flex; flex-wrap: wrap; gap: 6px; color: var(--about-muted); font-size: .75rem; line-height: 1.8; margin-top: 6px; }
+.about-publication .work-link { font-size: .75rem; font-weight: 400; min-height: 28px; color: var(--about-accent); }
+.about-related-publications { margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--about-soft-rule); }
+.about-footer { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 32px; padding-top: 28px; margin-top: 28px; }
+.about-footer-links { display: flex; flex-wrap: wrap; gap: 8px 28px; }
+.about-footer-links a { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; font-size: .8125rem; color: var(--about-accent); }
+.about-footer-links a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.about-footer p { font-size: .75rem; color: var(--about-muted); line-height: 1.8; margin-top: 8px; }
+
+@media (max-width: 1023px) {
+  .about-page { padding-top: 40px; }
+  .about-hero { grid-template-columns: minmax(0, 1fr) 190px; gap: 32px; }
+  .about-benchmark, .about-section-heading, .about-footer { grid-template-columns: 170px minmax(0, 1fr); gap: 24px; }
+  .about-method-columns, .about-method { grid-template-columns: minmax(0, 1fr) minmax(0, 1.9fr); gap: 18px 32px; }
+  .about-method-columns { display: none; }
+  .about-method-identity { grid-column: 1; }
+  .about-method-purpose { grid-column: 1; }
+  .about-method-publications { grid-column: 2; grid-row: 1 / span 2; }
+}
+
+@media (max-width: 639px) {
+  .about-page { padding-top: 32px; padding-bottom: 40px; }
+  .about-hero { grid-template-columns: minmax(0, 1fr); gap: 24px; padding-bottom: 28px; }
+  .about-eyebrow { font-size: .75rem; letter-spacing: .04em; }
+  .about-page .about-hero h1 { font-size: 2.3125rem; margin-top: 16px; }
+  .about-intro { margin-top: 20px; font-size: .9375rem; }
+  .about-hero-note { border-left: none; border-top: 1px solid var(--about-soft-rule); padding: 16px 0 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; }
+  .about-molecule { font-size: 1.25rem; margin: 0; }
+  .about-workflow { display: none; }
+  .about-benchmark, .about-section-heading, .about-footer { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .about-benchmark { padding-block: 20px; }
+  .about-benchmark > .about-section-label { padding: 0; }
+  .about-benchmark-link { gap: 12px; }
+  .about-benchmark-link h2 { font-size: 1.625rem; }
+  .about-benchmark-link p { font-size: .8125rem; }
+  .about-research { margin-top: 36px; }
+  .about-section-heading { margin-bottom: 24px; }
+  .about-section-heading h2 { font-size: 1.5rem; }
+  .about-method { display: block; padding-block: 24px; }
+  .about-method-purpose { margin-top: 8px; }
+  .about-method-purpose p + p { border: 0; margin-top: 4px; padding-top: 0; }
+  .about-method-publications { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--about-soft-rule); }
+  .about-source-link, .about-publication .work-link, .about-footer-links a { min-height: 44px; }
+  .about-footer-links { gap: 0 24px; }
+  .about-footer { margin-top: 0; }
+}

@@ -1,0 +1,520 @@
+{
+  "schema_version": 1,
+  "catalog": {
+    "id": "dna-rna-v1",
+    "version": "draft-2026-10-26",
+    "status": "draft",
+    "created_at": "2026-10-26T23:04:11.950870+08:00",
+    "sources": [
+      {
+        "id": "mt1x",
+        "title": "Mitochondrial sequence collection",
+        "url": "http://lab.malab.cn/soft/halign/data/mt1x.zip"
+      },
+      {
+        "id": "16ssmall",
+        "title": "16S rRNA sequence collection",
+        "url": "http://lab.malab.cn/soft/halign/data/16ssmall.zip"
+      },
+      {
+        "id": "mt_similarity",
+        "title": "HAlign 3 mitochondrial simulation benchmark",
+        "url": "http://lab.malab.cn/~tfr/HAlign3_testdata/mt_like_diff_similarity.tar.xz"
+      },
+      {
+        "id": "RNA-255",
+        "title": "WMSA2 RNA-255 reference dataset",
+        "url": "http://lab.malab.cn/soft/WMSA2/data/RNA-255.zip"
+      },
+      {
+        "id": "RNA-511",
+        "title": "WMSA2 RNA-511 reference dataset",
+        "url": "http://lab.malab.cn/soft/WMSA2/data/RNA-511.zip"
+      },
+      {
+        "id": "RNA-1023",
+        "title": "WMSA2 RNA-1023 reference dataset",
+        "url": "http://lab.malab.cn/soft/WMSA2/data/RNA-1023.zip"
+      },
+      {
+        "id": "RNA-2047",
+        "title": "WMSA2 RNA-2047 reference dataset",
+        "url": "http://lab.malab.cn/soft/WMSA2/data/RNA-2047.zip"
+      },
+      {
+        "id": "RNA-4095",
+        "title": "WMSA2 RNA-4095 reference dataset",
+        "url": "http://lab.malab.cn/soft/WMSA2/data/RNA-4095.zip"
+      },
+      {
+        "id": "RNA-8191",
+        "title": "WMSA2 RNA-8191 reference dataset",
+        "url": "http://lab.malab.cn/soft/WMSA2/data/RNA-8191.zip"
+      }
+    ],
+    "datasets": [
+      {
+        "id": "dna_16s_100",
+        "sequence_type": "dna",
+        "source_kind": "sampled",
+        "source_id": "16ssmall",
+        "sequence_count": 100,
+        "min_length": 1282,
+        "max_length": 1560,
+        "reference": false,
+        "classification": null,
+        "validation_status": "passed",
+        "issues": [],
+        "sampling": {
+          "with_replacement": false,
+          "seed": 20261126
+        },
+        "similarity_label": null
+      },
+      {
+        "id": "dna_16s_1k",
+        "sequence_type": "dna",
+        "source_kind": "sampled",
+        "source_id": "16ssmall",
+        "sequence_count": 1000,
+        "min_length": 943,
+        "max_length": 1567,
+        "reference": false,
+        "classification": null,
+        "validation_status": "passed",
+        "issues": [],
+        "sampling": {
+          "with_replacement": false,
+          "seed": 20262026
+        },
+        "similarity_label": null
+      },
+      {
+        "id": "dna_16s_10k",
+        "sequence_type": "dna",
+        "source_kind": "sampled",
+        "source_id": "16ssmall",
+        "sequence_count": 10000,
+        "min_length": 870,
+        "max_length": 1598,
+        "reference": false,
+        "classification": null,
+        "validation_status": "passed",
+        "issues": [],
+        "sampling": {
+          "with_replacement": false,
+          "seed": 20271026
+        },
+        "similarity_label": null
+      },
+      {
+        "id": "dna_mt_100",
+        "sequence_type": "dna",
+        "source_kind": "sampled",
+        "source_id": "mt1x",
+        "sequence_count": 100,
+        "min_length": 16556,
+        "max_length": 16578,
+        "reference": false,
+        "classification": null,
+        "validation_status": "requires_review",
+        "issues": [
+          {
+            "code": "non_iupac_colon",
+            "count": 40
+          }
+        ],
+        "sampling": {
+          "with_replacement": false,
+          "seed": 20261126
+        },
+        "similarity_label": null
+      },
+      {
+        "id": "dna_mt_1k",
+        "sequence_type": "dna",
+        "source_kind": "sampled",
+        "source_id": "mt1x",
+        "sequence_count": 1000,
+        "min_length": 16555,
+        "max_length": 16578,
+        "reference": false,
+        "classification": null,
+        "validation_status": "requires_review",
+        "issues": [
+          {
+            "code": "non_iupac_colon",
+            "count": 411
+          }
+        ],
+        "sampling": {
+          "with_replacement": true,
+          "seed": 20262026
+        },
+        "similarity_label": null
+      },
+      {
+        "id": "dna_mt_10k",
+        "sequence_type": "dna",
+        "source_kind": "sampled",
+        "source_id": "mt1x",
+        "sequence_count": 10000,
+        "min_length": 16555,
+        "max_length": 16578,
+        "reference": false,
+        "classification": null,
+        "validation_status": "requires_review",
+        "issues": [
+          {
+            "code": "non_iupac_colon",
+            "count": 3491
+          }
+        ],
+        "sampling": {
+          "with_replacement": true,
+          "seed": 20271026
+        },
+        "similarity_label": null
+      },
+      {
+        "id": "dna_mt_sim_70",
+        "sequence_type": "dna",
+        "source_kind": "simulated",
+        "source_id": "mt_similarity",
+        "sequence_count": 100,
+        "min_length": 12646,
+        "max_length": 15931,
+        "reference": true,
+        "classification": null,
+        "validation_status": "passed",
+        "issues": [],
+        "sampling": null,
+        "similarity_label": 70
+      },
+      {
+        "id": "dna_mt_sim_75",
+        "sequence_type": "dna",
+        "source_kind": "simulated",
+        "source_id": "mt_similarity",
+        "sequence_count": 100,
+        "min_length": 13335,
+        "max_length": 15867,
+        "reference": true,
+        "classification": null,
+        "validation_status": "passed",
+        "issues": [],
+        "sampling": null,
+        "similarity_label": 75
+      },
+      {
+        "id": "dna_mt_sim_80",
+        "sequence_type": "dna",
+        "source_kind": "simulated",
+        "source_id": "mt_similarity",
+        "sequence_count": 100,
+        "min_length": 14112,
+        "max_length": 15961,
+        "reference": true,
+        "classification": null,
+        "validation_status": "passed",
+        "issues": [],
+        "sampling": null,
+        "similarity_label": 80
+      },
+      {
+        "id": "dna_mt_sim_85",
+        "sequence_type": "dna",
+        "source_kind": "simulated",
+        "source_id": "mt_similarity",
+        "sequence_count": 100,
+        "min_length": 14899,
+        "max_length": 15952,
+        "reference": true,
+        "classification": null,
+        "validation_status": "passed",
+        "issues": [],
+        "sampling": null,
+        "similarity_label": 85
+      },
+      {
+        "id": "dna_mt_sim_90",
+        "sequence_type": "dna",
+        "source_kind": "simulated",
+        "source_id": "mt_similarity",
+        "sequence_count": 100,
+        "min_length": 15369,
+        "max_length": 15961,
+        "reference": true,
+        "classification": null,
+        "validation_status": "passed",
+        "issues": [],
+        "sampling": null,
+        "similarity_label": 90
+      },
+      {
+        "id": "dna_mt_sim_91",
+        "sequence_type": "dna",
+        "source_kind": "simulated",
+        "source_id": "mt_similarity",
+        "sequence_count": 100,
+        "min_length": 15450,
+        "max_length": 15980,
+        "reference": true,
+        "classification": null,
+        "validation_status": "passed",
+        "issues": [],
+        "sampling": null,
+        "similarity_label": 91
+      },
+      {
+        "id": "dna_mt_sim_92",
+        "sequence_type": "dna",
+        "source_kind": "simulated",
+        "source_id": "mt_similarity",
+        "sequence_count": 100,
+        "min_length": 15602,
+        "max_length": 15988,
+        "reference": true,
+        "classification": null,
+        "validation_status": "passed",
+        "issues": [],
+        "sampling": null,
+        "similarity_label": 92
+      },
+      {
+        "id": "dna_mt_sim_93",
+        "sequence_type": "dna",
+        "source_kind": "simulated",
+        "source_id": "mt_similarity",
+        "sequence_count": 100,
+        "min_length": 15637,
+        "max_length": 15991,
+        "reference": true,
+        "classification": null,
+        "validation_status": "passed",
+        "issues": [],
+        "sampling": null,
+        "similarity_label": 93
+      },
+      {
+        "id": "dna_mt_sim_94",
+        "sequence_type": "dna",
+        "source_kind": "simulated",
+        "source_id": "mt_similarity",
+        "sequence_count": 100,
+        "min_length": 15765,
+        "max_length": 15990,
+        "reference": true,
+        "classification": null,
+        "validation_status": "passed",
+        "issues": [],
+        "sampling": null,
+        "similarity_label": 94
+      },
+      {
+        "id": "dna_mt_sim_95",
+        "sequence_type": "dna",
+        "source_kind": "simulated",
+        "source_id": "mt_similarity",
+        "sequence_count": 100,
+        "min_length": 15830,
+        "max_length": 15997,
+        "reference": true,
+        "classification": null,
+        "validation_status": "passed",
+        "issues": [],
+        "sampling": null,
+        "similarity_label": 95
+      },
+      {
+        "id": "dna_mt_sim_96",
+        "sequence_type": "dna",
+        "source_kind": "simulated",
+        "source_id": "mt_similarity",
+        "sequence_count": 100,
+        "min_length": 15877,
+        "max_length": 16000,
+        "reference": true,
+        "classification": null,
+        "validation_status": "passed",
+        "issues": [],
+        "sampling": null,
+        "similarity_label": 96
+      },
+      {
+        "id": "dna_mt_sim_97",
+        "sequence_type": "dna",
+        "source_kind": "simulated",
+        "source_id": "mt_similarity",
+        "sequence_count": 100,
+        "min_length": 15930,
+        "max_length": 15998,
+        "reference": true,
+        "classification": null,
+        "validation_status": "passed",
+        "issues": [],
+        "sampling": null,
+        "similarity_label": 97
+      },
+      {
+        "id": "dna_mt_sim_98",
+        "sequence_type": "dna",
+        "source_kind": "simulated",
+        "source_id": "mt_similarity",
+        "sequence_count": 100,
+        "min_length": 15934,
+        "max_length": 15999,
+        "reference": true,
+        "classification": null,
+        "validation_status": "passed",
+        "issues": [],
+        "sampling": null,
+        "similarity_label": 98
+      },
+      {
+        "id": "dna_mt_sim_99",
+        "sequence_type": "dna",
+        "source_kind": "simulated",
+        "source_id": "mt_similarity",
+        "sequence_count": 100,
+        "min_length": 15984,
+        "max_length": 16000,
+        "reference": true,
+        "classification": null,
+        "validation_status": "passed",
+        "issues": [],
+        "sampling": null,
+        "similarity_label": 99
+      },
+      {
+        "id": "rna_255",
+        "sequence_type": "rna",
+        "source_kind": "unconfirmed",
+        "source_id": "RNA-255",
+        "sequence_count": 255,
+        "min_length": 1514,
+        "max_length": 1542,
+        "reference": true,
+        "classification": null,
+        "validation_status": "passed",
+        "issues": [],
+        "sampling": null,
+        "similarity_label": null
+      },
+      {
+        "id": "rna_511",
+        "sequence_type": "rna",
+        "source_kind": "unconfirmed",
+        "source_id": "RNA-511",
+        "sequence_count": 511,
+        "min_length": 1521,
+        "max_length": 1542,
+        "reference": true,
+        "classification": null,
+        "validation_status": "passed",
+        "issues": [],
+        "sampling": null,
+        "similarity_label": null
+      },
+      {
+        "id": "rna_1023",
+        "sequence_type": "rna",
+        "source_kind": "unconfirmed",
+        "source_id": "RNA-1023",
+        "sequence_count": 1023,
+        "min_length": 1513,
+        "max_length": 1542,
+        "reference": true,
+        "classification": null,
+        "validation_status": "passed",
+        "issues": [],
+        "sampling": null,
+        "similarity_label": null
+      },
+      {
+        "id": "rna_2047",
+        "sequence_type": "rna",
+        "source_kind": "unconfirmed",
+        "source_id": "RNA-2047",
+        "sequence_count": 2047,
+        "min_length": 1514,
+        "max_length": 1542,
+        "reference": true,
+        "classification": null,
+        "validation_status": "passed",
+        "issues": [],
+        "sampling": null,
+        "similarity_label": null
+      },
+      {
+        "id": "rna_4095",
+        "sequence_type": "rna",
+        "source_kind": "unconfirmed",
+        "source_id": "RNA-4095",
+        "sequence_count": 4095,
+        "min_length": 1512,
+        "max_length": 1542,
+        "reference": true,
+        "classification": null,
+        "validation_status": "passed",
+        "issues": [],
+        "sampling": null,
+        "similarity_label": null
+      },
+      {
+        "id": "rna_8191",
+        "sequence_type": "rna",
+        "source_kind": "unconfirmed",
+        "source_id": "RNA-8191",
+        "sequence_count": 8191,
+        "min_length": 1513,
+        "max_length": 1542,
+        "reference": true,
+        "classification": null,
+        "validation_status": "passed",
+        "issues": [],
+        "sampling": null,
+        "similarity_label": null
+      }
+    ]
+  },
+  "methods": [
+    {
+      "id": "clustalo",
+      "name": "Clustal Omega"
+    },
+    {
+      "id": "tcoffee",
+      "name": "T-Coffee"
+    },
+    {
+      "id": "mafft",
+      "name": "MAFFT"
+    },
+    {
+      "id": "muscle5",
+      "name": "MUSCLE 5"
+    },
+    {
+      "id": "kalign3",
+      "name": "Kalign 3"
+    },
+    {
+      "id": "halign3",
+      "name": "HAlign 3"
+    },
+    {
+      "id": "halign4",
+      "name": "HAlign 4"
+    },
+    {
+      "id": "fmalign2",
+      "name": "FMAlign2"
+    },
+    {
+      "id": "minipoa",
+      "name": "minipoa"
+    }
+  ],
+  "batches": []
+}

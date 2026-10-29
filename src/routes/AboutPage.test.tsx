@@ -14,6 +14,11 @@ describe("AboutPage method presentation", () => {
     render(<LanguageProvider><MemoryRouter><AboutPage /></MemoryRouter></LanguageProvider>);
 
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(locale === "zh" ? "关于 EasyMSA" : "About EasyMSA");
+    const benchmark = screen.getByRole("link", { name: "Benchmark" });
+    expect(benchmark).toHaveAttribute("href", "/benchmark");
+    expect(benchmark).toHaveAccessibleDescription(locale === "zh"
+      ? "浏览 DNA / RNA 数据集，查看各方法的比对质量、运行时间和内存表现。"
+      : "Explore DNA / RNA datasets and compare alignment quality, runtime and memory across methods.");
     for (const method of methods.filter(method => method.origin === "lab")) {
       const heading = screen.getByRole("heading", { level: 3, name: method.name });
       const article = heading.closest("article")!;

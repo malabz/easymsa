@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:benchmark": "node scripts/build-benchmark.mjs",
+    "preview:benchmark": "vite preview --host 127.0.0.1 --port 5208 --strictPort --base /",
+    "test:benchmark:e2e": "playwright test --config playwright.benchmark.config.ts",
     "preview": "vite preview",
     "test": "vitest run src --environment jsdom",
     "test:e2e": "playwright test",

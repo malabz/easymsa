@@ -1,0 +1,108 @@
+/* Precision comparisons: one method row, five independently labelled axes. */
+.benchmark-page.benchmark-detail-v2 { max-width: 1440px; }
+.benchmark-detail-topline, .benchmark-detail-titleline, .benchmark-detail-toolbar, .benchmark-view-controls { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.benchmark-page.benchmark-detail-v2 .benchmark-detail-header { padding: 0 0 1.2rem; }
+.benchmark-page.benchmark-detail-v2 .benchmark-detail-header h1 { font-family: inherit; font-size: clamp(1.5rem, 3vw, 2.2rem); letter-spacing: -.035em; margin: .5rem 0; }
+.benchmark-detail-v2 .benchmark-detail-header p { font-size: .8125rem; color: var(--bench-muted); line-height: 1.7; }
+.benchmark-neighbours { display: flex; gap: 1.25rem; font-size: .8125rem; }
+.benchmark-neighbours a { display: inline-flex; align-items: center; gap: .35rem; min-height: 44px; color: var(--bench-accent); }
+.benchmark-detail-titleline { align-items: end; }
+.benchmark-detail-toolbar { padding: .25rem 0; align-items: end; }
+/* Give the native select its own formatting context: WebKit otherwise lets the
+   selected option's intrinsic text width enlarge ancestor scroll areas at 200%.
+   Layout containment keeps the native arrow, popup and enlarged text intact. */
+.benchmark-detail-toolbar .benchmark-batch-selector select { contain: layout; }
+.benchmark-detail-conditions { font-size: .8125rem; color: var(--bench-muted); margin-top: .25rem; border-top: 1px solid var(--bench-rule); padding-top: .75rem; }
+.benchmark-detail-conditions strong { color: var(--bench-ink); font-weight: 600; }
+.benchmark-condition-details > summary, .benchmark-source-details > summary { min-height: 44px; padding-block: .8rem; cursor: pointer; color: var(--bench-accent); font-size: .8125rem; }
+.benchmark-condition-details { margin-top: .25rem; }
+.benchmark-condition-details .benchmark-batch-context { margin-top: 0; }
+.benchmark-view-controls { margin-block: 1rem .25rem; }
+.benchmark-view-controls h2 { font-size: 1.1rem; font-weight: 600; }
+.benchmark-view-tabs { display: flex; border-bottom: 1px solid var(--bench-rule); }
+.benchmark-view-tabs button { padding: .65rem 1rem; min-height: 44px; font-size: .8125rem; border-bottom: 2px solid transparent; }
+.benchmark-view-tabs button[aria-pressed=true] { color: var(--bench-accent); border-color: var(--bench-accent); font-weight: 600; }
+.benchmark-plot-options { display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; align-items: center; padding: .6rem 0 1rem; }
+.benchmark-plot-options label { display: flex; align-items: center; gap: .5rem; min-height: 44px; font-size: .75rem; color: var(--bench-muted); }
+.benchmark-plot-options select { min-height: 44px; max-width: 12rem; border-bottom: 1px solid var(--bench-rule); background: transparent; color: var(--bench-ink); padding: .5rem .25rem; }
+.benchmark-zoom-option input { accent-color: var(--bench-accent); width: 16px; height: 16px; flex: 0 0 auto; }
+.benchmark-plot-note { max-width: 27rem; font-size: .6875rem; line-height: 1.65; color: var(--bench-muted); }
+.benchmark-dot-grid { display: grid; grid-template-columns: minmax(135px, .85fr) repeat(5, minmax(0, 1fr)); border-block: 1px solid var(--bench-rule); }
+.benchmark-shared-methods, .benchmark-dot-figure { min-width: 0; margin: 0; }
+.benchmark-dot-figure { border-left: 1px solid var(--bench-rule); padding-inline: 13px; position: relative; }
+.benchmark-plot-heading { height: 7.5rem; padding: .8rem 0 .5rem; display: flex; flex-direction: column; gap: .25rem; font-size: .8125rem; line-height: 1.5; }
+.benchmark-plot-heading strong { font-weight: 600; }
+.benchmark-plot-heading > span { display: block; font-size: .6875rem; color: var(--bench-muted); }
+.benchmark-plot-heading .benchmark-local-range { color: #92400e; font-weight: 600; }
+.benchmark-axis-choice { margin-top: auto; font-size: .6875rem; }
+.benchmark-axis-choice select { min-height: 44px; padding: .25rem 0; background: transparent; border-bottom: 1px solid var(--bench-rule); max-width: 100%; color: var(--bench-muted); }
+.benchmark-dot-figure.is-selected-metric figcaption strong { color: var(--bench-accent); }
+.benchmark-dot-axis, .benchmark-axis-spacer { height: 2.25rem; position: relative; }
+.benchmark-dot-axis { border-bottom: 1px solid var(--bench-rule); margin-inline: 8px; }
+.benchmark-dot-axis span { position: absolute; transform: translateX(-50%); top: 5px; white-space: nowrap; color: var(--bench-muted); font-size: .625rem; font-variant-numeric: tabular-nums; }
+.benchmark-dot-axis span.first { transform: none; }
+.benchmark-dot-axis span.last { transform: translateX(-100%); }
+.benchmark-shared-method, .benchmark-dot-row { height: 3.5rem; border-bottom: 1px solid #e9eeeb; }
+.benchmark-shared-method { display: flex; flex-direction: column; justify-content: center; gap: .2rem; padding-inline: .5rem; font-size: .75rem; overflow-wrap: anywhere; }
+.benchmark-shared-method span { font-size: .625rem; color: var(--bench-muted); white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+.benchmark-dot-row { display: block; width: 100%; text-align: left; position: relative; padding: 0 8px; min-height: 44px; background: transparent; color: var(--bench-ink); }
+.benchmark-dot-row:last-child, .benchmark-shared-method:last-child { border-bottom: 0; }
+.benchmark-dot-row.is-active, .benchmark-shared-method.is-active { background: #e8f3f0; }
+.benchmark-dot-row:focus-visible { z-index: 2; outline-offset: -1px; }
+.benchmark-dot-track { display: block; position: relative; height: 100%; }
+.benchmark-local-method { display: none; }
+.benchmark-grid-tick { position: absolute; top: 0; bottom: 0; width: 1px; background: #e7eeeb; }
+.benchmark-dot { position: absolute; top: 50%; width: 8px; height: 8px; margin-left: -4px; margin-top: -4px; border-radius: 50%; background: var(--bench-accent); box-shadow: 0 0 0 2px #fff; }
+.benchmark-dot-row.is-active .benchmark-dot { width: 10px; height: 10px; margin: -5px 0 0 -5px; background: #064e49; }
+.benchmark-dot-row.is-partial .benchmark-dot { background: #fff; border: 2px solid var(--bench-accent); }
+.benchmark-dot-missing { position: absolute; inset: 0; display: flex; align-items: center; font-size: .625rem; line-height: 1.35; color: #75503c; padding-right: 2px; background: #fff; }
+.benchmark-dot-row.is-active .benchmark-dot-missing { background: #e8f3f0; }
+.benchmark-error-range { position: absolute; height: 8px; top: calc(50% - 4px); border-inline: 1px solid var(--bench-accent); }
+.benchmark-error-range::after { content: ""; position: absolute; left: 0; right: 0; top: 3px; height: 1px; background: var(--bench-accent); }
+.benchmark-partial-mark { position: absolute; bottom: 2px; right: 0; font-size: .5625rem; color: #74502f; }
+.benchmark-axis-explanation { font-size: .6875rem; line-height: 1.6; padding-block: .75rem; color: var(--bench-muted); }
+.benchmark-plots-caption { font-size: .75rem; line-height: 1.8; color: var(--bench-muted); margin-top: 1rem; }
+.benchmark-mobile-metrics { display: none; }
+.benchmark-point-popup { position: fixed; z-index: 60; right: 24px; bottom: 24px; max-width: min(380px, calc(100vw - 32px)); background: #fff; border: 1px solid #98b6ad; border-top: 3px solid var(--bench-accent); padding: 1rem 3rem 1rem 1rem; box-shadow: 0 6px 30px #16312e1f; font-size: .75rem; color: var(--bench-ink); line-height: 1.65; overflow-wrap: anywhere; }
+.benchmark-point-popup p { margin-top: .3rem; }
+.benchmark-point-popup .benchmark-point-value { font-size: 1rem; font-variant-numeric: tabular-nums; font-weight: 600; }
+.benchmark-popup-close { position: absolute; top: 0; right: 0; min-height: 44px; width: 44px; display: grid; place-items: center; }
+.benchmark-source-details { margin-top: 1.5rem; border-top: 1px solid var(--bench-rule); }
+.benchmark-source-details .benchmark-provenance { margin: .5rem 0 1rem; }
+.benchmark-detail-precise { margin-top: 1rem; }
+.benchmark-detail-precise .benchmark-table { min-width: 1100px; }
+/* Keep the pinned label narrower than the scrollport even with enlarged text.
+   A long version string must wrap instead of widening WebKit's sticky column. */
+.benchmark-detail-precise .benchmark-table th:first-child { position: sticky; left: 0; background: #fff; z-index: 1; width: 160px; min-width: 160px; max-width: 180px; white-space: normal; overflow-wrap: anywhere; }
+.benchmark-detail-precise .benchmark-table thead th:first-child { background: var(--bench-soft); }
+.benchmark-detail-precise td { font-variant-numeric: tabular-nums; }
+@media (min-width: 768px) and (max-width: 1279px) {
+  .benchmark-dot-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 1.75rem; border-bottom: 0; }
+  .benchmark-shared-methods { display: none; }
+  .benchmark-dot-figure { border-left: 0; border-bottom: 1px solid var(--bench-rule); padding-inline: 0; }
+  .benchmark-dot-row { display: grid; grid-template-columns: 110px 1fr; gap: 10px; align-items: center; }
+  .benchmark-local-method { display: block; font-size: .75rem; overflow-wrap: anywhere; }
+  .benchmark-dot-axis { margin-left: 128px; }
+  .benchmark-plot-heading { height: 8rem; }
+}
+@media (max-width: 767px) {
+  .benchmark-detail-toolbar { align-items: start; width: 100%; }
+  .benchmark-detail-toolbar .benchmark-batch-selector { width: 100%; }
+  .benchmark-view-controls { align-items: start; }
+  .benchmark-view-tabs { width: 100%; }
+  .benchmark-view-tabs button { flex: 1; }
+  .benchmark-plot-options { gap: .25rem 1rem; }
+  .benchmark-plot-note { max-width: none; width: 100%; }
+  .benchmark-mobile-metrics { display: flex; flex-wrap: wrap; margin-bottom: .75rem; border-bottom: 1px solid var(--bench-rule); }
+  .benchmark-mobile-metrics button { font-size: .75rem; min-height: 44px; padding: .6rem .65rem; border-bottom: 2px solid transparent; }
+  .benchmark-mobile-metrics button[aria-pressed=true] { border-color: var(--bench-accent); color: var(--bench-accent); font-weight: 600; }
+  .benchmark-dot-grid { display: block; }
+  .benchmark-shared-methods, .benchmark-dot-figure { display: none; }
+  .benchmark-dot-figure.is-mobile-active { display: block; padding: 0; border-left: 0; }
+  .benchmark-dot-row { display: grid; grid-template-columns: 105px minmax(0, 1fr); gap: 10px; align-items: center; }
+  .benchmark-local-method { display: block; font-size: .75rem; overflow-wrap: anywhere; }
+  .benchmark-dot-axis { margin-left: 123px; }
+  .benchmark-plot-heading { height: 8rem; }
+  .benchmark-point-popup { bottom: 12px; right: 16px; }
+  .benchmark-neighbours { gap: .8rem; }
+}

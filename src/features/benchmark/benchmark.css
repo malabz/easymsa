@@ -1,0 +1,179 @@
+/* Public research catalog: an open editorial grid, scoped to these two routes. */
+.benchmark-page {
+  --bench-ink: #16312e;
+  --bench-muted: #52645f;
+  --bench-accent: #0f766e;
+  --bench-rule: #cdd9d5;
+  --bench-soft: #eef3f0;
+  --bench-warning: #92400e;
+  padding-top: 1.5rem;
+  padding-bottom: 5rem;
+  color: var(--bench-ink);
+}
+.benchmark-page :is(a, button, select, summary) { cursor: pointer; }
+.benchmark-page :is(a, button, select, input, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--bench-accent);
+  outline-offset: 4px;
+}
+.benchmark-page :is(a, button, select, input) { transition: color 150ms, border-color 150ms, background-color 150ms; }
+.benchmark-back { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; color: var(--bench-muted); font-size: .8125rem; }
+.benchmark-back:hover { color: var(--bench-accent); }
+.benchmark-page h1, .benchmark-edition-name { overflow-wrap: anywhere; }
+.benchmark-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, .34fr); gap: clamp(2rem, 6vw, 6rem); padding: 2.25rem 0 3rem; align-items: end; }
+.benchmark-eyebrow { color: var(--bench-muted); font-size: .75rem; line-height: 1.6; font-weight: 600; text-transform: uppercase; letter-spacing: .13em; }
+.benchmark-page .benchmark-hero h1 { margin: 1rem 0 1.5rem; font-size: clamp(2.5rem, 5.3vw, 4.5rem); font-weight: 550; line-height: 1.05; letter-spacing: -.055em; color: var(--bench-ink); }
+.benchmark-lede { font-size: clamp(1.125rem, 2vw, 1.5rem); line-height: 1.55; letter-spacing: -.02em; }
+.benchmark-intro { max-width: 36rem; margin-top: .875rem; color: var(--bench-muted); font-size: .9375rem; line-height: 1.85; }
+.benchmark-edition { border-left: 1px solid var(--bench-rule); padding-left: 1.5rem; }
+.benchmark-edition-name { font-size: 1.25rem; font-weight: 550; margin: .7rem 0 .3rem; }
+.benchmark-mono, .benchmark-numeric { font-variant-numeric: tabular-nums; }
+.benchmark-mono { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .75rem; color: var(--bench-muted); overflow-wrap: anywhere; }
+.benchmark-edition-state { display: flex; align-items: center; gap: .5rem; margin: 1rem 0 .625rem; font-size: .75rem; font-weight: 600; color: var(--bench-accent); }
+.benchmark-edition-state span { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: 0 0 auto; }
+.benchmark-edition-state.is-draft, .benchmark-warning { color: var(--bench-warning); }
+.benchmark-caption { font-size: .8125rem; line-height: 1.8; color: var(--bench-muted); }
+.benchmark-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 1.6rem 0; border-block: 1px solid var(--bench-rule); }
+.benchmark-stats > div { display: flex; flex-direction: column-reverse; gap: .25rem; padding: 0 1.75rem; border-left: 1px solid var(--bench-rule); }
+.benchmark-stats > div:first-child { padding-left: 0; border-left: 0; }
+.benchmark-stats dt { font-size: .75rem; line-height: 1.6; color: var(--bench-muted); }
+.benchmark-stats dd { font-size: 2.125rem; line-height: 1.3; letter-spacing: -.05em; font-weight: 500; font-variant-numeric: tabular-nums; }
+.benchmark-stats > div:last-child dd { color: var(--bench-accent); }
+.benchmark-publication { display: grid; grid-template-columns: 1fr 3fr; gap: 2.5rem; padding: 2rem 0; border-bottom: 1px solid var(--bench-rule); }
+.benchmark-publication h2 { margin-top: .5rem; font-size: 1rem; font-weight: 600; }
+.benchmark-publication-content { min-width: 0; }
+.benchmark-controls { display: flex; align-items: end; flex-wrap: wrap; justify-content: space-between; gap: 1rem; }
+.benchmark-publication-content > .benchmark-caption { margin-top: .875rem; max-width: 48rem; }
+.benchmark-field, .benchmark-batch-selector { display: flex; flex-direction: column; gap: .5rem; min-width: 0; font-size: .75rem; line-height: 1.5; font-weight: 500; color: var(--bench-muted); }
+.benchmark-page :is(.benchmark-field, .benchmark-batch-selector) :is(input, select) { width: 100%; min-width: 0; min-height: 44px; border: 1px solid var(--bench-rule); border-radius: 2px; background: #fff; color: var(--bench-ink); padding: .65rem .75rem; font-size: .8125rem; line-height: 1.5; font-weight: 400; }
+.benchmark-page :is(.benchmark-field, .benchmark-batch-selector) :is(input, select):hover { border-color: var(--bench-accent); }
+.benchmark-batch-selector { max-width: 100%; }
+.benchmark-page .benchmark-batch-selector select:disabled { color: var(--bench-muted); background: transparent; border-style: dashed; cursor: default; }
+.benchmark-downloads { display: flex; gap: 1.25rem; flex-wrap: wrap; }
+.benchmark-downloads button { display: inline-flex; align-items: center; gap: .375rem; min-height: 44px; background: transparent; font-size: .75rem; color: var(--bench-accent); border-bottom: 1px solid var(--bench-rule); }
+.benchmark-downloads button:hover { color: var(--bench-ink); border-color: var(--bench-accent); }
+.benchmark-batch-context { margin-top: 1.25rem; padding-block: 1rem; border-block: 1px solid var(--bench-rule); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem 2rem; font-size: .75rem; line-height: 1.75; color: var(--bench-muted); overflow-wrap: anywhere; }
+.benchmark-section { margin-top: 3.5rem; }
+.benchmark-section-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.benchmark-section-heading > div { display: flex; align-items: baseline; gap: 1rem; }
+.benchmark-section-number { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .75rem; color: var(--bench-accent); }
+.benchmark-section-heading h2, .benchmark-comparison h2 { font-size: 1.5rem; font-weight: 550; line-height: 1.4; letter-spacing: -.025em; }
+.benchmark-filters { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, .7fr) minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; }
+.benchmark-search-control { position: relative; display: flex; align-items: center; }
+.benchmark-search-control svg { position: absolute; left: .75rem; pointer-events: none; }
+.benchmark-page .benchmark-search-control input { padding-left: 2.25rem; }
+.benchmark-filter-range { display: flex; align-items: end; gap: .75rem; margin: 1rem 0 1.5rem; }
+.benchmark-filter-range .benchmark-field { width: 9rem; }
+.benchmark-range-dash { min-height: 44px; display: flex; align-items: center; color: var(--bench-muted); }
+.benchmark-page .benchmark-clear { margin-left: auto; min-height: 44px; border-radius: 2px; font-size: .75rem; color: var(--bench-muted); white-space: normal; }
+.benchmark-table-scroll { overflow-x: auto; min-width: 0; max-width: 100%; }
+.benchmark-table { width: 100%; border-collapse: collapse; text-align: left; font-size: .8125rem; line-height: 1.6; }
+.benchmark-table thead { background: var(--bench-soft); color: var(--bench-muted); border-block: 1px solid var(--bench-rule); }
+.benchmark-table thead th { padding: .8rem 1rem; font-weight: 500; font-size: .75rem; white-space: nowrap; }
+.benchmark-table tbody tr { border-bottom: 1px solid var(--bench-rule); }
+.benchmark-table tbody tr:hover { background: #edf4f1; }
+.benchmark-table tbody :is(th, td) { padding: .875rem 1rem; vertical-align: middle; }
+.benchmark-table tbody th { color: var(--bench-ink); font-weight: 550; white-space: nowrap; }
+.benchmark-table tbody td { color: var(--bench-muted); }
+.benchmark-table :is(th, td):first-child { padding-left: .75rem; }
+.benchmark-cell-note { display: block; margin-top: .2rem; font-size: .75rem; color: var(--bench-muted); line-height: 1.5; }
+.benchmark-numeric { white-space: nowrap; }
+.benchmark-dataset-link { display: inline-flex; align-items: center; gap: .625rem; color: var(--bench-ink); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .8125rem; min-height: 28px; }
+.benchmark-dataset-link svg { color: var(--bench-accent); }
+.benchmark-dataset-link:hover { color: var(--bench-accent); text-decoration: underline; text-underline-offset: 4px; }
+.benchmark-type { display: block; color: var(--bench-muted); text-transform: uppercase; font-size: .6875rem; letter-spacing: .08em; font-weight: 500; }
+.benchmark-parameters { max-width: 24rem; overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .75rem; }
+.benchmark-empty { padding: 2rem .75rem; font-size: .875rem; color: var(--bench-muted); }
+.benchmark-split-section { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 3fr); gap: 2.5rem; padding-top: 2.5rem; border-top: 1px solid var(--bench-rule); }
+.benchmark-reading { border-top: 1px solid var(--bench-rule); padding-top: 2.5rem; }
+.benchmark-notes { display: grid; grid-template-columns: 1fr 1fr; gap: 1.75rem 4rem; }
+.benchmark-notes h3 { font-size: .875rem; font-weight: 600; margin-bottom: .5rem; }
+.benchmark-notes p, .benchmark-roadmap { font-size: .8125rem; line-height: 1.85; color: var(--bench-muted); }
+.benchmark-roadmap { padding-top: 2rem; margin-top: 2rem; border-top: 1px solid var(--bench-rule); }
+.benchmark-state { padding: 4rem 0; border-bottom: 1px solid var(--bench-rule); }
+.benchmark-detail-header { padding: .5rem 0 2rem; }
+.benchmark-page .benchmark-detail-header h1 { margin: 1.75rem 0 .875rem; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: clamp(1.75rem, 3vw, 2.75rem); line-height: 1.25; font-weight: 500; letter-spacing: -.05em; overflow-wrap: anywhere; }
+.benchmark-metadata { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 1.5rem; padding: 1.5rem 0; border-block: 1px solid var(--bench-rule); }
+.benchmark-metadata dt { font-size: .75rem; color: var(--bench-muted); margin-bottom: .5rem; }
+.benchmark-metadata dd { font-size: .9375rem; font-weight: 500; line-height: 1.65; }
+.benchmark-provenance { max-width: 56rem; margin-top: 1.5rem; font-size: .8125rem; line-height: 1.85; color: var(--bench-muted); }
+.benchmark-provenance p + p { margin-top: .5rem; }
+.benchmark-data-issue { border-left: 2px solid #b45309; padding: .3rem 0 .3rem 1.25rem; margin-top: 1.75rem; max-width: 56rem; color: var(--bench-warning); }
+.benchmark-data-issue h2 { font-size: .875rem; }
+.benchmark-data-issue p { font-size: .8125rem; }
+.benchmark-comparison { margin-top: 3.25rem; padding-top: 2rem; border-top: 1px solid var(--bench-rule); }
+.benchmark-comparison > .benchmark-controls { margin: 1.5rem 0 1rem; }
+.benchmark-comparison .benchmark-table { min-width: 52rem; }
+.benchmark-comparison .benchmark-table td { font-size: .75rem; }
+.benchmark-pending { margin: 1rem 0; padding-left: .75rem; border-left: 2px solid var(--bench-rule); font-size: .8125rem; line-height: 1.8; color: var(--bench-muted); }
+.benchmark-status { display: inline-flex; gap: .4rem; align-items: center; font-size: .75rem; font-weight: 600; white-space: nowrap; }
+.benchmark-status::before { content: ""; width: 5px; height: 5px; background: currentColor; border-radius: 50%; flex: 0 0 auto; }
+.benchmark-status.complete { color: #0f766e; }
+.benchmark-status.failed, .benchmark-status.timeout { color: #9f1239; }
+.benchmark-status.partial { color: #92400e; }
+.benchmark-status.not_run, .benchmark-status.unsupported { color: var(--bench-muted); }
+.benchmark-extra { margin-top: 1rem; border-bottom: 1px solid var(--bench-rule); }
+.benchmark-extra summary { padding: .875rem 0; min-height: 44px; font-size: .8125rem; font-weight: 500; color: var(--bench-accent); }
+.benchmark-charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--bench-rule); }
+.benchmark-chart { min-width: 0; padding: 1.5rem 2rem 1.5rem 0; border-bottom: 1px solid var(--bench-rule); }
+.benchmark-chart:nth-child(even) { padding-left: 2rem; padding-right: 0; border-left: 1px solid var(--bench-rule); }
+.benchmark-chart figcaption { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: .75rem; font-weight: 500; margin-bottom: 1.25rem; font-size: .9375rem; }
+.benchmark-chart-empty { font-size: .8125rem; line-height: 1.8; color: var(--bench-muted); padding-block: .5rem; }
+.benchmark-chart-track { height: 5px; background: var(--bench-soft); }
+.benchmark-chart-bar { height: 5px; background: var(--bench-accent); }
+.benchmark-chart-bar.is-partial { background: #b45309; }
+@media (max-width: 1000px) {
+  .benchmark-filters { grid-template-columns: 1fr 1fr; }
+  .benchmark-metadata { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .benchmark-publication, .benchmark-split-section { grid-template-columns: minmax(0, 1fr) minmax(0, 2.5fr); gap: 1.5rem; }
+}
+@media (max-width: 700px) {
+  .benchmark-hero { grid-template-columns: minmax(0, 1fr); gap: 1.75rem; padding: 1.5rem 0 2rem; }
+  .benchmark-page .benchmark-hero h1 { margin-bottom: 1rem; }
+  .benchmark-edition { border-left: 0; padding-left: 0; border-top: 1px solid var(--bench-rule); padding-top: 1rem; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .25rem 1rem; }
+  .benchmark-edition .benchmark-eyebrow { grid-column: 1 / -1; }
+  .benchmark-edition-name { margin: .3rem 0; }
+  .benchmark-edition .benchmark-mono { grid-column: 1; }
+  .benchmark-edition-state { grid-column: 2; grid-row: 2 / 4; margin: 0; align-self: center; }
+  .benchmark-edition .benchmark-caption { grid-column: 1 / -1; margin-top: .625rem; }
+  .benchmark-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem 0; }
+  .benchmark-stats > div { padding-inline: 0 12px; }
+  .benchmark-stats > div:nth-child(even) { padding-inline: 12px 0; }
+  .benchmark-stats > div:nth-child(odd) { padding-left: 0; border-left: 0; }
+  .benchmark-stats dd { font-size: 1.75rem; }
+  .benchmark-publication, .benchmark-split-section { grid-template-columns: minmax(0, 1fr); gap: 1.25rem; }
+  .benchmark-controls { align-items: start; }
+  .benchmark-section { margin-top: 2.5rem; }
+  .benchmark-section-heading h2, .benchmark-comparison h2 { font-size: 1.25rem; }
+  .benchmark-section-heading { gap: .5rem; }
+  .benchmark-filters { gap: 1rem .75rem; }
+  .benchmark-search { grid-column: 1 / -1; }
+  .benchmark-filters > label:last-child { grid-column: 1 / -1; }
+  .benchmark-filter-range { flex-wrap: wrap; gap: .5rem; }
+  .benchmark-filter-range .benchmark-field { width: calc(50% - .75rem); }
+  .benchmark-page .benchmark-clear { margin-left: 0; padding-left: 0; }
+  .benchmark-notes, .benchmark-charts, .benchmark-batch-context { grid-template-columns: minmax(0, 1fr); }
+  .benchmark-chart, .benchmark-chart:nth-child(even) { padding: 1.25rem 0; border-left: 0; }
+  .benchmark-metadata { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+  .benchmark-dataset-link { min-height: 44px; }
+  .benchmark-table tbody :is(th, td) { padding: .625rem .75rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .benchmark-page :is(a, button, select, input) { transition: none; }
+}
+/* Shared data actions: raw-unit exports are intentionally distinct from display units. */
+.benchmark-download-menu { position: relative; align-self: end; font-size: .8125rem; }
+.benchmark-download-menu > summary { display: flex; align-items: center; gap: .5rem; min-height: 44px; padding: .5rem .75rem; border: 1px solid var(--bench-rule); list-style: none; color: var(--bench-accent); }
+.benchmark-download-menu > summary::-webkit-details-marker { display: none; }
+.benchmark-download-menu[open] > summary { background: var(--bench-soft); }
+.benchmark-download-panel { position: absolute; right: 0; top: calc(100% + 4px); z-index: 40; width: 300px; max-width: calc(100vw - 40px); padding: 1rem; background: #fff; border: 1px solid var(--bench-rule); box-shadow: 0 8px 24px #16312e12; }
+.benchmark-download-panel label { display: grid; gap: .4rem; }
+.benchmark-download-panel select { min-height: 44px; max-width: 100%; border: 1px solid var(--bench-rule); padding: .5rem; background: white; }
+.benchmark-download-panel p { margin-top: .6rem; color: var(--bench-muted); font-size: .75rem; line-height: 1.65; }
+.benchmark-download-panel .benchmark-downloads { margin-top: .5rem; }
+
+@media (max-width: 767px) {
+  /* Keep the download panel within the content column even when its trigger wraps. */
+  .benchmark-download-menu { width: 100%; }
+  .benchmark-download-menu > summary { width: fit-content; }
+  .benchmark-download-panel { left: 0; right: 0; width: 100%; max-width: 100%; }
+}

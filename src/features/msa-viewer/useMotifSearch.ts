@@ -243,7 +243,7 @@ export function useMotifSearch(
         return;
       }
       if (session) {
-        session.run<MotifSearchPayloadV3>("motif", request, abort.signal).then(complete, error => {
+        session.run("motif", request, abort.signal).then(complete, error => {
           if (error?.name !== "AbortError") fail(error, error.code ? error : undefined);
         });
         return;

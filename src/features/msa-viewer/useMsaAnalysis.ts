@@ -403,7 +403,7 @@ export function useMsaAnalysis(
       }
     } else if (session) {
       markMsaPerformance(MSA_PERFORMANCE_MARKS.analysisWorkerStart);
-      session.run<MsaAnalysisPayloadV4>("analysis", request, abort.signal).then(payload => {
+      session.run("analysis", request, abort.signal).then(payload => {
         if (cancelled) return;
         try { assertMsaAnalysisPayloadV4(payload); markMsaPerformance(MSA_PERFORMANCE_MARKS.analysisWorkerDone); complete(payload); }
         catch (error) { fail(error); }

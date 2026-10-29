@@ -40,6 +40,8 @@ const RealignPage = lazy(() => import("./routes/RealignPage").then(module => ({d
 const ExamplesPage = lazy(() => import("./routes/ExamplesPage").then(m => ({default:m.ExamplesPage})));
 const LicensePage = lazy(() => import("./routes/LicensePage").then(m => ({default:m.LicensePage})));
 const PrivacyPage = lazy(() => import("./routes/PrivacyPage").then(m => ({default:m.PrivacyPage})));
+const BenchmarkPage = lazy(() => import("./routes/BenchmarkPage").then(m => ({default:m.BenchmarkPage})));
+const BenchmarkDatasetPage = lazy(() => import("./routes/BenchmarkDatasetPage").then(m => ({default:m.BenchmarkDatasetPage})));
 
 function AppRoutes() {
   const location = useLocation();
@@ -64,6 +66,8 @@ function AppRoutes() {
           <Route path="/docs" element={<DocsPage />} />
           <Route path="/examples" element={<ExamplesPage />} />
           <Route path="/examples/:exampleId" element={<ExamplesPage />} />
+          <Route path="/benchmark" element={<BenchmarkPage />} />
+          <Route path="/benchmark/datasets/:caseId" element={<BenchmarkDatasetPage />} />
           <Route path="/license" element={<LicensePage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/about" element={<AboutPage />} />

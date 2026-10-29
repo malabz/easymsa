@@ -1,12 +1,8 @@
 import { useEffect, useMemo } from "react";
 import type { MSASequence } from "../../lib/types/msa";
+import type { DataOperation, DataRequest, DataResult, SessionMessage, SessionResponse, SessionTask } from "./sharedDataProtocol";
 
-export type DataOperation = "analysis" | "motif" | "range" | "overview" | "export";
-export type SessionTask = {
-  type: "run"; id: number; operation: DataOperation; rows: number[] | null;
-  reference?: number; referenceSequence?: number; request: Record<string, unknown>;
-};
-export type SessionMessage = { type: "initialize"; sequences: MSASequence[] } | { type: "cancel"; id: number } | SessionTask;
+export type { DataOperation, SessionMessage, SessionTask } from "./sharedDataProtocol";
 type Pending = { id: number; message: SessionTask; resolve: (result: unknown) => void; reject: (error: unknown) => void; cleanup: () => void; progress?: (value: number) => void };
 const sessions = new WeakMap<MSASequence[], MsaDataSession>();
 const aborted = () => new DOMException("Operation cancelled", "AbortError");
@@ -37,7 +33,7 @@ export class MsaDataSession {
     if (index === undefined) throw new Error("Sequence does not belong to the current alignment.");
     return index;
   }
-  run<T>(operation: DataOperation, input: object, signal?: AbortSignal, progress?: (value: number) => void): Promise<T> {
+  run<K extends DataOperation>(operation: K, input: DataRequest<NoInfer<K>>, signal?: AbortSignal, progress?: (value: number) => void): Promise<DataResult<K>> {
     if (signal?.aborted) return Promise.reject(aborted());
     const { sequences, rows, sourceRows: _sourceRows, reference, referenceSequence, ...request } = input as Record<string, unknown>;
     const selected = (sequences ?? rows ?? this.sequences) as MSASequence[];
@@ -46,9 +42,10 @@ export class MsaDataSession {
       message = { type: "run", id: ++this.id, operation, request,
         rows: selected === this.sequences ? null : selected.map(row => this.index(row)),
         reference: reference ? this.index(reference as MSASequence) : undefined,
-        referenceSequence: referenceSequence ? this.index(referenceSequence as MSASequence) : undefined };
+        // The generic operation and its request remain paired while row fields are removed.
+        referenceSequence: referenceSequence ? this.index(referenceSequence as MSASequence) : undefined } as SessionTask;
     } catch (error) { return Promise.reject(error); }
-    return new Promise<T>((resolve, reject) => {
+    return new Promise<DataResult<K>>((resolve, reject) => {
       const cancel = () => {
         const task = this.pending.get(message.id);
         if (!task) return;
@@ -57,7 +54,7 @@ export class MsaDataSession {
         reject(aborted());
       };
       signal?.addEventListener("abort", cancel, { once: true });
-      const task = { id: message.id, message, progress, resolve: (result: unknown) => resolve(result as T), reject, cleanup: () => signal?.removeEventListener("abort", cancel) };
+      const task = { id: message.id, message, progress, resolve: (result: unknown) => resolve(result as DataResult<K>), reject, cleanup: () => signal?.removeEventListener("abort", cancel) };
       this.pending.set(message.id, task);
       this.send(task);
     });
@@ -68,7 +65,7 @@ export class MsaDataSession {
         const worker = this.createWorker();
         this.worker = worker;
         this.diagnostics.workerStarts++;
-        worker.onmessage = event => {
+        worker.onmessage = (event: MessageEvent<SessionResponse>) => {
           if (worker !== this.worker) return;
           const task = this.pending.get(event.data.id);
           if (!task) return;

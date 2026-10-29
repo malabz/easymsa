@@ -1,0 +1,750 @@
+{
+  "version": 1,
+  "cases": {
+    "submit": {
+      "method": "POST",
+      "path": "/api/jobs",
+      "status": 202,
+      "form": {
+        "job_name": "契约 job 1",
+        "pasted_sequence": ">same full header\nAC-G\n>same full header\nACCG\n",
+        "algorithm": "auto",
+        "preprocess_mode": "audit",
+        "language": "en"
+      },
+      "body": {
+        "jobId": "契约 job 1",
+        "status": "queued",
+        "statusUrl": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201?token=contract%2Btoken%2F1%3F",
+        "downloadUrl": null,
+        "token": "contract+token/1?",
+        "createdAt": "2000-01-01T00:00:00Z"
+      }
+    },
+    "queued": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201?token=contract%2Btoken%2F1%3F",
+      "status": 200,
+      "body": {
+        "jobId": "契约 job 1",
+        "jobKind": "alignment",
+        "realignment": null,
+        "jobName": "契约 job 1",
+        "status": "queued",
+        "progress": 0,
+        "message": "Job queued.",
+        "createdAt": "2000-01-01T00:00:00Z",
+        "updatedAt": "2000-01-01T00:00:00Z",
+        "startedAt": null,
+        "completedAt": null,
+        "expiresAt": null,
+        "downloadUrl": null,
+        "preprocess": {
+          "status": "queued",
+          "mode": "audit",
+          "strictness": "normal",
+          "errorCode": null,
+          "errorMessage": null,
+          "summaryCounts": null,
+          "qcCounts": null,
+          "warningCounts": null,
+          "removalCounts": null,
+          "cleaningCounts": null,
+          "dedupSummary": null,
+          "summaryUnavailable": false
+        },
+        "algorithm": {
+          "name": "auto",
+          "resolvedName": null
+        },
+        "emailStatus": "skipped",
+        "emailError": null,
+        "emailSentAt": null,
+        "failure": null
+      }
+    },
+    "notCompleted": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201/results/alignment?token=contract%2Btoken%2F1%3F",
+      "status": 409,
+      "body": {
+        "error": {
+          "code": "JOB_NOT_COMPLETED",
+          "message": "Job is not completed.",
+          "details": null
+        }
+      }
+    },
+    "missingToken": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201",
+      "status": 403,
+      "body": {
+        "error": {
+          "code": "INVALID_TOKEN",
+          "message": "Invalid or missing access token.",
+          "details": null
+        }
+      }
+    },
+    "invalidToken": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201?token=wrong",
+      "status": 403,
+      "body": {
+        "error": {
+          "code": "INVALID_TOKEN",
+          "message": "Invalid or missing access token.",
+          "details": null
+        }
+      }
+    },
+    "notFound": {
+      "method": "GET",
+      "path": "/api/jobs/missing-contract-job?token=contract%2Btoken%2F1%3F",
+      "status": 404,
+      "body": {
+        "error": {
+          "code": "JOB_NOT_FOUND",
+          "message": "Job not found.",
+          "details": null
+        }
+      }
+    },
+    "completed": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201?token=contract%2Btoken%2F1%3F",
+      "status": 200,
+      "body": {
+        "jobId": "契约 job 1",
+        "jobKind": "alignment",
+        "realignment": null,
+        "jobName": "契约 job 1",
+        "status": "completed",
+        "progress": 100,
+        "message": "Job completed.",
+        "createdAt": "2000-01-01T00:00:00Z",
+        "updatedAt": "2000-01-01T00:00:00Z",
+        "startedAt": null,
+        "completedAt": "2000-01-01T00:00:00Z",
+        "expiresAt": "2000-01-01T00:00:00Z",
+        "downloadUrl": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201/download?token=contract%2Btoken%2F1%3F",
+        "preprocess": {
+          "status": "completed",
+          "mode": "audit",
+          "strictness": "normal",
+          "errorCode": null,
+          "errorMessage": null,
+          "summaryCounts": null,
+          "qcCounts": null,
+          "warningCounts": null,
+          "removalCounts": null,
+          "cleaningCounts": null,
+          "dedupSummary": null,
+          "summaryUnavailable": false
+        },
+        "algorithm": {
+          "name": "auto",
+          "resolvedName": null
+        },
+        "emailStatus": "skipped",
+        "emailError": null,
+        "emailSentAt": null,
+        "failure": null
+      }
+    },
+    "summary": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201/results/summary?token=contract%2Btoken%2F1%3F",
+      "status": 200,
+      "body": {
+        "jobId": "契约 job 1",
+        "algorithm": {
+          "name": "auto",
+          "resolvedName": null
+        },
+        "summary": {
+          "preprocess": {
+            "mode": "audit",
+            "strictness": "normal"
+          },
+          "alignment": {
+            "sequenceCount": 2,
+            "alignmentLength": 4,
+            "gapPercentage": 12.5
+          },
+          "outputFiles": [
+            "output/alignment.fasta",
+            "output/alignment.fasta.gz",
+            "output/alignment.fasta.gz.xz",
+            "output/summary.json"
+          ]
+        }
+      }
+    },
+    "alignment": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201/results/alignment?token=contract%2Btoken%2F1%3F",
+      "status": 200,
+      "body": {
+        "jobId": "契约 job 1",
+        "truncated": false,
+        "sequenceCount": 2,
+        "alignmentLength": 4,
+        "sequences": [
+          {
+            "id": "same",
+            "sequence": "AC-G",
+            "header": "same full header"
+          },
+          {
+            "id": "same",
+            "sequence": "ACCG",
+            "header": "same full header"
+          }
+        ]
+      }
+    },
+    "zip": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201/download?token=contract%2Btoken%2F1%3F",
+      "status": 200,
+      "contentType": "application/zip",
+      "contentDisposition": "attachment; filename=\"easymsa-run_contract_1-results.zip\"",
+      "members": [
+        "README.txt",
+        "alignment.fasta",
+        "alignment.fasta.gz",
+        "alignment.fasta.gz.xz",
+        "summary.json"
+      ],
+      "fasta": ">same full header\nAC-G\n>same full header\nACCG\n"
+    },
+    "gzip": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201/download/alignment/gz?token=contract%2Btoken%2F1%3F",
+      "status": 200,
+      "contentType": "application/gzip",
+      "contentDisposition": "attachment; filename=\"easymsa-run_contract_1-alignment.fasta.gz\"",
+      "fasta": ">same full header\nAC-G\n>same full header\nACCG\n"
+    },
+    "gzipXz": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201/download/alignment/gz.xz?token=contract%2Btoken%2F1%3F",
+      "status": 200,
+      "contentType": "application/x-xz",
+      "contentDisposition": "attachment; filename=\"easymsa-run_contract_1-alignment.fasta.gz.xz\"",
+      "fasta": ">same full header\nAC-G\n>same full header\nACCG\n"
+    },
+    "noRefined": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201/results/alignment?token=contract%2Btoken%2F1%3F&stage=refined",
+      "status": 404,
+      "body": {
+        "error": {
+          "code": "RESULT_STAGE_UNAVAILABLE",
+          "message": "This job has no refined result.",
+          "details": null
+        }
+      }
+    },
+    "invalidStage": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201/results/alignment?token=contract%2Btoken%2F1%3F&stage=unknown",
+      "status": 400,
+      "body": {
+        "error": {
+          "code": "INVALID_RESULT_STAGE",
+          "message": "Unknown result stage.",
+          "details": null
+        }
+      }
+    },
+    "duplicateSubmit": {
+      "method": "POST",
+      "path": "/api/jobs",
+      "status": 202,
+      "form": {
+        "job_name": "契约 job 1",
+        "pasted_sequence": ">same full header\nAC-G\n>same full header\nACCG\n",
+        "algorithm": "auto",
+        "preprocess_mode": "audit",
+        "language": "en"
+      },
+      "body": {
+        "jobId": "契约 job 1",
+        "status": "queued",
+        "statusUrl": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201?token=second-contract-token",
+        "downloadUrl": null,
+        "token": "second-contract-token",
+        "createdAt": "2000-01-01T00:00:00Z"
+      }
+    },
+    "duplicateQueued": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201?token=second-contract-token",
+      "status": 200,
+      "body": {
+        "jobId": "契约 job 1",
+        "jobKind": "alignment",
+        "realignment": null,
+        "jobName": "契约 job 1",
+        "status": "queued",
+        "progress": 0,
+        "message": "Job queued.",
+        "createdAt": "2000-01-01T00:00:00Z",
+        "updatedAt": "2000-01-01T00:00:00Z",
+        "startedAt": null,
+        "completedAt": null,
+        "expiresAt": null,
+        "downloadUrl": null,
+        "preprocess": {
+          "status": "queued",
+          "mode": "audit",
+          "strictness": "normal",
+          "errorCode": null,
+          "errorMessage": null,
+          "summaryCounts": null,
+          "qcCounts": null,
+          "warningCounts": null,
+          "removalCounts": null,
+          "cleaningCounts": null,
+          "dedupSummary": null,
+          "summaryUnavailable": false
+        },
+        "algorithm": {
+          "name": "auto",
+          "resolvedName": null
+        },
+        "emailStatus": "skipped",
+        "emailError": null,
+        "emailSentAt": null,
+        "failure": null
+      }
+    },
+    "summaryUnavailable": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201?token=contract%2Btoken%2F1%3F",
+      "status": 200,
+      "body": {
+        "jobId": "契约 job 1",
+        "jobKind": "alignment",
+        "realignment": null,
+        "jobName": "契约 job 1",
+        "status": "completed",
+        "progress": 100,
+        "message": "Job completed.",
+        "createdAt": "2000-01-01T00:00:00Z",
+        "updatedAt": "2000-01-01T00:00:00Z",
+        "startedAt": null,
+        "completedAt": "2000-01-01T00:00:00Z",
+        "expiresAt": "2000-01-01T00:00:00Z",
+        "downloadUrl": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201/download?token=contract%2Btoken%2F1%3F",
+        "preprocess": {
+          "status": "completed",
+          "mode": "audit",
+          "strictness": "normal",
+          "errorCode": null,
+          "errorMessage": null,
+          "summaryCounts": null,
+          "qcCounts": null,
+          "warningCounts": null,
+          "removalCounts": null,
+          "cleaningCounts": null,
+          "dedupSummary": null,
+          "summaryUnavailable": true
+        },
+        "algorithm": {
+          "name": "auto",
+          "resolvedName": null
+        },
+        "emailStatus": "skipped",
+        "emailError": null,
+        "emailSentAt": null,
+        "failure": null
+      }
+    },
+    "realignedStatus": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201?token=contract%2Btoken%2F1%3F",
+      "status": 200,
+      "body": {
+        "jobId": "契约 job 1",
+        "jobKind": "alignment",
+        "realignment": {
+          "status": "completed",
+          "pattern": 1,
+          "initialAvailable": true,
+          "refinedAvailable": true
+        },
+        "jobName": "契约 job 1",
+        "status": "completed",
+        "progress": 100,
+        "message": "Job completed.",
+        "createdAt": "2000-01-01T00:00:00Z",
+        "updatedAt": "2000-01-01T00:00:00Z",
+        "startedAt": null,
+        "completedAt": "2000-01-01T00:00:00Z",
+        "expiresAt": "2000-01-01T00:00:00Z",
+        "downloadUrl": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201/download?token=contract%2Btoken%2F1%3F",
+        "preprocess": {
+          "status": "completed",
+          "mode": "audit",
+          "strictness": "normal",
+          "errorCode": null,
+          "errorMessage": null,
+          "summaryCounts": null,
+          "qcCounts": null,
+          "warningCounts": null,
+          "removalCounts": null,
+          "cleaningCounts": null,
+          "dedupSummary": null,
+          "summaryUnavailable": true
+        },
+        "algorithm": {
+          "name": "auto",
+          "resolvedName": null
+        },
+        "emailStatus": "skipped",
+        "emailError": null,
+        "emailSentAt": null,
+        "failure": null
+      }
+    },
+    "finalRefined": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201/results/alignment?token=contract%2Btoken%2F1%3F",
+      "status": 200,
+      "body": {
+        "jobId": "契约 job 1",
+        "truncated": false,
+        "sequenceCount": 2,
+        "alignmentLength": 4,
+        "sequences": [
+          {
+            "id": "same",
+            "sequence": "A-CG",
+            "header": "same full header"
+          },
+          {
+            "id": "same",
+            "sequence": "ACCG",
+            "header": "same full header"
+          }
+        ]
+      }
+    },
+    "initial": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201/results/alignment?token=contract%2Btoken%2F1%3F&stage=initial",
+      "status": 200,
+      "body": {
+        "jobId": "契约 job 1",
+        "truncated": false,
+        "sequenceCount": 2,
+        "alignmentLength": 4,
+        "sequences": [
+          {
+            "id": "same",
+            "sequence": "AC-G",
+            "header": "same full header"
+          },
+          {
+            "id": "same",
+            "sequence": "ACCG",
+            "header": "same full header"
+          }
+        ]
+      }
+    },
+    "refined": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201/results/alignment?token=contract%2Btoken%2F1%3F&stage=refined",
+      "status": 200,
+      "body": {
+        "jobId": "契约 job 1",
+        "truncated": false,
+        "sequenceCount": 2,
+        "alignmentLength": 4,
+        "sequences": [
+          {
+            "id": "same",
+            "sequence": "A-CG",
+            "header": "same full header"
+          },
+          {
+            "id": "same",
+            "sequence": "ACCG",
+            "header": "same full header"
+          }
+        ]
+      }
+    },
+    "refinedSummary": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201/results/summary?token=contract%2Btoken%2F1%3F&stage=refined",
+      "status": 200,
+      "body": {
+        "jobId": "契约 job 1",
+        "algorithm": {
+          "name": "auto",
+          "resolvedName": null
+        },
+        "summary": {
+          "preprocess": {
+            "mode": "audit",
+            "strictness": "normal"
+          },
+          "alignment": {
+            "sequenceCount": 2,
+            "alignmentLength": 4,
+            "gapPercentage": 12.5
+          },
+          "outputFiles": [
+            "output/alignment.fasta",
+            "output/alignment.fasta.gz",
+            "output/alignment.fasta.gz.xz",
+            "output/summary.json"
+          ]
+        }
+      }
+    },
+    "refinedZip": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201/download?token=contract%2Btoken%2F1%3F&stage=refined",
+      "status": 200,
+      "contentType": "application/zip",
+      "contentDisposition": "attachment; filename=\"easymsa-run_contract_1-results.zip\"",
+      "members": [
+        "README.txt",
+        "alignment.fasta",
+        "alignment.fasta.gz",
+        "alignment.fasta.gz.xz",
+        "summary.json"
+      ],
+      "fasta": ">same full header\nA-CG\n>same full header\nACCG\n"
+    },
+    "attachedFallback": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201/results/alignment?token=contract%2Btoken%2F1%3F",
+      "status": 200,
+      "body": {
+        "jobId": "契约 job 1",
+        "truncated": false,
+        "sequenceCount": 2,
+        "alignmentLength": 4,
+        "sequences": [
+          {
+            "id": "same",
+            "sequence": "AC-G",
+            "header": "same full header"
+          },
+          {
+            "id": "same",
+            "sequence": "ACCG",
+            "header": "same full header"
+          }
+        ]
+      }
+    },
+    "failedRefined": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201/results/alignment?token=contract%2Btoken%2F1%3F&stage=refined",
+      "status": 404,
+      "body": {
+        "error": {
+          "code": "RESULT_STAGE_UNAVAILABLE",
+          "message": "Requested result stage is unavailable.",
+          "details": null
+        }
+      }
+    },
+    "standaloneSubmit": {
+      "method": "POST",
+      "path": "/api/realign/jobs",
+      "status": 202,
+      "form": {
+        "job_name": "契约 job 1",
+        "realign_pattern": "1",
+        "language": "en"
+      },
+      "upload": {
+        "filename": "initial.fa",
+        "text": ">same full header\nAC-G\n>other full header\nACCG\n"
+      },
+      "body": {
+        "jobId": "契约 job 1",
+        "status": "queued",
+        "statusUrl": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201?token=standalone-contract-token",
+        "downloadUrl": null,
+        "token": "standalone-contract-token",
+        "createdAt": "2000-01-01T00:00:00Z"
+      }
+    },
+    "standaloneQueued": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201?token=standalone-contract-token",
+      "status": 200,
+      "body": {
+        "jobId": "契约 job 1",
+        "jobKind": "realignment",
+        "realignment": {
+          "status": "queued",
+          "pattern": 1,
+          "version": "01a602e-easymsa.1",
+          "initialAvailable": true,
+          "refinedAvailable": false
+        },
+        "jobName": "契约 job 1",
+        "status": "queued",
+        "progress": 0,
+        "message": null,
+        "createdAt": "2000-01-01T00:00:00Z",
+        "updatedAt": "2000-01-01T00:00:00Z",
+        "startedAt": null,
+        "completedAt": null,
+        "expiresAt": null,
+        "downloadUrl": null,
+        "preprocess": {
+          "status": "not_applicable",
+          "mode": "audit",
+          "strictness": "normal",
+          "errorCode": null,
+          "errorMessage": null,
+          "summaryCounts": null,
+          "qcCounts": null,
+          "warningCounts": null,
+          "removalCounts": null,
+          "cleaningCounts": null,
+          "dedupSummary": null,
+          "summaryUnavailable": false
+        },
+        "algorithm": {
+          "name": "realign_n",
+          "resolvedName": "realign_n"
+        },
+        "emailStatus": "skipped",
+        "emailError": null,
+        "emailSentAt": null,
+        "failure": null
+      }
+    },
+    "failed": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201?token=standalone-contract-token",
+      "status": 200,
+      "body": {
+        "jobId": "契约 job 1",
+        "jobKind": "realignment",
+        "realignment": {
+          "status": "failed",
+          "pattern": 1,
+          "initialAvailable": true,
+          "refinedAvailable": false
+        },
+        "jobName": "契约 job 1",
+        "status": "failed",
+        "progress": 65,
+        "message": "Synthetic execution failure.",
+        "createdAt": "2000-01-01T00:00:00Z",
+        "updatedAt": "2000-01-01T00:00:00Z",
+        "startedAt": null,
+        "completedAt": null,
+        "expiresAt": "2000-01-01T00:00:00Z",
+        "downloadUrl": null,
+        "preprocess": {
+          "status": "not_applicable",
+          "mode": "audit",
+          "strictness": "normal",
+          "errorCode": null,
+          "errorMessage": null,
+          "summaryCounts": null,
+          "qcCounts": null,
+          "warningCounts": null,
+          "removalCounts": null,
+          "cleaningCounts": null,
+          "dedupSummary": null,
+          "summaryUnavailable": false
+        },
+        "algorithm": {
+          "name": "realign_n",
+          "resolvedName": "realign_n"
+        },
+        "emailStatus": "skipped",
+        "emailError": null,
+        "emailSentAt": null,
+        "failure": {
+          "code": "REALIGN_EXECUTION_FAILED",
+          "message": "Synthetic execution failure.",
+          "details": null
+        }
+      }
+    },
+    "failedInitial": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201/results/alignment?token=standalone-contract-token&stage=initial",
+      "status": 200,
+      "body": {
+        "jobId": "契约 job 1",
+        "truncated": false,
+        "sequenceCount": 2,
+        "alignmentLength": 4,
+        "sequences": [
+          {
+            "id": "same",
+            "sequence": "AC-G",
+            "header": "same full header"
+          },
+          {
+            "id": "other",
+            "sequence": "ACCG",
+            "header": "other full header"
+          }
+        ]
+      }
+    },
+    "failedInitialGzip": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201/download/alignment/gz?token=standalone-contract-token&stage=initial",
+      "status": 200,
+      "contentType": "application/gzip",
+      "contentDisposition": "attachment; filename=\"easymsa-run_contract_3-alignment.fasta.gz\"",
+      "fasta": ">same full header\nAC-G\n>other full header\nACCG\n"
+    },
+    "failedFinal": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201/results/alignment?token=standalone-contract-token",
+      "status": 200,
+      "body": {
+        "jobId": "契约 job 1",
+        "truncated": false,
+        "sequenceCount": 2,
+        "alignmentLength": 4,
+        "sequences": [
+          {
+            "id": "same",
+            "sequence": "AC-G",
+            "header": "same full header"
+          },
+          {
+            "id": "other",
+            "sequence": "ACCG",
+            "header": "other full header"
+          }
+        ]
+      }
+    },
+    "expired": {
+      "method": "GET",
+      "path": "/api/jobs/%E5%A5%91%E7%BA%A6%20job%201?token=contract%2Btoken%2F1%3F",
+      "status": 410,
+      "body": {
+        "error": {
+          "code": "JOB_EXPIRED",
+          "message": "Job is expired or deleted.",
+          "details": null
+        }
+      }
+    }
+  }
+}

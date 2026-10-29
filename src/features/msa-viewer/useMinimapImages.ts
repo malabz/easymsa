@@ -14,7 +14,7 @@ function compute(input: MinimapInput, entry: Entry, session: MsaDataSession) {
   const controller = new AbortController(); entry.controller = controller;
   entry.promise = (typeof Worker === 'undefined' && import.meta.env.MODE === 'test'
     ? Promise.resolve(calculateMinimapPair(input))
-    : session.run<MinimapPair>('overview', input, controller.signal))
+    : session.run('overview', input, controller.signal))
     .then(result => { entry.result = result; return result; })
     .finally(() => { entry.promise = null; entry.controller = null; });
   return entry.promise;

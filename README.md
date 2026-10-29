@@ -1,5 +1,11 @@
 # easymsa
 
+The Benchmark preview adds a reviewed DNA/RNA dataset catalog and batch-specific
+public result views. Start with `npm run build:benchmark` and
+`npm run preview:benchmark`, then open `http://127.0.0.1:5208/#/about` and follow the Benchmark entry.
+The initial catalog has **26 datasets, nine methods, and no published scores**.
+See [Benchmark data and publication guide](docs/BENCHMARK.md) for result imports and tests.
+
 easymsa is the static frontend for a friendly multiple sequence alignment web
 server. It submits real jobs to the EasyMSA backend, restores jobs with access
 tokens, supports bilingual UI, and visualizes MSA results.

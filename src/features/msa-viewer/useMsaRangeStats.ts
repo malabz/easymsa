@@ -208,7 +208,7 @@ export function useMsaRangeStats(options: UseMsaRangeStatsOptions) {
         return;
       }
       if (session) {
-        session.run<RangeStats | null>("range", request, abort.signal).then(complete, error => {
+        session.run("range", request, abort.signal).then(complete, error => {
           if (error?.name !== "AbortError") fail(error, error.code, error.message);
         });
         return;

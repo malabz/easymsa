@@ -30,7 +30,7 @@ export function SequenceExportDialog({ snapshot, onClose }: { snapshot: Sequence
     const abort = new AbortController(); controller.current = abort;
     try {
       const { position: _position, ...request } = selection;
-      const blob = await session.run<Blob>("export", request, abort.signal, value => {
+      const blob = await session.run("export", request, abort.signal, value => {
         if (active.current && controller.current === abort) setProgress(value);
       });
       if (active.current && !abort.signal.aborted) save(blob, resultFilename(snapshot.source, snapshot.stage, !selection.contiguous ? "filtered-alignment.zip" : columnScope === "interval" ? `region-${selection.start}-${selection.end}.fasta` : `${rowScope}-alignment.fasta`));

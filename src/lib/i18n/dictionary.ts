@@ -10,7 +10,8 @@ const zh = { viewerWorkflow: viewerWorkflowZh,
     viewer: "查看 MSA",
     lookup: "恢复任务",
     docs: "使用文档",
-    about: "关于"
+    about: "关于",
+    benchmark: "Benchmark"
   },
   common: {
     appName: "easymsa",
@@ -985,7 +986,8 @@ const en: typeof zh = {
     viewer: "Viewer",
     lookup: "Restore tasks",
     docs: "Docs",
-    about: "About"
+    about: "About",
+    benchmark: "Benchmark"
   },
   common: {
     appName: "easymsa",

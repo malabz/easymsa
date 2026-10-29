@@ -1,0 +1,228 @@
+{
+  "version": "draft-2026-10-26",
+  "stats_sha256": "b4f7287908ebb26912db91d54ae3da547bd05aac98fbe47555f119e0cdeffe22",
+  "manifest_sha256": "2c294045b78c1daaf740b7873b5aa0bf95d766653eba2e2d72647c1235cebf8b",
+  "sources": [
+    {
+      "id": "mt1x",
+      "title": "Mitochondrial sequence collection",
+      "url": "http://lab.malab.cn/soft/halign/data/mt1x.zip"
+    },
+    {
+      "id": "16ssmall",
+      "title": "16S rRNA sequence collection",
+      "url": "http://lab.malab.cn/soft/halign/data/16ssmall.zip"
+    },
+    {
+      "id": "mt_similarity",
+      "title": "HAlign 3 mitochondrial simulation benchmark",
+      "url": "http://lab.malab.cn/~tfr/HAlign3_testdata/mt_like_diff_similarity.tar.xz"
+    },
+    {
+      "id": "RNA-255",
+      "title": "WMSA2 RNA-255 reference dataset",
+      "url": "http://lab.malab.cn/soft/WMSA2/data/RNA-255.zip"
+    },
+    {
+      "id": "RNA-511",
+      "title": "WMSA2 RNA-511 reference dataset",
+      "url": "http://lab.malab.cn/soft/WMSA2/data/RNA-511.zip"
+    },
+    {
+      "id": "RNA-1023",
+      "title": "WMSA2 RNA-1023 reference dataset",
+      "url": "http://lab.malab.cn/soft/WMSA2/data/RNA-1023.zip"
+    },
+    {
+      "id": "RNA-2047",
+      "title": "WMSA2 RNA-2047 reference dataset",
+      "url": "http://lab.malab.cn/soft/WMSA2/data/RNA-2047.zip"
+    },
+    {
+      "id": "RNA-4095",
+      "title": "WMSA2 RNA-4095 reference dataset",
+      "url": "http://lab.malab.cn/soft/WMSA2/data/RNA-4095.zip"
+    },
+    {
+      "id": "RNA-8191",
+      "title": "WMSA2 RNA-8191 reference dataset",
+      "url": "http://lab.malab.cn/soft/WMSA2/data/RNA-8191.zip"
+    }
+  ],
+  "datasets": {
+    "dna_16s_100": {
+      "source_kind": "sampled",
+      "source_id": "16ssmall",
+      "sampling": {
+        "with_replacement": false,
+        "seed": 20261126
+      },
+      "similarity_label": null
+    },
+    "dna_16s_1k": {
+      "source_kind": "sampled",
+      "source_id": "16ssmall",
+      "sampling": {
+        "with_replacement": false,
+        "seed": 20262026
+      },
+      "similarity_label": null
+    },
+    "dna_16s_10k": {
+      "source_kind": "sampled",
+      "source_id": "16ssmall",
+      "sampling": {
+        "with_replacement": false,
+        "seed": 20271026
+      },
+      "similarity_label": null
+    },
+    "dna_mt_100": {
+      "source_kind": "sampled",
+      "source_id": "mt1x",
+      "sampling": {
+        "with_replacement": false,
+        "seed": 20261126
+      },
+      "similarity_label": null
+    },
+    "dna_mt_1k": {
+      "source_kind": "sampled",
+      "source_id": "mt1x",
+      "sampling": {
+        "with_replacement": true,
+        "seed": 20262026
+      },
+      "similarity_label": null
+    },
+    "dna_mt_10k": {
+      "source_kind": "sampled",
+      "source_id": "mt1x",
+      "sampling": {
+        "with_replacement": true,
+        "seed": 20271026
+      },
+      "similarity_label": null
+    },
+    "dna_mt_sim_70": {
+      "source_kind": "simulated",
+      "source_id": "mt_similarity",
+      "sampling": null,
+      "similarity_label": 70
+    },
+    "dna_mt_sim_75": {
+      "source_kind": "simulated",
+      "source_id": "mt_similarity",
+      "sampling": null,
+      "similarity_label": 75
+    },
+    "dna_mt_sim_80": {
+      "source_kind": "simulated",
+      "source_id": "mt_similarity",
+      "sampling": null,
+      "similarity_label": 80
+    },
+    "dna_mt_sim_85": {
+      "source_kind": "simulated",
+      "source_id": "mt_similarity",
+      "sampling": null,
+      "similarity_label": 85
+    },
+    "dna_mt_sim_90": {
+      "source_kind": "simulated",
+      "source_id": "mt_similarity",
+      "sampling": null,
+      "similarity_label": 90
+    },
+    "dna_mt_sim_91": {
+      "source_kind": "simulated",
+      "source_id": "mt_similarity",
+      "sampling": null,
+      "similarity_label": 91
+    },
+    "dna_mt_sim_92": {
+      "source_kind": "simulated",
+      "source_id": "mt_similarity",
+      "sampling": null,
+      "similarity_label": 92
+    },
+    "dna_mt_sim_93": {
+      "source_kind": "simulated",
+      "source_id": "mt_similarity",
+      "sampling": null,
+      "similarity_label": 93
+    },
+    "dna_mt_sim_94": {
+      "source_kind": "simulated",
+      "source_id": "mt_similarity",
+      "sampling": null,
+      "similarity_label": 94
+    },
+    "dna_mt_sim_95": {
+      "source_kind": "simulated",
+      "source_id": "mt_similarity",
+      "sampling": null,
+      "similarity_label": 95
+    },
+    "dna_mt_sim_96": {
+      "source_kind": "simulated",
+      "source_id": "mt_similarity",
+      "sampling": null,
+      "similarity_label": 96
+    },
+    "dna_mt_sim_97": {
+      "source_kind": "simulated",
+      "source_id": "mt_similarity",
+      "sampling": null,
+      "similarity_label": 97
+    },
+    "dna_mt_sim_98": {
+      "source_kind": "simulated",
+      "source_id": "mt_similarity",
+      "sampling": null,
+      "similarity_label": 98
+    },
+    "dna_mt_sim_99": {
+      "source_kind": "simulated",
+      "source_id": "mt_similarity",
+      "sampling": null,
+      "similarity_label": 99
+    },
+    "rna_255": {
+      "source_kind": "unconfirmed",
+      "source_id": "RNA-255",
+      "sampling": null,
+      "similarity_label": null
+    },
+    "rna_511": {
+      "source_kind": "unconfirmed",
+      "source_id": "RNA-511",
+      "sampling": null,
+      "similarity_label": null
+    },
+    "rna_1023": {
+      "source_kind": "unconfirmed",
+      "source_id": "RNA-1023",
+      "sampling": null,
+      "similarity_label": null
+    },
+    "rna_2047": {
+      "source_kind": "unconfirmed",
+      "source_id": "RNA-2047",
+      "sampling": null,
+      "similarity_label": null
+    },
+    "rna_4095": {
+      "source_kind": "unconfirmed",
+      "source_id": "RNA-4095",
+      "sampling": null,
+      "similarity_label": null
+    },
+    "rna_8191": {
+      "source_kind": "unconfirmed",
+      "source_id": "RNA-8191",
+      "sampling": null,
+      "similarity_label": null
+    }
+  }
+}

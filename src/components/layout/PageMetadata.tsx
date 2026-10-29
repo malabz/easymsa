@@ -18,6 +18,7 @@ export function PageMetadata() {
       [/^\/results\//, dictionary.common.viewResults],
       [/^\/docs/, dictionary.nav.docs],
       [/^\/examples/, dictionary.nav.examples],
+      [/^\/benchmark/, dictionary.nav.benchmark],
       [/^\/license/, locale === "zh" ? "许可" : "License"],
       [/^\/privacy/, locale === "zh" ? "隐私与本地存储" : "Privacy and storage"],
       [/^\/realign/, dictionary.nav.realign],
