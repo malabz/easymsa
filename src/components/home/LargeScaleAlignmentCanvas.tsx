@@ -62,12 +62,12 @@ export function LargeScaleAlignmentCanvas({ data, progress, reduced, label }: Pr
           const x = outputStart + column * outputCell;
           const colors = HOME_BASE_COLORS[base] ?? ["#f1f5f9", "#64748b"];
           const passed = Math.min(1, Math.max(0, (front - x) / outputCell)) * resetFade;
-          // The matrix starts white; columns passed by the scanner receive color.
+          // The matrix starts faintly tinted; columns passed by the scanner receive full color.
           ctx.globalAlpha = 1;
           ctx.fillStyle = "#fff"; ctx.fillRect(x, y, outputCell - 1, rowHeight - 2);
           ctx.strokeStyle = "#e8efed"; ctx.lineWidth = .5;
           ctx.strokeRect(x + .25, y + .25, outputCell - 1.5, rowHeight - 2.5);
-          ctx.globalAlpha = passed * edgeFade;
+          ctx.globalAlpha = (.3 + passed * .7) * edgeFade;
           ctx.fillStyle = colors[0]; ctx.fillRect(x, y, outputCell - 1, rowHeight - 2);
           ctx.globalAlpha = edgeFade * (.36 + passed * .64);
           ctx.fillStyle = passed > .5 ? colors[1] : "#a3afad";

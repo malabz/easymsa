@@ -283,12 +283,336 @@ div.workflow-page { max-width: var(--layout-form-width); padding-block: var(--pa
   .realignment-upload .work-file { min-height: 240px; }
 }
 
+/* Input workspaces (submit, realign, viewer) sit on white cards like the homepage panels. */
+.workflow-page .work-grid { border-top: 0; }
+.submission-form .work-grid { gap: 20px; padding-block: 6px 16px; counter-reset: work-step; }
+.workflow-page :is(.work-input, .work-settings), .workflow-page .work-viewer-input {
+  padding: 20px 22px;
+  border: 1px solid #e3e8ef;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(15 23 42 / .04), 0 14px 32px -26px rgb(15 23 42 / .28);
+}
+.workflow-page .work-viewer-input { max-width: 920px; }
+.submission-form :is(.work-input-heading h2, .submission-settings-heading) { display: flex; align-items: center; gap: 10px; }
+.submission-form :is(.work-input-heading h2, .submission-settings-heading)::before {
+  counter-increment: work-step;
+  content: counter(work-step);
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: #e6f4f1;
+  color: #0f766e;
+  font-size: 12px;
+  font-weight: 650;
+}
+.submission-settings-heading { margin-bottom: 4px; }
+
+.workflow-page .input-tabs {
+  position: relative;
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  width: fit-content;
+  padding: 4px;
+  margin-bottom: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f1f5f9;
+}
+.workflow-page .input-tabs button {
+  position: relative;
+  z-index: 1;
+  height: 34px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 7px;
+  color: #475569;
+  background: transparent;
+  box-shadow: none;
+  transition: color .2s ease, background-color .2s ease;
+}
+.workflow-page .input-tabs button:hover { color: #0f172a; }
+.workflow-page .input-tabs button[aria-selected="true"] { color: #0f766e; background: #fff; box-shadow: 0 1px 2px rgb(15 23 42 / .1); }
+@supports selector(:has(a)) {
+  /* One sliding thumb instead of two buttons swapping backgrounds. */
+  .workflow-page .input-tabs::before {
+    content: "";
+    position: absolute;
+    inset: 4px auto 4px 4px;
+    width: calc(50% - 6px);
+    border-radius: 7px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgb(15 23 42 / .1), 0 0 0 1px rgb(15 23 42 / .03);
+    transition: transform .3s cubic-bezier(.2, .7, .2, 1);
+  }
+  .workflow-page .input-tabs:has(> button:nth-child(2)[aria-selected="true"])::before { transform: translateX(calc(100% + 4px)); }
+  .workflow-page .input-tabs button[aria-selected="true"] { background: transparent; box-shadow: none; }
+}
+
+.workflow-page textarea {
+  border-color: #d5dde6;
+  border-radius: 10px;
+  background: #fbfcfd;
+  transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+}
+.workflow-page textarea:focus { outline: none; border-color: #0f766e; background: #fff; box-shadow: 0 0 0 3px rgb(15 118 110 / .14); }
+.workflow-page .work-control { transition: border-color .2s ease, box-shadow .2s ease; }
+.workflow-page .work-control:focus { outline: none; border-color: #0f766e; box-shadow: 0 0 0 3px rgb(15 118 110 / .14); }
+.workflow-page .work-file { border-radius: 12px; border-color: #cfd8e3; transition: border-color .2s ease, background-color .2s ease, transform .2s ease; }
+.workflow-page .work-file:hover { border-color: #7cc4b5; background: #f8fcfb; }
+.workflow-page .work-file.is-dragging { transform: scale(1.01); }
+.workflow-page .work-parameters { border-color: #edf1f5; }
+
+.workflow-page .work-actionbar {
+  margin-top: 4px;
+  padding: 10px 10px 10px 18px;
+  border: 1px solid #e3e8ef;
+  border-radius: 14px;
+  background: rgb(255 255 255 / .92);
+  box-shadow: 0 1px 2px rgb(15 23 42 / .04), 0 14px 32px -26px rgb(15 23 42 / .28);
+  backdrop-filter: blur(8px);
+}
+.workflow-page .work-actionbar > button { border-radius: 10px; }
+.workflow-page .work-summary > span {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  transition: background-color .25s ease, color .25s ease;
+}
+.workflow-page .work-summary > span[data-ready="true"] { background: #e6f4f1; color: #0f766e; }
+.workflow-page .work-summary > span[data-ready="false"]::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin: 0 6px 1px 0;
+  border-radius: 999px;
+  background: #94a3b8;
+  vertical-align: middle;
+}
+@media (min-width: 1024px) {
+  .submission-form .work-settings { padding-right: 14px; }
+}
+@media (min-width: 701px) and (max-width: 1023px) {
+  .submission-form .work-settings { padding: 20px 22px; border: 1px solid #e3e8ef; }
+}
+@media (max-width: 700px) {
+  .workflow-page :is(.work-input, .work-settings), .workflow-page .work-viewer-input { padding: 16px; border-radius: 12px; }
+  .submission-form .work-settings { padding: 16px; border: 1px solid #e3e8ef; }
+  .workflow-page .work-actionbar { bottom: 8px; padding: 8px 8px 8px 12px; }
+  .workflow-page .input-tabs { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .workflow-page .input-tabs::before, .workflow-page :is(textarea, .work-control, .work-file, .work-summary > span) { transition: none; }
+  .workflow-page .work-file.is-dragging { transform: none; }
+}
+/* The viewer has a single input card, so its heading lines up with that card. */
+div.viewer-input-page { max-width: calc(920px + 2 * var(--page-gutter)); }
+.viewer-input-page .work-viewer-input { max-width: none; margin: 0; }
+.viewer-input-page .work-viewer-input > .mt-4 { margin-top: 0; }
+.viewer-input-page .work-file { min-height: 240px; }
+.viewer-input-page .work-file > .work-hint { margin-top: -4px; }
+
+/* Interaction feedback on the input workspaces. */
+.workflow-page :is(.work-input, .work-settings, .work-viewer-input) { transition: border-color .25s ease, box-shadow .25s ease; }
+.workflow-page :is(.work-input, .work-settings, .work-viewer-input):focus-within {
+  border-color: #a7dccf;
+  box-shadow: 0 1px 2px rgb(15 23 42 / .04), 0 18px 40px -24px rgb(15 118 110 / .4);
+}
+.submission-form :is(.work-input-heading h2, .submission-settings-heading)::before { transition: background-color .25s ease, color .25s ease; }
+.submission-form .work-input:focus-within .work-input-heading h2::before,
+.submission-form .work-settings:focus-within .submission-settings-heading::before { background: #0f766e; color: #fff; }
+.workflow-page .work-parameters > summary > svg:last-child { transition: transform .25s ease; }
+.workflow-page .work-parameters[open] > summary > svg:last-child { transform: rotate(180deg); }
+@media (prefers-reduced-motion: no-preference) {
+  /* Cards arrive one after another rather than the page fading in as a block. */
+  .workflow-page :is(.work-input, .work-settings, .work-viewer-input, .work-actionbar) { animation: work-rise .55s cubic-bezier(.2, .7, .2, 1) backwards; }
+  .workflow-page .work-settings { animation-delay: .08s; }
+  .workflow-page .work-actionbar { animation-delay: .16s; }
+  .workflow-page [role="tabpanel"]:not([hidden]),
+  .workflow-page details[open] > :not(summary) { animation: work-reveal .32s cubic-bezier(.2, .7, .2, 1); }
+  .workflow-page :is(.work-feedback, .work-error, [role="alert"]) { animation: work-reveal .3s ease-out; }
+  .workflow-page .work-summary > span[data-ready="true"] { animation: work-pop .4s cubic-bezier(.3, 1.5, .5, 1); }
+  .workflow-page .work-actionbar > button:not(:disabled) { animation: work-ready 1s ease-out; }
+}
+@keyframes work-rise { from { opacity: 0; transform: translateY(14px); } }
+@keyframes work-reveal { from { opacity: 0; transform: translateY(-6px); } }
+@keyframes work-pop { from { transform: scale(.85); } }
+@keyframes work-ready { from { box-shadow: 0 0 0 0 rgb(15 118 110 / .45); } to { box-shadow: 0 0 0 12px rgb(15 118 110 / 0); } }
+
+/* Job page without a job: the reason and the ways forward in one card. */
+div.job-message-page { max-width: calc(760px + 2 * var(--page-gutter)); }
+.job-message-card {
+  display: flex;
+  gap: 18px;
+  padding: 24px 26px;
+  border: 1px solid #e3e8ef;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(15 23 42 / .04), 0 14px 32px -26px rgb(15 23 42 / .28);
+}
+.job-message-card[data-tone="error"] { border-color: #f3d4dc; }
+.job-message-icon { display: grid; place-items: center; flex: 0 0 auto; width: 42px; height: 42px; border-radius: 12px; background: #fff1f3; color: #be123c; }
+.job-message-body { min-width: 0; }
+.job-message-body h2 { font-size: 18px; line-height: 1.4; font-weight: 650; color: #0f172a; }
+.job-message-body > p { margin-top: 6px; font-size: 14px; line-height: 1.7; color: #475569; overflow-wrap: anywhere; }
+.job-message-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 18px; }
+@media (prefers-reduced-motion: no-preference) {
+  .job-message-card { animation: work-rise .55s cubic-bezier(.2, .7, .2, 1) backwards; }
+  .job-message-icon { animation: work-pop .5s .2s cubic-bezier(.3, 1.5, .5, 1) backwards; }
+}
+@media (max-width: 700px) {
+  .job-message-card { flex-direction: column; gap: 14px; padding: 18px; }
+  .job-message-actions > a, .job-message-actions > button { flex: 1 1 auto; }
+}
+
+/* Lookup: saved jobs and the other recovery methods sit on two cards. */
+.lookup-page .lookup-saved, .lookup-page .lookup-alternatives {
+  border: 1px solid #e3e8ef;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(15 23 42 / .04), 0 14px 32px -26px rgb(15 23 42 / .28);
+}
+.lookup-page .lookup-saved { padding: 18px 22px 16px; }
+.lookup-page .lookup-alternatives { margin-top: 16px; padding: 0 22px; }
+.lookup-page .lookup-alternatives:has(> div:not([hidden])) { padding-bottom: 8px; }
+.lookup-page .lookup-alternatives-toggle { padding-block: 18px; }
+.lookup-page .lookup-alternatives-toggle > svg { transition: transform .25s ease; }
+.lookup-page .lookup-section-heading { margin-bottom: 10px; }
+.lookup-page .lookup-count { border-radius: 999px; padding-inline: 8px; }
+.lookup-page input[type="search"] { border-radius: 10px; }
+.lookup-page .lookup-column-labels { padding-block: 6px; background: transparent; border-block: 0; border-bottom: 1px solid #eef2f6; font-size: 12px; letter-spacing: .02em; color: #64748b; }
+.lookup-page .lookup-row { margin-block: 2px; border-bottom: 0; border-radius: 10px; transition: background-color .2s ease; }
+.lookup-page .lookup-row + .lookup-row { box-shadow: 0 -1px 0 #f1f5f9; }
+.lookup-page .lookup-row:hover { background: #f4faf8; }
+.lookup-page .lookup-job-id { font-variant-numeric: tabular-nums; }
+/* A filled button on every row is heavy; it fills only for the row in hand. */
+.lookup-page .lookup-row-actions > button:first-child { background: #e6f4f1; color: #0f766e; box-shadow: none; }
+.lookup-page .lookup-row:hover .lookup-row-actions > button:first-child,
+.lookup-page .lookup-row-actions > button:first-child:focus-visible { background: #0f766e; color: #fff; }
+.lookup-page .lookup-row-actions > button:first-child svg { transition: transform .2s ease; }
+.lookup-page .lookup-row:hover .lookup-row-actions > button:first-child svg { transform: translateX(2px); }
+.lookup-page .lookup-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 30px 20px;
+  border: 1px dashed #d5dde6;
+  border-block: 1px dashed #d5dde6;
+  border-radius: 12px;
+  background: #fbfcfd;
+  text-align: center;
+}
+.lookup-page .lookup-empty > svg { color: #0f766e; }
+.lookup-page .lookup-empty > p { max-width: 460px; }
+.lookup-empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 4px; }
+.lookup-page .lookup-manual { padding-bottom: 6px; }
+@media (prefers-reduced-motion: no-preference) {
+  .lookup-page :is(.lookup-saved, .lookup-alternatives) { animation: work-rise .55s cubic-bezier(.2, .7, .2, 1) backwards; }
+  .lookup-page .lookup-alternatives { animation-delay: .08s; }
+  .lookup-page #other-recovery-content:not([hidden]) { animation: work-reveal .3s cubic-bezier(.2, .7, .2, 1); }
+  .lookup-page .lookup-row { animation: work-reveal .35s ease-out backwards; }
+  .lookup-page .lookup-row:nth-child(2) { animation-delay: .04s; }
+  .lookup-page .lookup-row:nth-child(3) { animation-delay: .08s; }
+  .lookup-page .lookup-row:nth-child(n + 4) { animation-delay: .12s; }
+}
+@media (max-width: 700px) {
+  .lookup-page .lookup-saved { padding: 16px; }
+  .lookup-page .lookup-alternatives { padding-inline: 16px; }
+  .lookup-page .lookup-row { padding-inline: 8px; }
+}
+
+/* Example catalogue: one card per example with a decorative alignment strip. */
+.example-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 20px; }
+.example-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #e3e8ef;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(15 23 42 / .04), 0 14px 32px -26px rgb(15 23 42 / .28);
+}
+.example-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 22px 16px;
+  border-bottom: 1px solid #eef2f6;
+  background:
+    radial-gradient(circle at 15% 0%, rgb(204 251 241 / .55), transparent 60%),
+    linear-gradient(#f8fbfb, #f3f7f8);
+}
+.example-card[data-kind="realignment"] .example-preview { background: radial-gradient(circle at 85% 0%, rgb(224 231 255 / .6), transparent 60%), linear-gradient(#f9fafc, #f3f5f9); }
+.example-preview > div { display: flex; gap: 4px; }
+.example-preview i { width: 12px; height: 12px; border-radius: 3px; background: #d8e9e4; }
+.example-preview i[data-base="C"] { background: #dce7ee; }
+.example-preview i[data-base="G"] { background: #eee6d4; }
+.example-preview i[data-base="T"] { background: #e7e0eb; }
+.example-preview i[data-base="-"] { background: transparent; box-shadow: inset 0 0 0 1px #e2e8f0; }
+.example-card-body { display: flex; flex-direction: column; gap: 10px; flex: 1; padding: 20px 22px 22px; }
+.example-kind { align-self: flex-start; padding: 3px 10px; border-radius: 999px; background: #e6f4f1; color: #0f766e; font-size: 12px; font-weight: 600; }
+.example-card[data-kind="realignment"] .example-kind { background: #eef0fb; color: #4338ca; }
+.example-card-body h2 { font-size: 20px; line-height: 1.35; font-weight: 650; letter-spacing: -.01em; color: #0f172a; }
+.example-description { font-size: 14px; line-height: 1.7; color: #475569; }
+.example-facts { display: flex; flex-wrap: wrap; gap: 6px; }
+.example-facts li { padding: 2px 9px; border-radius: 6px; background: #f1f5f9; color: #475569; font-size: 12px; font-variant-numeric: tabular-nums; }
+.example-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; margin-top: auto; padding-top: 8px; }
+.example-secondary { display: flex; flex-wrap: wrap; gap: 6px 8px; }
+.example-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  color: #0f766e;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background-color .2s ease, color .2s ease;
+}
+.example-link:hover { background: #edf8f4; color: #115e59; }
+.example-link:focus-visible { outline: 2px solid #0f766e; outline-offset: 2px; }
+.example-card .example-actions > a:first-child svg { transition: transform .2s ease; }
+.example-card .example-actions > a:first-child:hover svg { transform: translateX(3px); }
+/* Inside the result sidebar the same actions stay compact. */
+.analysis-sidebar .example-actions { padding-top: 0; gap: 4px; }
+.analysis-sidebar .example-secondary { flex-direction: column; align-items: flex-start; gap: 2px; }
+.analysis-sidebar .example-link { min-height: 28px; padding: 0 6px; margin-left: -6px; font-size: 12px; }
+@media (prefers-reduced-motion: no-preference) {
+  .example-card { animation: work-rise .55s cubic-bezier(.2, .7, .2, 1) backwards; }
+  .example-card:nth-child(2) { animation-delay: .08s; }
+  .example-preview i { animation: example-cell .5s cubic-bezier(.2, .7, .2, 1) backwards; }
+}
+@keyframes example-cell { from { opacity: 0; transform: translateY(-4px) scale(.7); } }
+@media (max-width: 700px) {
+  .example-preview i { width: 9px; height: 9px; border-radius: 2px; }
+  .example-preview > div { gap: 3px; }
+  .example-card-body { padding: 16px; }
+}
+
+/* About: the methods table sits on one card; rows highlight while read. */
+.about-methods > article { transition: background-color .2s ease; }
+.about-methods > article:hover { background: #fafcfc; }
+@media (prefers-reduced-motion: no-preference) {
+  .about-methods { animation: work-rise .55s cubic-bezier(.2, .7, .2, 1) backwards; }
+}
+.job-message-card:not([data-tone]) .job-message-icon { background: #e6f4f1; color: #0f766e; }
+.job-message-body h1 { font-size: 22px; line-height: 1.35; font-weight: 650; letter-spacing: -.01em; color: #0f172a; }
+.job-message-page:not(:has(.work-heading)) { padding-top: clamp(32px, 10vh, 96px); }
+
 /* Alignment submission follows the page scroll, including expanded parameters. */
 .submission-shell:has(.submission-form--alignment) { height: auto; min-height: 100dvh; }
 .submission-form--alignment .work-grid { flex: 0 0 auto; align-items: start; }
 .submission-form--alignment .work-input,
 .submission-form--alignment .work-settings { overflow: visible; overscroll-behavior: auto; scrollbar-gutter: auto; }
-.submission-form--alignment .work-settings { gap: 16px; padding-right: 0; }
+.submission-form--alignment .work-settings { gap: 16px; }
 .submission-form--alignment .work-paste textarea { flex: none; height: clamp(240px, 34vh, 360px); min-height: 200px; resize: vertical; }
 .submission-form--alignment .work-file { min-height: 260px; flex: none; }
 .submission-form--alignment .work-actionbar { position: sticky; bottom: 0; background: #f8fafc; box-shadow: 0 -8px 16px -16px #334155; }

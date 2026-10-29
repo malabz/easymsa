@@ -95,7 +95,7 @@ export const homeBenefitsContent = {
     openExample: "打开交互示例", exampleLabel: "合成 DNA · 公开示例", sequences: "条序列", columns: "列",
     overview: "序列概览", overviewLabel: "公开示例的全长序列概览", pan: "拖动概览，横向浏览比对",
     previewLabel: "可点击查看列统计的公开示例比对矩阵", position: "位置", conservation: "保守性", gap: "缺口",
-    dragHint: "拖动概览，定位感兴趣的区域。", interactionHint: "拖动概览浏览，点击碱基查看详情。",
+    dragHint: "拖动概览，定位感兴趣的区域。", interactionHint: "拖动概览浏览，点击碱基查看详情。", interactiveBadge: "可交互",
     start: "开始分析", downloadInput: "下载示例输入", recover: "恢复已有任务",
   },
   en: {
@@ -120,7 +120,7 @@ export const homeBenefitsContent = {
     openExample: "Open interactive example", exampleLabel: "Synthetic DNA · Public example", sequences: "sequences", columns: "columns",
     overview: "Overview", overviewLabel: "Full-length overview of the public example", pan: "Drag the overview to pan the alignment",
     previewLabel: "Public example alignment; click a column to inspect its statistics", position: "Position", conservation: "Conservation", gap: "Gaps",
-    dragHint: "Drag the overview to explore a region.", interactionHint: "Drag the overview to navigate. Click a base for details.",
+    dragHint: "Drag the overview to explore a region.", interactionHint: "Drag the overview to navigate. Click a base for details.", interactiveBadge: "Interactive",
     start: "Start analysis", downloadInput: "Download example input", recover: "Recover a job",
   },
 } satisfies Record<Locale, unknown>;
@@ -142,7 +142,7 @@ export const homeAdvantagesContent = {
     features: ["序列数量", "序列长度", "序列差异"], differenceValue: "自动评估",
     matchLines: ["自动选择", "比对方法"], candidateLabel: "方法选择示意",
     scanning: "正在识别序列特征", matching: "正在匹配比对方法", resultLabel: "示例方法 · MiniPOA",
-    outputLabel: "公开 MiniPOA 示例的局部比对结果", replay: "重新演示",
+    outputLabel: "公开 MiniPOA 示例的局部比对结果", replay: "重新演示", demoBadge: "自动演示",
     start: "开始分析", methodLink: "了解方法",
   },
   en: {
@@ -160,7 +160,7 @@ export const homeAdvantagesContent = {
     features: ["Sequence count", "Sequence length", "Differences"], differenceValue: "Auto-assessed",
     matchLines: ["Auto-select", "a method"], candidateLabel: "Method selection illustration",
     scanning: "Identifying sequence features", matching: "Matching an alignment method", resultLabel: "Example method · MiniPOA",
-    outputLabel: "A region of the public MiniPOA example alignment", replay: "Replay",
+    outputLabel: "A region of the public MiniPOA example alignment", replay: "Replay", demoBadge: "Auto-playing demo",
     start: "Start analysis", methodLink: "Explore methods",
   },
 } satisfies Record<Locale, unknown>;

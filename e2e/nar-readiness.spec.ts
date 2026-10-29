@@ -222,7 +222,7 @@ test("example input loading preserves email and does not submit; normal defaults
     .click();
   await expect(page.getByRole("combobox", { name: "Alignment method", exact: true })).toHaveValue("auto");
   await expect(page.getByLabel("Preprocess mode", { exact: true })).toHaveValue("audit");
-  await expect(page.getByRole("checkbox", { name: "Refine alignment quality", exact: true })).not.toBeChecked();
+  await expect(page.getByRole("checkbox", { name: "Realign after alignment", exact: true })).not.toBeChecked();
   await expect(page.getByRole("spinbutton", { name: /Thread/ })).toHaveValue("");
   const originalInput = ">original_a full title\nACGT\n>original_b full title\nACGA\n";
   await page.getByLabel("FASTA sequences", { exact: true }).fill(originalInput);
@@ -233,7 +233,7 @@ test("example input loading preserves email and does not submit; normal defaults
   await page.getByRole("combobox", { name: "Alignment method", exact: true }).selectOption("mafft");
   await page.getByLabel("Preprocess mode", { exact: true }).selectOption("filter");
   await page.getByRole("spinbutton", { name: /Thread/ }).fill("2");
-  await page.getByRole("checkbox", { name: "Refine alignment quality", exact: true }).check();
+  await page.getByRole("checkbox", { name: "Realign after alignment", exact: true }).check();
   await page
     .getByRole("button", { name: "Load example & settings", exact: true })
     .click();
@@ -243,7 +243,7 @@ test("example input loading preserves email and does not submit; normal defaults
   await expect(page.getByRole("combobox", { name: "Alignment method", exact: true })).toHaveValue("mafft");
   await expect(page.getByLabel("Preprocess mode", { exact: true })).toHaveValue("filter");
   await expect(page.getByRole("spinbutton", { name: /Thread/ })).toHaveValue("2");
-  await expect(page.getByRole("checkbox", { name: "Refine alignment quality", exact: true })).toBeChecked();
+  await expect(page.getByRole("checkbox", { name: "Realign after alignment", exact: true })).toBeChecked();
   expect(submissions).toBe(0);
   await page.getByRole("button", { name: "Confirm load", exact: true }).click();
   await expect(page.getByRole("tab", { name: "Paste FASTA", exact: true })).toHaveAttribute("aria-selected", "true");
@@ -253,7 +253,7 @@ test("example input loading preserves email and does not submit; normal defaults
   await expect(page.getByRole("combobox", { name: "Alignment method", exact: true })).toHaveValue("minipoa");
   await expect(page.getByLabel("Preprocess mode", { exact: true })).toHaveValue("audit");
   await expect(page.getByRole("spinbutton", { name: /Thread/ })).toHaveValue("");
-  await expect(page.getByRole("checkbox", { name: "Refine alignment quality", exact: true })).not.toBeChecked();
+  await expect(page.getByRole("checkbox", { name: "Realign after alignment", exact: true })).not.toBeChecked();
   expect(submissions).toBe(0);
 });
 test("new public pages pass accessibility rules", async ({ page }) => {

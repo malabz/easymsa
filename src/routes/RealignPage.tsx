@@ -19,7 +19,7 @@ import { apiErrorMessage } from "../lib/i18n/apiErrors";
 import { useServiceHealth } from "../lib/query/useServiceHealth";
 import { createRealignmentJob } from "../lib/api/jobs";
 import { jobRoute } from "../lib/api/tokens";
-import { taskMetadataSchema } from "../lib/submit/taskMetadata";
+import { defaultJobName, taskMetadataSchema } from "../lib/submit/taskMetadata";
 import { focusFormField } from "../lib/submit/formFocus";
 import { validateAlignedPaste } from "../lib/submit/alignedPaste";
 import { readInputText } from "../lib/submit/readInputText";
@@ -35,13 +35,13 @@ export function RealignPage() {
   const t = realignText[locale];
   const w = workspaceText[locale];
   const ui = refinementText[locale];
-  useRememberWork("realign");
   const [exampleLoaded, setExampleLoaded] = useDraftState("realign:example", false);
   const health = useServiceHealth();
   const navigate = useNavigate();
   const [file, setFile] = useDraftState<File | null>("realign:file", null);
   const [inputMethod, setInputMethod] = useDraftState<"paste" | "upload">("realign:inputMethod", file ? "upload" : "paste");
   const [pastedFasta, setPastedFasta] = useDraftState("realign:paste", "");
+  useRememberWork("realign", Boolean(pastedFasta.trim() || file), { clearWhenDisabled: true });
   const pastedFile = useMemo(() => pastedFasta.trim()
     ? new File([pastedFasta], "pasted-alignment.fasta", { type: "text/plain" }) : null, [pastedFasta]);
   const activeFile = inputMethod === "paste" ? pastedFile : file;
@@ -90,15 +90,15 @@ export function RealignPage() {
     return () => cancelAnimationFrame(frame);
   }, [error]);
 
+  const namePrefix = locale === "zh" ? "重比对任务" : "Realignment";
+
   function suggestName(input: HTMLInputElement) {
     if (getValues("jobName").trim()) return false;
-    const now = new Date();
-    const pad = (v: number) => String(v).padStart(2, "0");
-    const stamp = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-    const name = `${locale === "zh" ? "重比对任务" : "Realignment"}-${stamp}`;
+    const name = defaultJobName(namePrefix);
     setValue("jobName", name, { shouldDirty: true });
     input.value = name; input.select(); return true;
   }
+
   function focusInvalid(invalid: { jobName?: unknown; email?: unknown }) {
     focusFormField(settingsRef.current, invalid.jobName ? "jobName" : "email");
   }
@@ -123,7 +123,8 @@ export function RealignPage() {
   return (
     <PageContainer className="workflow-page submission-page realignment-page">
       <div className="work-heading">
-        <div><h1>{t.title}</h1><p>{locale === "zh" ? "上传或粘贴已比对序列，优化比对结果。" : "Upload or paste aligned sequences to refine the alignment."}</p></div>
+        <div><h1>{t.title}</h1><p>{locale === "zh" ? "上传或粘贴已比对序列，优化比对结果。" : "Upload or paste aligned sequences to refine the alignment."}</p>
+          <p className="mt-1 text-sm text-slate-600">{t.toSubmitHint}{" "}<Link className="font-medium text-teal-800 underline underline-offset-2" to="/submit">{t.toSubmitLink}</Link></p></div>
         <div role="status" className="work-status" data-status={ready ? "ready" : "offline"}>
           <StatusIcon size={15} aria-hidden="true" className={health.isPending ? "animate-spin" : ""} />
           <span>{statusText}</span>
@@ -131,7 +132,10 @@ export function RealignPage() {
           {!health.isPending && !ready && <button type="button" aria-label={d.common.retry} onClick={() => health.refetch()}><RefreshCw size={14} /></button>}
         </div>
       </div>
-      <form className="submission-form realignment-form" onSubmit={handleSubmit(submit, focusInvalid)} noValidate aria-busy={busy}>
+      <form className="submission-form realignment-form" onSubmit={event => {
+        if (!getValues("jobName").trim()) setValue("jobName", defaultJobName(namePrefix));
+        return handleSubmit(submit, focusInvalid)(event);
+      }} noValidate aria-busy={busy}>
         <fieldset className="work-grid" disabled={busy}>
           <legend className="sr-only">{t.title}</legend>
           <div className="work-input">
@@ -200,7 +204,7 @@ export function RealignPage() {
         <div className="work-actionbar">
           <div className="work-summary">
             <strong><FileText size={16} />{w.summary}</strong>
-            <span className="max-w-64 truncate" title={inputSummary}>{inputSummary}</span>
+            <span className="max-w-64 truncate" data-ready={inputSummary !== w.inputPending} title={inputSummary}>{inputSummary}</span>
             <span>{pattern === 1 ? t.localFirst : t.globalFirst}</span>
           </div>
           <Button type="submit" disabled={busy || !ready || !validInput}>

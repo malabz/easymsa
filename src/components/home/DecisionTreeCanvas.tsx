@@ -77,13 +77,17 @@ export function DecisionTreeCanvas({ method, progress, locale, label }: Props) {
         ctx.beginPath(); ctx.arc(point.x, point.y, active ? 5 : node.method ? 3 : 3.5, 0, Math.PI * 2); ctx.fill();
         if (!node.feature || (vertical && !active)) continue;
         const name = HOME_TREE_FEATURES[node.feature][language];
-        ctx.font = `${active ? 600 : 400} ${vertical ? 11 : language === "en" ? 10 : 11}px system-ui, sans-serif`;
+        ctx.font = `${active ? 600 : 400} ${vertical ? 12 : language === "en" ? 11 : 12}px system-ui, sans-serif`;
         ctx.textBaseline = "middle"; ctx.textAlign = "center";
-        const textWidth = ctx.measureText(name).width + 12;
+        const textWidth = ctx.measureText(name).width + 16;
         const tx = vertical ? Math.min(width - textWidth / 2, Math.max(textWidth / 2, point.x)) : point.x;
-        const ty = point.y - (vertical ? 16 : 14);
-        ctx.fillStyle = "#fff"; ctx.fillRect(tx - textWidth / 2, ty - 9, textWidth, 18);
-        ctx.fillStyle = active ? "#0f766e" : "#68796f"; ctx.fillText(name, tx, ty);
+        const ty = point.y - (vertical ? 17 : 16);
+        ctx.fillStyle = active ? "#e3f3ee" : "#fff";
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(tx - textWidth / 2, ty - 10, textWidth, 20, 10);
+        else ctx.rect(tx - textWidth / 2, ty - 10, textWidth, 20);
+        ctx.fill();
+        ctx.fillStyle = active ? "#0f766e" : "#5f7068"; ctx.fillText(name, tx, ty);
       }
     };
     redraw.current = draw; draw();

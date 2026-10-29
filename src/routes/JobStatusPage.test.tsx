@@ -1,7 +1,7 @@
 import "@testing-library/jest-dom/vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { Link, MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LanguageProvider } from "../lib/i18n/LanguageProvider";
 import { createJobAccess, readJobAccessRecords, saveJobAccess } from "../lib/api/tokens";
@@ -104,5 +104,101 @@ describe("job progress recovery controls", () => {
     expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
     expect(screen.getAllByRole("button").length).toBeGreaterThanOrEqual(2);
     expect(readJobAccessRecords()).toHaveLength(2);
+  });
+});
+
+describe("opening results when a job completes", () => {
+  const secondAccessPath = "/job/verified-job?token=second-access-key";
+  function NavigationProbe() {
+    const location = useLocation();
+    return <><Link to={secondAccessPath}>Open another saved key</Link><output data-testid="current-route">{location.pathname}{location.search}</output></>;
+  }
+  const tree = () => <LanguageProvider><MemoryRouter initialEntries={["/job/verified-job?token=test-access-key"]}><NavigationProbe /><Routes>
+    <Route path="/job/:jobId" element={<JobStatusPage />} />
+    <Route path="/results/:jobId" element={<p>Results opened</p>} />
+  </Routes></MemoryRouter></LanguageProvider>;
+  const tick = () => act(() => { vi.advanceTimersByTime(1000); });
+  beforeEach(() => { vi.useFakeTimers(); });
+  afterEach(() => { vi.useRealTimers(); });
+
+  it("opens results after a short countdown when the job finishes on screen", () => {
+    const view = render(tree());
+    mocks.query = { ...mocks.query, data: { ...job, status: "completed", progress: 100 } };
+    view.rerender(tree());
+    expect(screen.getByText("Job completed. Opening results in 3 s.")).toBeVisible();
+    tick(); tick(); tick();
+    expect(screen.getByText("Results opened")).toBeInTheDocument();
+  });
+
+  it("stays on the job page when the visitor cancels", () => {
+    const view = render(tree());
+    mocks.query = { ...mocks.query, data: { ...job, status: "completed", progress: 100 } };
+    view.rerender(tree());
+    act(() => { screen.getByRole("button", { name: "Stay here" }).click(); });
+    tick(); tick(); tick();
+    expect(screen.queryByText("Results opened")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /View Results/ })).toBeVisible();
+  });
+
+  it("does not leave a job that was already complete when opened", () => {
+    mocks.query = { ...mocks.query, data: { ...job, status: "completed", progress: 100 } };
+    render(tree());
+    tick(); tick(); tick();
+    expect(screen.queryByText("Results opened")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Opening results/)).not.toBeInTheDocument();
+  });
+
+  it.each(["aligning", "completed"] as const)("drops the old countdown when another saved key opens a %s job", (status) => {
+    const view = render(tree());
+    mocks.query = { ...mocks.query, data: { ...job, status: "completed", progress: 100 } };
+    view.rerender(tree());
+    expect(screen.getByText("Job completed. Opening results in 3 s.")).toBeVisible();
+    tick(); tick();
+    mocks.query = { ...mocks.query, data: { ...job, status } };
+    act(() => { screen.getByRole("link", { name: "Open another saved key" }).click(); });
+    expect(screen.queryByText(/Opening results/)).not.toBeInTheDocument();
+    tick(); tick(); tick();
+    expect(screen.getByTestId("current-route")).toHaveTextContent(secondAccessPath);
+    expect(screen.queryByText("Results opened")).not.toBeInTheDocument();
+  });
+
+  it("does not treat a cached completed job under another key as a completion transition", () => {
+    render(tree());
+    mocks.query = { ...mocks.query, data: { ...job, status: "completed", progress: 100 } };
+    act(() => { screen.getByRole("link", { name: "Open another saved key" }).click(); });
+    expect(screen.queryByText(/Opening results/)).not.toBeInTheDocument();
+    tick(); tick(); tick();
+    expect(screen.getByTestId("current-route")).toHaveTextContent(secondAccessPath);
+  });
+
+  it("cancels the old countdown while the next key is loading and allows that job's own completion", () => {
+    const view = render(tree());
+    mocks.query = { ...mocks.query, data: { ...job, status: "completed", progress: 100 } };
+    view.rerender(tree());
+    expect(screen.getByText("Job completed. Opening results in 3 s.")).toBeVisible();
+    mocks.query = { ...mocks.query, data: undefined, isSuccess: false };
+    act(() => { screen.getByRole("link", { name: "Open another saved key" }).click(); });
+    tick(); tick(); tick();
+    expect(screen.getByTestId("current-route")).toHaveTextContent(secondAccessPath);
+    mocks.query = { ...mocks.query, data: job, isSuccess: true };
+    view.rerender(tree());
+    expect(screen.queryByText(/Opening results/)).not.toBeInTheDocument();
+    mocks.query = { ...mocks.query, data: { ...job, status: "completed", progress: 100 } };
+    view.rerender(tree());
+    expect(screen.getByText("Job completed. Opening results in 3 s.")).toBeVisible();
+    tick(); tick(); tick();
+    expect(screen.getByTestId("current-route")).toHaveTextContent("/results/verified-job?token=second-access-key");
+  });
+
+  it.each(["aligning", "failed"] as const)("cancels a completion countdown if the current job becomes %s", (status) => {
+    const view = render(tree());
+    mocks.query = { ...mocks.query, data: { ...job, status: "completed", progress: 100 } };
+    view.rerender(tree());
+    expect(screen.getByText("Job completed. Opening results in 3 s.")).toBeVisible();
+    mocks.query = { ...mocks.query, data: { ...job, status } };
+    view.rerender(tree());
+    expect(screen.queryByText(/Opening results/)).not.toBeInTheDocument();
+    tick(); tick(); tick();
+    expect(screen.queryByText("Results opened")).not.toBeInTheDocument();
   });
 });

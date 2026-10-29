@@ -106,7 +106,7 @@ test("responsive settings and Inspector use the intended sheet or side dock", as
     const widthBefore = (await locatorBox(dock)).width;
     await separator.focus();
     await page.keyboard.press("ArrowLeft");
-    expect((await locatorBox(dock)).width).toBeGreaterThan(widthBefore);
+    await expect.poll(async () => (await locatorBox(dock)).width).toBeGreaterThan(widthBefore);
   }
 
   if (compact) {

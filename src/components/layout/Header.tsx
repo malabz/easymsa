@@ -1,5 +1,5 @@
 import { Menu, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type SyntheticEvent } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import { cn } from "../../lib/utils/cn";
@@ -16,11 +16,43 @@ const navItems = [
   { to: "/about", key: "about" }
 ] as const;
 
+// The shared highlight slides to the hovered or focused link and settles back on the current page.
+function placeIndicator(nav: HTMLElement, link: HTMLElement | null) {
+  nav.style.setProperty("--nav-indicator-opacity", link ? "1" : "0");
+  if (!link) return;
+  nav.style.setProperty("--nav-indicator-x", `${link.offsetLeft}px`);
+  nav.style.setProperty("--nav-indicator-y", `${link.offsetTop}px`);
+  nav.style.setProperty("--nav-indicator-w", `${link.offsetWidth}px`);
+  nav.style.setProperty("--nav-indicator-h", `${link.offsetHeight}px`);
+}
+
+const currentLink = (nav: HTMLElement) => nav.querySelector<HTMLElement>('[aria-current="page"]');
+
+function followIndicator(event: SyntheticEvent<HTMLElement>) {
+  const link = (event.target as HTMLElement).closest<HTMLElement>(".app-navigation-link");
+  if (link) placeIndicator(event.currentTarget, link);
+}
+
+function resetIndicator(event: SyntheticEvent<HTMLElement>) {
+  placeIndicator(event.currentTarget, currentLink(event.currentTarget));
+}
+
 export function Header() {
   const { pathname } = useLocation();
-  const { dictionary: d } = useLanguage();
+  const { dictionary: d, locale } = useLanguage();
   const [open, setOpen] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
+
+  useLayoutEffect(() => {
+    const navs = Array.from(headerRef.current?.querySelectorAll<HTMLElement>(".app-navigation") ?? []);
+    const settle = () => navs.forEach(nav => placeIndicator(nav, currentLink(nav)));
+    settle();
+    // Enable sliding only after the first placement, so the highlight never sweeps in from the corner.
+    const frame = requestAnimationFrame(() => navs.forEach(nav => { nav.dataset.indicatorReady = ""; }));
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(settle);
+    navs.forEach(nav => observer?.observe(nav));
+    return () => { cancelAnimationFrame(frame); observer?.disconnect(); };
+  }, [pathname, locale, open]);
 
   useEffect(() => { setOpen(false); }, [pathname]);
   useEffect(() => {
@@ -39,6 +71,10 @@ export function Header() {
     <nav
       aria-label={d.common.primaryNavigation}
       className="app-navigation"
+      onBlur={resetIndicator}
+      onFocus={followIndicator}
+      onPointerLeave={resetIndicator}
+      onPointerOver={followIndicator}
     >
       {navItems.map((item) => (
         <NavLink
@@ -46,8 +82,8 @@ export function Header() {
             cn(
               "app-navigation-link rounded text-sm font-medium transition",
               isActive
-                ? "bg-slate-100 text-slate-950"
-                : "text-slate-600 hover:bg-slate-100 hover:text-slate-950"
+                ? "text-slate-950"
+                : "text-slate-600 hover:text-slate-950"
             )
           }
           end={item.to === "/"}

@@ -75,9 +75,18 @@ test("CDP trusted touch validates pan, explicit range drag, and Viewer-owned pin
   await expect(status).toHaveAttribute("data-msa-selected-position", "");
   await expect(status).toHaveAttribute("data-msa-range-mode", "pan");
 
+  // Native touch panning keeps momentum; let it come to rest before resetting.
+  let restingScroll = -1;
+  await expect.poll(async () => {
+    const current = await grid.evaluate((element) => element.scrollLeft);
+    const resting = current === restingScroll;
+    restingScroll = current;
+    return resting;
+  }, { intervals: [200] }).toBe(true);
   await grid.evaluate((element) => {
     element.scrollLeft = 0;
   });
+  await expect.poll(() => grid.evaluate((element) => element.scrollLeft)).toBe(0);
   await openSettings(page);
   await page.getByRole("checkbox", { name: /Touch range-selection mode/ }).check();
   await page.getByRole("button", { name: "Close panel" }).click();

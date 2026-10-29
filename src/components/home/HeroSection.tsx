@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUpRight, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import { homeContent } from "../../lib/homeContent";
@@ -43,12 +43,13 @@ export function HeroSection() {
             <ButtonLink to="/submit" size="lg">{copy.start}<ArrowRight size={18} aria-hidden="true" /></ButtonLink>
             <ButtonLink to="/examples/alignment-small" variant="outline" size="lg">{copy.example}<ArrowUpRight size={18} aria-hidden="true" /></ButtonLink>
           </div>
+          <p className="home-cover-note"><ShieldCheck size={15} aria-hidden="true" />{copy.free}
+            <span aria-hidden="true">·</span><Link to="/license">{copy.license}</Link><Link to="/privacy">{copy.privacy}</Link></p>
         </div>
         <AlignmentAnimation locale={locale} />
         </div>
       </div>
       <div className="home-cover-bottom">
-        <p><Link to="/license">{copy.license}</Link><Link to="/privacy">{copy.privacy}</Link></p>
         <button className="home-scroll" type="button" aria-label={copy.scroll} onClick={() => {
           const section = document.getElementById("home-workflow");
           section?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });

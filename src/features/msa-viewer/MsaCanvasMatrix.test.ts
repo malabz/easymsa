@@ -96,6 +96,9 @@ describe("canvasCellLocation", () => {
       return 1;
     });
     vi.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {});
+    // The canvas fills the scroller's visible area beside the name column.
+    vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(150);
+    vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockReturnValue(40);
     vi.spyOn(HTMLDivElement.prototype, "getBoundingClientRect").mockReturnValue({
       bottom: 116, height: 116, left: 0, right: 220, top: 0,
       width: 220, x: 0, y: 0, toJSON: () => ({})
@@ -149,8 +152,8 @@ describe("canvasCellLocation", () => {
     expect(window.cancelAnimationFrame).toHaveBeenCalledWith(1);
     expect(callbacks).toHaveLength(2);
     act(() => callbacks[1](0));
-    expect(canvas.style.width).toBe("100px");
-    expect(canvas.style.height).toBe("100px");
+    expect(canvas.style.width).toBe("46px");
+    expect(canvas.style.height).toBe("40px");
   });
 
   it("keeps CSS viewport dimensions independent from the high-DPI buffer", () => {
@@ -158,10 +161,10 @@ describe("canvasCellLocation", () => {
     Object.defineProperty(window, "devicePixelRatio", { configurable: true, value: 2 });
     try {
       const { canvas } = renderCanvas();
-      expect(canvas.style.width).toBe("100px");
-      expect(canvas.style.height).toBe("100px");
-      expect(canvas.width).toBe(200);
-      expect(canvas.height).toBe(200);
+      expect(canvas.style.width).toBe("46px");
+      expect(canvas.style.height).toBe("40px");
+      expect(canvas.width).toBe(92);
+      expect(canvas.height).toBe(80);
     } finally {
       Object.defineProperty(window, "devicePixelRatio", { configurable: true, value: previousRatio });
     }
@@ -229,10 +232,11 @@ describe("canvasCellLocation", () => {
       pointerId: 2,
       pointerType: "touch"
     });
+    // The browser pans natively (with momentum); the canvas neither selects
+    // nor scrolls by hand.
     expect(onSelect).not.toHaveBeenCalled();
     expect(onRangeSelect).not.toHaveBeenCalled();
-    expect(scrollRef.current?.scrollLeft).toBe(20);
-    if (scrollRef.current) scrollRef.current.scrollLeft = 0;
+    expect(scrollRef.current?.scrollLeft).toBe(0);
 
     dispatchPointer(canvas, "pointerdown", {
       clientX: 13,
@@ -250,7 +254,7 @@ describe("canvasCellLocation", () => {
       rowKey: "row:first",
       position: 1
     });
-    expect(canvas.style.touchAction).toBe("none");
+    expect(canvas.style.touchAction).toBe("pan-x pan-y");
   });
 
   it("enables touch range gestures only in explicit range mode", () => {

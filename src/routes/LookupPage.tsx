@@ -1,11 +1,11 @@
 import { RecoveryImportDialog } from "../components/job/RecoveryImportDialog";
 import { parseRecoveryBackup, type RecoveryEntry } from "../lib/api/recoveryBackup";
 import { refinementText } from "../lib/i18n/refinements";
-import { ArrowRight, ChevronDown, Download, History, Search, Trash2, Upload } from "lucide-react";
+import { ArrowRight, ChevronDown, Download, FlaskConical, History, Inbox, Plus, Search, Trash2, Upload } from "lucide-react";
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { zipSync, strToU8 } from "fflate";
 import { useNavigate } from "react-router-dom";
-import { Button } from "../components/common/Button";
+import { Button, ButtonLink } from "../components/common/Button";
 import { savedKeyLabel } from "../components/job/SavedJobAccessChoices";
 import { PageContainer } from "../components/layout/PageContainer";
 import {
@@ -230,7 +230,14 @@ export function LookupPage() {
             {filteredAccess.length === 0 && <p role="status" className="lookup-empty">{locale === "zh" ? "没有匹配的任务。" : "No matching jobs."}</p>}
           </div>
         ) : (
-          <p className="lookup-empty">{d.lookup.cachedEmpty}</p>
+          <div className="lookup-empty">
+            <Inbox aria-hidden="true" size={26} />
+            <p>{d.lookup.cachedEmpty}</p>
+            <div className="lookup-empty-actions">
+              <ButtonLink size="sm" to="/submit"><Plus aria-hidden="true" size={15} />{locale === "zh" ? "提交新任务" : "Submit a job"}</ButtonLink>
+              <ButtonLink size="sm" variant="outline" to="/examples/alignment-small"><FlaskConical aria-hidden="true" size={15} />{locale === "zh" ? "体验示例" : "Try an example"}</ButtonLink>
+            </div>
+          </div>
         )}
         {pageCount > 1 && <nav aria-label={locale === "zh" ? "任务列表分页" : "Job list pages"} className="flex shrink-0 items-center justify-end gap-3 py-2 text-sm">
           <Button size="sm" variant="outline" disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>{locale === "zh" ? "上一页" : "Previous"}</Button>

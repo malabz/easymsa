@@ -201,11 +201,10 @@ test("desktop matrix occupies at least 75 percent with continuous compact cells"
 
     await expect.poll(()=>page.locator("[data-msa-workspace-matrix]").evaluate(el=>el.getBoundingClientRect().height/innerHeight)).toBeGreaterThanOrEqual(.75);
 
-    await expect.poll(()=>page.locator("[data-msa-sequence-cell]:not([data-msa-row-key='easymsa:consensus'])").first().evaluate(el=>{
-
-      const box=el.getBoundingClientRect();return [box.width,box.height];
-
-    })).toEqual([14,20]);
+    // This alignment is drawn on canvas; its cell pitch and row height are exposed as data.
+    await expect.poll(()=>page.locator("canvas[data-msa-canvas='true']").evaluate(el=>[
+      Number(el.getAttribute('data-msa-cell-pitch')),Number(el.getAttribute('data-msa-row-height'))
+    ])).toEqual([14,20]);
 
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
 

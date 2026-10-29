@@ -19,6 +19,13 @@ async function openBenchmark(page: Page, url: string) {
   if (route.pathname === "/benchmark") {
     await expect(page.getByTestId("benchmark-matrix")).toHaveAttribute("data-metric", route.searchParams.get("metric") ?? "wall_seconds");
   }
+  // The shared page now fades in. Read final contrast and geometry after its
+  // finite entry animation; keep the normal-motion UI and every axe rule enabled.
+  await page.locator(".benchmark-page").evaluate(async element => {
+    await Promise.all(element.getAnimations()
+      .filter(animation => animation.effect?.getComputedTiming().iterations !== Infinity)
+      .map(animation => animation.finished.catch(() => undefined)));
+  });
 }
 async function expectDocumentFits(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
@@ -192,6 +199,7 @@ test("responsive charts, tooltips, zoom and keyboard access in both languages",a
   if(mobile) await page.getByRole("group",{name:"Chart metric",exact:true}).getByRole("button",{name:"Q ↑",exact:true}).click();
   await expect(page.getByText("Zoomed range",{exact:true}).first()).toBeVisible();
   await page.getByRole("button",{name:"Switch language",exact:true}).click();
+  await expect(page.locator("html")).toHaveAttribute("lang", "zh-CN");
   await expectDocumentFits(page);
   expect((await new AxeBuilder({page}).include("#main-content").analyze()).violations).toEqual([]);
   await capturePageFromTop(page,info.outputPath("charts-zh.png"));
@@ -203,6 +211,9 @@ test("Benchmark is reached from About rather than the primary navigation in both
   for (const locale of ["en", "zh"] as const) {
     if (locale === "zh") {
       await page.getByRole("button", {name:"Switch language", exact:true}).click();
+      // Language changes now commit inside a view transition. Wait for the
+      // translated menu before checking its visibility on small screens.
+      await expect(page.locator("html")).toHaveAttribute("lang", "zh-CN");
       const menu = page.getByRole("button", {name:"打开导航", exact:true});
       if (await menu.isVisible()) await menu.click();
       await page.getByRole("navigation", {name:"主要导航", exact:true}).getByRole("link", {name:"关于", exact:true}).click();

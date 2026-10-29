@@ -20,6 +20,7 @@ beforeEach(() => {
   vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: false })));
   Object.defineProperty(Element.prototype, 'scrollIntoView', { configurable: true, value: mocks.scroll });
   mocks.submit.mockRejectedValue(new Error('Submission unavailable'));
+  mocks.load.mockReset();
   mocks.load.mockResolvedValue({ file: new File(['>a\nACGT\n>b\nACGA\n'], 'example.fa') });
 });
 afterEach(() => {
@@ -45,6 +46,13 @@ it('suggests a name on focus and preserves edited names', async () => {
   await user.clear(name); await user.type(name, 'my-analysis');
   await user.click(screen.getByLabelText(/Notification email/)); await user.click(name);
   expect(name).toHaveValue('my-analysis');
+});
+it('names a job the user never named', async () => {
+  show(); const user = userEvent.setup();
+  await user.type(screen.getByLabelText('FASTA sequences'), '>a\nACGT\n>b\nACGA\n');
+  expect(screen.getByLabelText('Job name')).toHaveAccessibleDescription('Left blank, the job is named by its submission time.');
+  await user.click(submitButton());
+  await waitFor(() => expect(mocks.submit).toHaveBeenCalledWith(expect.objectContaining({ jobName: expect.stringMatching(/^Alignment-\d{8}-\d{6}$/) })));
 });
 it('defaults to audit, ignores the old filter draft, and removes the size sentence', async () => {
   function LegacyDraft() { const [, set] = useDraftState('submit:preprocess', 'audit'); useEffect(() => set('filter'), [set]); return null; }
@@ -89,7 +97,7 @@ it('preserves the example name on focus and keeps refinement opt-in', async () =
   await user.click(screen.getByRole('button', { name: 'Confirm load' }));
   const name = screen.getByLabelText('Job name'); await waitFor(() => expect(name).toHaveValue('Synthetic DNA example'));
   await user.click(name); expect(name).toHaveValue('Synthetic DNA example');
-  expect(screen.getByRole('checkbox', { name: 'Refine alignment quality' })).not.toBeChecked();
+  expect(screen.getByRole('checkbox', { name: 'Realign after alignment' })).not.toBeChecked();
   expect(screen.getByRole('tab', { name: 'Paste FASTA' })).toHaveAttribute('aria-selected', 'true');
   expect(screen.getByLabelText('FASTA sequences')).toHaveValue('>a\nACGT\n>b\nACGA\n');
 });
@@ -118,8 +126,8 @@ async function configureCustomSettings(user: ReturnType<typeof userEvent.setup>)
   await user.selectOptions(screen.getByLabelText('MAFFT mode'), 'globalpair');
   await user.type(screen.getByRole('spinbutton', { name: 'Maximum iterations' }), '42');
   await user.click(screen.getByRole('checkbox', { name: /Reorder aligned sequences/ }));
-  await user.click(screen.getByRole('checkbox', { name: 'Refine alignment quality' }));
-  await user.click(screen.getByText('Refinement settings and limits'));
+  await user.click(screen.getByRole('checkbox', { name: 'Realign after alignment' }));
+  await user.click(screen.getByText('Realignment settings and limits'));
   await user.selectOptions(screen.getByLabelText('Execution order'), '2');
 }
 
@@ -132,7 +140,7 @@ function expectCustomSettings() {
   expect(screen.getByLabelText('MAFFT mode')).toHaveValue('globalpair');
   expect(screen.getByRole('spinbutton', { name: 'Maximum iterations' })).toHaveValue(42);
   expect(screen.getByRole('checkbox', { name: /Reorder aligned sequences/ })).toBeChecked();
-  expect(screen.getByRole('checkbox', { name: 'Refine alignment quality' })).toBeChecked();
+  expect(screen.getByRole('checkbox', { name: 'Realign after alignment' })).toBeChecked();
   expect(screen.getByLabelText('Execution order')).toHaveValue('2');
 }
 
@@ -154,7 +162,7 @@ it('keeps the original input and settings until example loading is confirmed and
   expect(method()).toHaveValue('minipoa');
   expect(screen.getByLabelText('Preprocess mode')).toHaveValue('audit');
   expect(screen.getByRole('spinbutton', { name: /Thread/ })).toHaveValue(null);
-  expect(screen.getByRole('checkbox', { name: 'Refine alignment quality' })).not.toBeChecked();
+  expect(screen.getByRole('checkbox', { name: 'Realign after alignment' })).not.toBeChecked();
   expect(screen.getByLabelText(/Notification email/)).toHaveValue('researcher@example.com');
   expect(screen.getByText(/Applied on load: MiniPOA/)).toBeVisible();
   expect(screen.getByRole('tab', { name: 'Paste FASTA' })).toHaveAttribute('aria-selected', 'true');
@@ -243,7 +251,7 @@ it('blocks editing and submission until a delayed example has finished loading',
   expect(screen.getByLabelText('Job name')).toHaveValue('Synthetic DNA example');
   expect(screen.getByLabelText('Preprocess mode')).toHaveValue('audit');
   expect(screen.getByRole('spinbutton', { name: /Thread/ })).toHaveValue(null);
-  expect(screen.getByRole('checkbox', { name: 'Refine alignment quality' })).not.toBeChecked();
+  expect(screen.getByRole('checkbox', { name: 'Realign after alignment' })).not.toBeChecked();
   expect(screen.getByLabelText(/Notification email/)).toHaveValue('researcher@example.com');
   expect(screen.getByRole('tab', { name: 'Paste FASTA' })).toHaveAttribute('aria-selected', 'true');
   await user.click(submit);
@@ -281,7 +289,7 @@ it('preserves the original uploaded file and settings for undo after returning t
   expect(screen.getByLabelText('Job name')).toHaveValue('Synthetic DNA example');
   await user.click(screen.getByRole('button', { name: 'Undo example load' }));
   await user.click(advancedToggle());
-  await user.click(screen.getByText('Refinement settings and limits'));
+  await user.click(screen.getByText('Realignment settings and limits'));
   expectCustomSettings();
   expect(screen.getByLabelText('FASTA sequences')).toHaveValue(originalInput);
   expect(screen.getByRole('tab', { name: 'Upload File' })).toHaveAttribute('aria-selected', 'true');

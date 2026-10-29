@@ -1,7 +1,7 @@
-import { Copy, Download, Eye, EyeOff, Loader2, RefreshCw } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
-import { Button } from "../components/common/Button";
+import { AlertTriangle, ArrowRight, CheckCircle2, Copy, Download, Eye, EyeOff, KeyRound, Loader2, Plus, RefreshCw } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Button, ButtonLink } from "../components/common/Button";
 import { ErrorState } from "../components/common/ErrorState";
 import { LoadingState } from "../components/common/LoadingState";
 import { JobWorkspace } from "../components/job/JobWorkspace";
@@ -15,6 +15,7 @@ import {
   isValidJobId,
   jobRoute,
   resolveJobAccess,
+  resultsRoute,
   saveJobAccess
 } from "../lib/api/tokens";
 import { useLanguage } from "../lib/i18n/useLanguage";
@@ -41,6 +42,37 @@ export function JobStatusPage() {
   const jobQuery = useJobStatus(jobId ?? undefined, access?.token);
   const job = jobQuery.data;
   useRememberWork("job", Boolean(access && jobQuery.isSuccess && job?.jobId === access.jobId));
+
+  // A job that finishes while this page is open opens its results after a short,
+  // cancellable countdown; reopening an already completed job stays here.
+  const navigate = useNavigate();
+  const identity = access ? JSON.stringify([access.jobId, access.token]) : null;
+  const currentStatus = access && job?.jobId === access.jobId ? job.status : undefined;
+  const previousStatus = useRef<{ identity: string | null; status: string | undefined }>();
+  const [countdown, setCountdown] = useState<{ identity: string; seconds: number } | null>(null);
+  // Changing only the key keeps this page mounted. Hide the old countdown in
+  // this render, before effects clear it, so it cannot navigate with new access.
+  const openResultsIn = countdown?.identity === identity && currentStatus === "completed" ? countdown?.seconds ?? null : null;
+  useEffect(() => {
+    const before = previousStatus.current;
+    previousStatus.current = { identity, status: currentStatus };
+    if (!identity || before?.identity !== identity || currentStatus !== "completed") {
+      setCountdown(null);
+      return;
+    }
+    if (before.status && before.status !== "completed" && before.status !== "failed") setCountdown({ identity, seconds: 3 });
+  }, [identity, currentStatus]);
+  useEffect(() => {
+    if (openResultsIn === null || !access) return;
+    if (openResultsIn <= 0) {
+      navigate(resultsRoute(access.jobId, access.token));
+      return;
+    }
+    const timer = window.setTimeout(() => setCountdown(current =>
+      current?.identity === identity ? { ...current, seconds: current.seconds - 1 } : current
+    ), 1000);
+    return () => window.clearTimeout(timer);
+  }, [openResultsIn, identity, access, navigate]);
 
   // A recovery URL has no creation date. Once authenticated, exports use the
   // same server-provided date as the saved record rather than the visit time.
@@ -123,9 +155,27 @@ export function JobStatusPage() {
     </div>
   </div> : null;
 
-  if (!job) return <PageContainer className="workflow-page">
+  // Without a job there is nothing else on the page, so the problem and every way
+  // forward share one card instead of a lone message and a distant link.
+  const fetchFailed = Boolean(error && !invalidJobId && jobId && !missingAccess);
+  const errorCard = error ? <section className="job-message-card" data-tone="error">
+    <span className="job-message-icon" aria-hidden="true">{missingAccess ? <KeyRound size={20} /> : <AlertTriangle size={20} />}</span>
+    <div className="job-message-body">
+      <h2>{fetchFailed ? (locale === "zh" ? "暂时读取不到任务状态" : "Job status is unavailable right now")
+        : (locale === "zh" ? "无法打开这个任务" : "This job can't be opened")}</h2>
+      <p role="alert">{error}</p>
+      <div className="job-message-actions">
+        {fetchFailed && <Button onClick={() => jobQuery.refetch()}><RefreshCw size={15} />{d.common.retry}</Button>}
+        <ButtonLink to="/lookup" variant={fetchFailed ? "outline" : "primary"}>{d.job.lookupLink}<ArrowRight size={15} aria-hidden="true" /></ButtonLink>
+        <ButtonLink to="/submit" variant="ghost"><Plus size={15} aria-hidden="true" />{locale === "zh" ? "提交新任务" : "Submit a new job"}</ButtonLink>
+      </div>
+    </div>
+  </section> : null;
+
+  if (!job) return <PageContainer className="workflow-page job-message-page">
     <div className="work-heading"><h1>{d.job.title}</h1></div>
-    {accessChoices ?? errorContent ?? <LoadingState label={d.job.loadingStatus} />}
+    {accessChoices ? <section className="job-message-card">{accessChoices}</section>
+      : errorCard ?? <LoadingState label={d.job.loadingStatus} />}
   </PageContainer>;
 
   return <JobWorkspace job={job} token={access?.token ?? ""}
@@ -133,6 +183,12 @@ export function JobStatusPage() {
       {jobQuery.isFetching && <Loader2 size={13} className="animate-spin" />}
       {jobQuery.isFetching ? d.job.updating : d.job.polling}
     </span> : undefined}
+    notice={openResultsIn !== null && access ? <div className="mt-3 flex flex-wrap items-center gap-3 rounded-lg border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-900" role="status">
+      <CheckCircle2 size={17} className="shrink-0 text-teal-700" aria-hidden="true" />
+      <span className="min-w-0 flex-1">{locale === "zh" ? `任务已完成，${openResultsIn} 秒后打开结果。` : `Job completed. Opening results in ${openResultsIn} s.`}</span>
+      <ButtonLink size="sm" to={resultsRoute(access.jobId, access.token)}>{d.common.viewResults}<ArrowRight size={15} aria-hidden="true" /></ButtonLink>
+      <Button size="sm" variant="ghost" onClick={() => setCountdown(null)}>{locale === "zh" ? "留在此页" : "Stay here"}</Button>
+    </div> : undefined}
     error={errorContent}
     recoveryActions={openCredentials => access ? <section className="job-recovery-actions">
       <p>{locale === "zh" ? "可关闭页面，稍后恢复任务。" : "You can close this page and restore the job later."}</p>

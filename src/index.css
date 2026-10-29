@@ -72,6 +72,22 @@ textarea {
 .app-navigation-scrim { position: fixed; inset: 64px 0 0; height: 100dvh; background: rgb(15 23 42 / .12); }
 .app-mobile-navigation { position: absolute; inset: 100% 0 auto; padding: 12px var(--page-gutter); border-block: 1px solid var(--color-border); background: #fff; box-shadow: 0 10px 18px rgb(15 23 42 / .08); max-height: calc(100dvh - 72px); overflow-y: auto; overscroll-behavior: contain; }
 .app-mobile-navigation .app-navigation { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 12px; }
+/* Motion for controls: a sliding navigation highlight, menu entry and page entry. */
+.app-navigation { position: relative; isolation: isolate; }
+.app-navigation::before { content: ""; position: absolute; z-index: -1; top: 0; left: 0; width: var(--nav-indicator-w, 0); height: var(--nav-indicator-h, 0); border-radius: 6px; background: #eef2f6; opacity: var(--nav-indicator-opacity, 0); transform: translate(var(--nav-indicator-x, 0), var(--nav-indicator-y, 0)); pointer-events: none; }
+.app-navigation[data-indicator-ready]::before { transition: transform .38s cubic-bezier(.3, .8, .25, 1), width .38s cubic-bezier(.3, .8, .25, 1), height .38s cubic-bezier(.3, .8, .25, 1), opacity .2s ease; }
+@media (prefers-reduced-motion: no-preference) {
+  .app-mobile-navigation { animation: app-menu-enter .24s cubic-bezier(.2, .7, .2, 1) backwards; }
+  .app-navigation-scrim { animation: app-fade-in .24s ease backwards; }
+  #primary-navigation-toggle svg { animation: app-icon-turn .3s cubic-bezier(.2, .7, .2, 1); }
+  #main-content > :not(.work-return) { animation: app-page-enter .42s cubic-bezier(.2, .7, .2, 1) backwards; }
+  ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .3s; }
+}
+@media (prefers-reduced-motion: reduce) { .app-navigation[data-indicator-ready]::before { transition: none; } }
+@keyframes app-menu-enter { from { opacity: 0; transform: translateY(-8px); } }
+@keyframes app-fade-in { from { opacity: 0; } }
+@keyframes app-icon-turn { from { opacity: 0; transform: rotate(-90deg) scale(.7); } }
+@keyframes app-page-enter { from { opacity: 0; transform: translateY(10px); } }
 .app-footer-inner { display: flex; justify-content: flex-end; align-items: center; min-height: 44px; padding-block: 8px; font-size: 12px; color: var(--color-muted); }
 .app-footer nav a { display: inline-flex; align-items: center; min-height: 28px; text-underline-offset: 3px; }
 .page-container { width: 100%; max-width: var(--layout-reading-width); margin-inline: auto; padding: var(--page-space) var(--page-gutter); }

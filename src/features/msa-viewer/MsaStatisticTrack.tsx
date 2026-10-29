@@ -42,7 +42,7 @@ export function MsaStatisticTrack({
   track,
 }: {
   renderColumns: Array<{
-    virtualColumn: VirtualItem;
+    virtualColumn: Pick<VirtualItem, "index" | "start">;
     position: number;
     stats: ColumnStats | null;
   }>;
@@ -84,7 +84,7 @@ export function MsaStatisticTrack({
             className={cn(
               "absolute left-0 top-0 flex items-end justify-center border-b border-slate-200 bg-white outline-none transition hover:bg-slate-100",
               selected
-                ? "bg-teal-50 ring-1 ring-teal-400"
+                ? "bg-teal-50 ring-1 ring-inset ring-teal-500"
                 : inSelectedRange
                   ? "bg-teal-50/70"
                   : ""

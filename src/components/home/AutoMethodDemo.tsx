@@ -1,10 +1,11 @@
-import { ArrowRight, ArrowUpRight, Check, GitBranch, GitCompareArrows, Leaf, Network, RotateCcw, Ruler } from "lucide-react";
+import { ArrowUpRight, Check, GitBranch, GitCompareArrows, Leaf, Network, RotateCcw, Ruler } from "lucide-react";
 import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import { homeAdvantagesContent } from "../../lib/homeContent";
 import { useHomeAnimation } from "./HomeDemoProvider";
 import { DecisionTreeCanvas } from "./DecisionTreeCanvas";
+import { HomeModeBadge } from "./HomeModeBadge";
 import { HOME_TREE_FEATURES, HOME_TREE_METHODS, HOME_TREE_NODES, HOME_TREE_PATHS } from "./homeDecisionTreeData";
 
 export function AutoMethodDemo() {
@@ -32,6 +33,7 @@ export function AutoMethodDemo() {
   return <section ref={root} className="home-section home-smart-match" aria-labelledby="home-methods-title">
     <div className="home-decision-heading">
       <div className="home-benefit-heading">
+        <HomeModeBadge mode="demo" label={copy.demoBadge} />
         <h2 id="home-methods-title">{copy.autoTitle}</h2>
         <p>{copy.autoIntro}</p>
       </div>
@@ -53,7 +55,7 @@ export function AutoMethodDemo() {
         <ul>{HOME_TREE_METHODS.map(name => <li key={name} data-selected={complete && name === method}>
           <span>{methodLabels[name]}</span>{complete && name === method ? <Check size={19} aria-hidden="true" /> : null}
         </li>)}</ul>
-        <p className="home-decision-action" data-ready={complete}><ArrowRight size={16} aria-hidden="true" />{copy.runAlignment}</p>
+        <p className="home-decision-action" data-ready={complete}>{copy.runAlignment}</p>
       </div>
     </div>
     <div className="home-decision-footer">

@@ -33,7 +33,7 @@ export default defineConfig({
   projects: [
     {
       name: "routes-chromium",
-      testMatch: /(routes\.smoke|nar-readiness)\.spec\.ts/,
+      testMatch: /(routes\.smoke|nar-readiness|pr1-regressions)\.spec\.ts/,
       use: {
         ...devices["Desktop Chrome"],
         viewport: { width: 1280, height: 800 }
@@ -41,7 +41,7 @@ export default defineConfig({
     },
     {
       name: "routes-firefox",
-      testMatch: /(routes\.smoke|nar-readiness)\.spec\.ts/,
+      testMatch: /(routes\.smoke|nar-readiness|pr1-regressions)\.spec\.ts/,
       use: {
         ...devices["Desktop Firefox"],
         viewport: { width: 1280, height: 800 }
@@ -49,7 +49,7 @@ export default defineConfig({
     },
     {
       name: "routes-webkit",
-      testMatch: /(routes\.smoke|nar-readiness)\.spec\.ts/,
+      testMatch: /(routes\.smoke|nar-readiness|pr1-regressions)\.spec\.ts/,
       use: {
         ...devices["Desktop Safari"],
         viewport: { width: 1280, height: 800 }

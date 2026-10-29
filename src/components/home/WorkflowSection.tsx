@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import { homeAdvantagesContent } from "../../lib/homeContent";
 import { HomeDemoFallback } from "./HomeDemoFallback";
+import { HomeModeBadge } from "./HomeModeBadge";
 import { useHomeAnimation, useHomeDemo } from "./HomeDemoProvider";
 import { LargeScaleAlignmentCanvas } from "./LargeScaleAlignmentCanvas";
 
@@ -16,6 +17,7 @@ export function WorkflowSection() {
   return <section ref={root} className="home-section home-scale-showcase" id="home-workflow" tabIndex={-1} aria-labelledby="home-workflow-title">
     <div className="home-scale-heading">
       <div className="home-benefit-heading">
+        <HomeModeBadge mode="demo" label={copy.demoBadge} />
         <h2 id="home-workflow-title">{copy.scaleTitle}</h2>
         <p>{copy.scaleIntro}</p>
       </div>
