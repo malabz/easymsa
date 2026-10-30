@@ -42,7 +42,7 @@
 .benchmark-dot-axis span { position: absolute; transform: translateX(-50%); top: 5px; white-space: nowrap; color: var(--bench-muted); font-size: .625rem; font-variant-numeric: tabular-nums; }
 .benchmark-dot-axis span.first { transform: none; }
 .benchmark-dot-axis span.last { transform: translateX(-100%); }
-.benchmark-shared-method, .benchmark-dot-row { height: 3.5rem; border-bottom: 1px solid #e9eeeb; }
+.benchmark-shared-method, .benchmark-dot-row { height: 4.5rem; border-bottom: 1px solid #e9eeeb; }
 .benchmark-shared-method { display: flex; flex-direction: column; justify-content: center; gap: .2rem; padding-inline: .5rem; font-size: .75rem; overflow-wrap: anywhere; }
 .benchmark-shared-method span { font-size: .625rem; color: var(--bench-muted); white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
 .benchmark-dot-row { display: block; width: 100%; text-align: left; position: relative; padding: 0 8px; min-height: 44px; background: transparent; color: var(--bench-ink); }
@@ -63,6 +63,8 @@
 .benchmark-axis-explanation { font-size: .6875rem; line-height: 1.6; padding-block: .75rem; color: var(--bench-muted); }
 .benchmark-plots-caption { font-size: .75rem; line-height: 1.8; color: var(--bench-muted); margin-top: 1rem; }
 .benchmark-mobile-metrics { display: none; }
+.benchmark-shared-method .benchmark-row-source { font-size:.6875rem; white-space:normal; line-height:1.35; }
+.benchmark-local-method small { display:block; font-size:.6875rem; line-height:1.4; margin-top:.25rem; color:var(--bench-muted); }
 .benchmark-point-popup { position: fixed; z-index: 60; right: 24px; bottom: 24px; max-width: min(380px, calc(100vw - 32px)); background: #fff; border: 1px solid #98b6ad; border-top: 3px solid var(--bench-accent); padding: 1rem 3rem 1rem 1rem; box-shadow: 0 6px 30px #16312e1f; font-size: .75rem; color: var(--bench-ink); line-height: 1.65; overflow-wrap: anywhere; }
 .benchmark-point-popup p { margin-top: .3rem; }
 .benchmark-point-popup .benchmark-point-value { font-size: 1rem; font-variant-numeric: tabular-nums; font-weight: 600; }
@@ -86,6 +88,9 @@
   .benchmark-plot-heading { height: 8rem; }
 }
 @media (max-width: 767px) {
+  .benchmark-dot-comparison:not([data-mobile-metric="sp_score"]) .benchmark-sp-option { display:none; }
+  .benchmark-dot-comparison:not([data-mobile-metric="q"]):not([data-mobile-metric="tc"]) .benchmark-zoom-option { display:none; }
+  .benchmark-plot-note { display:none; }
   .benchmark-detail-toolbar { align-items: start; width: 100%; }
   .benchmark-detail-toolbar .benchmark-batch-selector { width: 100%; }
   .benchmark-view-controls { align-items: start; }

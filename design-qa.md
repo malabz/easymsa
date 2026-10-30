@@ -1,425 +1,128 @@
-# EasyMSA 双栏任务工作区 — 第一版设计验收
+# Comparison Studio — design QA
 
-Date: 2026-10-05
+The later website update uses the shared green theme and seven methods, with
+HAlign 4 displayed as HAlign and HAlign 3/Kalign 3 excluded. Current behavior,
+counts and verification are recorded in [Benchmark green update](docs/BENCHMARK_GREEN.md).
+The blue, nine-method design comparison below records the preceding iteration.
 
-**final result: passed**
+Date: 2026-10-30. Scope: existing EasyMSA Benchmark routes, local preview only.
 
-范围：本轮前端布局、示例入口与载入反馈、站内返回和草稿保留、首页暂停按钮移除。此结论不包含服务器真实计算、跨浏览器自动化回归或无障碍认证。
+## Visual truth and normalized evidence
 
-## Findings / 比较与修复记录
+- Source visual truth: `D:\code\easymsa-visual-directions-20261030\02-comparison-studio.png`.
+- Implementation: `http://127.0.0.1:5208/#/benchmark/datasets/rna_255?scope=latest&zoom=1&method=mafft`.
+- Implementation screenshot: `D:\code\easymsa-studio-20261030\qa-accepted-reference1487-rna255-zh.png`.
+- Source pixels: 1487 × 1058. Implementation pixels: 1487 × 1058.
+- CSS viewport: 1487 × 1058; deviceScaleFactor: 1. No device frame, browser chrome,
+  resampling or density conversion was needed.
+- State: Chinese, light theme, RNA 255, latest records, time/Q scatter, explicitly
+  zoomed Q and selected MAFFT. The implementation capture leaves the precision
+  popup closed; the source includes a small illustrative popup. Its extra
+  scientific precision/details remain available on focus or activation.
+- Additional evidence: `qa-accepted-desktop1440-overview-zh.png`,
+  `qa-accepted-mobile390-rna255-zh.png` and the corresponding `-full.png` files
+  in the same evidence directory.
 
-### Iteration 1 — blocked
+The source and implementation images were opened together in one comparison
+input at equal pixel dimensions, including the post-fix capture above. Full-view
+comparison covered composition, sidebar/main proportions, hierarchy and density.
+At native size the header, sidebar entries, axis controls and method list were
+readable, so separate resized crops were not needed. Those four regions were
+examined directly in the same full-resolution comparison. Additional real mobile
+and enlarged-text screenshots checked details absent from the static source.
 
-- **[P2] 英文 1280 × 800 下，重比对说明被底部操作栏遮挡。**
-  - 证据：`C:/mnt/d/code/easymsa-ux-20261005/12-submit-en-1280.png`。
-  - 修复：右侧设置间距从 16 px 缩为 12 px，字段内部从 6 px 缩为 4 px，简化预处理说明，减少标题及表单上下留白。
-- **[P2] 1440 px 下导航和工作区左右边界不一致。**
-  - 证据：`11-submit-iteration1.png` 与选定设计同时比较。
-  - 修复：任务、重比对、结果、查看器和示例页的导航使用与工作区相同的 1344 px 最大宽度；首页继续使用原布局。
+## Fidelity surfaces
 
-### Iteration 2 — passed
+- **Typography:** retains the application's system sans-serif family and Chinese
+  fallback. The heading is 2.5 rem/700 on desktop and 2 rem on mobile, with
+  understated body text and tabular numbers. Small controls use ordinary weights;
+  selected rows/tabs use stronger weight. Text sizes use rem to respond to text
+  enlargement. Method names and original values remain readable without hover.
+- **Spacing/layout:** a 236 px pale sidebar and 32 px desktop main gutters recreate
+  the selected two-area composition. The chart and 300 px method list align;
+  axis controls are below the plot. The existing method filter remains in the
+  tab row. No extra cards, decorative shadows or large hero block were added.
+  Below 1024 px the sidebar becomes a disclosure; narrow charts stack the list.
+- **Color/tokens:** white main surface, `#eff5fc` sidebar, `#245be8` accent, dark
+  blue text and fine `#e2e9f3` rules. Active rows use pale blue; unavailable states
+  use restrained ochre plus text. Named-batch heat shades use the same blue
+  family; latest records remain neutral across differing conditions.
+- **Images/assets/icons:** the existing EasyMSA logo and installed icon set are
+  reused. No generated wallpaper, substitute logo, decorative CSS illustration
+  or new font/image dependency was introduced. The chart remains a real data
+  visualization, not a screenshot of the proposed design.
+- **Copy/content:** readable titles replace raw IDs as the main heading. Actual
+  dataset identity remains in the subtitle/sidebar/provenance; simulated cases
+  explicitly retain source labels. The design's illustrative “16 DNA” and
+  incorrect RNA lengths were replaced with the real 20 DNA and actual lengths.
+  Full provenance, failures, exact values and export scope remain available.
 
-- 中文最终画面：`C:/mnt/d/code/easymsa-ux-20261005/20-submit-final-1440.png`。
-- 英文较矮窗口：`13-submit-en-final-1280.png`。
-- 增加返回入口后复查：`22-submit-en-return-1280.png`。
-- 1280 × 800、英文、示例已载入、存在返回入口时：设置区底部 y=716.57；操作栏顶部 y=725.43、底部 y=800。常用设置和提交操作均可见，没有互相遮挡。
-- 手机端示例反馈使用可换行文本，避免图标单独占据一行；设置区自然向下排列，底部操作持续可见。
-- 没有本轮新增且尚未修复的 P0/P1/P2 视觉问题。
+## Findings and comparison history
 
-## Source visual truth and comparison evidence
+1. **[P2, fixed] Initial vertical spacing and switch geometry.** The first
+   implementation included an empty 32 px work-return spacer, and a shared
+   checkbox rule shrank the Q/TC switch to 16 px. This displaced the main plot
+   and clipped its thumb. The empty spacer is now hidden only on Benchmark;
+   actual return links stay available. The switch has explicit 36 × 20 px bounds.
+   Post-fix evidence: `qa-accepted-reference1487-rna255-zh.png`.
+2. **[P2, fixed] Low-contrast secondary text.** First accessibility inspection
+   found the back link, matrix IDs, adjacent links and active sidebar metadata
+   below the intended contrast. Their foreground tokens were darkened while
+   retaining the pale visual hierarchy. `accessibility-audit-final.json` covers
+   17 real views including Chinese, English, mobile and historical heat cells.
+3. **[P2, fixed] Sidebar identity and scrolling.** Its original top offset ignored
+   the sticky header. A ResizeObserver now uses the actual header height. The
+   sidebar still releases normally at the page footer. Filtered method counts
+   now match the comparison scope, and simulation subtitles retain source labels
+   so mobile cases remain distinguishable with the sidebar closed.
+4. **[P2, fixed] Resource-axis tick collisions.** Mobile `1,000`/`10,000` labels
+   overlapped while the wide chart omitted useful decades. Tick selection now
+   measures their positions, keeps endpoints and removes colliding interior
+   ticks. The wide post-fix capture shows every decade without changing domains.
+5. **[P2, fixed] Initial enlarged-text label placement.** One mobile rendering
+   used 13 px label boxes for 26 px text until the observer callback. Layout
+   measurement now runs before paint and when the adaptive gutter changes.
+   Existing strict label-overlap checks remain in place.
+6. **[P2, fixed; final browser recheck recorded below] Enlarged zoom-axis endpoints.** A first adaptive
+   gutter correction fixed the original 32.75 px offscreen labels. The final
+   375 px mobile regression still found an endpoint 11.75 px offscreen after
+   toggling zoom at 200% text. The cause was a global reduced-motion rule setting
+   a nonzero transition duration: the new inline 127 px gutter was briefly
+   rendered as 79 px. Chart geometry now explicitly disables transitions.
+   The exact Pixel 5 / 375 × 812 / 200% text / full-page capture / zoom sequence
+   passed three repeated zoom activations with a 36.25 px left margin and zero
+   geometry animations. The final built regression run verifies the same case.
 
-- 用户选定的第一个展示结果：
-  `C:/Users/30451/.codex/generated_images/01a0f1ee-27f3-7443-9fbc-482687400cbc/exec-c3926678-5283-43b3-bb04-bc15e734cf9b.png`
-- 本地实现：`http://localhost:5173/easymsa/#/submit`
-- 主比较状态：中文、浅色、普通提交、上传标签、alignment-small.fasta 已载入、MiniPOA、Audit、重比对关闭。
-- 原设计图 1586 × 992，约等于意图视口 1440 × 900 的 1.10 倍密度；最终浏览器图 1440 × 900。按同一页面边界和近似相同纵横比比较，不把原图像素数当作 CSS 像素。
-- 原设计图与实现截图在同一次工具比较输入中一起打开，并在修复后再次一起比较。主比较中输入区、设置和底部操作均可清楚辨认，没有使用不同路由或不同表单状态替代。
-- 焦点区域：输入文件、示例提示、右侧字段、底部操作栏。在上述原图尺寸可直接辨认；同时使用浏览器实际控件文字与只读边界测量确认，因此未另做裁切。
-- 其他截图有浏览器截图缩放和滚动条扣除：英文 1280 × 800 的输出为 1265 × 791；中文手机 390 × 844 的输出为 375 × 811。布局判断使用 CSS 视口及实际 DOM 边界，不将输出像素差异记为布局偏差。
+The initial full browser run had 32 passing cases, four assertion failures and two timeouts. Search-label
+and zoom-caption checks were migrated to the new accessible controls without
+relaxing data assertions; actual contrast defects were fixed. Targeted reruns
+are retained separately rather than hiding earlier failures. No raw numeric,
+source-selection or download oracle was changed to fit the visual output.
 
-## Required fidelity surfaces
+## Expected differences and P3 polish
 
-| Surface | 实施与比较结论 |
-| --- | --- |
-| 字体与排版 | 保留现有 Inter / 系统中文字体、字重和控件字号。页面标题 30 px，输入区标题 20 px，字段 14 px，辅助说明 12 px。中英文层级清楚；长文件名可换行，底部摘要有限截断并保留 title。 |
-| 间距与布局 | 左输入、右设置，中间细分隔线；去除原外层大卡片、独立大示例卡和算法选项卡。底部任务摘要与提交操作组成一行。高级算法参数按需展开；手机不压缩字号强塞一屏。 |
-| 色彩与状态 | 沿用青绿 #0F766E、深色 #0F172A、低对比浅背景和细边线。示例反馈是窄条提示。离线状态与禁用提交按钮显示实际状态；不将设计稿中的服务检查状态伪装成可用。 |
-| 图片、图标与清晰度 | 使用已有正式 Logo 和 Lucide 图标。本次页面没有需要生成的新图像资产；保留现有首页动画配色与内容，仅移除暂停控件及其无用样式。 |
-| 文案与产品事实 | 保留实际上传、字符和规模限制；正常提交仍默认 Auto、重比对默认关闭。示例载入设置 MiniPOA + Audit。保留真实全用途免费声明，不照搬设计稿的非商业措辞。 |
-
-接受的产品约束差异：输入标签顺序和默认粘贴保持现有习惯；算法线程参数仍是现有数值输入，位于折叠的参数区；服务状态按实时连接展示；统计和算法行为没有修改。
-
-## Browser interaction evidence
-
-在 Codex 内置浏览器完成以下实际交互：
-
-- 普通表单初始状态：Auto、Audit、重比对关闭。
-- 真实文件选择控件选择公开 input.fasta；显示文件名和大小；移除后重新选择同一文件成功。
-- 有现存输入时载入示例：显示替换提示，确认后呈现明确的绿色“示例已载入”反馈与示例结果链接。
-- 普通提交填写任务名 → 打开帮助 → 返回提交：任务名、文件、方法及示例状态保留。
-- 独立重比对载入公开示例：同一双栏布局，文件信息、顺序及规模说明可见。
-- 独立查看器载入 alignment-small 示例：20 条序列、515 列；打开帮助后返回仍是该比对和原查看器状态。
-- 公开示例在“比对结果”标签打开帮助再返回：保留当前标签及已存的查看器搜索状态。
-- 重比对示例选择 initial + downloads → 文档 → 返回：阶段和标签均保留；下载地址仍指向 initial.zip。
-- 从页面成功下载 initial.zip，浏览器保存为 all_results.zip。
-- 输入标签 ArrowRight、结果标签 End 可用，焦点随选中标签移动。
-- 首页无暂停按钮，动画 CSS 状态为 running，原首屏结构保持。
-- 最后一次浏览器 console 检查返回 0 条 error / warn。
-- 1440 × 900、1280 × 800、390 × 844 检查未见横向溢出。
-
-补充截图：
-
-- `14-result-overview.png`
-- `15-viewer-example.png`
-- `16-realign-desktop.png`
-- `17-submit-mobile-top.png`
-- `18-submit-mobile-settings.png`
-- `19-home-no-pause-mobile.png`
-- `21-result-stage-restored.png`
-- `23-submit-zh-mobile.png`
-
-以上文件均在 `C:/mnt/d/code/easymsa-ux-20261005/`。
-
-## Draft and navigation behavior
-
-- 草稿、File 对象、粘贴序列和邮箱仅保留在当前标签页内存，支持站内往返；刷新或关闭标签页不保留这些草稿。
-- 成功创建任务后清除对应提交草稿。
-- 结果阶段与标签进入当前结果 URL，保留现有 token 参数；不会输出 token 到日志或报告。
-- 最近工作返回入口不写浏览器持久存储；在隐私页清除任务记录及查询页删除凭证时，同步移除相应的内存返回入口。
-- 公共示例仍走已存在的版本清单与哈希校验，没有新增后端接口或改变算法请求值。
-
-## Engineering / 边界
-
-- TypeScript 项目检查和 Vite 生产构建通过。
-- Git diff whitespace 检查通过。
-- 本轮未新增或运行单元测试、自动化浏览器套件、压力任务。
-- 当前开发通道在改动前后均显示分析服务无法连接。因此未用本轮修改执行服务器任务提交和真实计算；相关按钮按现有健康规则禁用。公开示例、查看器和下载可用。
-- 私有任务页面使用与示例相同的结果展示组件和阶段/标签状态机制，真实 token 任务仍需在后端恢复后复验。
-- Firefox、WebKit、物理手机和完整无障碍标准未独立复验。
-- 首页已有的 reduced-motion 动画例外按用户此前要求保留，不把本次移除按钮描述为通过完整无障碍审核。
-- 用户已有 main.tsx 开发录制改动、HomeDemo 与 media 等未提交文件保持原样。旧首页验收记录完整保存在 `docs/homepage-design-qa-20261004.md`。
-- 本轮为本地前端修改，未提交、推送或发布，也未部署后台。
+- Exact dynamic axis endpoints and numeric formatting come from the current
+  scientific display rules; they are not replaced by illustrative raster labels.
+- Nine methods, method filtering, axis scaling and full source inspection exceed
+  the static mock's visible controls but preserve the requested functionality.
+- The original global header/footer remain; a generated source credit is not app
+  content. Q/TC zoom remains opt-in instead of becoming the default globally.
+- A precise tooltip carries more detail than the source illustration. The base
+  layout stays clear while that information is closed.
 
 ## Implementation checklist
 
-- [x] 第一张双栏提交结构
-- [x] 普通及独立重比对共用紧凑上传与任务字段
-- [x] 清晰且紧凑的示例载入反馈
-- [x] 独立查看器示例入口
-- [x] 站内返回、草稿与结果选择保留
-- [x] 首页暂停按钮移除
-- [x] 桌面、中英文、手机布局复查
-- [x] 保留本地开发预览
+- [x] Implement selected white/pale-blue/cobalt visual direction.
+- [x] Preserve real snapshot and three original batches.
+- [x] Keep search, filters, previous/next, views and actual downloads.
+- [x] Compare source and real render together at matching dimensions.
+- [x] Check Chinese/English, keyboard, mobile and enlarged text.
+- [x] Close the final enlarged zoom-label finding with browser evidence.
 
----
-
-## 2026-10-05 追加：重比对入口与任务恢复页
-
-**final result: passed**
-
-本次通过范围：导航入口、缓存优先的恢复页布局、中英文和响应式展示。沿用用户已选的第一版扁平工作区风格，不重新生成设计候选。
-
-### Findings / 修复记录
-
-- **[P1，已修复] 重比对入口会随健康数据缺失而消失。** Header 原先按健康响应过滤此入口。现在导航始终显示“重比对”，页面继续显示实际服务状态并按原规则禁用不可用的提交。已从手机菜单实际进入重比对页；服务离线时表单和导航仍在。
-- **[P2，已修复] 大卡片使已缓存任务排在页面下方。** 将缓存列表移到标题下，按创建时间倒序排列；恢复按钮直接出现在每行末尾。手动恢复和 JSON 导入合并为一处紧凑展开区，有缓存时默认折叠，无缓存时默认展开。删除列表中的 token 标识。
-- **[P2，视觉迭代 1 blocked → 2 passed] 返回入口与页面边界不齐。** `37-lookup-final-1440.png` 中返回入口 x=80，标题与导航 x=112。通用容器样式覆盖了工作区宽度。提高工作区选择器优先级，避免依赖样式加载顺序；`38-lookup-aligned-final.png` 中导航 Logo、返回入口、标题均为 x=80，工作区宽 1344 CSS px。
-- 顶部导航的“示例”已移除；首页、表单、查看器及页脚中的示例入口保持可用。
-
-### Source visual truth / 比较范围
-
-- 设计依据：本报告前部记录的第一版选定设计，以及已实现的扁平工作区 `C:/mnt/d/code/easymsa-ux-20261005/20-submit-final-1440.png`。
-- 同页修改前：`C:/mnt/d/code/easymsa-ux-20261005/30-lookup-before.png`。
-- 实现地址：`http://localhost:5173/easymsa/#/lookup`。
-- 最终画面：`C:/mnt/d/code/easymsa-ux-20261005/38-lookup-aligned-final.png`。
-- 已将修改前恢复页与修改后恢复页在同一比较输入中打开；将既有工作区画面与本次最终画面在另一比较输入中打开。前者比较信息顺序和密度，后者比较字体、颜色、边界与控件风格。普通提交与恢复页属于不同路由，未做像素一致性声明。
-- 同页主状态：中文、浅色、1 条已有缓存记录。修改前两个恢复卡片展开，修改后其他恢复方式折叠，是用户要求的信息优先级调整。返回入口内容随最近访问页面变化。
-- CSS 视口 1440 × 900。修改前 PNG 1425 × 891，修改后 PNG 1440 × 900；前者是浏览器输出缩放及滚动条差异。布局数据使用 CSS 坐标，未把图片密度差记为设计偏差。
-- 控件和文字在完整截图中可辨认，并通过 DOM 边界复核，无需额外局部裁切。导航、列表和展开表单均单独检查。
-
-### 五项视觉检查
-
-| 项目 | 结论 |
-| --- | --- |
-| 字体 | 保留网站字体，标题 30 px / 手机 26 px，列表标题 18 px，任务行 14 px，辅助信息 12–13 px。ID 超长时截断并保留完整 title。 |
-| 布局 | 缓存列表在首位，细线分隔，没有嵌套卡片；较多记录时列表区域可滚动。手动输入在桌面横排，手机纵排。导航与返回入口对齐。 |
-| 颜色 | 沿用青绿主操作、深色标题、浅灰分隔线；删除为低强调图标按钮，悬停才出现红色；错误提示使用既有语义色。 |
-| 图像与图标 | 保留正式 Logo，使用现有 Lucide 图标，无新增生成图或模拟产品图。 |
-| 文案 | 中英文均以恢复已缓存任务为首要操作；日期随语言格式化；准确说明缓存删除不影响服务器任务，不展示或输出访问凭证。 |
-
-### 浏览器交互与工程记录
-
-- 桌面中文 1440 × 900：缓存恢复操作首屏可见，展开后手动输入与 JSON 导入同屏可见。
-- 英文 1280 × 800：空字段错误提示可见，展开区底部 y=634.49，未发生横向溢出。证据 `33-lookup-en-1280.png`（1280 × 800）。
-- 中文手机 390 × 844：列表操作、展开及收起状态均可用，无横向溢出；展开截图 `34-lookup-mobile.png`（输出 375 × 812），收起截图 `35-lookup-mobile-collapsed.png`（390 × 844）。
-- 空字段提交显示对应语言提示，并将焦点移到任务 ID；字段通过 aria-invalid 和 aria-describedby 关联错误。Enter 键可展开/收起其他恢复方式。
-- 手机导航包含重比对，不包含示例；实际进入重比对，确认 alignedFile 输入与服务离线提示。证据 `36-realign-restored.png`。
-- 最后一次浏览器 console 检查无 error / warn。
-- TypeScript 与生产构建通过；git diff 空白检查通过。
-- 未删除或更改已有缓存记录；未展示 token，未触发已有私有任务恢复请求。本轮未执行服务器真实恢复、计算，未新增或运行自动化测试套件。JSON 有效文件导入、无缓存和 50 条缓存情形保留代码逻辑，本轮未逐项浏览器复验。
-- 当前后端开发通道仍不可用；这是已有运行状态，不影响导航与静态界面验收。后端恢复后才能验收真实恢复结果。
-- 所有截图在 `C:/mnt/d/code/easymsa-ux-20261005/`；本次未提交、推送、发布或部署后台。
-
-### 本次完成项
-
-- [x] 重比对入口稳定显示
-- [x] 顶部移除示例
-- [x] 已缓存任务优先、紧凑列表
-- [x] 其他恢复方式合并为展开区
-- [x] 中英文、桌面、手机、键盘与焦点检查
-- [x] 构建通过，保留本地预览
-
-### Chrome 多缓存记录滚动修复
-
-- 用户反馈页脚之后还能继续滚动。本次直接在用户 Chrome 查询页、22 条已有缓存记录的状态下复现。
-- 根因：列表中的绝对定位辅助标签缺少局部定位容器，溢出列表滚动区；页面实际内容和页脚高度为 1066 CSS px，文档滚动高度却达到 1639 px。
-- 修复：`.lookup-rows` 设置 `position: relative`，将辅助标签限制在列表滚动区域；设置 `overscroll-behavior-y: contain`，避免列表边界滚动传递。保持隐藏标签的无障碍语义。
-- Chrome 复核：22 条记录的列表可滚动高度 1408 px、可见高度 360 px；焦点到达最后一项时列表滚动到 1048 px，页面 scrollY 仍为 0。修复后文档高度 = 视口高度 = 1066 px。窗口变化后再次核对，文档高度 = 视口高度 = 855 px，列表回到顶部。
-- 证据：`C:/mnt/d/code/easymsa-ux-20261005/39-chrome-lookup-scroll-fixed.png` 和 `40-chrome-lookup-fixed.png`。未更改、删除或提交任何已有任务。
-- TypeScript 与生产构建通过；diff 空白检查通过。本次修复不禁止较小屏幕或展开表单所需的正常页面滚动。
-
----
-
-## 2026-10-05 追加：第二套结果页与等待页
-
-**final result: passed（本地界面与相关回归范围）**
-
-### Source visual truth / 设计对照
-
-- 用户选择第二套设计，采用左侧任务信息栏、右侧主要内容，细分隔线与紧凑指标排布。
-- 选定设计：`C:/Users/30451/.codex/generated_images/01a0f1ee-27f3-7443-9fbc-482687400cbc/exec-4d362e9a-2565-4c2b-89c4-ab673388ffbf.png`。
-- 实现入口：`http://localhost:5173/easymsa/#/examples/alignment-small`；真实任务结果共用同一布局组件。
-- 结果页最终截图：`C:/mnt/d/code/easymsa-ux-20261005/53-result-final-1440.png`。
-- 等待页布局截图：`C:/mnt/d/code/easymsa-ux-20261005/44-waiting-final-1440.png`。使用真实页面组件与明确标识的测试数据，未提交服务器任务；右上角状态选择器只用于临时预览，未接入产品页面。
-- 对照输入：`comparison-result.png`、`comparison-waiting.png`，位于上述截图目录。两张对照图已在同一比较输入中检查。
-- 源图为 1176 × 1337 的双屏设计板，结果页裁取 y=0–690，等待页裁取 y=730–1336；实际截图为 1440 × 800，等比缩至 1176 × 653 后并排比较。画板与浏览器比例不同，比较结构、字体层级、密度和对齐，不声称逐像素一致。
-- 页面使用真实示例统计；不复制设计稿中的模拟数值、进度或时间。无法取得的预处理统计显示“—”。
-
-### 五项视觉检查
-
-| 项目 | 检查结论 |
-| --- | --- |
-| 字体 | 沿用网站字体，主标题 26 px、侧栏标题 18 px、主要指标 24 px，辅助信息 12–13 px；长标题自动换行。较矮窗口通过缩减间距适配，未缩小主体文字。 |
-| 布局 | 280 px 左侧栏，右侧概览、比对和下载按标签切换；桌面按实际导航与页脚高度计算剩余空间，下载和恢复操作固定可见。 |
-| 颜色 | 沿用 #0F766E 青绿、深蓝灰文字及 #F3F9F9 侧栏；保留失败、警告的语义色。 |
-| 图像与图标 | 使用现有 Logo 与 Lucide 图标；质量曲线从真实列统计绘制，碱基组成来自同一比对数据，无新增模拟图片。 |
-| 文案 | 简化重复标题和说明；保留任务阶段、错误、结果版本、恢复和下载说明，凭证仍默认遮蔽。 |
-
-### Findings / 视觉迭代
-
-- **[P2，已关闭] 初稿侧栏偏窄。** 将 236 px 调整到 280 px，任务名、元数据和主按钮与第二套设计保持一致。
-- **[P2，已关闭] 英文侧栏需要额外滚动。** 调整标签与值的列宽比例为 1.3:1，并将侧栏数量标签缩为 Sequences。1280 × 800 最终侧栏 clientHeight/scrollHeight 为 666/666。
-- **[P2，已关闭] 重比对提示导致概览多出 17 px。** 合并执行顺序和最终结果说明，保留初始下载入口；1280 × 800 概览为 544/544。
-- **[P2，已关闭] 1280 × 720 英文窗口仍有内部滚动。** 修改前普通概览为 464/495、侧栏为 586/633。增加较矮窗口样式，压缩间距与图表高度；普通及重比对最终概览均为 476/476，侧栏为 586/586，文档高度均等于 720。
-- 较矮窗口证据：`54-short-desktop-before.png`、`55-short-desktop-fixed.png`、`57-realignment-short-fixed.png`。
-- 没有通过全局禁止滚动隐藏内容。较多日志和异常信息在详情区域滚动；手机保持正常纵向排布。
-
-### 浏览器与交互验收
-
-- 结果页：1440 × 800 中文、1280 × 800 中英文、1280 × 720 英文概览均完整显示，主要区域没有额外滚动。重比对初始和优化结果切换后数值与文件对应。
-- 等待页：1440 × 800 中文、1280 × 800 英文、1280 × 720 中文主要信息与恢复入口均可见。失败状态、长任务名和 100 行日志没有撑高整页；长日志仅在详情区域滚动。
-- 手机：390 × 844 检查两类页面，没有横向溢出；采用自然高度以保持可读性。截图 `48-waiting-mobile.png`、`52-result-mobile.png`。
-- 标签支持键盘切换；任务凭证入口可切换到对应面板；隐藏面板保持有效的 ARIA 关联。
-- 概览、比对查看器、下载标签、结果版本选择、帮助与返回入口均检查。刷新后下载标签和 initial 阶段保持；帮助返回后保留 refined 阶段。
-- 从公开示例下载 ZIP，所得文件 SHA256 与已版本化的 final.zip 一致：`7CC7147889BFB21D38F51AF3E8C86BDD50D0A8399B90EA6EB733258E2300BF25`。
-- 浏览器页面 console 最后检查无 error / warn。临时等待页预览文件已移除，测试数据源码仅留在截图目录用于复核。
-
-### 自动化测试与构建
-
-- 用户已授权同步更新并运行相关测试。更新 ResultOverview 的新版结构断言，新增 JobWorkspace 的进度、计数、凭证标签、键盘操作、失败与预处理不可用用例。
-- 最终执行 **6 个测试文件、27 项测试，全部通过**：ResultOverview、JobWorkspace、results API、jobs API、viewerContext、columnStatsStore。
-- 测试报告：`C:/mnt/d/code/easymsa-ux-20261005/sidebar-regression.json`。
-- Node.js 24.21.0 环境下 TypeScript 与 Vite 8.3.2 生产构建通过；最终构建完成于本次布局调整之后。diff 空白检查通过。
-
-### 完成边界
-
-- 本轮通过本地静态示例、页面测试数据、相关单元测试和构建检查；未运行完整跨浏览器自动化套件。
-- 当前本地后端通道不可用，等待页的服务器真实轮询与新任务完整流程未在本轮复验。
-- 本轮未提交、推送、发布或重新部署服务；本地预览继续运行，浏览器恢复中文并取消测试视口限制。
-
-## 2026-10-05 查看器工作台：矩阵优先改版
-
-### 设计依据与对照
-
-- 依据用户批准的《EasyMSA 查看器改版：矩阵优先、全屏直达、工具按需展开》，并使用用户提供的两张问题截图作为改版前对照。
-- 对照截图已原样保存在 `C:/mnt/d/code/easymsa-ux-20261005/67-before-task-viewer.png`（2946×1587）和 `68-before-standalone-viewer.png`（2718×1784）。
-- 同一比较输入中检查了旧任务截图和真实任务新全屏截图 `66-real-task-fullscreen.png`（1440×900）。源图为问题现状，目标是解决其布局问题；不声称复刻旧布局或逐像素一致。
-- 最终默认矩阵、分析侧栏、视图设置、手机普通页与底部面板分别保存在 59–65、69 号截图；详细链接见 `docs/viewer-workbench-20261005.md`。
-
-### 核心视觉检查
-
-| 表面 | 检查结果 |
-| --- | --- |
-| 字体 | 沿用原有字体和默认矩阵密度；桌面碱基块 20×24 px。信息栏、工具栏、状态栏分层；长名称省略并提供完整 title。英文搜索框增加箭头留白。 |
-| 间距与结构 | 默认只有来源栏、单行工具、细概览、矩阵、状态栏；移除整个查看器的嵌套卡片。全屏默认矩阵区在要求的三个桌面尺寸均超过 75%；1440×900 为 738.3 px。 |
-| 颜色 | 保留青绿色 #0F766E 与原有浅色碱基颜色；独立页面的全屏操作使用实心青绿。面板标签、焦点和选区使用同一强调色。 |
-| 图像、图标 | 保留原 Logo 与 Lucide 图标，未用生成图片或手绘图替代功能界面；矩阵与统计轨道从真实比对绘制。 |
-| 内容 | 中文英文同步；选择信息与显示范围移到底栏，视图与分析按需展开，删除默认轨道胶囊和重复设置说明。 |
-| 适应性 | 360/390/768/1280/1920 px 检查通过；移动端工具和面板控件保留触控大小，矩阵内部双向浏览。 |
-
-### 发现与处理
-
-- **[P1，关闭] 导出菜单被固定坐标/质量轨道挡住。** 将矩阵与侧栏放进独立层级，菜单保持在矩阵上方；真实鼠标导出与 Escape 检查通过。
-- **[P2，关闭] 全屏与背景重复出现结果版本控件。** 全屏时只保留来源栏选择器；只有初始产物时不显示冗余选择器。
-- **[P2，关闭] 窄屏状态栏无法通过键盘滚动。** 增加焦点与清晰边框，axe 和窄屏重排通过。
-- **[P2，关闭] 快速返回可能早于延迟保存。** 离开/页面隐藏前保存当前工作区；立即返回后选区和缩放恢复通过。
-- **[P2，关闭] 同内容不同任务可能共享查看状态。** 使用任务与阶段命名空间保存；兼容旧工作区导入，旧面板展开标志不恢复。
-- **[P2，关闭] 英文搜索选项靠近下拉箭头。** 增加选项宽度及右侧留白，再执行截图回归。
-
-### 行为、无障碍与验收
-
-- 任务与示例点击比对结果进入网页内全屏；直接链接、返回、刷新、浏览器前进后退、阶段切换均覆盖。
-- 文件、粘贴与公开示例载入后保持普通模式；全屏切换保持同一矩阵实例。
-- 选择/键盘/搜索不自动打开分析。视图与分析共用单侧面板，手机使用底部面板；Esc 优先关闭当前浮层，返回后焦点恢复。
-- 294 项单元测试通过。完整查看器浏览器检查 42 项通过、1 项预期跳过、0 失败；17 张视觉基线更新并比对。
-- 最终搜索框留白调整后另执行 15 项布局及视觉复验，全部通过；报告保存在 `C:/mnt/d/code/easymsa-ux-20261005/viewer-final-layout.json`。
-- Chromium、Firefox、WebKit 均覆盖；手机使用浏览器设备仿真。Safari 不运行 CDP 专用多触点注入用例，该用例在 Chromium 通过；Safari 的点击与底部面板检查通过。
-- 真实 MiniPOA 任务：文件上传、全屏查看、返回恢复、刷新、gzip 下载及内容校验通过（20 条、515 列），不发送邮件。
-- TypeScript 与生产构建通过；保留本地前端和已有后台隧道。未修改后端、提交代码或发布远程版本。
-
-**Design QA：通过。** 本轮范围为查看器界面、状态和交互；详细测试证据与产物见 `docs/viewer-workbench-20261005.md`。
-
-## 2026-10-06 标准提交页：连续背景与简化设置
-
-**final result: passed**
-
-- 范围：标准提交页的背景、间距、字段组织和优化选项；固定以 audit 提交。
-- 依据：用户提供的提交页截图及三个明确修改点。以现有字体、青绿色和左右输入/设置布局为基础进行局部改版。
-- 视觉比较：同一工具输入中打开修改前与修改后的 1440×900 截图，比较空输入、Auto、优化关闭的状态。旧图多一行历史返回链接，比较时不将该状态差异归入布局修复；保留原返回逻辑。
-- 修改前：`C:/mnt/d/code/easymsa-submit-ui-20261006/01-before-desktop.png`。
-- 修改后：`C:/mnt/d/code/easymsa-submit-ui-20261006/02-after-desktop-zh.png`。
-
-| 检查面 | 结论 |
-| --- | --- |
-| 字体与层级 | 沿用现有字体；左右区域标题统一为 18 px，主要标题保留层级，提示使用低强调色。 |
-| 间距与布局 | 取消表单整片白底，输入框独立使用白色；细分隔线和留白连续。宽屏名称/邮箱并排，窄屏纵向排列。 |
-| 色彩 | 保留现有浅色页面与青绿色操作色，提交条使用页面同色背景。 |
-| 图像与图标 | 保留现有 Logo、Lucide 图标；没有新增图像资产或模拟界面。 |
-| 内容 | 移除预处理单选；仅保留自动检查提示。优化选项为“优化比对质量”，提示运行时间增加、质量可能提高，中英文同步。 |
-| 交互 | 粘贴/上传切换、示例载入反馈、文件移除、优化勾选和高级设置展开可用。优化默认关闭；详细参数折叠显示。 |
-
-### 调整与最终证据
-
-- [P2，关闭] 原表单白底左边缘与页面背景突然切断：改为透明表单表面，保留输入控件白底。
-- [P2，关闭] 小尺寸桌面初稿英文页多出 10 px 滚动：缩短低高度屏幕的标题间距与页面留白，最终中英文在 1280×720 下页面高度均为 720 px、宽度为 1280 px，提交按钮底部约 629 px。
-- 1440×900 中文、1280×720 中英文、390×844 示例载入与 360×800 粘贴界面已在应用浏览器查看；两种手机宽度均无横向溢出。手机保留自然纵向浏览和固定可见的提交入口。
-- 已检查优化展开后的服务器规模限制及执行顺序；本轮未创建计算任务，未运行自动化测试套件。
-- 固定 `preprocessMode: "audit"`；移除旧模式草稿读取，旧 filter 草稿不能改变此页提交参数。后端接口及历史任务不变。
-- 浏览器未记录控制台错误；本地页面显示分析服务可用。TypeScript 与生产构建通过。
-
-## 2026-10-06 提交页高级设置与桌面单屏
-
-本节更新上一轮固定 audit 的交互：默认 audit，在高级设置内允许用户主动切换 filter，使用新的草稿键，不读取旧过滤模式缓存。
-
-- 名称与邮箱上下排列；空名称聚焦生成本地时间名称并选中，已有及示例名称保留。
-- 高级设置包含预处理模式、线程及 MAFFT 参数；恢复默认统一重置。参数错误展开并聚焦字段，右侧内部定位。
-- 删除输入区重复的格式/100 MiB 说明，保留真实上传校验。过滤提示随选择更新。
-- 桌面以视口分配导航、表单、提交条及页脚；右侧设置和左侧长输入内部滚动，提交按钮保持可见；手机自然纵向布局。
-- 中英文在 1280×720、1280×800、1440×900 下 document 高度等于视口，宽度无溢出；MAFFT 与优化设置全部展开仍保持单屏。
-- 1024×576 等效缩放视口检查通过；未直接检查独立 Chrome 的 125% 缩放。390×844 两种语言无横向溢出。
-- 示例载入和带返回示例入口的 1280×720 页面检查通过；浏览器显示分析服务可用，队列 0。
-- 5 个测试文件共 28 项通过，包含新提交参数、草稿、名称、错误定位测试；TypeScript 与 Vite 生产构建通过，git diff --check 通过。
-- 截图：C:/mnt/d/code/easymsa-submit-ui-20261006/09-single-screen-default.png；10-advanced.png。默认视图保留宽输入区和纵向字段；展开视图将额外设置限定在右侧，较上一轮没有新增包裹卡片。
-- 本轮未提交真实计算任务，无远程提交或发布。
-
-## 2026-10-06 使用文档与关于页：第三套设计
-
-**final result: passed**
-
-- 视觉依据：`C:/Users/30451/.codex/generated_images/01a0f1ee-27f3-7443-9fbc-482687400cbc/exec-de1a5d44-23e2-40c4-aa8f-a8e7caa0d383.png`，用户选定的第三张设计图，原图 1672×941 px，左右各一页。
-- 实现截图：`C:/mnt/d/code/easymsa-docs-design-20261006/11-docs-final-default.png` 与 `12-about-final-default.png`，浏览器 CSS 视口 1280×800，截图各 1265×791 px。生成图每页约 836×941 px，和实际桌面视口比例不同，因此对照以内容区域、层级、密度和表格结构为准，不进行像素级重合判断。
-- 同一比较图：`C:/mnt/d/code/easymsa-docs-design-20261006/09-design-comparison.png`，上方为所选设计，下方为两个实际页面；方法表聚焦对照为 `13-method-table-comparison.png`。两图均已并排检查。
-- 状态：中文、浅色主题；文档页在“快速开始”章节且首篇展开，关于页显示完整方法清单。手机另检查 390×844 的文档与关于页；英文关于页也检查了换行与横向溢出。
-
-### 对照结论与修正历史
-
-- [P2，关闭] 关于页初稿只有分隔列表，与所选方案的桌面表格不一致。已改成五列方法表头与对应条目，手机端自动转为紧凑纵向列表；复验见聚焦对照图。
-- [P2，关闭] 文档搜索结果初稿继续使用两列卡片，与简洁文档风格不符。已改为分隔线列表。
-- [P2，关闭] 文档页原副标题较长且夹杂英文术语。已缩短中英文说明，保留提交、查看器和恢复的快速文字链接。
-- 字体与层级：沿用网站字体和字号体系；标题、章节和方法名的视觉层级与设计相符。源图与实现视口比例不同导致行数略有差别。
-- 间距与布局：文档为紧凑标题/搜索、左目录、右正文；关于为引言加连续表格，没有卡片墙。手机自然纵向排列，没有横向溢出。
-- 颜色与图标：保留青绿色交互色、浅色背景、已有 Logo 与图标库。设计稿没有额外照片、插画或位图资产，不需新图像资源。
-- 内容：保留现有真实教程、方法版本、论文、源码和服务说明；生成设计稿中的示例文案和缺失引用不覆盖真实数据。
-- 交互：目录切换、章节深链、文档搜索、结果跳转、FAQ 展开及复制 FASTA 示例已检查。文档页 5 项相关测试通过，TypeScript 与生产构建通过；两个页面无浏览器控制台错误。
-
-**剩余 P0/P1/P2：无。** 此轮仅更改本地前端，未提交或发布远程版本。
-
-
-## 2026-10-08 — MSA 查看器第一版设计稿实现
+The final built responsive/enlarged-text rerun passed **4/4** on port 5218;
+`D:\code\easymsa-studio-20261030\attempt-5-results.json` preserves the result.
+The strict endpoint bounds check was not relaxed. The accepted Chinese/English overview/detail captures recorded zero console errors, page errors or failed requests across 12 views. The served assets match the accepted build. No actionable P0/P1/P2 finding
+remains. Exact scientific-value and download checks are documented in
+[the executed verification record](docs/BENCHMARK_STUDIO.md).
 
 final result: passed
-
-### 对照依据与图像规格
-
-- 用户选定图：`C:/mnt/d/code/easymsa-design/20261007-viewer-reference/concept-1.png`，1586×992 px。
-- 实际页面：`http://localhost:5173/easymsa/#/examples/alignment-small?tab=alignment`。
-- 实现捕获：`C:/mnt/d/code/easymsa-viewer-v1-20261008/screenshots/selected-1586.png`，CSS 视口 1586×992，截图 1586×992，比例 1:1；浅色、中文、全屏、选中一列、面板关闭。
-- 已在同一输入中并排检查全图 `design-comparison.png` 和聚焦图 `design-detail-comparison.png`，位于上述 screenshots 目录。聚焦区域覆盖来源栏、工具栏、固定轨道和名称列与矩阵交界。
-- 设计稿为虚构 2,000×1,500 数据；实现用既有公开合成示例 20×515。两者尺寸与界面状态一致，数据规模及数值不同。20 行显示完后的留白、保守性与 Logo 高度按真实数据呈现，不作为视觉偏差。没有将设计稿的假数值写入产品。
-
-### 五项视觉检查
-
-| 检查面 | 结果 |
-| --- | --- |
-| 字体与层级 | 沿用网站现有字体、等宽矩阵字体和品牌；来源、工具、坐标、数据层级清楚。默认 14×20 px 紧凑字块；另有舒适显示。 |
-| 间距与布局 | 44 px 来源栏与工具栏，固定轨道与矩阵连续排列；名称列、88 px 缩略图、28 px 状态栏与计划一致。默认不显示设置卡片。桌面 1280×720 等视口的矩阵加轨道占比通过 ≥75% 自动检查。 |
-| 配色与状态 | 青绿色主操作；A/C/G/T 使用柔和绿、蓝、黄、粉底；选列贯穿轨道和矩阵，选区轮廓可辨。面板展开收起缩略图。 |
-| 图形与资产 | 使用原有 EasyMSA 品牌图形和图标库；矩阵、Logo、轨道、缩略图均由实际数据绘制。没有使用设计稿的生成 Logo 或模拟数据图片。 |
-| 文字与内容 | 统一“视图、分析、导出”；Logo 明确 0–100% 频率，统计范围显示在底栏；任务名称、实际规模与结果版本保留。中英文、窄屏文字经过检查。 |
-
-### 修正与复验
-
-- [P2，已关闭] 选列定位线可能覆盖冻结名称列：将定位线限制在数据区域；最终 `selected-1586.png` 可见定位线在矩阵列内。
-- [P2，已关闭] 共识分析显示内部标识 `easymsa:consensus`：新增本地化名称映射；组件回归通过，`analysis-final-1586.png` 显示“共识”。
-- [P2，已关闭] 小数据的“当前视图”导出范围沿用旧头部高度及额外列：按真实滚动区及冻结轨道重新计算；单元回归覆盖，SVG/PNG 浏览器导出通过。
-- [P2，已关闭] 新矩阵密度使旧 PNG 超限测试未达到阈值：使用真实单行超宽输入触发保护，保留原导出限制；无障碍导出场景复验通过。
-- 五组 Linux Chromium 视觉基准更新后再次执行，5/5 通过；移动 360/390、平板 768、桌面 1280/1920。
-- 辅助状态：`default-final-1586.png`、`analysis-final-1586.png`、`search-1440.png`、`embedded-1586.png`、`mobile-390.png`、`mobile-360.png`、`mobile-analysis-390.png`。
-
-### 交付检查
-
-- [x] 任务/示例结果全屏入口；独立查看器保留普通模式及全屏按钮。
-- [x] 搜索、列定位、缩放、设置、分析、导出可用；选择不会自动打开分析。
-- [x] 冻结轨道、真实碱基频率与共识、右侧全局导航。
-- [x] 旧工作区迁入紧凑布局，科学设置与选择保留；阶段状态隔离。
-- [x] Chromium、Firefox、WebKit、手机触控及无障碍回归。
-- [x] 197 项单元/组件测试、生产构建通过；本地开发前端与 API 代理正常。
-
-剩余 P0/P1/P2：无。本轮仅本地交付；保留原 Docs/About 工作，不提交远程、不发布、不部署后台。
-
-## 2026-10-08 — 横向概览与拖动滑块
-
-final result: passed
-
-### 对照与范围
-
-- Source visual truth: `C:/mnt/d/code/easymsa-viewer-v1-20261008/screenshots/default-final-1586.png`，用户已经认可的当前查看器，1586×992 px。
-- Implementation: `C:/mnt/d/code/easymsa-horizontal-overview-20261008/default-1586.png`，1586×992 px；CSS 视口 1586×992，1:1，中文、公开 alignment-small 示例、全屏、第一列、默认缩放、面板关闭。
-- 同一输入并排检查 `comparison.png`（3188×1022）及 `comparison-detail.png`（3188×372），位于实现截图目录。标签栏和 16 px 间距仅用于对照；两侧截图没有缩放。聚焦图覆盖工具栏、横向概览、轨道和前几行。
-- 本次有意增加 32 px 横向导航栏，其余来源、工具、冻结轨道、行高列宽和右侧缩略图沿用已确认版。
-
-### 五项视觉检查
-
-| 检查面 | 结论 |
-| --- | --- |
-| 字体与文字 | 沿用网站字体与紧凑层级；新增中英文概览名称、当前列范围和操作提示。不会增加长段落。 |
-| 间距与布局 | 横向栏在工具栏与轨道之间，桌面 32 px；低于 650 px 的桌面窗口收紧为 24 px；手机触控目标 44 px。名称列、矩阵与右侧导航保留。 |
-| 配色与状态 | 概览使用当前矩阵配色；青绿色视口框和双侧拖动手柄清楚可辨，焦点有轮廓。 |
-| 图形质量 | Canvas 由实际载入的可见行列生成，不使用演示图片。滚动仅移动视口框，不重复扫描序列。原品牌与图标库保持一致。 |
-| 内容与功能 | 拖动、点击、滚轮和键盘直接移动矩阵；当前列采用原始比对坐标。选区、纵向位置和面板状态不被横向定位改变。 |
-
-### 比较历史与修正
-
-- [P2，已修正] 1024×576 等矮窗口中，新增栏使矩阵加冻结轨道的占比降至约 74%。在这类桌面窗口将概览收紧为 24 px。复验截图 `short-1024.png`；浏览器读数 75.30%，页面高度 576，无整页滚动。三引擎的矮窗口、中英文和 125% 等效视口检查通过。
-- 最终并排全图与聚焦图未发现其他 P0/P1/P2 差异。新增横向栏是用户指定变化，现有紧凑矩阵及纵向导航保留。
-- 手机有效截图：`C:/mnt/d/code/easymsa-horizontal-overview-20261008/mobile-390-validated.png`，390×844、Linux Chromium、英文、触控布局，来自已通过的真实浏览器视觉检查。
-
-### 验收
-
-- 15/15 相关单元及组件检查通过；生产构建通过。
-- 17 个独立交互与布局场景最终通过：Chromium、Firefox、WebKit，移动 Chrome/Safari 模拟；包含拖动起手无跳动、点击、滚轮、键盘、缩放、列筛选、视口变化、纵向位置保持与缓存。
-- 5/5 视觉基准更新后复验通过；覆盖 360、390、768、1280、1920 宽度及普通/全屏/面板状态。
-- 1/1 全屏与 Canvas 无障碍回归通过。
-- 本地公开示例用实际浏览器拖动，范围从 1–82 移至 173–254；截图 `dragged-1440.png`。交付前浏览器未记录控制台错误；发现开发通道断开后通过项目重连接口恢复，本地 `/api/health` 返回 HTTP 200。临时视口设置已复原。
-
-剩余 P0/P1/P2：无。仅本地修改，未提交或发布。

@@ -544,6 +544,4457 @@
   ],
   "batches": [
     {
+      "id": "memory32-single-20261029",
+      "created_at": "2026-10-29T06:54:46.764286+00:00",
+      "dataset_id": "dna-rna-v1",
+      "dataset_version": "frozen-colon-n-20261027",
+      "environment": {
+        "id": "easymsa-shared-47-memory32-20261029",
+        "label": "32 GiB targeted memory retry: 41 pairs; Java heap 28 GiB; shared server",
+        "cpu": "AMD EPYC 9T25 128-Core Processor",
+        "os": "Ubuntu 22.04.5 LTS",
+        "memory_gib": 61.64804458618164
+      },
+      "threads": 4,
+      "scoring": {
+        "id": "sp1-mismatch-1-gap-2-0-qscore21",
+        "label": "SP +1/-1, gap -2/0; Q/TC against full reference; no T/U conversion"
+      },
+      "methods": [
+        {
+          "method_id": "tcoffee",
+          "version": "13.41.0.28bdc39",
+          "commit": null,
+          "parameters": [
+            "python3",
+            "{adapter}",
+            "tcoffee",
+            "{input}",
+            "{output}",
+            "4"
+          ]
+        },
+        {
+          "method_id": "muscle5",
+          "version": "5.3 [d9725ac]",
+          "commit": null,
+          "parameters": [
+            "muscle5",
+            "-align",
+            "{input}",
+            "-output",
+            "{output}",
+            "-threads",
+            "4"
+          ]
+        },
+        {
+          "method_id": "halign3",
+          "version": "3.0.0_rc1",
+          "commit": null,
+          "parameters": [
+            "java",
+            "-Xmx28g",
+            "-jar",
+            "{executable}",
+            "-o",
+            "{output}",
+            "-t",
+            "4",
+            "{input}"
+          ]
+        }
+      ],
+      "results": [
+        {
+          "method_id": "tcoffee",
+          "dataset_id": "dna_16s_10k",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "not_applicable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "no_reference"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "not_applicable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "no_reference"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "tcoffee",
+          "dataset_id": "dna_mt_100",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "not_applicable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "no_reference"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "not_applicable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "no_reference"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "tcoffee",
+          "dataset_id": "dna_mt_1k",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "not_applicable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "no_reference"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "not_applicable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "no_reference"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "tcoffee",
+          "dataset_id": "dna_mt_10k",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "not_applicable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "no_reference"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "not_applicable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "no_reference"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "tcoffee",
+          "dataset_id": "dna_mt_sim_70",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "tcoffee",
+          "dataset_id": "dna_mt_sim_75",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "tcoffee",
+          "dataset_id": "dna_mt_sim_80",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "tcoffee",
+          "dataset_id": "dna_mt_sim_85",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "tcoffee",
+          "dataset_id": "dna_mt_sim_90",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "tcoffee",
+          "dataset_id": "dna_mt_sim_91",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "tcoffee",
+          "dataset_id": "dna_mt_sim_92",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "tcoffee",
+          "dataset_id": "dna_mt_sim_93",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "tcoffee",
+          "dataset_id": "dna_mt_sim_94",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "tcoffee",
+          "dataset_id": "dna_mt_sim_95",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "tcoffee",
+          "dataset_id": "dna_mt_sim_96",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "tcoffee",
+          "dataset_id": "dna_mt_sim_97",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "tcoffee",
+          "dataset_id": "dna_mt_sim_98",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "tcoffee",
+          "dataset_id": "dna_mt_sim_99",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "tcoffee",
+          "dataset_id": "rna_4095",
+          "status": "timeout",
+          "reason_code": "timeout",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "tcoffee",
+          "dataset_id": "rna_8191",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "muscle5",
+          "dataset_id": "dna_mt_100",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "not_applicable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "no_reference"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "not_applicable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "no_reference"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "muscle5",
+          "dataset_id": "dna_mt_1k",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "not_applicable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "no_reference"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "not_applicable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "no_reference"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "muscle5",
+          "dataset_id": "dna_mt_10k",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "not_applicable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "no_reference"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "not_applicable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "no_reference"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "muscle5",
+          "dataset_id": "dna_mt_sim_70",
+          "status": "timeout",
+          "reason_code": "timeout",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "muscle5",
+          "dataset_id": "dna_mt_sim_75",
+          "status": "timeout",
+          "reason_code": "timeout",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "muscle5",
+          "dataset_id": "dna_mt_sim_80",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "muscle5",
+          "dataset_id": "dna_mt_sim_85",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "muscle5",
+          "dataset_id": "dna_mt_sim_90",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "muscle5",
+          "dataset_id": "dna_mt_sim_91",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "muscle5",
+          "dataset_id": "dna_mt_sim_92",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "muscle5",
+          "dataset_id": "dna_mt_sim_93",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "muscle5",
+          "dataset_id": "dna_mt_sim_94",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "muscle5",
+          "dataset_id": "dna_mt_sim_95",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "muscle5",
+          "dataset_id": "dna_mt_sim_96",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "muscle5",
+          "dataset_id": "dna_mt_sim_97",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "muscle5",
+          "dataset_id": "dna_mt_sim_98",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "muscle5",
+          "dataset_id": "dna_mt_sim_99",
+          "status": "failed",
+          "reason_code": "oom",
+          "planned_repeats": 1,
+          "valid_repeats": 0,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "sp_score": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "avg_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "scaled_sp": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "q": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            },
+            "tc": {
+              "value": null,
+              "mean": null,
+              "sd": null,
+              "min": null,
+              "max": null,
+              "status": "unavailable",
+              "valid_count": 0,
+              "planned_count": 1,
+              "display": null,
+              "reason_codes": [
+                "execution_failed"
+              ]
+            }
+          }
+        },
+        {
+          "method_id": "halign3",
+          "dataset_id": "dna_mt_sim_70",
+          "status": "complete",
+          "reason_code": null,
+          "planned_repeats": 1,
+          "valid_repeats": 1,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": 63.43,
+              "sd": null,
+              "min": 63.43,
+              "max": 63.43,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": 30480144.0,
+              "sd": null,
+              "min": 30480144.0,
+              "max": 30480144.0,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            },
+            "sp_score": {
+              "value": 3187696.0,
+              "mean": 3187696.0,
+              "sd": null,
+              "min": 3187696.0,
+              "max": 3187696.0,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            },
+            "avg_sp": {
+              "value": 643.97899,
+              "mean": 643.97899,
+              "sd": null,
+              "min": 643.97899,
+              "max": 643.97899,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            },
+            "scaled_sp": {
+              "value": 0.036868,
+              "mean": 0.036868,
+              "sd": null,
+              "min": 0.036868,
+              "max": 0.036868,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            },
+            "q": {
+              "value": 0.63,
+              "mean": 0.63,
+              "sd": null,
+              "min": 0.63,
+              "max": 0.63,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            },
+            "tc": {
+              "value": 0.0707,
+              "mean": 0.0707,
+              "sd": null,
+              "min": 0.0707,
+              "max": 0.0707,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            }
+          }
+        },
+        {
+          "method_id": "halign3",
+          "dataset_id": "dna_mt_sim_75",
+          "status": "complete",
+          "reason_code": null,
+          "planned_repeats": 1,
+          "valid_repeats": 1,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": 63.29,
+              "sd": null,
+              "min": 63.29,
+              "max": 63.29,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": 30486080.0,
+              "sd": null,
+              "min": 30486080.0,
+              "max": 30486080.0,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            },
+            "sp_score": {
+              "value": 13845281.0,
+              "mean": 13845281.0,
+              "sd": null,
+              "min": 13845281.0,
+              "max": 13845281.0,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            },
+            "avg_sp": {
+              "value": 2797.026465,
+              "mean": 2797.026465,
+              "sd": null,
+              "min": 2797.026465,
+              "max": 2797.026465,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            },
+            "scaled_sp": {
+              "value": 0.162978,
+              "mean": 0.162978,
+              "sd": null,
+              "min": 0.162978,
+              "max": 0.162978,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            },
+            "q": {
+              "value": 0.693,
+              "mean": 0.693,
+              "sd": null,
+              "min": 0.693,
+              "max": 0.693,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            },
+            "tc": {
+              "value": 0.0964,
+              "mean": 0.0964,
+              "sd": null,
+              "min": 0.0964,
+              "max": 0.0964,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            }
+          }
+        },
+        {
+          "method_id": "halign3",
+          "dataset_id": "dna_mt_sim_80",
+          "status": "complete",
+          "reason_code": null,
+          "planned_repeats": 1,
+          "valid_repeats": 1,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": 43.94,
+              "sd": null,
+              "min": 43.94,
+              "max": 43.94,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": 30482624.0,
+              "sd": null,
+              "min": 30482624.0,
+              "max": 30482624.0,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            },
+            "sp_score": {
+              "value": 32048195.0,
+              "mean": 32048195.0,
+              "sd": null,
+              "min": 32048195.0,
+              "max": 32048195.0,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            },
+            "avg_sp": {
+              "value": 6474.382828,
+              "mean": 6474.382828,
+              "sd": null,
+              "min": 6474.382828,
+              "max": 6474.382828,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            },
+            "scaled_sp": {
+              "value": 0.377097,
+              "mean": 0.377097,
+              "sd": null,
+              "min": 0.377097,
+              "max": 0.377097,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            },
+            "q": {
+              "value": 0.821,
+              "mean": 0.821,
+              "sd": null,
+              "min": 0.821,
+              "max": 0.821,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            },
+            "tc": {
+              "value": 0.179,
+              "mean": 0.179,
+              "sd": null,
+              "min": 0.179,
+              "max": 0.179,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            }
+          }
+        },
+        {
+          "method_id": "halign3",
+          "dataset_id": "dna_mt_sim_85",
+          "status": "complete",
+          "reason_code": null,
+          "planned_repeats": 1,
+          "valid_repeats": 1,
+          "metrics": {
+            "wall_seconds": {
+              "value": null,
+              "mean": 18.01,
+              "sd": null,
+              "min": 18.01,
+              "max": 18.01,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            },
+            "max_rss_kib": {
+              "value": null,
+              "mean": 30460788.0,
+              "sd": null,
+              "min": 30460788.0,
+              "max": 30460788.0,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            },
+            "sp_score": {
+              "value": 48073802.0,
+              "mean": 48073802.0,
+              "sd": null,
+              "min": 48073802.0,
+              "max": 48073802.0,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            },
+            "avg_sp": {
+              "value": 9711.879192,
+              "mean": 9711.879192,
+              "sd": null,
+              "min": 9711.879192,
+              "max": 9711.879192,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            },
+            "scaled_sp": {
+              "value": 0.57122,
+              "mean": 0.57122,
+              "sd": null,
+              "min": 0.57122,
+              "max": 0.57122,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            },
+            "q": {
+              "value": 0.917,
+              "mean": 0.917,
+              "sd": null,
+              "min": 0.917,
+              "max": 0.917,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            },
+            "tc": {
+              "value": 0.4,
+              "mean": 0.4,
+              "sd": null,
+              "min": 0.4,
+              "max": 0.4,
+              "status": "complete",
+              "valid_count": 1,
+              "planned_count": 1,
+              "display": "single",
+              "reason_codes": []
+            }
+          }
+        }
+      ],
+      "repeats": 1,
+      "conditions": {
+        "cpu_limit": 4,
+        "memory_limit_gib": 32.0,
+        "alignment_timeout_seconds": 1800,
+        "scorer_timeout_seconds": 1800,
+        "workspace_limit_gib": 8.0,
+        "output_limit_gib": 1.0,
+        "log_limit_mib": 8.0,
+        "pids_limit": 512,
+        "workspace_mode": "bounded_tmpfs",
+        "serial": true,
+        "shared_host": true
+      }
+    },
+    {
       "id": "repair15-single-20261028",
       "created_at": "2026-10-28T12:48:00.972108+00:00",
       "dataset_id": "dna-rna-v1",

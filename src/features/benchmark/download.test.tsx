@@ -2,6 +2,7 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { publishedSnapshot } from "./__tests__/fixtures";
+import { repairSnapshot } from "./__tests__/repair-fixture";
 import { DownloadButtons } from "./presentation";
 import { metricKeys, parseSnapshot, type BenchmarkSnapshot } from "./model";
 
@@ -33,6 +34,11 @@ function compareCsvToJson(csv: string, json: BenchmarkSnapshot) {
     const name = json.methods.find(method => method.id === result.method_id)!.name;
     const row = rows.find(item => item[col("batch")] === batch.id && item[col("dataset")] === result.dataset_id && item[col("method")] === name && item[col("metric")] === key)!;
     expect(row).toBeDefined(); expect(row[col("result_status")]).toBe(result.status);
+    expect(row[col("version")]).toBe(batch.methods.find(method => method.method_id === result.method_id)?.version);
+    expect(row[col("threads")]).toBe(String(batch.threads));
+    for (const field of ["cpu_limit", "memory_limit_gib", "alignment_timeout_seconds"] as const) {
+      expect(row[col(field)]).toBe(batch.conditions?.[field] === undefined ? "" : String(batch.conditions[field]));
+    }
     expect(row[col("unit")]).toBe(key === "wall_seconds" ? "s" : key === "max_rss_kib" ? "KiB" : "");
     const metric = result.metrics[key];
     for (const field of ["value", "mean", "sd", "min", "max"] as const) expect(row[col(field)]).toBe(metric[field] === null ? "" : String(metric[field]));
@@ -51,6 +57,45 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.runOnlyPendingTimers(); vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 describe("download controls", () => {
+  it("exports latest filtered records with original batch provenance, then explicitly downloads all latest records", async () => {
+    const snapshot = repairSnapshot();
+    const unchanged = JSON.stringify(snapshot);
+    render(<DownloadButtons snapshot={snapshot} resultScope={{mode:"latest"}} datasetIds={["mt100"]} methodIds={["halign4", "mafft"]} locale="en" />);
+    fireEvent.click(screen.getByText("Download data"));
+    fireEvent.click(screen.getByRole("button", {name:"Download JSON"}));
+    const filtered = parseSnapshot(JSON.parse(await text(blobs[0])));
+    expect(filtered.catalog.datasets.map(dataset => dataset.id)).toEqual(["mt100"]);
+    expect(filtered.batches.map(batch => batch.id)).toEqual(["test-baseline", "test-repair15"]);
+    expect(filtered.batches.map(batch => batch.results.map(result => result.method_id))).toEqual([["mafft"], ["halign4"]]);
+    expect(filtered.batches[0].results[0].metrics.wall_seconds.value).toBe(10);
+    expect(filtered.batches[1].results[0].metrics.wall_seconds.value).toBe(20);
+    fireEvent.click(screen.getByRole("button", {name:"Download CSV"}));
+    compareCsvToJson(await text(blobs[1]), filtered);
+    fireEvent.change(screen.getByLabelText("Download scope"), {target:{value:"batch"}});
+    expect(screen.getByRole("option", {name:"All latest records"})).toHaveProperty("selected", true);
+    fireEvent.click(screen.getByRole("button", {name:"Download JSON"}));
+    const full = parseSnapshot(JSON.parse(await text(blobs[2])));
+    expect(full.catalog.datasets).toHaveLength(12);
+    expect(full.batches.map(batch => batch.results.length)).toEqual([93, 15]);
+    expect(new Set(full.batches.flatMap(batch => batch.results.map(result => `${result.dataset_id}/${result.method_id}`))).size).toBe(108);
+    fireEvent.click(screen.getByRole("button", {name:"Download CSV"}));
+    compareCsvToJson(await text(blobs[3]), full);
+    expect(JSON.stringify(snapshot)).toBe(unchanged);
+  });
+
+  it("keeps a latest detail download limited to the current dataset and method filter", async () => {
+    render(<DownloadButtons snapshot={repairSnapshot()} resultScope={{mode:"latest"}} datasetId="mt100" methodIds={["minipoa"]} locale="en" />);
+    fireEvent.click(screen.getByText("Download data"));
+    expect(screen.queryByLabelText("Download scope")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", {name:"Download JSON"}));
+    const json = parseSnapshot(JSON.parse(await text(blobs[0])));
+    expect(json.catalog.datasets.map(dataset => dataset.id)).toEqual(["mt100"]);
+    expect(json.batches.map(batch => batch.id)).toEqual(["test-repair15"]);
+    expect(json.batches[0].results.map(result => result.method_id)).toEqual(["minipoa"]);
+    fireEvent.click(screen.getByRole("button", {name:"Download CSV"}));
+    compareCsvToJson(await text(blobs[1]), json);
+  });
+
   it("exports the selected filter and batch with identical JSON/CSV metrics and raw memory units", async () => {
     const snapshot = publishedSnapshot(); snapshot.methods[0].name = 'Clustal, "quoted"';
     render(<DownloadButtons snapshot={snapshot} batchId="newer" datasetIds={["case_ref"]} locale="en" />);

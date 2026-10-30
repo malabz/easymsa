@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { parseSnapshot, type BenchmarkSnapshot } from "./model";
+import { websiteSnapshot } from "./website";
 
 export function useBenchmark() {
   const [data, setData] = useState<BenchmarkSnapshot | null>(null);
@@ -10,7 +11,7 @@ export function useBenchmark() {
     setData(null); setFailed(false);
     fetch(`${import.meta.env.BASE_URL}benchmark/snapshot.json`, { signal: controller.signal })
       .then(response => { if (!response.ok) throw new Error("Benchmark data unavailable"); return response.json(); })
-      .then(value => { if (!controller.signal.aborted) setData(parseSnapshot(value)); })
+      .then(value => { if (!controller.signal.aborted) setData(websiteSnapshot(parseSnapshot(value))); })
       .catch(() => { if (!controller.signal.aborted) setFailed(true); });
     return () => controller.abort();
   }, [revision]);

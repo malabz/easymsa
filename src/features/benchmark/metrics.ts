@@ -1,4 +1,5 @@
 import type { BenchmarkBatch, BenchmarkMetric, BenchmarkSnapshot, MetricKey } from "./model";
+import { selectRecords, type ResultScope } from "./selection";
 
 export type MetricLocale = "en" | "zh";
 export type MetricSpec = {
@@ -175,13 +176,16 @@ export function makeMetricAxis(key: MetricKey, metrics: (BenchmarkMetric | undef
   };
 }
 
-export function selectMetricRows(snapshot: BenchmarkSnapshot, batch: BenchmarkBatch | undefined, datasetId: string, key: MetricKey) {
+export function selectMetricRows(snapshot: BenchmarkSnapshot, batch: BenchmarkBatch | undefined, datasetId: string, key: MetricKey, scope?: ResultScope) {
+  const records = scope ? selectRecords(snapshot, scope).filter(entry => entry.result.dataset_id === datasetId) : undefined;
   return snapshot.methods.map(method => {
-    const spec = batch?.methods.find(entry => entry.method_id === method.id);
-    const result = batch?.results.find(entry => entry.dataset_id === datasetId && entry.method_id === method.id);
+    const sourced = records?.find(entry => entry.result.method_id === method.id);
+    const sourceBatch = scope ? sourced?.batch : batch;
+    const spec = sourceBatch?.methods.find(entry => entry.method_id === method.id);
+    const result = scope ? sourced?.result : batch?.results.find(entry => entry.dataset_id === datasetId && entry.method_id === method.id);
     const metric = result?.metrics[key];
     const raw = metricValue(metric);
-    return { method, spec, result, metric, raw, outsideBatch: Boolean(batch && !result), display: raw === null ? null : toDisplayValue(key, raw) };
+    return { method, spec, result, metric, raw, batch: sourceBatch, outsideBatch: Boolean((scope?.mode === "batch" || batch) && !result), display: raw === null ? null : toDisplayValue(key, raw) };
   });
 }
 

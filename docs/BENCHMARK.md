@@ -4,7 +4,7 @@ The Benchmark feature is a read-only public view, available at `/#/benchmark` an
 `/#/benchmark/datasets/:caseId`. It uses the current EasyMSA layout and language
 settings. The public entry is a horizontal link on **About** (/#/about); Benchmark
 is intentionally absent from both desktop and mobile primary navigation. Direct
-Benchmark URLs remain supported. See [UI decisions](BENCHMARK_UI.md).
+Benchmark URLs remain supported. See [UI decisions](BENCHMARK_UI.md) and [reading-experience verification](BENCHMARK_READING.md).
 
 GitHub submission, automatic Docker execution and publication requests
 are planned separately; there is no inactive submission form.
@@ -16,6 +16,21 @@ version: 26 cases, 20 DNA / 6 RNA, 20 complete references and nine methods. The
 234-unit real single-run batch completed on 2026-10-28 and is now included in the
 local preview: 163 complete results, 19 timeouts and 52 other failures. Missing
 metrics stay empty; failures are retained rather than replaced by zero scores.
+The snapshot contains three independent batches. The default **Latest records**
+view selects the newest complete record for each method/dataset pair, including
+failures: **234 pairs, 178 complete, 22 timeout, 34 memory failures**. Sources are
+182 baseline records, 11 adapter-repair records and 41 memory-retry records. This
+is a derived reading view, not a new experimental batch. It does not join metrics
+from different runs or fall back to an older success.
+
+The 32 GiB batch, `memory32-single-20261029`, contains 41 targeted pairs across 20
+datasets: four complete HAlign 3 results, 34 memory failures and three timeouts.
+Its task limit and HAlign 3 `-Xmx28g` setting remain separate from the two earlier
+16 GiB batches. Select a named batch to inspect its original observations. Sparse
+batches initially show included datasets/methods; **Show full catalog** exposes
+excluded combinations explicitly. No historical batch is changed.
+See [32 GiB import verification](BENCHMARK_MEMORY32.md) and
+[15-pair repair verification](BENCHMARK_REPAIR15.md).
 Three mitochondrial input copies replaced 40, 411 and 3491 sequence colons with N.
 Original files were retained. Public preprocessing records include counts and
 original/processed checksums, with no sequence data or server paths.
@@ -44,8 +59,10 @@ output path when updating a live catalog.
 The current public model has `schema_version: 2` (v1 remains readable) and four top-level fields:
 `schema_version`, `catalog`, `methods`, and `batches`. A batch is one comparable
 set of results with a dataset version, public environment, thread count, scoring
-rules, explicit repeat count, execution limits and locked method versions/parameters. Results from different batches are
-never merged on the page. Select a batch explicitly to inspect its values.
+rules, explicit repeat count, execution limits and locked method versions/parameters.
+The latest view carries each selected row's original batch and conditions. Named
+batch views use only that batch's values. Latest-view JSON exports group selected
+records back into their original batches; they never create a mixed batch.
 
 The evaluator project supplies `msa-bench export-public` and `validate-public`.
 Use its export documentation to prepare curated public metadata, export a formal

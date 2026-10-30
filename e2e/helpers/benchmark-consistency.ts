@@ -11,6 +11,20 @@ const statesZh: Record<string, string> = {complete:"完整", partial:"部分完�
 const reasonsZh: Record<string, string> = {no_reference:"无参考比对", reference_invalid:"参考比对待检查", invalid_output:"比对输出不合法", timeout:"达到时间限制", oom:"达到内存限制", unsupported:"方法不支持该输入", not_run:"待评测", execution_failed:"方法执行失败", scoring_failed:"评分失败", cancelled:"已取消", incomplete:"重复运行未完成", platform_error:"评测异常"};
 type Locale = "en" | "zh";
 
+/** Website expectations, independently stated without the production catalog helper. */
+export function expectedWebsiteSnapshot(archive: BenchmarkSnapshot): BenchmarkSnapshot {
+  const ids = ["clustalo", "tcoffee", "mafft", "muscle5", "halign4", "fmalign2", "minipoa"];
+  return {
+    ...archive,
+    methods: archive.methods.filter(method => ids.includes(method.id))
+      .map(method => ({ ...method, name: method.id === "halign4" ? "HAlign" : method.name })),
+    batches: archive.batches.map(batch => ({ ...batch,
+      methods: batch.methods.filter(method => ids.includes(method.method_id)),
+      results: batch.results.filter(result => ids.includes(result.method_id)),
+    })).filter(batch => batch.methods.length > 0),
+  };
+}
+
 function numeric(metric: BenchmarkMetric): number | null {
   return metric.status === "complete" || metric.status === "partial" ? metric.value ?? metric.mean : null;
 }
@@ -31,28 +45,70 @@ function coverage(metric: BenchmarkMetric, key: MetricKey, locale: Locale) {
   return `${metric.valid_count}/${metric.planned_count} ${locale === "en" ? "valid" : "有效"}` + (metric.display === "mean_sd" ? ` · ${locale === "en" ? "range" : "范围"} ${number(metric.min!, key, locale)}–${number(metric.max!, key, locale)}` : "");
 }
 
+/** Independent source selection: one whole record per pair, never best-score selection. */
+export function expectedRecords(snapshot: BenchmarkSnapshot, batchId: string) {
+  if (batchId !== "latest") {
+    const batch = snapshot.batches.find(b => b.id === batchId);
+    return batch?.results.map(result => ({result, batch})) ?? [];
+  }
+  const found = new Map<string, {result:BenchmarkBatch["results"][number]; batch:BenchmarkBatch}>();
+  const batches = [...snapshot.batches].sort((a,b) => Date.parse(b.created_at)-Date.parse(a.created_at) || b.id.localeCompare(a.id));
+  for (const batch of batches) {
+    if (batch.dataset_id !== snapshot.catalog.id || batch.dataset_version !== snapshot.catalog.version) continue;
+    for (const result of batch.results) {
+      const key = `${result.dataset_id}/${result.method_id}`;
+      if (!found.has(key)) found.set(key, {result, batch});
+    }
+  }
+  return [...found.values()];
+}
+
+export function expectedDownload(snapshot: BenchmarkSnapshot, batchId: string, caseIds?: string[], methodIds?: string[]) {
+  const datasets = snapshot.catalog.datasets.filter(d => !caseIds || caseIds.includes(d.id));
+  const sources = new Set(datasets.map(d => d.source_id));
+  const records = expectedRecords(snapshot,batchId).filter(({result}) =>
+    (!caseIds || caseIds.includes(result.dataset_id)) && (!methodIds || methodIds.includes(result.method_id)));
+  const batches = snapshot.batches.filter(batch => batchId === "latest" || batch.id === batchId)
+    .map(batch => ({...batch,results:batch.results.filter(result => records.some(row => row.batch.id===batch.id && row.result===result))}))
+    .filter(batch => batchId !== "latest" || batch.results.length > 0);
+  return {...snapshot,catalog:{...snapshot.catalog,datasets,sources:snapshot.catalog.sources.filter(source=>sources.has(source.id))},batches};
+}
+
 /** Independently check raw values, user-visible values and the rendered point coordinates. */
-export async function assertDatasetConsistency(page: Page, snapshot: BenchmarkSnapshot, batch: BenchmarkBatch, caseId: string, locale: Locale = "en") {
+export async function assertDatasetConsistency(page: Page, snapshot: BenchmarkSnapshot, batch: BenchmarkBatch | "latest", caseId: string, locale: Locale = "en") {
   const dataset = snapshot.catalog.datasets.find(d => d.id === caseId)!;
-  await page.getByRole("combobox", {name:locale === "en" ? "Evaluation batch" : "评测批次", exact:true}).selectOption(batch.id);
+  const batchId = batch === "latest" ? "latest" : batch.id;
+  const records = expectedRecords(snapshot,batchId);
+  const selector=page.getByRole("combobox", {name:locale === "en" ? "Evaluation batch" : "评测批次", exact:true});
+  await selector.selectOption(batchId);
+  await expect(selector).toHaveValue(batchId);
+  const full = page.getByRole("checkbox", {name:locale === "en" ? "Show full catalog" : "显示全部目录",exact:true});
+  if (await full.count()) {
+    if(!await full.isChecked()) await full.click();
+    // The checkbox commits through the router, so wait for React's checked
+    // state instead of Playwright check()'s immediate post-click assertion.
+    await expect(full).toBeChecked();
+  }
   const tableToggle = page.getByRole("button", {name:locale === "en" ? "Exact values" : "精确数值表", exact:true});
   await tableToggle.click();
   const table = page.getByTestId("precise-results");
   await expect(table).toBeVisible();
   const observed = await table.locator("td[data-metric]").evaluateAll(cells => cells.map(cell => ({
     method:cell.getAttribute("data-method"), key:cell.getAttribute("data-metric"), raw:cell.getAttribute("data-raw-value"),
-    display:cell.querySelector("div > span")?.textContent, text:cell.textContent
+    batch:cell.getAttribute("data-batch-id"), display:cell.querySelector("div > span")?.textContent, text:cell.textContent
   })));
   expect(observed).toHaveLength(snapshot.methods.length * 7);
   for (const method of snapshot.methods) for (const key of keys) {
-    const metric = batch.results.find(r => r.dataset_id === caseId && r.method_id === method.id)?.metrics[key];
+    const record = records.find(({result}) => result.dataset_id === caseId && result.method_id === method.id);
+    const metric = record?.result.metrics[key];
     const cell = observed.find(c => c.method === method.id && c.key === key)!;
-    const context = `${batch.id}/${caseId}/${method.id}/${key}`;
+    const context = `${batchId}/${caseId}/${method.id}/${key}`;
     if (!metric) {
       expect(cell.raw, context).toBe("");
       expect(cell.text, context).toBe(locale === "en" ? "Outside this batch" : "未纳入本批次");
       continue;
     }
+    expect(cell.batch, context).toBe(record!.batch.id);
     expect(cell.raw, context).toBe(numeric(metric) === null ? "" : String(numeric(metric)));
     expect(cell.display, context).toBe(display(metric, key, dataset.reference, locale));
     if (numeric(metric) !== null) expect(cell.text, context).toContain(`${metric.valid_count}/${metric.planned_count}`);
@@ -60,20 +116,23 @@ export async function assertDatasetConsistency(page: Page, snapshot: BenchmarkSn
       expect(cell.text, context).toContain((locale === "en" ? reasons : reasonsZh)[reason]);
     }
   }
-  await page.getByRole("button", {name:locale === "en" ? "Charts" : "图表", exact:true}).click();
+  await page.getByRole("button", {name:locale === "en" ? "Metric plots" : "分项指标", exact:true}).click();
   // Read all responsive chart panels, including mobile's inactive panels. The
   // dedicated interaction test also switches every mobile metric into view.
   const readCharts = () => page.locator("figure[data-metric]").evaluateAll(figures => figures.map(figure => ({
     key:figure.getAttribute("data-metric"), min:Number(figure.getAttribute("data-axis-min")), max:Number(figure.getAttribute("data-axis-max")), scale:figure.getAttribute("data-axis-scale"),
     rows:[...figure.querySelectorAll<HTMLElement>("[data-testid='metric-point']")].map(point => ({
-      method:point.dataset.method, raw:point.dataset.rawValue, label:point.getAttribute("aria-label"),
+      method:point.dataset.method, raw:point.dataset.rawValue, batch:point.dataset.batchId, label:point.getAttribute("aria-label"),
       position:point.querySelector<HTMLElement>("[data-testid='plot-dot']")?.style.left ?? null,
       ranges:point.querySelectorAll("[data-testid='plot-range']").length,
     }))
   })));
   const charts = await readCharts();
+  const mobileMetrics = page.getByRole("group", {name:locale === "en" ? "Chart metric" : "图表指标",exact:true});
+  if (await mobileMetrics.isVisible()) await mobileMetrics.getByRole("button", {name:locale === "en" ? "SP score ↑" : "SP 分数 ↑",exact:true}).click();
   for (const key of ["avg_sp", "scaled_sp"] as const) {
     await page.getByRole("combobox", {name:locale === "en" ? "SP measure" : "SP 类型", exact:true}).selectOption(key);
+    await expect(page.locator(`figure[data-metric="${key}"]`)).toHaveCount(1);
     charts.push((await readCharts()).find(chart => chart.key === key)!);
   }
   await page.getByRole("combobox", {name:locale === "en" ? "SP measure" : "SP 类型", exact:true}).selectOption("sp_score");
@@ -83,7 +142,8 @@ export async function assertDatasetConsistency(page: Page, snapshot: BenchmarkSn
     expect(chart.rows.map(r => r.method)).toEqual(snapshot.methods.map(m => m.id));
     if (key === "q" || key === "tc") { expect(chart.min).toBe(0); expect(chart.max).toBe(1); }
     for (const method of snapshot.methods) {
-      const metric = batch.results.find(r => r.dataset_id === caseId && r.method_id === method.id)?.metrics[key];
+      const record = records.find(({result}) => result.dataset_id === caseId && result.method_id === method.id);
+      const metric = record?.result.metrics[key];
       const row = chart.rows.find(r => r.method === method.id)!;
       const context = `${caseId}/${method.id}/${key}`;
       if (!metric) {
@@ -91,6 +151,7 @@ export async function assertDatasetConsistency(page: Page, snapshot: BenchmarkSn
         expect(row.label, context).toContain(locale === "en" ? "Outside this batch" : "未纳入本批次");
         continue;
       }
+      expect(row.batch, context).toBe(record!.batch.id);
       const value = numeric(metric);
       expect(row.raw, context).toBe(value === null ? "" : String(value));
       if (value === null) { expect(row.position, context).toBeNull(); continue; }
@@ -104,6 +165,46 @@ export async function assertDatasetConsistency(page: Page, snapshot: BenchmarkSn
       if (metric.display === "single") expect(row.ranges, context).toBe(0);
       else expect(row.ranges, context).toBe(1);
     }
+  }
+}
+
+/** Validate actual scatter coordinates, including unit conversion and provenance. */
+export async function assertScatterConsistency(page: Page, snapshot: BenchmarkSnapshot, batchId: string, caseId: string, locale: Locale = "en") {
+  await page.getByRole("button", {name:locale === "en" ? "Trade-off" : "速度—质量",exact:true}).click();
+  const chart = page.getByTestId("tradeoff-chart");
+  await expect(chart).toBeVisible();
+  const axes = await chart.evaluate(element => Object.fromEntries(["x", "y"].map(axis => [axis, {
+    key:element.getAttribute(`data-${axis}-key`), min:Number(element.getAttribute(`data-${axis}-min`)),
+    max:Number(element.getAttribute(`data-${axis}-max`)), scale:element.getAttribute(`data-${axis}-scale`),
+  }])));
+  const x = axes.x.key as MetricKey, y = axes.y.key as MetricKey;
+  const records = expectedRecords(snapshot,batchId).filter(({result}) => result.dataset_id===caseId);
+  const eligible = records.filter(({result}) => numeric(result.metrics[x])!==null && numeric(result.metrics[y])!==null);
+  const points = await page.getByTestId("tradeoff-point").evaluateAll(nodes=>nodes.map(node=>({
+    method:node.getAttribute("data-method"), batch:node.getAttribute("data-batch-id"),
+    xRaw:node.getAttribute("data-x-raw"), yRaw:node.getAttribute("data-y-raw"), shape:node.getAttribute("data-shape"),
+    x:Number(node.getAttribute("data-x-percent")), y:Number(node.getAttribute("data-y-percent")),
+    left:parseFloat((node as HTMLElement).style.left), top:parseFloat((node as HTMLElement).style.top),
+  })));
+  expect(points).toHaveLength(eligible.length);
+  for(const {result,batch} of eligible) {
+    const point=points.find(point=>point.method===result.method_id)!;
+    const values={x:numeric(result.metrics[x])!,y:numeric(result.metrics[y])!};
+    expect(point,`${caseId}/${result.method_id}`).toBeDefined();
+    expect(point.batch).toBe(batch.id);
+    expect(point.xRaw).toBe(String(values.x));expect(point.yRaw).toBe(String(values.y));
+    expect(point.shape).toBe(batch.id.startsWith("baseline-") ? "circle" : batch.id.startsWith("repair15-") ? "square" : batch.id.startsWith("memory32-") ? "triangle" : "diamond");
+    for(const axis of ["x","y"] as const) {
+      const a=axes[axis]; const converted=a.key==="max_rss_kib" ? values[axis]/1024 : values[axis];
+      const percent=a.scale==="log" ? (Math.log10(converted)-Math.log10(a.min))/(Math.log10(a.max)-Math.log10(a.min))*100 : (converted-a.min)/(a.max-a.min)*100;
+      const expected=Math.max(0,Math.min(100,percent));
+      expect(point[axis]).toBeCloseTo(expected,8);
+      expect(Math.abs((axis==="x" ? point.left : 100-point.top)-expected)).toBeLessThanOrEqual(.001);
+    }
+  }
+  if(y==="q" || y==="tc") {
+    const zoom=page.getByRole("checkbox",{name:locale==="en"?"Zoom Q / TC differences":"放大 Q / TC 差异",exact:true});
+    if(!await zoom.isChecked()){expect(axes.y.min).toBe(0);expect(axes.y.max).toBe(1);}
   }
 }
 
@@ -131,12 +232,8 @@ export function parseCsv(text: string): string[][] {
 }
 
 /** Download through the actual UI and compare every CSV field and JSON value. */
-export async function assertDownloadConsistency(page: Page, snapshot: BenchmarkSnapshot, batchId: string, caseId?: string, locale: Locale = "en") {
-  const datasets = snapshot.catalog.datasets.filter(d => !caseId || d.id === caseId);
-  const sourceIds = new Set(datasets.map(d => d.source_id));
-  const batch = snapshot.batches.find(b => b.id === batchId)!;
-  const expected = {...snapshot, catalog:{...snapshot.catalog, datasets, sources:snapshot.catalog.sources.filter(s => sourceIds.has(s.id))},
-    batches:[{...batch, results:batch.results.filter(r => !caseId || r.dataset_id === caseId)}]};
+export async function assertDownloadConsistency(page: Page, snapshot: BenchmarkSnapshot, batchId: string, caseId?: string | string[], locale: Locale = "en", methodIds?: string[]) {
+  const expected = expectedDownload(snapshot,batchId,typeof caseId === "string" ? [caseId] : caseId,methodIds);
   const menu = page.getByTestId("download-controls");
   if (await menu.getAttribute("open") === null) await menu.locator("summary").click();
   const jsonEvent = page.waitForEvent("download");
@@ -148,7 +245,7 @@ export async function assertDownloadConsistency(page: Page, snapshot: BenchmarkS
   const csv = parseCsv(readFileSync((await (await csvEvent).path())!, "utf8"));
   const columns = ["batch", "data_version", "dataset", "method", "version", "result_status", "valid_repeats", "planned_repeats", "metric", "unit", "metric_status", "valid_count", "planned_count", "value", "mean", "sd", "min", "max", "reason_codes", "threads", "batch_repeats", "cpu_limit", "memory_limit_gib", "alignment_timeout_seconds"];
   expect(csv[0]).toEqual(columns);
-  expect(csv).toHaveLength(1 + expected.batches[0].results.length * 7);
+  expect(csv).toHaveLength(1 + expected.batches.reduce((n,b) => n+b.results.length,0) * 7);
   let index = 1;
   // Numeric values retain full report precision; only missing values become empty.
   const cell = (value: unknown) => value == null ? "" : typeof value === "string" && /^[=+@\-\t\r]/.test(value) ? "'" + value : String(value);

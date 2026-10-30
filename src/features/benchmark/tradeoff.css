@@ -1,0 +1,95 @@
+.tradeoff { min-width:0; }
+.tradeoff-responsive { min-width:0; container-type:inline-size; }
+.tradeoff-controls { display:flex; flex-wrap:wrap; align-items:center; gap:.75rem 1.5rem; margin:1rem 0 .25rem; }
+.tradeoff-controls label { display:flex; align-items:center; gap:.65rem; min-width:0; color:var(--bench-muted); font-size:.8125rem; }
+.tradeoff-controls select { min-height:44px; min-width:0; border:1px solid var(--bench-rule); border-radius:6px; padding:.5rem .65rem; background:white; color:var(--bench-ink); max-width:100%; }
+.tradeoff-zoom { display:inline-flex; align-items:center; gap:.6rem; min-height:44px; color:var(--bench-accent); font-size:.8125rem; font-weight:500; cursor:pointer; }
+.tradeoff-zoom input { appearance:none; position:relative; width:2.25rem; height:1.25rem; margin:0; border:1px solid #859e94; border-radius:1rem; background:#e2ece6; flex-shrink:0; cursor:pointer; }
+.tradeoff-zoom input::after { content:""; position:absolute; width:.875rem; height:.875rem; top:.125rem; left:.125rem; background:white; border-radius:50%; box-shadow:0 1px 3px #16312e40; }
+.tradeoff-zoom input:checked { background:var(--bench-accent); border-color:var(--bench-accent); }
+.tradeoff-zoom input:checked::after { left:1.125rem; }
+.tradeoff-zoom input:focus-visible { outline:2px solid var(--bench-accent); outline-offset:4px; }
+.tradeoff-source-legend { display:flex; gap:.6rem 1.25rem; flex-wrap:wrap; font-size:.8125rem; color:var(--bench-muted); }
+.tradeoff-source-legend > span { display:inline-flex; align-items:center; gap:.45rem; }
+.tradeoff-marker { display:inline-block; width:10px; height:10px; flex-shrink:0; background:var(--bench-accent); }
+.tradeoff-marker.circle { border-radius:50%; }
+.tradeoff-marker.triangle { clip-path:polygon(50% 0,100% 100%,0 100%); }
+.tradeoff-marker.diamond { transform:rotate(45deg); }
+.tradeoff-note { font-size:.8125rem; line-height:1.65; color:var(--bench-muted); margin:.6rem 0; }
+.tradeoff-layout { display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,300px); align-items:start; gap:1.75rem; margin:1.25rem 0; }
+.tradeoff-chart-column { min-width:0; }
+.tradeoff-figure { min-width:0; margin:0; }
+.tradeoff-figure figcaption { display:flex; flex-wrap:wrap; align-items:center; gap:.25rem 1.25rem; min-height:44px; font-size:.875rem; font-weight:500; }
+.tradeoff-axis-summary > span { margin-left:.5rem; font-weight:400; color:var(--bench-muted); }
+.tradeoff-plot-area { padding:25px 22px calc(1.5rem + 12px) 62px; }
+.tradeoff-plane { height:350px; position:relative; font-size:.75rem; border-left:1px solid var(--bench-rule); border-bottom:1px solid var(--bench-rule); }
+/* A global reduced-motion duration must not animate scientific coordinates.
+   Even a 0.01ms transition can paint new tick text against the previous gutter. */
+.tradeoff-plot-area,.tradeoff-plane,.tradeoff-grid,.tradeoff-grid *,
+.tradeoff-mark,.tradeoff-mark *,.tradeoff-x-tick,.tradeoff-y-tick { transition-property:none !important; }
+.tradeoff-grid { position:absolute; inset:0; height:100%; width:100%; overflow:visible; pointer-events:none; }
+.tradeoff-grid line { stroke:var(--bench-rule); stroke-width:1; stroke-dasharray:2 5; }
+.tradeoff-grid .tradeoff-leader { stroke:#8aa69e; stroke-dasharray:none; }
+.tradeoff-point { position:absolute; width:44px; height:44px; transform:translate(-50%,-50%); display:grid; place-items:center; border-radius:50%; z-index:2; }
+.tradeoff-point .tradeoff-marker { width:12px; height:12px; outline:2px solid white; }
+.tradeoff-point:hover, .tradeoff-point:focus-visible, .tradeoff-mark.is-active .tradeoff-point { background:#dceee8aa; }
+.tradeoff-point:focus-visible { outline:2px solid var(--bench-accent); outline-offset:1px; }
+.tradeoff-mark.is-active .tradeoff-point { z-index:3; }
+.tradeoff-direct-label { position:absolute; pointer-events:none; font-size:inherit; line-height:1.5; color:var(--bench-ink); white-space:nowrap; background:#f8fbf9e8; z-index:1; }
+.tradeoff-mark.is-active .tradeoff-direct-label { font-weight:700; color:var(--bench-accent); z-index:4; }
+.tradeoff-range { position:absolute; background:var(--bench-accent); opacity:.5; pointer-events:none; }
+.tradeoff-range.x { height:2px; transform:translateY(-1px); }
+.tradeoff-range.y { width:2px; transform:translateX(-1px); }
+.tradeoff-x-tick, .tradeoff-y-tick { position:absolute; font-size:inherit; color:var(--bench-muted); white-space:nowrap; font-variant-numeric:tabular-nums; }
+.tradeoff-y-tick { right:calc(100% + 10px); transform:translateY(50%); }
+.tradeoff-x-tick { top:calc(100% + 8px); transform:translateX(-50%); }
+.tradeoff-x-tick.first { transform:none; }
+.tradeoff-x-tick.last { transform:translateX(-100%); }
+.tradeoff-x-title { font-size:.8125rem; text-align:center; margin:.3rem 0; }
+.tradeoff-empty { padding:5rem 1rem; color:var(--bench-muted); font-size:.875rem; line-height:1.7; }
+.tradeoff-methods { min-width:0; }
+.tradeoff-method-heading,.tradeoff-methods > button { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(0,1fr) minmax(0,.75fr); column-gap:.65rem; align-items:center; padding:.7rem .5rem; border-bottom:1px solid var(--bench-rule); }
+.tradeoff-method-heading { min-height:44px; padding-top:0; color:var(--bench-muted); font-size:.8125rem; }
+.tradeoff-method-heading > span:not(:first-child) { text-align:right; }
+.tradeoff-methods > button { text-align:left; width:100%; min-height:54px; border-radius:4px; }
+.tradeoff-method-name { display:flex; align-items:center; gap:.55rem; min-width:0; }
+.tradeoff-method-name > span { min-width:0; }
+.tradeoff-method-name strong { font-size:.8125rem; line-height:1.45; font-weight:500; }
+.tradeoff-row-source { display:block; margin-top:.2rem; color:var(--bench-muted); font-size:.75rem; line-height:1.45; }
+.tradeoff-method-value { min-width:0; text-align:right; font-size:.8125rem; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; line-height:1.45; }
+.tradeoff-method-value.is-missing { color:#9c6500; font-size:.75rem; }
+.tradeoff-methods button.is-active,.tradeoff-methods button:hover { background:var(--bench-soft); }
+.tradeoff-methods button:focus-visible { outline:2px solid var(--bench-accent); outline-offset:-2px; }
+.tradeoff-methods button.is-unavailable .tradeoff-marker { background:#c78b22; }
+.tradeoff-source-footer { display:flex; align-items:center; flex-wrap:wrap; gap:.5rem 1.5rem; padding:.85rem 0; border-top:1px solid var(--bench-rule); }
+.tradeoff-source-explanation { color:var(--bench-muted); font-size:.75rem; }
+.tradeoff-source-explanation summary { display:list-item; min-height:44px; align-content:center; cursor:pointer; }
+.tradeoff-source-explanation p { max-width:65ch; margin:.4rem 0; line-height:1.6; }
+.tradeoff-details { position:fixed; z-index:60; right:24px; bottom:24px; width:min(420px,calc(100vw - 32px)); border:1px solid #98b6ad; border-top:3px solid var(--bench-accent); padding:.9rem 3rem .9rem 1rem; background:#fff; box-shadow:0 6px 30px #16312e1f; font-size:.8125rem; line-height:1.7; overflow-wrap:anywhere; }
+.tradeoff-details-content { max-height:min(60vh,32rem); overflow-y:auto; overscroll-behavior:contain; }
+.tradeoff-details strong { font-size:.9375rem; }
+.tradeoff-details > button { position:absolute; top:0; right:0; min-height:44px; width:44px; font-size:1.5rem; }
+.benchmark-studio .tradeoff-plane { font-size:.8125rem; border-color:var(--bench-border); }
+.benchmark-studio .tradeoff-grid line { stroke:var(--bench-rule); stroke-dasharray:2 4; }
+.benchmark-studio .tradeoff-grid .tradeoff-leader { stroke:var(--bench-border); stroke-dasharray:none; }
+.benchmark-studio .tradeoff-direct-label { background:#ffffffed; }
+.benchmark-studio .tradeoff-point:hover,.benchmark-studio .tradeoff-point:focus-visible,.benchmark-studio .tradeoff-mark.is-active .tradeoff-point { background:transparent; }
+.benchmark-studio .tradeoff-point::after { content:""; position:absolute; width:24px; height:24px; border:1.5px solid var(--bench-accent); border-radius:50%; opacity:0; }
+.benchmark-studio .tradeoff-mark.is-active .tradeoff-point::after,.benchmark-studio .tradeoff-point:focus-visible::after { opacity:1; }
+.benchmark-studio .tradeoff-methods button.is-active { background:var(--bench-selected); color:var(--bench-accent-strong); border-bottom-color:transparent; }
+.benchmark-studio .tradeoff-methods button.is-active strong { font-weight:600; }
+.benchmark-studio .tradeoff-method-value { color:var(--bench-ink); }
+.benchmark-studio .tradeoff-method-value.is-missing { color:#9c6500; }
+.benchmark-studio .tradeoff-methods button.is-active .tradeoff-method-value:not(.is-missing) { color:var(--bench-accent-strong); }
+.benchmark-studio .tradeoff-details { border-color:var(--bench-border); border-top-color:var(--bench-accent); }
+@container(max-width:850px) {
+ .tradeoff-layout { grid-template-columns:minmax(0,1fr); gap:.75rem; }
+ .tradeoff-methods { width:100%; }
+}
+@media(max-width:500px) {
+ .tradeoff-controls { gap:.6rem; }
+ .tradeoff-controls label { flex:1 1 9rem; justify-content:space-between; }
+ .tradeoff-controls select { flex:1; }
+ .tradeoff-plot-area { padding-left:58px; padding-right:10px; }
+ .tradeoff-details { right:16px; bottom:12px; }
+}

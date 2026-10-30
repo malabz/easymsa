@@ -22,6 +22,29 @@ function cell(dataset: string, method: string) {
 }
 
 describe("targeted repair batch scope", () => {
+  it("defaults to latest whole records while retaining each original source", async () => {
+    mount(); await screen.findByTestId("benchmark-matrix");
+    expect(screen.getByLabelText("Evaluation batch")).toHaveValue("latest");
+    expect(screen.getAllByTestId("matrix-cell")).toHaveLength(84);
+    expect(screen.getByLabelText("Evaluation coverage")).toHaveTextContent("Complete 84 / 84");
+    expect(cell("mt100", "halign4")).toHaveAttribute("data-batch-id", "test-repair15");
+    expect(cell("mt100", "halign4")).toHaveAttribute("data-raw-value", "20");
+    expect(cell("mt100", "mafft")).toHaveAttribute("data-batch-id", "test-baseline");
+    expect(cell("mt100", "mafft")).toHaveAttribute("data-raw-value", "10");
+    expect(screen.getAllByTestId("matrix-cell").every(item => item.dataset.heat === "")).toBe(true);
+  });
+
+  it("scopes a sparse explicit batch to its included methods until the full catalog is requested", async () => {
+    mount("/benchmark?batch=test-repair15"); await screen.findByTestId("benchmark-matrix");
+    expect(screen.getAllByTestId("matrix-cell")).toHaveLength(16);
+    expect(new Set(screen.getAllByTestId("matrix-cell").map(item => item.dataset.methodId))).toEqual(new Set(["halign4", "minipoa"]));
+    expect(screen.getByLabelText("Evaluation coverage")).toHaveTextContent("Complete 11 / 11");
+    fireEvent.click(screen.getByLabelText("Show full catalog"));
+    expect(screen.getAllByTestId("matrix-cell")).toHaveLength(84);
+    expect(cell("mt100", "mafft")).toHaveAttribute("data-state", "outside_batch");
+    expect(screen.getByLabelText("Evaluation coverage")).toHaveTextContent("Complete 11 / 11");
+  });
+
   it("validates sparse v2 and selects only 15 pairs without filling from the baseline", () => {
     const snapshot = parseSnapshot(repairSnapshot());
     const batch = snapshot.batches[1];
@@ -32,8 +55,8 @@ describe("targeted repair batch scope", () => {
     expect(snapshot.batches[0].results.find(result=>result.method_id==="mafft"&&result.dataset_id==="mt100")?.metrics.wall_seconds.value).toBe(10);
   });
   it.each(["en","zh"] as const)("shows actual pair coverage and distinguishes outside-batch cells in %s", async locale => {
-    mount("/benchmark",locale);await screen.findByTestId("benchmark-matrix");
-    expect(screen.getByTestId("batch-scope")).toHaveTextContent(locale==="en"?"15 method–dataset pairs across 12 datasets and 3 methods":"15 个方法与数据集组合，涉及 12 个数据集、3 种方法");
+    mount("/benchmark?batch=test-repair15&all=1",locale);await screen.findByTestId("benchmark-matrix");
+    expect(screen.getByTestId("batch-scope")).toHaveTextContent(locale==="en"?"11 method–dataset pairs across 8 datasets and 2 methods":"11 个组合，涉及 8 个数据集、2 种方法");
     expect(screen.getByLabelText(locale==="en"?"Evaluation batch":"评测批次")).toHaveValue("test-repair15");
     const outside=cell("mt100","mafft");expect(outside).toHaveTextContent(locale==="en"?"Outside this batch":"未纳入本批次");
     expect(outside).toHaveAttribute("data-raw-value","");expect(outside).toHaveAttribute("data-heat","");
@@ -47,14 +70,17 @@ describe("targeted repair batch scope", () => {
     const snapshot = repairSnapshot();snapshot.batches[1].results=snapshot.batches[1].results.filter(result=>result.dataset_id!=="sim70");
     localStorage.setItem("easymsa.locale","en");vi.stubGlobal("fetch",vi.fn().mockResolvedValue({ok:true,json:()=>Promise.resolve(snapshot)}));
     render(<LanguageProvider><MemoryRouter initialEntries={["/benchmark/datasets/sim70?batch=test-repair15"]}><Routes><Route path="/benchmark/datasets/:caseId" element={<BenchmarkDatasetPage/>}/></Routes></MemoryRouter></LanguageProvider>);
-    await screen.findByRole("heading",{name:"sim70"});
+    await screen.findByTestId("dataset-title");
     expect(screen.getByLabelText("Evaluation batch")).toHaveValue("test-repair15");
     expect(screen.getByTestId("dataset-batch-scope")).toHaveTextContent("0 methods included");
+    expect(screen.queryAllByTestId("metric-point")).toHaveLength(0);
+    fireEvent.click(screen.getByLabelText("Show full catalog"));
+    expect(screen.getAllByTestId("metric-point")).toHaveLength(35);
     expect(screen.getAllByTestId("metric-point").every(point=>point.dataset.rawValue==="")).toBe(true);
     expect(screen.getAllByTestId("metric-point").every(point=>point.dataset.status==="outside_batch")).toBe(true);
     fireEvent.click(screen.getByRole("button",{name:"Exact values"}));
     const cells = screen.getByTestId("precise-results").querySelectorAll("td[data-metric]");
-    expect(cells).toHaveLength(63);
+    expect(cells).toHaveLength(49);
     expect([...cells].every(cell => cell.textContent === "Outside this batch")).toBe(true);
     expect(screen.getByRole("link",{name:"Next"})).toHaveAttribute("href",expect.stringContaining("batch=test-repair15"));
   });
