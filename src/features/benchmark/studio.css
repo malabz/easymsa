@@ -1,5 +1,12 @@
 /* Comparison Studio: presentation only. Scientific values and selection live in shared selectors. */
 body:has(.benchmark-studio) { background:#fff; }
+.benchmark-studio .benchmark-matrix-key:empty { display:none; }
+.benchmark-studio .benchmark-detail-titleline h1 { text-wrap:balance; }
+.benchmark-studio .benchmark-experiment-details { margin-top:24px; }
+.benchmark-studio .benchmark-experiment-details > section { padding:12px 0; }
+.benchmark-studio .benchmark-experiment-details h3 { margin:12px 0; font-size:1rem; font-weight:650; }
+.benchmark-studio .benchmark-experiment-details h4 { margin:12px 0 6px; font-size:.875rem; font-weight:600; }
+.benchmark-studio .benchmark-experiment-details p { margin:6px 0; }
 #main-content:has(.benchmark-studio) > .work-return[aria-hidden="true"] { display:none; }
 #main-content > .benchmark-studio { animation:none; }
 .page-container.benchmark-page.benchmark-studio {

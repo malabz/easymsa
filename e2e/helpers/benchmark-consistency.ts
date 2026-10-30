@@ -6,14 +6,14 @@ import type { BenchmarkBatch, BenchmarkMetric, BenchmarkSnapshot, MetricKey } fr
 const keys: MetricKey[] = ["wall_seconds", "max_rss_kib", "sp_score", "avg_sp", "scaled_sp", "q", "tc"];
 const chartKeys: MetricKey[] = ["wall_seconds", "max_rss_kib", "sp_score", "q", "tc", "avg_sp", "scaled_sp"];
 const states: Record<string, string> = {complete:"Complete", partial:"Partial", failed:"Failed", timeout:"Timed out", unsupported:"Unsupported", not_run:"Not evaluated", unavailable:"Unavailable", not_applicable:"Not applicable"};
-const reasons: Record<string, string> = {no_reference:"No reference alignment", reference_invalid:"Reference requires review", invalid_output:"Invalid alignment output", timeout:"Time limit reached", oom:"Memory limit reached", unsupported:"Input unsupported by method", not_run:"Not evaluated", execution_failed:"Method execution failed", scoring_failed:"Scoring failed", cancelled:"Cancelled", incomplete:"Incomplete repetitions", platform_error:"Evaluation unavailable"};
+const reasons: Record<string, string> = {no_reference:"No reference alignment", reference_invalid:"Reference requires review", invalid_output:"Invalid output", timeout:"Timed out", oom:"Memory limit", unsupported:"Unsupported", not_run:"Not evaluated", execution_failed:"Failed", scoring_failed:"Scoring failed", cancelled:"Cancelled", incomplete:"Incomplete repetitions", platform_error:"Evaluation unavailable"};
 const statesZh: Record<string, string> = {complete:"完整", partial:"部分完成", failed:"失败", timeout:"超时", unsupported:"不支持", not_run:"待评测", unavailable:"无可用成绩", not_applicable:"不适用"};
-const reasonsZh: Record<string, string> = {no_reference:"无参考比对", reference_invalid:"参考比对待检查", invalid_output:"比对输出不合法", timeout:"达到时间限制", oom:"达到内存限制", unsupported:"方法不支持该输入", not_run:"待评测", execution_failed:"方法执行失败", scoring_failed:"评分失败", cancelled:"已取消", incomplete:"重复运行未完成", platform_error:"评测异常"};
+const reasonsZh: Record<string, string> = {no_reference:"无参考比对", reference_invalid:"参考比对待检查", invalid_output:"输出无效", timeout:"超时", oom:"内存超限", unsupported:"不支持", not_run:"待评测", execution_failed:"运行失败", scoring_failed:"评分失败", cancelled:"已取消", incomplete:"重复运行未完成", platform_error:"评测异常"};
 type Locale = "en" | "zh";
 
 /** Website expectations, independently stated without the production catalog helper. */
 export function expectedWebsiteSnapshot(archive: BenchmarkSnapshot): BenchmarkSnapshot {
-  const ids = ["clustalo", "tcoffee", "mafft", "muscle5", "halign4", "fmalign2", "minipoa"];
+  const ids = ["clustalo", "mafft", "muscle5", "halign4", "fmalign2", "minipoa"];
   return {
     ...archive,
     methods: archive.methods.filter(method => ids.includes(method.id))
@@ -32,9 +32,9 @@ function number(value: number, key: MetricKey, locale: Locale) {
   return new Intl.NumberFormat(locale === "en" ? "en-US" : "zh-CN", {maximumSignificantDigits:21}).format(key === "max_rss_kib" ? value / 1024 : value);
 }
 function display(metric: BenchmarkMetric, key: MetricKey, reference: boolean, locale: Locale) {
-  if (!reference && (key === "q" || key === "tc")) return locale === "en" ? "N/A · no reference" : "不适用 · 无参考";
+  if (!reference && (key === "q" || key === "tc")) return locale === "en" ? "No reference" : "无参考";
   const value = numeric(metric);
-  if (value === null) return (locale === "en" ? states : statesZh)[metric.status];
+  if (value === null) return metric.reason_codes.length ? [...new Set(metric.reason_codes.map(code => (locale === "en" ? reasons : reasonsZh)[code]))].join(" · ") : (locale === "en" ? states : statesZh)[metric.status];
   let result = number(value, key, locale);
   if (metric.display === "mean_sd") result += ` ± ${number(metric.sd!, key, locale)}`;
   if (metric.display === "mean_range") result += ` [${number(metric.min!, key, locale)}–${number(metric.max!, key, locale)}]`;
@@ -82,14 +82,14 @@ export async function assertDatasetConsistency(page: Page, snapshot: BenchmarkSn
   const selector=page.getByRole("combobox", {name:locale === "en" ? "Evaluation batch" : "评测批次", exact:true});
   await selector.selectOption(batchId);
   await expect(selector).toHaveValue(batchId);
-  const full = page.getByRole("checkbox", {name:locale === "en" ? "Show full catalog" : "显示全部目录",exact:true});
+  const full = page.getByRole("checkbox", {name:locale === "en" ? "Show all" : "显示全部",exact:true});
   if (await full.count()) {
     if(!await full.isChecked()) await full.click();
     // The checkbox commits through the router, so wait for React's checked
     // state instead of Playwright check()'s immediate post-click assertion.
     await expect(full).toBeChecked();
   }
-  const tableToggle = page.getByRole("button", {name:locale === "en" ? "Exact values" : "精确数值表", exact:true});
+  const tableToggle = page.getByRole("button", {name:locale === "en" ? "Values" : "数值表", exact:true});
   await tableToggle.click();
   const table = page.getByTestId("precise-results");
   await expect(table).toBeVisible();
@@ -105,18 +105,19 @@ export async function assertDatasetConsistency(page: Page, snapshot: BenchmarkSn
     const context = `${batchId}/${caseId}/${method.id}/${key}`;
     if (!metric) {
       expect(cell.raw, context).toBe("");
-      expect(cell.text, context).toBe(locale === "en" ? "Outside this batch" : "未纳入本批次");
+      expect(cell.text, context).toBe(locale === "en" ? "Not tested" : "未测试");
       continue;
     }
     expect(cell.batch, context).toBe(record!.batch.id);
     expect(cell.raw, context).toBe(numeric(metric) === null ? "" : String(numeric(metric)));
     expect(cell.display, context).toBe(display(metric, key, dataset.reference, locale));
-    if (numeric(metric) !== null) expect(cell.text, context).toContain(`${metric.valid_count}/${metric.planned_count}`);
+    if (numeric(metric) !== null) expect(cell.text, context).not.toContain(" valid");
     else if (metric.reason_codes.length && dataset.reference) for (const reason of metric.reason_codes) {
       expect(cell.text, context).toContain((locale === "en" ? reasons : reasonsZh)[reason]);
     }
   }
   await page.getByRole("button", {name:locale === "en" ? "Metric plots" : "分项指标", exact:true}).click();
+  await expect(page.getByTestId("metric-plots")).toBeVisible();
   // Read all responsive chart panels, including mobile's inactive panels. The
   // dedicated interaction test also switches every mobile metric into view.
   const readCharts = () => page.locator("figure[data-metric]").evaluateAll(figures => figures.map(figure => ({
@@ -129,7 +130,10 @@ export async function assertDatasetConsistency(page: Page, snapshot: BenchmarkSn
   })));
   const charts = await readCharts();
   const mobileMetrics = page.getByRole("group", {name:locale === "en" ? "Chart metric" : "图表指标",exact:true});
-  if (await mobileMetrics.isVisible()) await mobileMetrics.getByRole("button", {name:locale === "en" ? "SP score ↑" : "SP 分数 ↑",exact:true}).click();
+  if ((page.viewportSize()?.width ?? 1280) < 768) {
+    await expect(mobileMetrics).toBeVisible();
+    await mobileMetrics.getByRole("button", {name:locale === "en" ? "SP score ↑" : "SP 分数 ↑",exact:true}).click();
+  }
   for (const key of ["avg_sp", "scaled_sp"] as const) {
     await page.getByRole("combobox", {name:locale === "en" ? "SP measure" : "SP 类型", exact:true}).selectOption(key);
     await expect(page.locator(`figure[data-metric="${key}"]`)).toHaveCount(1);
@@ -148,7 +152,7 @@ export async function assertDatasetConsistency(page: Page, snapshot: BenchmarkSn
       const context = `${caseId}/${method.id}/${key}`;
       if (!metric) {
         expect(row.raw, context).toBe(""); expect(row.position, context).toBeNull();
-        expect(row.label, context).toContain(locale === "en" ? "Outside this batch" : "未纳入本批次");
+        expect(row.label, context).toContain(locale === "en" ? "Not tested" : "未测试");
         continue;
       }
       expect(row.batch, context).toBe(record!.batch.id);

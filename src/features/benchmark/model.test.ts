@@ -50,8 +50,8 @@ describe("public presentation and downloads", () => {
     const zero = publishedSnapshot().batches[0].results[0].metrics.q;
     zero.value = zero.mean = zero.min = zero.max = 0;
     expect(metricValue(zero)).toBe(0); expect(formatMetric(zero, "q", "en")).toBe("0");
-    expect(metricValue(absentMetric())).toBeNull(); expect(formatMetric(absentMetric(), "q", "en")).toBe("Unavailable");
-    expect(formatMetric(undefined, "q", "zh", true)).toBe("不适用 · 无参考");
+    expect(metricValue(absentMetric())).toBeNull(); expect(formatMetric(absentMetric(), "q", "en")).toBe("Not evaluated");
+    expect(formatMetric(undefined, "q", "zh", true)).toBe("无参考");
   });
   it("downloads only the selected batch and dataset without recomputing values", () => {
     const snapshot = selectDownload(publishedSnapshot(), "older", "case_ref");

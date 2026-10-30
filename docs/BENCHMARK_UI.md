@@ -1,5 +1,9 @@
 # Benchmark reading experience
 
+Current copy and naming: [concise Benchmark presentation](BENCHMARK_COPY.md).
+
+Current catalog update: [six displayed methods, excluding T-Coffee](BENCHMARK_SIX_METHODS.md).
+
 The October 30, 2026 Comparison Studio interface shows **latest records → a dataset's speed/quality
 trade-off → individual metrics or exact values**. The selected visual direction
 uses a white workspace, a pale green dataset sidebar and the site's shared

@@ -48,11 +48,9 @@ export function MethodFilter({ methods, selected, onChange, locale, open, onOpen
   </details>;
 }
 
-export function SourceLegend({ batches, locale, latest }: {batches: BenchmarkBatch[]; locale: Locale; latest: boolean}) {
+export function SourceLegend({ batches, locale }: {batches: BenchmarkBatch[]; locale: Locale; latest: boolean}) {
   return <div className="benchmark-source-legend" data-testid="source-legend">
-    <span>{words(locale, "Sources", "记录来源")}</span>
     {batches.map(batch => <span className="benchmark-source-tag" key={batch.id} title={batch.id}>{batchLabel(batch, locale)}</span>)}
-    {latest && batches.length > 1 && <span>{words(locale, "Different run conditions · no cross-batch ranking", "运行条件不同 · 不作跨批次排名")}</span>}
   </div>;
 }
 

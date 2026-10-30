@@ -53,14 +53,14 @@ export function MetricPlots({ snapshot, batch, dataset, locale, selectedMetric, 
     <div className="benchmark-plot-options">
       <label className="benchmark-sp-option">{words(locale, "SP measure", "SP 类型")}<select value={spKey} onChange={event => { setSpKey(event.target.value as MetricKey); setTip(null); onParamsChange?.({sp:event.target.value, metric:event.target.value}); }}>{spKeys.map(key => <option value={key} key={key}>{metricSpecs[key][locale]}</option>)}</select></label>
       <label className="benchmark-zoom-option"><input type="checkbox" checked={zoom} onChange={event => { setZoom(event.target.checked); onParamsChange?.({plotZoom:event.target.checked ? "1" : ""}); }} />{words(locale, "Zoom Q / TC differences", "放大 Q / TC 差异")}</label>
-      <span className="benchmark-plot-note">{words(locale, "Point = reported value; whiskers = reported SD or range, when available.", "点表示报告数值；有统计量时，须线表示报告中的标准差或范围。")}</span>
+      {methodRows.some(row => Object.values(row.result?.metrics ?? {}).some(metric => metric.display === "mean_sd" || metric.display === "mean_range")) && <span className="benchmark-plot-note">{words(locale, "Point = reported value; whiskers = reported SD or range, when available.", "点表示报告数值；有统计量时，须线表示报告中的标准差或范围。")}</span>}
     </div>
     <div className="benchmark-mobile-metrics" role="group" aria-label={words(locale, "Chart metric", "图表指标")}>{primaryKeys.map(key => <button type="button" key={key} aria-pressed={mobileMetric === key} onClick={() => { setMobileMetric(key); setTip(null); onParamsChange?.({metric:key === "sp_score" ? spKey : key}); }}>{metricSpecs[key === "sp_score" ? spKey : key][locale]} {metricSpecs[key].direction === "higher" ? "↑" : "↓"}</button>)}</div>
     <div className="benchmark-dot-grid" data-testid="metric-plots" onMouseLeave={() => { if (interaction.current === "pointer") setActiveMethod(selectedMethod ?? ""); }}>
       <div className="benchmark-shared-methods" aria-hidden="true">
-        <div className="benchmark-plot-heading">{words(locale, "Method", "方法")}<span>{words(locale, "Same row across all metrics", "沿同一行比较各指标")}</span></div>
+        <div className="benchmark-plot-heading">{words(locale, "Method", "方法")}</div>
         <div className="benchmark-axis-spacer" />
-        {methodRows.map(row => <div key={row.method.id} className={"benchmark-shared-method " + (activeMethod === row.method.id ? "is-active" : "")} onMouseEnter={() => { if (interaction.current === "pointer") setActiveMethod(row.method.id); }} onPointerMove={() => { interaction.current = "pointer"; setActiveMethod(row.method.id); }}>{row.method.name}<span>{row.spec?.version ?? (row.outsideBatch ? stateLabel("outside_batch", locale) : words(locale, "Version pending", "版本待确认"))}</span>{row.batch && <span className="benchmark-row-source" title={row.batch.id}>{batchLabel(row.batch, locale)}</span>}</div>)}
+        {methodRows.map(row => <div key={row.method.id} className={"benchmark-shared-method " + (activeMethod === row.method.id ? "is-active" : "")} onMouseEnter={() => { if (interaction.current === "pointer") setActiveMethod(row.method.id); }} onPointerMove={() => { interaction.current = "pointer"; setActiveMethod(row.method.id); }}>{row.method.name}{row.batch && <span className="benchmark-row-source" title={row.batch.id}>{batchLabel(row.batch, locale)}</span>}</div>)}
       </div>
       {keys.map(key => {
         const spec = metricSpecs[key];
@@ -86,7 +86,7 @@ export function MetricPlots({ snapshot, batch, dataset, locale, selectedMetric, 
           <div className="benchmark-dot-rows">{rows.map(row => {
             const value = row.raw;
             const valueLabel = value === null ? unavailable(row.metric, locale, row.result, row.outsideBatch) : formatMetricSummary(row.metric, key, locale);
-            const coverage = row.metric ? `${row.metric.valid_count}/${row.metric.planned_count} ${words(locale, "valid", "有效")}` : "";
+            const coverage = row.metric && (row.metric.planned_count > 1 || row.metric.status === "partial") ? `${row.metric.valid_count}/${row.metric.planned_count} ${words(locale, "valid", "有效")}` : "";
             let low: number | null = null; let high: number | null = null;
             if (value !== null && row.metric && row.metric.valid_count > 1) {
               if (row.metric.display === "mean_sd" && row.metric.sd !== null) { low = value - row.metric.sd; high = value + row.metric.sd; }
@@ -110,10 +110,10 @@ export function MetricPlots({ snapshot, batch, dataset, locale, selectedMetric, 
         </figure>;
       })}
     </div>
-    <p className="benchmark-plots-caption">{words(locale, "SP is a pairwise alignment score, not accuracy. Compare it within this dataset. Memory is maximum RSS. Hover, focus or tap a row to inspect the exact measurement.", "SP 为配对评分，不是准确率，应在同一数据集内比较。内存为最大 RSS。悬停、聚焦或点击点图可查看精确数值。")}</p>
     {tip && tipRow && <div className="benchmark-point-popup"><div id="benchmark-point-description" role="tooltip"><strong>{tipRow.method.name} · {metricSpecs[tip.metric][locale]}</strong><p className="benchmark-point-value">{tipRow.raw === null ? unavailable(tipRow.metric, locale, tipRow.result, tipRow.outsideBatch) : `${formatMetricSummary(tipRow.metric, tip.metric, locale)} ${metricSpecs[tip.metric].unit}`}</p>{tip.metric === "max_rss_kib" && tipRow.raw !== null && <p>{words(locale, "Original: ", "原始值：")}{tipRow.raw.toLocaleString(locale === "zh" ? "zh-CN" : "en-US", { maximumFractionDigits: 20 })} KiB</p>}
-      <p>{tipRow.spec?.version ?? (batch ? stateLabel("outside_batch", locale) : words(locale, "Version pending", "版本待确认"))} · {stateLabel(tipRow.outsideBatch ? "outside_batch" : tipRow.result?.status ?? "not_run", locale)}</p><p>{tipRow.metric ? `${tipRow.metric.valid_count}/${tipRow.metric.planned_count} ${words(locale, "valid", "有效")}` : stateLabel(tipRow.outsideBatch ? "outside_batch" : "not_run", locale)}</p>{tipRow.metric?.reason_codes.length ? <p>{tipRow.metric.reason_codes.map(reason => reasonLabel(reason, locale)).join(" · ")}</p> : null}
-      {tipRow.batch && <p>{batchLabel(tipRow.batch,locale)} · {tipRow.batch.id}</p>}
+      {tipRow.spec && <p>{tipRow.spec.version}</p>}
+      {tipRow.metric && (tipRow.metric.planned_count > 1 || tipRow.metric.status === "partial") && <p>{tipRow.metric.valid_count}/{tipRow.metric.planned_count} {words(locale,"valid","有效")}</p>}
+      {tipRow.batch && <p>{batchLabel(tipRow.batch,locale)}</p>}
       {tipRow.metric?.display === "mean_sd" && tipRow.metric.min !== null && tipRow.metric.max !== null && <p>{words(locale, "Observed range: ", "观测范围：")}{formatMetricValue(tipRow.metric.min, tip.metric, locale)}–{formatMetricValue(tipRow.metric.max, tip.metric, locale)}</p>}
     </div><button type="button" className="benchmark-popup-close" aria-label={words(locale, "Close result details", "关闭结果详情")} onClick={() => setTip(null)}><X size={16} aria-hidden="true" /></button></div>}
   </div>;

@@ -3,7 +3,7 @@ import type { BenchmarkSnapshot } from "./model";
 /** Website catalog policy. Keep the frozen scientific archive and method IDs intact. */
 export function websiteSnapshot(snapshot: BenchmarkSnapshot): BenchmarkSnapshot {
   const methods = snapshot.methods
-    .filter(method => method.id !== "halign3" && method.id !== "kalign3")
+    .filter(method => method.id !== "halign3" && method.id !== "kalign3" && method.id !== "tcoffee")
     .map(method => method.id === "halign4" ? { ...method, name: "HAlign" } : method);
   const visible = new Set(methods.map(method => method.id));
   return {

@@ -1,9 +1,10 @@
+import { datasetName } from "./names";
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ArrowLeft, ChevronDown, Search } from "lucide-react";
 import type { BenchmarkDataset } from "./model";
 import { datasetGroup, orderedDatasets } from "./BenchmarkMatrix";
-import { sourceLabel, words, type Locale } from "./presentation";
+import { words, type Locale } from "./presentation";
 
 export type BenchmarkSidebarProps = {
   datasets: BenchmarkDataset[];
@@ -18,8 +19,8 @@ export type BenchmarkSidebarProps = {
 const desktopQuery = "(min-width: 1024px)";
 const chartParameters = ["returnTo", "chart", "x", "y", "scale", "zoom", "method", "sp", "timeScale", "memoryScale", "plotZoom"];
 const dnaGroups: [number, string, string][] = [
-  [0, "16S samples", "16S 抽样"],
-  [1, "Mitochondrial samples", "线粒体抽样"],
+  [0, "16S", "16S"],
+  [1, "Mitochondrial", "线粒体"],
   [2, "Mitochondrial simulation", "线粒体模拟"],
 ];
 
@@ -28,7 +29,7 @@ function href(path: string, params: URLSearchParams) {
 }
 
 /** The caller owns dataset filtering; navigation never broadens that selection. */
-export function BenchmarkSidebar({ datasets, params, locale, selectedId, onSearch, catalogCount, methodCount }: BenchmarkSidebarProps) {
+export function BenchmarkSidebar({ datasets, params, locale, selectedId, onSearch }: BenchmarkSidebarProps) {
   const [, setSearchParams] = useSearchParams();
   const [desktop, setDesktop] = useState(() => typeof window.matchMedia === "function" && window.matchMedia(desktopQuery).matches);
   const [expanded, setExpanded] = useState(false);
@@ -64,23 +65,16 @@ export function BenchmarkSidebar({ datasets, params, locale, selectedId, onSearc
     if (value) next.set("search", value); else next.delete("search");
     setSearchParams(next, {replace:true});
   };
-  const count = (value: number) => value.toLocaleString(locale === "zh" ? "zh-CN" : "en-US");
   const links = (items: BenchmarkDataset[]) => <ul className="benchmark-studio-dataset-list">{items.map(dataset => {
-    const isSimulation = dataset.source_kind === "simulated" && dataset.similarity_label !== null;
-    const title = isSimulation
-      ? words(locale, `Source label ${dataset.similarity_label}`, `来源标签 ${dataset.similarity_label}`)
-      : words(locale, `${count(dataset.sequence_count)} sequences`, `${count(dataset.sequence_count)} 条序列`);
-    const length = `${count(dataset.min_length)}–${count(dataset.max_length)}`;
+    const title = datasetName(dataset, locale, true);
     return <li key={dataset.id}><Link
       to={href(`/benchmark/datasets/${encodeURIComponent(dataset.id)}`, detailParams)}
       data-testid="dataset-nav-link" data-dataset-id={dataset.id}
       className={`benchmark-studio-dataset-link${selectedId === dataset.id ? " is-active" : ""}`}
       aria-current={selectedId === dataset.id ? "page" : undefined}
-      title={`${dataset.id} · ${sourceLabel(dataset.source_kind,locale)}`}
+      aria-label={datasetName(dataset,locale)}
       onClick={() => setExpanded(false)}>
       <span className="benchmark-studio-dataset-title">{title}</span>
-      <span className="benchmark-studio-dataset-meta">{isSimulation && <>{words(locale, `${count(dataset.sequence_count)} sequences`, `${count(dataset.sequence_count)} 条序列`)} · </>}{length} nt</span>
-      <span className="sr-only">{dataset.id} · {sourceLabel(dataset.source_kind,locale)}{isSimulation && words(locale, ". Source similarity label, not a newly measured identity.", "。来源相似度标签，并非重新测量的一致性。")}</span>
     </Link></li>;
   })}</ul>;
 
@@ -98,7 +92,6 @@ export function BenchmarkSidebar({ datasets, params, locale, selectedId, onSearc
           {rna.length > 0 && <details className="benchmark-studio-sequence-group" open={!selectedId || selectedType === "rna"}><summary><ChevronDown size={16} aria-hidden="true"/><strong>RNA</strong><span>{words(locale,`${rna.length} datasets`,`${rna.length} 个数据集`)}</span></summary>{links(rna)}</details>}
           {datasets.length === 0 && <p className="benchmark-studio-sidebar-empty" role="status">{words(locale,"No datasets match the current filters.","没有符合当前筛选的数据集。")}</p>}
         </nav>
-        <p className="benchmark-studio-sidebar-total">{catalogCount !== undefined && catalogCount !== datasets.length ? words(locale,`${datasets.length} of ${catalogCount} datasets`,`${catalogCount} 个数据集中显示 ${datasets.length} 个`) : words(locale,`${datasets.length} datasets`,`${datasets.length} 个数据集`)}{methodCount !== undefined && <> · {words(locale,`${methodCount} ${methodCount === 1 ? "method" : "methods"}`,`${methodCount} 种方法`)}</>}</p>
       </div>
     </details>
   </aside>;

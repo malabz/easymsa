@@ -1,5 +1,7 @@
 # Benchmark website catalog and green theme — 2026-10-30
 
+Current catalog update: [six displayed methods, excluding T-Coffee](BENCHMARK_SIX_METHODS.md).
+
 The website now displays **HAlign** for the historical `halign4` method and
 excludes HAlign 3 and Kalign 3 from the Benchmark interface and its download
 menus. The Comparison Studio layout remains, with the site's green accent

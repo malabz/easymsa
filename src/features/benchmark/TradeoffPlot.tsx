@@ -164,7 +164,7 @@ export function TradeoffPlot({ snapshot, batch, scope, dataset, locale, params, 
                 <span className="tradeoff-direct-label" style={{left:label.x, top:label.y, maxWidth:label.width}}>{row.method.name}</span>
               </div>;
             })}
-            {!valid.length && <p className="tradeoff-empty">{words(locale, "No methods have both selected measurements. See their states in the method list.", "没有方法同时具备这两项测量值。各方法状态列于下方或右侧。")}</p>}
+            {!valid.length && <p className="tradeoff-empty">{words(locale, "No results to plot", "暂无可绘制结果")}</p>}
             {valid.length > 0 && yTicks.map((tick,index) => <span className="tradeoff-y-tick" key={index} style={{bottom:`${bounded(yAxis.position(tick))}%`}}>{yLabels[index]}</span>)}
             {valid.length > 0 && xTicks.map((tick,index) => <span className={`tradeoff-x-tick ${index === 0 ? "first" : index === xTicks.length - 1 ? "last" : ""}`} key={index} style={{left:`${bounded(xAxis.position(xKey === "max_rss_kib" ? tick * 1024 : tick))}%`}}>{xLabels[index]}</span>)}
           </div>
@@ -177,7 +177,6 @@ export function TradeoffPlot({ snapshot, batch, scope, dataset, locale, params, 
         <label><span aria-hidden="true">{words(locale,"Y axis","Y 轴")}</span><select aria-label={words(locale,"Vertical axis","纵轴指标")} value={yKey} onChange={e => onParamsChange({y:e.target.value})}>{qualityKeys.map(key => <option key={key} value={key} disabled={!dataset.reference && (key === "q" || key === "tc")}>{metricSpecs[key][locale]}{!dataset.reference && (key === "q" || key === "tc") ? words(locale," · no reference"," · 无参考") : ""}</option>)}</select></label>
         <label><span aria-hidden="true">{words(locale,"Scale","刻度")}</span><select aria-label={words(locale,"Horizontal scale","横轴坐标")} value={params.get("scale") === "linear" ? "linear" : "log"} onChange={e => onParamsChange({scale:e.target.value})}><option value="log">{words(locale,"Log","对数")}</option><option value="linear">{words(locale,"Linear","线性")}</option></select></label>
       </div>
-      {!isQuality && <p className="tradeoff-note">{words(locale,"SP is a pairwise score, not reference accuracy. Compare it within this dataset.","SP 是配对评分，不是参考准确率；仅在本数据集内观察。")}</p>}
       </div>
       <div className="tradeoff-methods" aria-label={words(locale, "Methods and result states", "方法与结果状态")}>
         <div className="tradeoff-method-heading" aria-hidden="true"><span>{words(locale,"Method","方法")}</span><span>{metricSpecs[xKey][locale]} ({metricSpecs[xKey].unit})</span><span>{metricSpecs[yKey][locale]}</span></div>
@@ -188,14 +187,14 @@ export function TradeoffPlot({ snapshot, batch, scope, dataset, locale, params, 
         </button>)}
       </div>
     </div>
-    <div className="tradeoff-source-footer"><div className="tradeoff-source-legend">{sources.map(source => <span key={source.id} title={source.id}><i className={`tradeoff-marker ${batchMarker(source)}`} aria-hidden="true" />{batchLabel(source,locale)}</span>)}</div>{mixedSources && <details className="tradeoff-source-explanation"><summary>{words(locale,"Sources and conditions","来源与条件")}</summary><p>{words(locale,"Latest records retain their original batches and limits. Shapes identify sources; no combined ranking is calculated.","最新记录保留各自的原始批次与资源限制。点的形状区分来源，不计算混合排名。")}</p></details>}</div>
+    <div className="tradeoff-source-footer"><div className="tradeoff-source-legend">{sources.map(source => <span key={source.id} title={source.id}><i className={`tradeoff-marker ${batchMarker(source)}`} aria-hidden="true" />{batchLabel(source,locale)}</span>)}</div></div>
     </div>
     {showDetails && focused && <div className="tradeoff-details" data-testid="tradeoff-details"><div className="tradeoff-details-content" id="tradeoff-description" role="tooltip">
       <strong>{focused.method.name} · {status(focused)}</strong>
       <p>{metricSpecs[xKey][locale]}: {formatMetricSummary(focused.metric,xKey,locale)} {metricSpecs[xKey].unit} · {metricSpecs[yKey][locale]}: {formatMetricSummary(focused.yMetric,yKey,locale)}</p>
       {xKey === "max_rss_kib" && focused.x !== null && <p>{words(locale,"Original: ","原始值：")}{focused.x.toLocaleString(locale === "zh" ? "zh-CN" : "en-US", {maximumSignificantDigits:21})} KiB</p>}
-      {focused.batch && <><p>{batchLabel(focused.batch,locale)} · {focused.spec?.version} · {focused.batch.id}</p><p>{focused.batch.conditions?.cpu_limit ?? focused.batch.threads} CPU · {focused.batch.conditions?.memory_limit_gib ?? "—"} GiB · {focused.batch.conditions ? focused.batch.conditions.alignment_timeout_seconds / 60 : "—"} {words(locale,"min limit","分钟限时")}</p></>}
-      <p>{focused.metric?.valid_count ?? 0}/{focused.metric?.planned_count ?? "—"} {words(locale,"valid for horizontal metric","横轴指标有效")} · {focused.yMetric?.valid_count ?? 0}/{focused.yMetric?.planned_count ?? "—"} {words(locale,"valid for vertical metric","纵轴指标有效")}</p>
+      {focused.batch && <><p>{batchLabel(focused.batch,locale)} · {focused.spec?.version}</p><p>{focused.batch.conditions?.cpu_limit ?? focused.batch.threads} CPU · {focused.batch.conditions?.memory_limit_gib ?? "—"} GiB · {focused.batch.conditions ? focused.batch.conditions.alignment_timeout_seconds / 60 : "—"} {words(locale,"min limit","分钟限时")}</p></>}
+      {((focused.metric?.planned_count ?? 0) > 1 || focused.metric?.status === "partial" || focused.yMetric?.status === "partial") && <p>{focused.metric?.valid_count ?? 0}/{focused.metric?.planned_count ?? "—"} {words(locale,"valid for horizontal metric","横轴指标有效")} · {focused.yMetric?.valid_count ?? 0}/{focused.yMetric?.planned_count ?? "—"} {words(locale,"valid for vertical metric","纵轴指标有效")}</p>}
       </div><button type="button" aria-label={words(locale,"Close result details","关闭结果详情")} onClick={() => setShowDetails(false)}>×</button>
     </div>}
   </section>;

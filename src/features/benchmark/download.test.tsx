@@ -101,7 +101,7 @@ describe("download controls", () => {
     render(<DownloadButtons snapshot={snapshot} batchId="newer" datasetIds={["case_ref"]} locale="en" />);
     fireEvent.click(screen.getByText("Download data"));
     expect(screen.getByLabelText("Download scope")).toHaveValue("filtered");
-    expect(screen.getByText("1 datasets · all 7 metrics · original precision")).toBeVisible();
+    expect(screen.getByText("1 datasets · 9 results")).toBeVisible();
     fireEvent.click(screen.getByRole("button", {name:"Download JSON"}));
     const json = parseSnapshot(JSON.parse(await text(blobs[0])));
     expect(json.catalog.datasets.map(dataset => dataset.id)).toEqual(["case_ref"]);
@@ -128,7 +128,7 @@ describe("download controls", () => {
     render(<DownloadButtons snapshot={publishedSnapshot()} batchId="newer" datasetId="case_ref" locale="zh" />);
     fireEvent.click(screen.getByText("下载数据"));
     expect(screen.queryByLabelText("下载范围")).not.toBeInTheDocument();
-    expect(screen.getByText("1 个数据集 · 全部 7 项指标 · 原始精度")).toBeVisible();
+    expect(screen.getByText("1 个数据集 · 9 项结果")).toBeVisible();
     fireEvent.click(screen.getByRole("button", {name:"下载 JSON"}));
     const json = parseSnapshot(JSON.parse(await text(blobs[0]))); expect(json.catalog.datasets.map(dataset => dataset.id)).toEqual(["case_ref"]);
     fireEvent.click(screen.getByRole("button", {name:"下载 CSV"})); compareCsvToJson(await text(blobs[1]), json);

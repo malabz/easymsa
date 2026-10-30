@@ -1,3 +1,4 @@
+import { matchesDatasetName } from "./names";
 import { z } from "zod";
 
 export const metricKeys = ["wall_seconds", "max_rss_kib", "sp_score", "avg_sp", "scaled_sp", "q", "tc"] as const;
@@ -141,5 +142,5 @@ export function compatibleBatches(snapshot: BenchmarkSnapshot, datasetId?: strin
 export type DatasetFilters = { search: string; type: string; source: string; reference: string; min: string; max: string };
 export const emptyFilters: DatasetFilters = { search: "", type: "all", source: "all", reference: "all", min: "", max: "" };
 export function filterDatasets(datasets: BenchmarkDataset[], filters: DatasetFilters) {
-  return datasets.filter(d => d.id.toLowerCase().includes(filters.search.trim().toLowerCase()) && (filters.type === "all" || d.sequence_type === filters.type) && (filters.source === "all" || d.source_kind === filters.source) && (filters.reference === "all" || d.reference === (filters.reference === "yes")) && (filters.min === "" || d.sequence_count >= Number(filters.min)) && (filters.max === "" || d.sequence_count <= Number(filters.max)));
+  return datasets.filter(d => matchesDatasetName(d, filters.search) && (filters.type === "all" || d.sequence_type === filters.type) && (filters.source === "all" || d.source_kind === filters.source) && (filters.reference === "all" || d.reference === (filters.reference === "yes")) && (filters.min === "" || d.sequence_count >= Number(filters.min)) && (filters.max === "" || d.sequence_count <= Number(filters.max)));
 }

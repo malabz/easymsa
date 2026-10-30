@@ -25,8 +25,8 @@ describe("targeted repair batch scope", () => {
   it("defaults to latest whole records while retaining each original source", async () => {
     mount(); await screen.findByTestId("benchmark-matrix");
     expect(screen.getByLabelText("Evaluation batch")).toHaveValue("latest");
-    expect(screen.getAllByTestId("matrix-cell")).toHaveLength(84);
-    expect(screen.getByLabelText("Evaluation coverage")).toHaveTextContent("Complete 84 / 84");
+    expect(screen.getAllByTestId("matrix-cell")).toHaveLength(72);
+    expect(screen.getByLabelText("Evaluation coverage")).toHaveTextContent("Complete 72 / 72");
     expect(cell("mt100", "halign4")).toHaveAttribute("data-batch-id", "test-repair15");
     expect(cell("mt100", "halign4")).toHaveAttribute("data-raw-value", "20");
     expect(cell("mt100", "mafft")).toHaveAttribute("data-batch-id", "test-baseline");
@@ -39,8 +39,8 @@ describe("targeted repair batch scope", () => {
     expect(screen.getAllByTestId("matrix-cell")).toHaveLength(16);
     expect(new Set(screen.getAllByTestId("matrix-cell").map(item => item.dataset.methodId))).toEqual(new Set(["halign4", "minipoa"]));
     expect(screen.getByLabelText("Evaluation coverage")).toHaveTextContent("Complete 11 / 11");
-    fireEvent.click(screen.getByLabelText("Show full catalog"));
-    expect(screen.getAllByTestId("matrix-cell")).toHaveLength(84);
+    fireEvent.click(screen.getByLabelText("Show all"));
+    expect(screen.getAllByTestId("matrix-cell")).toHaveLength(72);
     expect(cell("mt100", "mafft")).toHaveAttribute("data-state", "outside_batch");
     expect(screen.getByLabelText("Evaluation coverage")).toHaveTextContent("Complete 11 / 11");
   });
@@ -56,12 +56,12 @@ describe("targeted repair batch scope", () => {
   });
   it.each(["en","zh"] as const)("shows actual pair coverage and distinguishes outside-batch cells in %s", async locale => {
     mount("/benchmark?batch=test-repair15&all=1",locale);await screen.findByTestId("benchmark-matrix");
-    expect(screen.getByTestId("batch-scope")).toHaveTextContent(locale==="en"?"11 method–dataset pairs across 8 datasets and 2 methods":"11 个组合，涉及 8 个数据集、2 种方法");
+    expect(screen.getByLabelText(locale==="en"?"Evaluation coverage":"评测覆盖")).toHaveTextContent("11 / 11");
     expect(screen.getByLabelText(locale==="en"?"Evaluation batch":"评测批次")).toHaveValue("test-repair15");
-    const outside=cell("mt100","mafft");expect(outside).toHaveTextContent(locale==="en"?"Outside this batch":"未纳入本批次");
+    const outside=cell("mt100","mafft");expect(outside).toHaveTextContent(locale==="en"?"Not tested":"未测试");
     expect(outside).toHaveAttribute("data-raw-value","");expect(outside).toHaveAttribute("data-heat","");
     await act(async () => {});
-    fireEvent.focus(outside);expect(screen.getByRole("tooltip")).toHaveTextContent(locale==="en"?"No run planned in this batch":"本批次未计划此项运行");
+    fireEvent.focus(outside);expect(screen.getByRole("tooltip")).toHaveTextContent(locale==="en"?"Not tested":"未测试");
     expect(screen.getByRole("tooltip")).not.toHaveTextContent("0/1");
     fireEvent.change(screen.getByLabelText(locale==="en"?"Evaluation batch":"评测批次"),{target:{value:"test-baseline"}});
     expect(cell("mt100","mafft")).toHaveAttribute("data-raw-value","10");
@@ -72,16 +72,16 @@ describe("targeted repair batch scope", () => {
     render(<LanguageProvider><MemoryRouter initialEntries={["/benchmark/datasets/sim70?batch=test-repair15"]}><Routes><Route path="/benchmark/datasets/:caseId" element={<BenchmarkDatasetPage/>}/></Routes></MemoryRouter></LanguageProvider>);
     await screen.findByTestId("dataset-title");
     expect(screen.getByLabelText("Evaluation batch")).toHaveValue("test-repair15");
-    expect(screen.getByTestId("dataset-batch-scope")).toHaveTextContent("0 methods included");
+    expect(screen.queryAllByTestId("tradeoff-method")).toHaveLength(0);
     expect(screen.queryAllByTestId("metric-point")).toHaveLength(0);
-    fireEvent.click(screen.getByLabelText("Show full catalog"));
-    expect(screen.getAllByTestId("metric-point")).toHaveLength(35);
+    fireEvent.click(screen.getByLabelText("Show all"));
+    expect(screen.getAllByTestId("metric-point")).toHaveLength(30);
     expect(screen.getAllByTestId("metric-point").every(point=>point.dataset.rawValue==="")).toBe(true);
     expect(screen.getAllByTestId("metric-point").every(point=>point.dataset.status==="outside_batch")).toBe(true);
-    fireEvent.click(screen.getByRole("button",{name:"Exact values"}));
+    fireEvent.click(screen.getByRole("button",{name:"Values"}));
     const cells = screen.getByTestId("precise-results").querySelectorAll("td[data-metric]");
-    expect(cells).toHaveLength(49);
-    expect([...cells].every(cell => cell.textContent === "Outside this batch")).toBe(true);
+    expect(cells).toHaveLength(42);
+    expect([...cells].every(cell => cell.textContent === "Not tested")).toBe(true);
     expect(screen.getByRole("link",{name:"Next"})).toHaveAttribute("href",expect.stringContaining("batch=test-repair15"));
   });
   it("keeps both formats scoped to selected pairs, including an empty dataset scope", () => {

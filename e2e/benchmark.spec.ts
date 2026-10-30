@@ -9,6 +9,11 @@ const archiveSnapshot = JSON.parse(readFileSync("public/benchmark/snapshot.json"
 const rawSnapshot = expectedWebsiteSnapshot(archiveSnapshot);
 const originalBatch = rawSnapshot.batches.find(batch => batch.id === "baseline-single-20261027")!;
 const keys: MetricKey[] = ["wall_seconds", "max_rss_kib", "sp_score", "q", "tc", "avg_sp", "scaled_sp"];
+const readableName = (dataset: BenchmarkSnapshot["catalog"]["datasets"][number], zh: boolean) => {
+  const simulation=dataset.source_kind==="simulated";
+  const family=dataset.sequence_type==="rna" ? "RNA" : dataset.id.startsWith("dna_16s") ? "16S" : simulation ? zh ? "线粒体模拟" : "Mitochondrial simulation" : zh ? "线粒体" : "Mitochondrial";
+  return `${family} · ${simulation ? dataset.similarity_label + "%" : dataset.sequence_count.toLocaleString("en-US") + (zh ? " 条" : " sequences")}`;
+};
 async function openBenchmark(page: Page, url: string) {
   await page.goto(url);
   await expect(page.locator(".benchmark-page h1")).toBeVisible();
@@ -28,9 +33,9 @@ async function openBenchmark(page: Page, url: string) {
   // The shared page now fades in. Read final contrast and geometry after its
   // finite entry animation; keep the normal-motion UI and every axe rule enabled.
   await page.locator(".benchmark-page").evaluate(async element => {
-    await Promise.all(element.getAnimations()
+    await Promise.race([new Promise(resolve => setTimeout(resolve, 2000)), Promise.all(element.getAnimations()
       .filter(animation => animation.effect?.getComputedTiming().iterations !== Infinity)
-      .map(animation => animation.finished.catch(() => undefined)));
+      .map(animation => animation.finished.catch(() => undefined)))]);
   });
 }
 async function expectDocumentFits(page: Page) {
@@ -40,9 +45,9 @@ async function capturePageFromTop(page: Page, path: string) {
   // Language switching uses a document view transition. Capture the settled
   // page rather than a blend of the old English and new Chinese render.
   await page.evaluate(async () => {
-    await Promise.all(document.getAnimations().filter(animation =>
+    await Promise.race([new Promise(resolve => setTimeout(resolve, 2000)), Promise.all(document.getAnimations().filter(animation =>
       animation.effect?.getComputedTiming().iterations !== Infinity)
-      .map(animation => animation.finished.catch(() => undefined)));
+      .map(animation => animation.finished.catch(() => undefined)))]);
   });
   await page.evaluate(() => scrollTo({top:0, behavior:"instant"}));
   await page.screenshot({path, fullPage:true});
@@ -73,12 +78,53 @@ test.beforeEach(async ({page}) => {
   await page.route("**/api/**", route => route.abort());
 });
 
+test("concise bilingual names, collapsed experiment details and original-ID search", async ({page}, info) => {
+  test.setTimeout(120_000);
+  for (const zh of [false,true]) {
+    await openBenchmark(page,"/#/benchmark/datasets/dna_mt_10k");
+    if(zh) await page.getByRole("button",{name:"Switch language",exact:true}).click();
+    const details=page.getByTestId("experiment-details");
+    await expect(details).not.toHaveAttribute("open");
+    await expect(page.getByTestId("dataset-title")).toHaveText(readableName(rawSnapshot.catalog.datasets.find(d=>d.id==="dna_mt_10k")!,zh));
+    for (const dataset of rawSnapshot.catalog.datasets) {
+      await expect(page.locator(`[data-testid="dataset-nav-link"][data-dataset-id="${dataset.id}"]`)).toHaveAttribute("aria-label",readableName(dataset,zh));
+    }
+    expect(await page.locator(".benchmark-studio-sidebar-content").innerText()).not.toMatch(/dna_mt_|\bnt\b|来源标签|Source label/);
+    await expect(page.getByTestId("precise-results")).toBeHidden();
+    await page.getByRole("button",{name:zh?"数值表":"Values",exact:true}).click();
+    await expect(page.getByTestId("dataset-title")).toHaveText(readableName(rawSnapshot.catalog.datasets.find(d=>d.id==="dna_mt_10k")!,zh));
+    expect(await page.getByTestId("precise-results").innerText()).not.toMatch(/1\/1 (valid|有效)/);
+    await details.locator("summary").click();
+    await expect(details).toContainText("dna_mt_10k");
+    await expect(details).toContainText("KiB");
+    await details.locator("summary").click();
+    await page.getByRole("button",{name:zh?"速度—质量":"Trade-off",exact:true}).click();
+    await expect(page.getByTestId("tradeoff-chart")).toBeVisible();
+    const numericRows=await page.locator(".tradeoff-method-value:not(.is-missing)").evaluateAll(elements=>elements.filter(element=>element.getClientRects().length).map(element=>({height:element.getBoundingClientRect().height,lineHeight:parseFloat(getComputedStyle(element).lineHeight),width:element.clientWidth,scrollWidth:element.scrollWidth})));
+    expect(numericRows.length).toBeGreaterThan(0);
+    for(const value of numericRows) { expect(value.height).toBeLessThanOrEqual(value.lineHeight+1); expect(value.scrollWidth).toBeLessThanOrEqual(value.width+1); }
+    await page.keyboard.press("Escape");
+    await capturePageFromTop(page,info.outputPath(`concise-detail-${zh?"zh":"en"}.png`));
+    await openBenchmark(page,"/#/benchmark/datasets/dna_mt_sim_70");
+    await expect(page.getByTestId("dataset-title")).toHaveText(zh?"线粒体模拟 · 70%":"Mitochondrial simulation · 70%");
+    await page.getByTestId("experiment-details").locator("summary").click();
+    await expect(page.getByTestId("experiment-details")).toContainText(zh?"模拟相似度（来源参数）：70%":"Simulation similarity (source parameter): 70%");
+    for(const search of ["线粒体", "Mitochondrial", "10,000", "dna_mt_10k"]) {
+      await openBenchmark(page,`/#/benchmark?search=${encodeURIComponent(search)}`);
+      await expect(page.locator('[data-testid="dataset-nav-link"][data-dataset-id="dna_mt_10k"]')).toHaveCount(1);
+    }
+    await openBenchmark(page,"/#/benchmark");
+    await expectDocumentFits(page);
+    await capturePageFromTop(page,info.outputPath(`concise-overview-${zh?"zh":"en"}.png`));
+  }
+});
+
 test("real matrix preserves every result and all seven metrics", async ({page}, info) => {
   test.setTimeout(120_000);
   const batch = originalBatch;
   for (const key of keys) {
     await openBenchmark(page, `/#/benchmark?all=1&batch=${batch.id}&metric=${key}`);
-    await expect(page.getByTestId("matrix-cell")).toHaveCount(182);
+    await expect(page.getByTestId("matrix-cell")).toHaveCount(156);
     const cells = await page.getByTestId("matrix-cell").evaluateAll(nodes => nodes.map(n => ({
       dataset:n.getAttribute("data-dataset-id"), method:n.getAttribute("data-method-id"), key:n.getAttribute("data-metric"),
       raw:n.getAttribute("data-raw-value"), shown:n.getAttribute("data-display-value"), heat:n.getAttribute("data-heat"),
@@ -107,25 +153,25 @@ test("real matrix preserves every result and all seven metrics", async ({page}, 
       }
     }
   }
-  await info.attach("matrix-verification.json", {contentType:"application/json", body:JSON.stringify({metrics:7,cells:1274,status:"passed"})});
+  await info.attach("matrix-verification.json", {contentType:"application/json", body:JSON.stringify({metrics:7,cells:1092,status:"passed"})});
 });
 
 test("filters, selected-cell deep links and download scope stay together", async ({page}) => {
   await openBenchmark(page, `/#/benchmark?all=1&batch=${originalBatch.id}`);
-  await expect(page.locator(".benchmark-filter-bottom").getByText("26 of 26 datasets", {exact:true})).toBeVisible();
+  await expect(page.getByTestId("dataset-nav-link")).toHaveCount(26);
   await expand(page,".benchmark-extra-filters");
   await page.getByRole("combobox", {name:"Data origin",exact:true}).selectOption("simulated");
-  await expect(page.locator(".benchmark-filter-bottom").getByText("14 of 26 datasets", {exact:true})).toBeVisible();
+  await expect(page.getByTestId("dataset-nav-link")).toHaveCount(14);
   await expand(page,".benchmark-studio-sidebar-menu");
   await page.getByLabel("Search datasets", {exact:true}).fill("sim_70");
-  await expect(page.getByTestId("matrix-cell")).toHaveCount(7);
+  await expect(page.getByTestId("matrix-cell")).toHaveCount(6);
   await expand(page, '[data-testid="download-controls"]');
   const e=page.waitForEvent("download"); await page.getByRole("button",{name:"Download JSON",exact:true}).click();
   const filtered = JSON.parse(readFileSync((await (await e).path())!, "utf8"));
   expect(filtered.catalog.datasets.map((d:{id:string})=>d.id)).toEqual(["dna_mt_sim_70"]);
-  expect(filtered.batches[0].results).toHaveLength(7);
+  expect(filtered.batches[0].results).toHaveLength(6);
   const ce=page.waitForEvent("download"); await page.getByRole("button",{name:"Download CSV",exact:true}).click();
-  expect(parseCsv(readFileSync((await (await ce).path())!,"utf8"))).toHaveLength(50);
+  expect(parseCsv(readFileSync((await (await ce).path())!,"utf8"))).toHaveLength(43);
   await page.getByRole("combobox",{name:"Download scope",exact:true}).selectOption("batch");
   await assertDownloadConsistency(page,rawSnapshot,originalBatch.id);
   await page.getByTestId("download-controls").locator("summary").click();
@@ -136,14 +182,14 @@ test("filters, selected-cell deep links and download scope stay together", async
   await expect(page).toHaveURL(/datasets\/dna_mt_sim_70.*method=mafft/);
   await page.getByRole("button",{name:"Metric plots",exact:true}).click();
   await expect(page.locator('[data-testid="metric-point"][data-method="mafft"][data-metric="wall_seconds"]')).toBeVisible();
-  await page.getByRole("link",{name:/All benchmark datasets/}).click();
+  await page.locator(".benchmark-detail-topline .benchmark-back").click();
   await expect(page.getByLabel("Search datasets",{exact:true})).toHaveValue("sim_70");
   await page.getByRole("button",{name:"Clear filters",exact:true}).click();
   await page.getByRole("combobox",{name:"Sequence type",exact:true}).selectOption("rna");
   await expand(page,".benchmark-extra-filters");
   await page.getByLabel("Minimum sequences",{exact:true}).fill("1000");
   await page.getByLabel("Maximum sequences",{exact:true}).fill("4095");
-  await expect(page.locator(".benchmark-filter-bottom").getByText("3 of 26 datasets",{exact:true})).toBeVisible();
+  await expect(page.getByTestId("dataset-nav-link")).toHaveCount(3);
   await page.getByRole("combobox",{name:"Reference alignment",exact:true}).selectOption("no");
   await expect(page.getByText("No datasets match these filters.",{exact:true})).toBeVisible();
 });
@@ -167,7 +213,7 @@ test("every real detail, point position, exact table and download matches the re
   await assertDownloadConsistency(page,rawSnapshot,batch.id,"rna_255","zh");
   await page.getByTestId("download-controls").locator("summary").click();
   await capturePageFromTop(page,info.outputPath("real-results-detail.png"));
-  await info.attach("real-results-consistency.json",{contentType:"application/json",body:JSON.stringify({batch:batch.id,datasets:26,tableMetrics:1274,chartPanels:182,methodChartPositions:1274,jsonDownloads:28,csvDownloads:28,chineseDataset:"rna_255",status:"passed"})});
+  await info.attach("real-results-consistency.json",{contentType:"application/json",body:JSON.stringify({batch:batch.id,datasets:26,tableMetrics:1092,chartPanels:156,methodChartPositions:1092,jsonDownloads:28,csvDownloads:28,chineseDataset:"rna_255",status:"passed"})});
 });
 
 test("future repeats, negative SP, zero, partial and failed metrics remain distinct",async ({page})=>{
@@ -190,15 +236,15 @@ test("empty and invalid data never create measurements", async ({page})=>{
   let invalid=true;
   await page.route("**/benchmark/snapshot.json",r=>r.fulfill({json:invalid?{schema_version:99}:empty}));
   await page.goto("/#/benchmark");
-  await expect(page.getByRole("alert")).toContainText("could not be loaded or validated");
+  await expect(page.getByRole("alert")).toContainText("Could not load results. Try again.");
   invalid=false; await page.getByRole("button",{name:"Try again",exact:true}).click();
-  await expect(page.getByTestId("matrix-cell")).toHaveCount(182);
-  expect(await page.locator('[data-testid="matrix-cell"][data-raw-value=""]').count()).toBe(182);
+  await expect(page.getByTestId("matrix-cell")).toHaveCount(156);
+  expect(await page.locator('[data-testid="matrix-cell"][data-raw-value=""]').count()).toBe(156);
   await expand(page,'[data-testid="download-controls"]');
   const e=page.waitForEvent("download");await page.getByRole("button",{name:"Download CSV",exact:true}).click();
   expect(parseCsv(readFileSync((await(await e).path())!,"utf8"))).toHaveLength(1);
   await openBenchmark(page,"/#/benchmark/datasets/dna_mt_1k");
-  await expect(page.getByRole("heading",{name:"Input data needs review"})).toBeVisible();
+  await expand(page,".benchmark-experiment-details"); await expect(page.getByRole("heading",{name:"Input needs review"})).toBeVisible();
   expect(await page.getByTestId("plot-dot").count()).toBe(0);
   await openBenchmark(page,"/#/benchmark/datasets/missing");
   await expect(page.getByRole("heading",{name:"Dataset not found"})).toBeVisible();
@@ -235,10 +281,12 @@ test("responsive charts, tooltips, zoom and keyboard access in both languages",a
   if(mobile) for(const name of ["Time ↓","Peak memory ↓","SP score ↑","Q ↑","TC ↑"]) {
     await page.getByRole("group",{name:"Chart metric",exact:true}).getByRole("button",{name,exact:true}).click();
     await expect(page.locator("figure[data-metric]:visible")).toHaveCount(1);
-    await expect(page.locator("figure[data-metric]:visible").getByTestId("metric-point")).toHaveCount(7);
+    await expect(page.locator("figure[data-metric]:visible").getByTestId("metric-point")).toHaveCount(6);
   }
   if(mobile) await page.getByRole("group",{name:"Chart metric",exact:true}).getByRole("button",{name:"Time ↓",exact:true}).click();
+  if(mobile) await expect(page).toHaveURL(/metric=wall_seconds/);
   const point=page.locator('[data-testid="metric-point"][data-method="mafft"][data-metric="wall_seconds"]');
+  await expect(point).toBeVisible();
   await point.focus(); await expect(page.getByRole("tooltip")).toContainText("1.01");
   await page.keyboard.press("Escape"); await expect(page.getByRole("tooltip")).toHaveCount(0);
   await page.getByRole("combobox",{name:"Time (s) scale",exact:true}).selectOption("linear");
@@ -354,7 +402,7 @@ test("small screens and 200 percent text keep controls, plots and tables usable"
     expect(box.y+box.height).toBeLessThanOrEqual(viewport.height+1);
     await page.screenshot({path:info.outputPath(`text-200-popup-${viewport.width}.png`)});
     await page.keyboard.press("Escape");await expect(popup).toHaveCount(0);
-    await page.getByRole("button",{name:"Exact values",exact:true}).click();
+    await page.getByRole("button",{name:"Values",exact:true}).click();
     const region=page.getByRole("region",{name:"Scrollable method comparison",exact:true});
     await region.focus();await page.keyboard.press("ArrowRight");
     await expect.poll(()=>region.evaluate(e=>e.scrollLeft)).toBeGreaterThan(0);
@@ -373,24 +421,24 @@ test("targeted repair batch keeps 11 website pairs separate from the original re
     ...["dna_mt_100","dna_mt_1k","dna_mt_10k"].map(id=>`minipoa/${id}`),
   ].sort();
   expect(batch.results.map(result=>`${result.method_id}/${result.dataset_id}`).sort()).toEqual(expectedPairs);
-  expect(originalBatch.results).toHaveLength(182);
+  expect(originalBatch.results).toHaveLength(156);
   expect(archiveSnapshot.batches.find(item => item.id === originalBatch.id)!.results).toHaveLength(234);
   expect(originalBatch.results.filter(result=>result.status==="complete")).toHaveLength(116);
   const datasets=[...new Set(batch.results.map(result=>result.dataset_id))];
   expect(datasets).toHaveLength(8);
   await openBenchmark(page,`/#/benchmark?all=1&batch=${batch.id}`);
   await expect(page.getByRole("combobox",{name:"Evaluation batch",exact:true})).toHaveValue(batch.id);
-  await expect(page.getByTestId("batch-scope")).toContainText("11 method–dataset pairs across 8 datasets and 2 methods");
+  await expect(page.locator(".benchmark-run-summary")).toContainText("11 / 11");
   for(const key of keys) {
     await openBenchmark(page,`/#/benchmark?all=1&batch=${batch.id}&metric=${key}`);
     const cells=await page.getByTestId("matrix-cell").evaluateAll(nodes=>nodes.map(node=>({dataset:node.getAttribute("data-dataset-id"),method:node.getAttribute("data-method-id"),raw:node.getAttribute("data-raw-value"),state:node.getAttribute("data-state"),text:node.textContent})));
-    expect(cells).toHaveLength(182);
+    expect(cells).toHaveLength(156);
     for(const cell of cells) {
       const result=batch.results.find(result=>result.dataset_id===cell.dataset && result.method_id===cell.method);
       const metric=result?.metrics[key];
       const value=metric&&["complete","partial"].includes(metric.status)?metric.value??metric.mean:null;
       expect(cell.raw).toBe(value===null?"":String(value));
-      if(!result){expect(cell.state).toBe("outside_batch");expect(cell.text).toContain("Outside this batch");}
+      if(!result){expect(cell.state).toBe("outside_batch");expect(cell.text).toContain("Not tested");}
     }
   }
   await assertDownloadConsistency(page,rawSnapshot,batch.id);
@@ -405,7 +453,7 @@ test("targeted repair batch keeps 11 website pairs separate from the original re
   await openBenchmark(page,`/#/benchmark/datasets/rna_255?all=1&batch=${batch.id}`);
   await expect(page.getByRole("combobox",{name:"Evaluation batch",exact:true})).toHaveValue(batch.id);
   expect(await page.getByTestId("plot-dot").count()).toBe(0);
-  await expect(page.getByTestId("dataset-batch-scope")).toContainText("0 methods included");
+  await expect(page.getByTestId("tradeoff-point")).toHaveCount(0);
   await assertDownloadConsistency(page,rawSnapshot,batch.id,"rna_255");
   await page.getByRole("combobox",{name:"Evaluation batch",exact:true}).selectOption(originalBatch.id);
   await expect(page.getByTestId("tradeoff-point").first()).toBeAttached();
@@ -413,27 +461,27 @@ test("targeted repair batch keeps 11 website pairs separate from the original re
   await page.getByRole("button",{name:"Switch language",exact:true}).click();
   await assertDatasetConsistency(page,rawSnapshot,batch,"rna_1023","zh");
   await assertDownloadConsistency(page,rawSnapshot,batch.id,"rna_1023","zh");
-  await info.attach("repair-results-consistency.json",{contentType:"application/json",body:JSON.stringify({batch:batch.id,pairs:11,datasets:8,metricRecords:77,matrixSlots:1274,jsonDownloads:11,csvDownloads:11,originalPairs:182,archivedOriginalPairs:234,status:"passed"})});
+  await info.attach("repair-results-consistency.json",{contentType:"application/json",body:JSON.stringify({batch:batch.id,pairs:11,datasets:8,metricRecords:77,matrixSlots:1092,jsonDownloads:11,csvDownloads:11,originalPairs:156,archivedOriginalPairs:234,status:"passed"})});
 });
 
-test("32 GiB batch keeps all 37 website outcomes, plots, tooltips and downloads isolated", async ({page}, info) => {
+test("32 GiB batch keeps all 17 website outcomes, plots, tooltips and downloads isolated", async ({page}, info) => {
   test.setTimeout(300_000);
   const batch = rawSnapshot.batches.find(batch => batch.id === "memory32-single-20261029")!;
   expect(batch).toBeDefined();
-  expect(batch.results).toHaveLength(37);
+  expect(batch.results).toHaveLength(17);
   expect(archiveSnapshot.batches.find(item => item.id === batch.id)!.results).toHaveLength(41);
   const datasets = [...new Set(batch.results.map(result => result.dataset_id))];
-  expect(datasets).toHaveLength(20);
+  expect(datasets).toHaveLength(17);
   await openBenchmark(page, `/#/benchmark?all=1&batch=${batch.id}`);
   const selector = page.getByRole("combobox", {name:"Evaluation batch", exact:true});
   await expect(selector).toHaveValue(batch.id);
   expect(await selector.locator("option").evaluateAll(options => options.map(option => (option as HTMLOptionElement).value)))
     .toEqual(["latest", batch.id, "repair15-single-20261028", originalBatch.id]);
-  await expect(page.getByTestId("batch-scope")).toContainText("37 method–dataset pairs across 20 datasets and 2 methods");
-  await expect(page.locator(".benchmark-run-summary")).toContainText("Complete 0 / 37");
-  await expect(page.locator(".benchmark-run-summary")).toContainText("Timed out 3");
-  await expect(page.locator(".benchmark-run-summary")).toContainText("Memory limit 34");
-  await expect(page.locator(".benchmark-run-limits")).toHaveText("4 CPU · 32 GiB · 30 min limit");
+  await expect(page.locator(".benchmark-run-summary")).toContainText("0 / 17");
+  await expect(page.locator(".benchmark-run-summary")).toContainText("Complete 0 / 17");
+  await expect(page.locator(".benchmark-run-summary")).toContainText("Timed out 2");
+  await expect(page.locator(".benchmark-run-summary")).toContainText("Memory limit 15");
+  await expand(page,".benchmark-experiment-details"); await expect(page.getByTestId("experiment-details")).toContainText("4 CPU · 32 GiB · 30");
 
   for (const key of keys) {
     await openBenchmark(page, `/#/benchmark?all=1&batch=${batch.id}&metric=${key}`);
@@ -442,7 +490,7 @@ test("32 GiB batch keeps all 37 website outcomes, plots, tooltips and downloads 
       raw:node.getAttribute("data-raw-value"), shown:node.getAttribute("data-display-value"),
       state:node.getAttribute("data-state"), heat:node.getAttribute("data-heat"), text:node.textContent,
     })));
-    expect(cells).toHaveLength(182);
+    expect(cells).toHaveLength(156);
     for (const cell of cells) {
       const result = batch.results.find(result => result.dataset_id === cell.dataset && result.method_id === cell.method);
       const metric = result?.metrics[key];
@@ -454,7 +502,7 @@ test("32 GiB batch keeps all 37 website outcomes, plots, tooltips and downloads 
       expect(cell.heat, context).toBe("");
       if (!result) {
         expect(cell.state, context).toBe("outside_batch");
-        expect(cell.text, context).toContain("Outside this batch");
+        expect(cell.text, context).toContain("Not tested");
       } else if (value === null) {
         expect(cell.text, context).toContain(metric!.reason_codes.includes("no_reference") ? "No reference" : result.reason_code === "oom" ? "Memory limit" : "Timed out");
       }
@@ -483,37 +531,37 @@ test("32 GiB batch keeps all 37 website outcomes, plots, tooltips and downloads 
   await selector.selectOption(originalBatch.id);
   await expect(page.getByTestId("tradeoff-point").first()).toBeAttached();
 
-  await openBenchmark(page, `/#/benchmark/datasets/dna_mt_sim_70?all=1&batch=${batch.id}&metric=max_rss_kib&method=tcoffee`);
+  await openBenchmark(page, `/#/benchmark/datasets/dna_mt_100?all=1&batch=${batch.id}&metric=max_rss_kib&method=muscle5`);
   await page.getByRole("button", {name:"Switch language", exact:true}).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "zh-CN");
-  await assertDatasetConsistency(page, rawSnapshot, batch, "dna_mt_sim_70", "zh");
-  await assertDownloadConsistency(page, rawSnapshot, batch.id, "dna_mt_sim_70", "zh");
+  await assertDatasetConsistency(page, rawSnapshot, batch, "dna_mt_100", "zh");
+  await assertDownloadConsistency(page, rawSnapshot, batch.id, "dna_mt_100", "zh");
   await page.getByTestId("download-controls").locator("summary").click();
   if(page.viewportSize()!.width < 768) await page.getByRole("group",{name:"图表指标",exact:true}).getByRole("button",{name:"峰值内存 ↓",exact:true}).click();
-  const point = page.locator('[data-testid="metric-point"][data-method="tcoffee"][data-metric="max_rss_kib"]');
+  const point = page.locator('[data-testid="metric-point"][data-method="muscle5"][data-metric="max_rss_kib"]');
   await point.click();
   await expect(point).toHaveAttribute("data-raw-value", "");
-  await expect(page.getByRole("tooltip")).toContainText("达到内存限制");
-  await expect(page.getByRole("tooltip")).toContainText("0/1 有效");
+  await expect(page.getByRole("tooltip")).toContainText("内存超限");
+  await expect(point).toHaveAttribute("data-valid-count","0"); await expect(point).toHaveAttribute("data-planned-count","1");
   await capturePageFromTop(page, info.outputPath("memory32-detail-zh.png"));
   await openBenchmark(page, `/#/benchmark?all=1&batch=${batch.id}&metric=max_rss_kib`);
-  await expect(page.locator(".benchmark-run-limits")).toHaveText("4 CPU · 32 GiB · 30 分钟限时");
+  await expand(page,".benchmark-experiment-details"); await expect(page.getByTestId("experiment-details")).toContainText("4 CPU · 32 GiB · 30");
   await expectDocumentFits(page);
   await capturePageFromTop(page, info.outputPath("memory32-overview-zh.png"));
   await info.attach("memory32-consistency.json", {contentType:"application/json", body:JSON.stringify({
-    batch:batch.id, pairs:37, archivedPairs:41, datasets:20, metricRecords:259, matrixSlots:1274,
+    batch:batch.id, pairs:17, archivedPairs:41, datasets:17, metricRecords:119, matrixSlots:1092,
     jsonDownloads:25, csvDownloads:25, historicalBatches:2, status:"passed",
   })});
 });
 
-test("latest whole records match all 1274 matrix, plot, table and download metrics", async ({page}, info) => {
+test("latest whole records match all 1092 matrix, plot, table and download metrics", async ({page}, info) => {
   test.setTimeout(360_000);
   const records=expectedRecords(rawSnapshot,"latest");
-  expect(records).toHaveLength(182);
+  expect(records).toHaveLength(156);
   expect(records.filter(r=>r.result.status==="complete")).toHaveLength(127);
-  expect(records.filter(r=>r.result.status==="timeout")).toHaveLength(21);
-  expect(records.filter(r=>r.result.reason_code==="oom")).toHaveLength(34);
-  expect(rawSnapshot.batches.map(b=>records.filter(r=>r.batch.id===b.id).length)).toEqual([37,11,134]);
+  expect(records.filter(r=>r.result.status==="timeout")).toHaveLength(14);
+  expect(records.filter(r=>r.result.reason_code==="oom")).toHaveLength(15);
+  expect(rawSnapshot.batches.map(b=>records.filter(r=>r.batch.id===b.id).length)).toEqual([17,11,128]);
   await openBenchmark(page,"/#/benchmark");
   await expect(page.getByRole("combobox",{name:"Evaluation batch",exact:true})).toHaveValue("latest");
   await expect(page.locator(".benchmark-run-summary")).toContainText("127");
@@ -525,7 +573,7 @@ test("latest whole records match all 1274 matrix, plot, table and download metri
       dataset:n.getAttribute("data-dataset-id"),method:n.getAttribute("data-method-id"),batch:n.getAttribute("data-batch-id"),
       raw:n.getAttribute("data-raw-value"),shown:n.getAttribute("data-display-value"),heat:n.getAttribute("data-heat"),text:n.textContent,
     })));
-    expect(cells).toHaveLength(182);
+    expect(cells).toHaveLength(156);
     for(const cell of cells) {
       const {result,batch}=records.find(r=>r.result.dataset_id===cell.dataset&&r.result.method_id===cell.method)!;
       const metric=result.metrics[key];
@@ -566,7 +614,7 @@ test("latest whole records match all 1274 matrix, plot, table and download metri
   await openBenchmark(page,"/#/benchmark?metric=q");
   await capturePageFromTop(page,info.outputPath("latest-matrix-zh.png"));
   await info.attach("latest-consistency.json",{contentType:"application/json",body:JSON.stringify({
-    pairs:182,metrics:1274,complete:127,timeout:21,oom:34,sourceCounts:[37,11,134],
+    pairs:156,metrics:1092,complete:127,timeout:14,oom:15,sourceCounts:[17,11,128],
     datasets:26,scatterAxesChecked:10,jsonDownloads:28,csvDownloads:28,status:"passed",
   })});
 });
@@ -574,11 +622,11 @@ test("latest whole records match all 1274 matrix, plot, table and download metri
 test("latest filters, sparse batch defaults, navigation and export scopes agree",async({page})=>{
   test.setTimeout(120_000);
   await openBenchmark(page,"/#/benchmark?type=rna");
-  await expect(page.getByTestId("matrix-cell")).toHaveCount(42);
+  await expect(page.getByTestId("matrix-cell")).toHaveCount(36);
   await assertSidebarScope(page,rawSnapshot.catalog.datasets.filter(dataset=>dataset.sequence_type==="rna").map(dataset=>dataset.id));
   const summary=page.locator(".benchmark-run-summary");
-  await expect(summary).toContainText("30");await expect(summary).toContainText("42");
-  await expect(summary).toContainText("Timed out 11");await expect(summary).toContainText("Memory limit 1");
+  await expect(summary).toContainText("30");await expect(summary).toContainText("36");
+  await expect(summary).toContainText("Timed out 6");await expect(summary).not.toContainText("Memory limit");
   await assertDownloadConsistency(page,rawSnapshot,"latest",rawSnapshot.catalog.datasets.filter(d=>d.sequence_type==="rna").map(d=>d.id));
   await page.getByRole("combobox",{name:"Download scope",exact:true}).selectOption("batch");
   await assertDownloadConsistency(page,rawSnapshot,"latest");
@@ -601,7 +649,7 @@ test("latest filters, sparse batch defaults, navigation and export scopes agree"
   await page.getByRole("link",{name:"Next",exact:true}).click();
   await expect(page).toHaveURL(/datasets\/rna_4095/);
   await expect(page.getByRole("link",{name:"Next",exact:true})).toHaveCount(0);
-  await page.getByRole("link",{name:/All benchmark datasets/}).click();
+  await page.locator(".benchmark-detail-topline .benchmark-back").click();
   await expect(page.getByTestId("matrix-cell")).toHaveCount(6);
   await expect(page.getByTestId("benchmark-matrix")).toHaveAttribute("data-metric","q");
   await expand(page,".benchmark-method-filter");
@@ -612,20 +660,20 @@ test("latest filters, sparse batch defaults, navigation and export scopes agree"
   await assertDownloadConsistency(page,rawSnapshot,"latest",["rna_1023","rna_2047","rna_4095"],"en",["halign4"]);
 
   await openBenchmark(page,"/#/benchmark?batch=memory32-single-20261029");
-  await expect(page.getByTestId("matrix-cell")).toHaveCount(40);
+  await expect(page.getByTestId("matrix-cell")).toHaveCount(17);
   await assertSidebarScope(page,[...new Set(rawSnapshot.batches.find(batch=>batch.id==="memory32-single-20261029")!.results.map(result=>result.dataset_id))]);
-  await expect(page.locator(".benchmark-run-summary")).toContainText("0 / 37");
-  await page.getByRole("checkbox",{name:"Show full catalog",exact:true}).click();
-  await expect(page.getByRole("checkbox",{name:"Show full catalog",exact:true})).toBeChecked();
-  await expect(page.getByTestId("matrix-cell")).toHaveCount(182);
+  await expect(page.locator(".benchmark-run-summary")).toContainText("0 / 17");
+  await page.getByRole("checkbox",{name:"Show all",exact:true}).click();
+  await expect(page.getByRole("checkbox",{name:"Show all",exact:true})).toBeChecked();
+  await expect(page.getByTestId("matrix-cell")).toHaveCount(156);
   await assertSidebarScope(page,rawSnapshot.catalog.datasets.map(dataset=>dataset.id));
   await page.getByRole("combobox",{name:"Evaluation batch",exact:true}).selectOption("latest");
   await expect(page.locator(".benchmark-run-summary")).toContainText("127");
   await openBenchmark(page,"/#/benchmark/datasets/dna_mt_sim_70?scope=latest&type=dna&source=simulated");
-  await expect(page.locator(".benchmark-detail-titleline")).toContainText("Source label 70");
+  await expect(page.locator(".benchmark-detail-titleline")).toContainText("Mitochondrial simulation · 70%");
   await page.getByRole("link",{name:"Next",exact:true}).click();
   await expect(page.getByTestId("dataset-title")).toHaveAttribute("data-dataset-id","dna_mt_sim_75");
-  await expect(page.locator(".benchmark-detail-titleline")).toContainText("Source label 75");
+  await expect(page.locator(".benchmark-detail-titleline")).toContainText("Mitochondrial simulation · 75%");
 });
 
 test("latest failures never fall back to older valid numbers",async({page})=>{
@@ -700,15 +748,15 @@ test("scatter keeps zero, overlapping, single and failed methods readable",async
   await expect(page.getByTestId("tradeoff-method")).toHaveCount(1);
   await openBenchmark(page,"/#/benchmark/datasets/rna_255?methods=tcoffee,muscle5,kalign3,halign3");
   await expect(page.getByTestId("tradeoff-point")).toHaveCount(0);
-  await expect(page.getByTestId("tradeoff-method")).toHaveCount(2);
-  await expect(page.getByText("No methods have both selected measurements. See their states in the method list.",{exact:true})).toBeVisible();
+  await expect(page.getByTestId("tradeoff-method")).toHaveCount(1);
+  await expect(page.getByText("No results to plot",{exact:true})).toBeVisible();
   await expectDocumentFits(page);
 });
 
 
-test("website uses HAlign, seven methods and the shared green theme", async ({page}, info) => {
-  const names = ["Clustal Omega", "T-Coffee", "MAFFT", "MUSCLE 5", "HAlign", "FMAlign2", "minipoa"];
-  const removed = /HAlign 3|HAlign 4|Kalign 3/;
+test("website uses HAlign, six methods and the shared green theme", async ({page}, info) => {
+  const names = ["Clustal Omega", "MAFFT", "MUSCLE 5", "HAlign", "FMAlign2", "minipoa"];
+  const removed = /HAlign 3|HAlign 4|Kalign 3|T-Coffee/;
   await openBenchmark(page, "/#/benchmark");
   await expand(page, ".benchmark-method-filter");
   const labels = await page.getByRole("group", {name:"Select methods"}).locator("label").allTextContents();
@@ -725,7 +773,7 @@ test("website uses HAlign, seven methods and the shared green theme", async ({pa
   expect(await page.locator("#main-content").innerText()).not.toMatch(removed);
   await assertDownloadConsistency(page,rawSnapshot,"latest");
   await openBenchmark(page,"/#/benchmark/datasets/rna_255?scope=latest&zoom=1&method=halign4");
-  await expect(page.getByTestId("tradeoff-method")).toHaveCount(7);
+  await expect(page.getByTestId("tradeoff-method")).toHaveCount(6);
   await expect(page.locator('[data-testid="tradeoff-method"][data-method="halign4"]')).toContainText("HAlign");
   await expect(page.locator('[data-testid="tradeoff-method"][data-method="halign4"]')).not.toContainText("HAlign 4");
   expect(await page.locator("#main-content").innerText()).not.toMatch(removed);
@@ -736,7 +784,7 @@ test("website uses HAlign, seven methods and the shared green theme", async ({pa
   await capturePageFromTop(page,info.outputPath("green-halign-detail-zh.png"));
   await openBenchmark(page,"/#/benchmark?scope=latest&metric=wall_seconds");
   await capturePageFromTop(page,info.outputPath("green-overview-zh.png"));
-  await openBenchmark(page,"/#/benchmark?all=1&methods=halign3,kalign3,mafft");
+  await openBenchmark(page,"/#/benchmark?all=1&methods=tcoffee,halign3,kalign3,mafft");
   await expect(page.getByTestId("matrix-cell")).toHaveCount(26);
   expect(await page.getByTestId("matrix-cell").evaluateAll(elements=>elements.every(element=>element.getAttribute("data-method-id")==="mafft"))).toBe(true);
   await expectDocumentFits(page);

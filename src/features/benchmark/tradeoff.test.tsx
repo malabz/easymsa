@@ -100,7 +100,7 @@ describe("tradeoff chart", () => {
     const expected = (Math.log10(20) - 1) / (2 - 1) * 100;
     expect(Number(points[0].dataset.xPercent)).toBeCloseTo(expected, 10);
     expect(screen.getAllByTestId("tradeoff-method")).toHaveLength(9);
-    expect(screen.getAllByTestId("tradeoff-method").find(row => row.dataset.method === "mafft")).toHaveTextContent("Time limit reached");
+    expect(screen.getAllByTestId("tradeoff-method").find(row => row.dataset.method === "mafft")).toHaveTextContent("Timed out");
   });
 
   it("keeps the comparison columns aligned with the current axes and preserves missing results", () => {
@@ -108,7 +108,7 @@ describe("tradeoff chart", () => {
     const methods = screen.getAllByTestId("tradeoff-method");
     expect(within(methods[0]).getByTestId("tradeoff-method-x")).toHaveTextContent("20");
     expect(within(methods[0]).getByTestId("tradeoff-method-y")).toHaveTextContent("0.8");
-    expect(within(methods[2]).getByTestId("tradeoff-method-x")).toHaveTextContent("Time limit reached");
+    expect(within(methods[2]).getByTestId("tradeoff-method-x")).toHaveTextContent("Timed out");
     expect(within(methods[2]).getByTestId("tradeoff-method-y")).toHaveTextContent("—");
     fireEvent.change(screen.getByLabelText("Horizontal axis"),{target:{value:"max_rss_kib"}});
     const memory = within(methods[0]).getByTestId("tradeoff-method-x");
@@ -149,7 +149,7 @@ describe("tradeoff chart", () => {
     expect(screen.getByRole("option", {name:"Q · no reference"})).toBeDisabled();
     expect(screen.getByRole("option", {name:"TC · no reference"})).toBeDisabled();
     expect(Number(screen.getByTestId("tradeoff-chart").dataset.yMin)).toBeLessThan(-100);
-    expect(screen.getByText(/SP is a pairwise score, not reference accuracy/)).toBeVisible();
+    expect(screen.queryByText(/SP is a pairwise score/)).not.toBeInTheDocument();
   });
 
   it("uses a linear axis for zero resource values without adding offsets", () => {
@@ -255,7 +255,7 @@ describe("tradeoff chart", () => {
     mount(snapshot);
     expect(screen.queryAllByTestId("tradeoff-point")).toHaveLength(0);
     expect(screen.getAllByTestId("tradeoff-method")).toHaveLength(9);
-    expect(screen.getByText(/No methods have both selected measurements/)).toBeVisible();
+    expect(screen.getByText(/No results to plot/)).toBeVisible();
   });
 
   it("supports one valid point and uses only reported SD/range for repeated observations", () => {

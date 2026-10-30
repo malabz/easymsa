@@ -1,3 +1,4 @@
+import { datasetName } from "./names";
 import { Fragment, useEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { ArrowUpRight, CircleAlert, Clock3, Minus } from "lucide-react";
@@ -18,8 +19,8 @@ export function orderedDatasets(datasets: BenchmarkDataset[]) {
   return [...datasets].sort((a, b) => datasetGroup(a) - datasetGroup(b) || (a.similarity_label ?? a.sequence_count) - (b.similarity_label ?? b.sequence_count) || a.id.localeCompare(b.id));
 }
 const groupNames = [
-  ["DNA · 16S", "DNA · 16S"], ["DNA · Mitochondrial samples", "DNA · 线粒体抽样"],
-  ["DNA · Mitochondrial simulation", "DNA · 线粒体模拟"], ["RNA", "RNA"]
+  ["16S", "16S"], ["Mitochondrial", "线粒体"],
+  ["Mitochondrial simulation", "线粒体模拟"], ["RNA", "RNA"]
 ];
 function shortReason(reason: string | undefined, locale: Locale) {
   const labels: Record<string, [string, string]> = {
@@ -88,9 +89,9 @@ export function BenchmarkMatrix({ snapshot, batch, datasets, metricKey, locale, 
   };
   return <>
     <div className="benchmark-matrix-key" id="benchmark-matrix-guide">
-      {scope?.mode === "latest" ? <span>{words(locale, "Latest whole record for each pair. Unmarked cells: baseline · 16 GiB. Retests show their source; neutral shading does not rank different conditions.", "每个组合取最新整条记录。未标记格子来自基线 · 16 GiB；重测另标来源，中性色不表示跨条件优劣。")}</span> : <>
+      {scope?.mode === "latest" ? null : <>
       <span className="benchmark-heat-swatch" aria-hidden="true"><i /><i /><i /><i /><i /></span>
-      <span>{words(locale, "Darker means better within this dataset. Colors are not comparable across rows.", "颜色越深，表示本数据集内相对表现更优；颜色不可跨行比较。")}</span>
+      <span>{words(locale, "Darker = better within each row", "同一行内，深色更优")}</span>
       </>}
     </div>
     <div className="benchmark-matrix-scroll" ref={region} role="region" tabIndex={0} aria-label={words(locale, "Scrollable results matrix", "可滚动的成绩矩阵")} aria-describedby="benchmark-matrix-guide">
@@ -105,7 +106,7 @@ export function BenchmarkMatrix({ snapshot, batch, datasets, metricKey, locale, 
           return <Fragment key={dataset.id}>
             {startGroup && <tr className="benchmark-matrix-group"><th colSpan={snapshot.methods.length + 1} scope="rowgroup"><span>{words(locale, ...groupNames[group] as [string, string])}</span></th></tr>}
             <tr data-dataset-id={dataset.id}>
-              <th scope="row" className="benchmark-matrix-dataset"><Link onClick={savePosition} to={detailHref(dataset.id)}><span className="benchmark-matrix-row-name">{dataset.similarity_label !== null ? words(locale, `Source label ${dataset.similarity_label}`, `来源标签 ${dataset.similarity_label}`) : words(locale, `${dataset.sequence_count.toLocaleString()} sequences`, `${dataset.sequence_count.toLocaleString()} 条序列`)}<ArrowUpRight size={12} aria-hidden="true" /></span><span className="benchmark-matrix-row-id">{dataset.id}</span>{dataset.validation_status === "requires_review" && <span className="benchmark-warning">{words(locale, "Input needs review", "输入待处理")}</span>}</Link></th>
+              <th scope="row" className="benchmark-matrix-dataset"><Link onClick={savePosition} to={detailHref(dataset.id)}><span className="benchmark-matrix-row-name">{datasetName(dataset,locale,true)}<ArrowUpRight size={12} aria-hidden="true" /></span>{dataset.validation_status === "requires_review" && <span className="benchmark-warning">{words(locale, "Input needs review", "输入待处理")}</span>}</Link></th>
               {rows.map((row, mi) => {
                 const reason = row.metric?.reason_codes.includes("no_reference") ? "no_reference"
                   : row.result?.status === "timeout" ? "timeout"
@@ -122,15 +123,15 @@ export function BenchmarkMatrix({ snapshot, batch, datasets, metricKey, locale, 
                   tooltipAnchor.current = element;
                   const rect = element.getBoundingClientRect();
                   const width = Math.min(340, window.innerWidth - 24);
-                  setTooltip({id, x: Math.max(12, Math.min(rect.left + rect.width / 2 - width / 2, window.innerWidth - width - 12)), y: Math.max(12, Math.min(rect.bottom + 8, window.innerHeight - 230)), heading: dataset.id + " · " + row.method.name,
+                  setTooltip({id, x: Math.max(12, Math.min(rect.left + rect.width / 2 - width / 2, window.innerWidth - width - 12)), y: Math.max(12, Math.min(rect.bottom + 8, window.innerHeight - 230)), heading: datasetName(dataset,locale) + " · " + row.method.name,
                     value: available ? `${spec[locale]}: ${formatMetricSummary(row.metric, metricKey, locale)}${spec.unit ? " " + spec.unit : ""}` : row.outsideBatch ? stateLabel("outside_batch", locale) : shortReason(reason, locale),
                     raw: available && metricKey === "max_rss_kib" ? words(locale, "Original: ", "原始值：") + row.raw + " KiB" : null,
-                    state, coverage: row.outsideBatch ? words(locale, "No run planned in this batch", "本批次未计划此项运行") : `${row.metric?.valid_count ?? 0}/${row.metric?.planned_count ?? row.result?.planned_repeats ?? batch?.repeats ?? "—"} ${words(locale, "valid", "有效")}`,
-                    version: row.spec?.version ?? (batch ? stateLabel("outside_batch", locale) : words(locale, "Version pending", "版本待确认")), source: row.batch ? `${batchLabel(row.batch, locale)} · ${row.batch.id}` : ""});
+                    state, coverage: row.metric?.planned_count === 1 && row.metric.valid_count === 1 ? "" : row.outsideBatch ? "" : `${row.metric?.valid_count ?? 0}/${row.metric?.planned_count ?? row.result?.planned_repeats ?? batch?.repeats ?? "—"} ${words(locale, "valid", "有效")}`,
+                    version: row.spec?.version ?? (batch ? stateLabel("outside_batch", locale) : words(locale, "Version pending", "版本待确认")), source: row.batch ? batchLabel(row.batch, locale) : ""});
                 };
                 return <td key={row.method.id} className={`benchmark-heat-${tone}`}><Link to={detailHref(dataset.id, row.method.id)} onClick={savePosition} className={available ? "benchmark-matrix-cell" : "benchmark-matrix-cell is-unavailable"}
                   data-testid="matrix-cell" data-batch-id={row.batch?.id ?? ""} data-dataset-id={dataset.id} data-method-id={row.method.id} data-metric={metricKey} data-raw-value={row.raw ?? ""} data-display-value={row.display ?? ""} data-state={row.outsideBatch ? "outside_batch" : row.metric?.status ?? "not_run"} data-heat={strength ?? ""}
-                  aria-label={`${dataset.id} · ${row.method.name} · ${spec[locale]}: ${value}${available && spec.unit ? " " + spec.unit : ""}`}
+                  aria-label={`${datasetName(dataset,locale)} · ${row.method.name} · ${spec[locale]}: ${value}${available && spec.unit ? " " + spec.unit : ""}`}
                   aria-describedby={tooltip?.id === id ? "benchmark-cell-tooltip" : undefined}
                   onMouseEnter={event => show(event.currentTarget)} onMouseLeave={dismissTooltip} onFocus={event => show(event.currentTarget)} onBlur={() => setTooltip(null)}>
                   {!available && (reason === "timeout" ? <Clock3 size={12} aria-hidden="true" /> : reason === "no_reference" || reason === "not_run" ? <Minus size={12} aria-hidden="true" /> : <CircleAlert size={12} aria-hidden="true" />)}
@@ -144,9 +145,8 @@ export function BenchmarkMatrix({ snapshot, batch, datasets, metricKey, locale, 
       </table>
       {!ordered.length && <p className="benchmark-empty">{words(locale, "No datasets match these filters.", "没有符合筛选条件的数据集。")}</p>}
     </div>
-    {metricKey.includes("sp") && <p className="benchmark-matrix-footnote">{words(locale, "SP is a pairwise alignment score, not accuracy. Compare SP metrics within a dataset, not across sequence counts or lengths.", "SP 是配对评分，不是准确率。请在同一数据集内比较，不跨序列数量或长度解释分数高低。")}</p>}
     {tooltip && createPortal(<div id="benchmark-cell-tooltip" role="tooltip" className="benchmark-matrix-tooltip" style={{left:tooltip.x, top:tooltip.y} as CSSProperties} onMouseEnter={keepTooltip} onMouseLeave={dismissTooltip}>
-      <strong>{tooltip.heading}</strong><p className="benchmark-tooltip-value">{tooltip.value}</p>{tooltip.raw && <p>{tooltip.raw}</p>}<p>{tooltip.state} · {tooltip.coverage}</p><p>{words(locale, "Version: ", "版本：")}{tooltip.version}</p><p>{tooltip.source}</p><small>{words(locale, "Select to compare this dataset · Esc to dismiss", "选择以查看本数据集 · Esc 关闭提示")}</small>
+      <strong>{tooltip.heading}</strong><p className="benchmark-tooltip-value">{tooltip.value}</p>{tooltip.raw && <p>{tooltip.raw}</p>}{tooltip.coverage && <p>{tooltip.coverage}</p>}<p>{words(locale, "Version: ", "版本：")}{tooltip.version}</p><p>{tooltip.source}</p>
     </div>, document.body)}
   </>;
 }

@@ -15,7 +15,7 @@ function mount(snapshot: BenchmarkSnapshot, path = "/benchmark", locale: "en" | 
   return render(<LanguageProvider><MemoryRouter initialEntries={[path]}><Routes><Route path="/benchmark" element={<BenchmarkPage />} /><Route path="/benchmark/datasets/:caseId" element={<BenchmarkDatasetPage />} /></Routes></MemoryRouter></LanguageProvider>);
 }
 function exactValues(locale: "en" | "zh" = "en") {
-  fireEvent.click(screen.getByRole("button", { name: locale === "en" ? "Exact values" : "精确数值表" }));
+  fireEvent.click(screen.getByRole("button", { name: locale === "en" ? "Values" : "数值表" }));
   return screen.getByTestId("precise-results");
 }
 function point(method: string, key: string) {
@@ -68,17 +68,17 @@ describe("Benchmark pages", () => {
     await screen.findByTestId("benchmark-matrix");
     expect(screen.getByLabelText("Evaluation batch")).toHaveValue("latest");
     const coverage = screen.getByLabelText("Evaluation coverage");
-    expect(coverage).toHaveTextContent(/Complete 127 \/ 182.*Timed out 21.*Memory limit 34/);
-    expect(screen.getAllByTestId("matrix-cell")).toHaveLength(182);
+    expect(coverage).toHaveTextContent(/Complete 127 \/ 156.*Timed out 14.*Memory limit 15/);
+    expect(screen.getAllByTestId("matrix-cell")).toHaveLength(156);
     expect(screen.getAllByTestId("matrix-cell").every(item => item.dataset.heat === "")).toBe(true);
     fireEvent.change(screen.getByLabelText("Sequence type"), {target:{value:"rna"}});
-    expect(coverage).toHaveTextContent(/Complete 30 \/ 42.*Timed out 11.*Memory limit 1/);
-    expect(screen.getAllByTestId("matrix-cell")).toHaveLength(42);
+    expect(coverage).toHaveTextContent(/Complete 30 \/ 36.*Timed out 6/);
+    expect(screen.getAllByTestId("matrix-cell")).toHaveLength(36);
     fireEvent.click(document.querySelector(".benchmark-method-filter summary")!);
     fireEvent.click(screen.getByRole("checkbox", {name:"MAFFT"}));
-    expect(screen.getAllByTestId("matrix-cell")).toHaveLength(36);
-    expect(coverage).toHaveTextContent(/Complete 24 \/ 36.*Timed out 11.*Memory limit 1/);
-    expect(screen.getByTestId("dataset-sidebar")).toHaveTextContent("6 of 26 datasets · 6 methods");
+    expect(screen.getAllByTestId("matrix-cell")).toHaveLength(30);
+    expect(coverage).toHaveTextContent(/Complete 24 \/ 30.*Timed out 6/);
+    expect(screen.getAllByTestId("dataset-nav-link")).toHaveLength(6);
     const link = screen.getAllByTestId("matrix-cell")[0];
     const url = new URL(link.getAttribute("href")!, "https://example.org");
     expect(url.searchParams.get("type")).toBe("rna");
@@ -86,16 +86,16 @@ describe("Benchmark pages", () => {
     fireEvent.click(link);
     expect(await screen.findByTestId("dataset-title")).toHaveAttribute("data-dataset-id",link.dataset.datasetId!);
     expect(screen.getByRole("button", {name:"Trade-off"})).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByTestId("dataset-batch-scope")).toHaveTextContent("6 methods included");
-    expect(screen.getByTestId("dataset-sidebar")).toHaveTextContent("6 methods");
+    expect(screen.getAllByTestId("tradeoff-method")).toHaveLength(5);
+    expect(screen.getAllByTestId("dataset-nav-link")).toHaveLength(6);
     const next = screen.getByRole("link", {name:"Next"});
     expect(next).toHaveAttribute("href", expect.stringContaining("type=rna"));
     expect(snapshot.catalog.datasets.filter(item => item.sequence_type === "rna").some(item => next.getAttribute("href")!.includes(`/datasets/${item.id}?`))).toBe(true);
-    fireEvent.click(screen.getByRole("link", {name:/All benchmark datasets/}));
+    fireEvent.click(document.querySelector(".benchmark-detail-topline .benchmark-back")!);
     await screen.findByTestId("benchmark-matrix");
     expect(screen.getByLabelText("Sequence type")).toHaveValue("rna");
-    expect(screen.getAllByTestId("matrix-cell")).toHaveLength(36);
-    expect(screen.getByLabelText("Evaluation coverage")).toHaveTextContent("Complete 24 / 36");
+    expect(screen.getAllByTestId("matrix-cell")).toHaveLength(30);
+    expect(screen.getByLabelText("Evaluation coverage")).toHaveTextContent("Complete 24 / 30");
   });
 
   it.each(["en", "zh"] as const)("shows v2 single measurements, limits and resolved preprocessing in %s", async locale => {
@@ -105,10 +105,11 @@ describe("Benchmark pages", () => {
     snapshot.catalog.datasets[0].preprocessing = {kind:"colon_to_n", count:40, original_sha256:"a".repeat(64), processed_sha256:"b".repeat(64)};
     mount(snapshot, `/benchmark/datasets/test-case?batch=${snapshot.batches[0].id}`, locale);
     await screen.findByTestId("dataset-title");
-    expect(screen.getAllByText(locale === "en" ? "Single measurement" : "单次测量", {exact:true}).some(element => element.closest("details") === null)).toBe(true);
+    expect(screen.getByTestId("experiment-details")).not.toHaveAttribute("open");
+    fireEvent.click(screen.getByText(locale === "en" ? "Experiment details" : "实验详情"));
+    expect(screen.getByText(locale === "en" ? "Single measurement" : "单次测量", {exact:true})).toBeVisible();
     expect(screen.getAllByText(/4 CPU · 16 GiB · 30/).length).toBeGreaterThan(0);
-    fireEvent.click(screen.getByText(locale === "en" ? "Dataset information and provenance" : "数据集信息与来源"));
-    expect(screen.getByText(locale === "en" ? /40 sequence colons/ : /40 个冒号/)).toBeVisible();
+    expect(screen.getByText(locale === "en" ? /40 colons/ : /40 个冒号/)).toBeVisible();
     const table = exactValues(locale);
     expect(within(table).getAllByText("1/1", {exact:true}).length).toBeGreaterThan(0);
     expect(table.textContent).not.toContain("±");
@@ -119,12 +120,12 @@ describe("Benchmark pages", () => {
     const matrix = await screen.findByTestId("benchmark-matrix");
     expect(screen.getByRole("heading", { name: "Benchmark", level: 1 })).toBeVisible();
     expect(screen.getByRole("status")).toHaveTextContent(locale === "en" ? /No evaluation results have been published for this selection/ : /尚未发布评测结果/);
-    expect(within(matrix).getAllByTestId("matrix-cell")).toHaveLength(21);
+    expect(within(matrix).getAllByTestId("matrix-cell")).toHaveLength(18);
     expect(within(matrix).getAllByTestId("matrix-cell").every(item => item.dataset.rawValue === "")).toBe(true);
-    fireEvent.click(screen.getByText(locale === "en" ? "Methods, versions and parameters" : "方法、版本与参数"));
+    fireEvent.click(screen.getByText(locale === "en" ? "Experiment details" : "实验详情"));
     const methods = within(screen.getByRole("region", { name: locale === "en" ? "Method catalog" : "方法目录" })).getByRole("table");
-    expect(within(methods).getAllByRole("row")).toHaveLength(8);
-    expect(within(methods).getAllByText(locale === "en" ? "Pending confirmation" : "待确认")).toHaveLength(14);
+    expect(within(methods).getAllByRole("row")).toHaveLength(7);
+    expect(within(methods).getAllByText(locale === "en" ? "Pending confirmation" : "待确认")).toHaveLength(6);
   });
 
   it("combines filters, validates ranges, resets them and navigates to a dataset", async () => {
@@ -133,14 +134,14 @@ describe("Benchmark pages", () => {
     fireEvent.change(screen.getByLabelText("Data origin"), { target: { value: "simulated" } });
     fireEvent.change(screen.getByLabelText("Minimum sequences"), { target: { value: "50" } });
     fireEvent.change(screen.getByLabelText("Maximum sequences"), { target: { value: "150" } });
-    expect(screen.getByText("1 of 3 datasets")).toBeVisible();
+    expect(screen.getAllByTestId("dataset-nav-link")).toHaveLength(1);
     fireEvent.change(screen.getByLabelText("Minimum sequences"), { target: { value: "151" } });
     expect(screen.getByText("Minimum sequence count exceeds the maximum.")).toBeVisible();
     fireEvent.change(screen.getByLabelText("Search datasets"), { target: { value: "missing" } });
     expect(screen.getByText("No datasets match these filters.")).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Clear filters" }));
-    expect(screen.getByText("3 of 3 datasets")).toBeVisible();
-    fireEvent.click(within(screen.getByTestId("benchmark-matrix")).getByText("case_ref", { exact: true }).closest("a")!);
+    expect(screen.getAllByTestId("dataset-nav-link")).toHaveLength(3);
+    fireEvent.click(document.querySelector<HTMLAnchorElement>('.benchmark-matrix-dataset a[href*="datasets/case_ref"]')!);
     expect(await screen.findByTestId("dataset-title")).toHaveAttribute("data-dataset-id", "case_ref");
   });
 
@@ -159,22 +160,26 @@ describe("Benchmark pages", () => {
     expect(href.searchParams.get("batch")).toBeNull(); expect(href.searchParams.get("returnTo")).toContain("source=simulated");
     fireEvent.click(selected); await screen.findByTestId("dataset-title");
     expect(point("clustalo", "max_rss_kib")).toHaveClass("is-active");
-    fireEvent.click(screen.getByRole("link", { name: /All benchmark datasets/ })); await screen.findByTestId("benchmark-matrix");
+    fireEvent.click(document.querySelector(".benchmark-detail-topline .benchmark-back")!); await screen.findByTestId("benchmark-matrix");
     expect(screen.getByTestId("metric-max_rss_kib")).toHaveAttribute("aria-pressed", "true"); expect(screen.getByLabelText("Data origin")).toHaveValue("simulated");
   });
 
   it("keeps data problems separate from pending software and missing references", async () => {
     mount(emptySnapshot(), "/benchmark/datasets/case_no_ref"); await screen.findByTestId("dataset-title");
-    expect(screen.getByRole("heading", { name: "Input data needs review" })).toBeVisible();
-    expect(screen.getByText(/411 colon/)).toBeVisible(); expect(screen.getByText(/Sampled with replacement/)).toBeVisible();
+    expect(screen.getByTestId("experiment-details")).not.toHaveAttribute("open");
+    fireEvent.click(screen.getByText("Experiment details"));
+    expect(screen.getByRole("heading", { name: "Input needs review" })).toBeVisible();
+    expect(screen.getByText(/Invalid colon characters: 411/)).toBeVisible(); expect(screen.getByText(/Sampling: With replacement/)).toBeVisible();
     expect(screen.getAllByText("No reference alignment: this metric is not applicable.")).toHaveLength(2);
     const table = exactValues();
-    expect(within(table).getAllByText("N/A · no reference")).toHaveLength(14); expect(within(table).queryByText("Failed")).not.toBeInTheDocument();
+    expect(within(table).getAllByText("No reference")).toHaveLength(12); expect(within(table).queryByText("Failed")).not.toBeInTheDocument();
   });
 
   it("keeps all methods visible and switches exact values and charts by batch", async () => {
     const fixture = publishedSnapshot();
     for (const batch of fixture.batches) {
+      const partial = batch.results.find(result => result.method_id === "tcoffee")!;
+      batch.results = batch.results.map(result => result.method_id === "fmalign2" ? { ...partial, method_id: "fmalign2" } : result);
       const failure = batch.results.find(result => result.method_id === "kalign3")!;
       batch.results = batch.results.map(result => result.method_id === "halign4" ? { ...failure, method_id: "halign4" } : result);
     }
@@ -182,10 +187,10 @@ describe("Benchmark pages", () => {
     const selector = screen.getByLabelText("Evaluation batch"); expect(selector).toHaveValue("latest");
     expect(screen.getByRole("button", { name: "Trade-off" })).toHaveAttribute("aria-pressed", "true");
     fireEvent.click(screen.getByRole("button", { name: "Metric plots" }));
-    expect(screen.getAllByTestId("metric-point")).toHaveLength(35);
+    expect(screen.getAllByTestId("metric-point")).toHaveLength(30);
     expect(point("clustalo", "wall_seconds")).toHaveAttribute("data-raw-value", "20");
     expect(point("mafft", "wall_seconds")).toHaveAttribute("data-raw-value", ""); expect(point("mafft", "wall_seconds")).toHaveAccessibleName(/Timed out/);
-    expect(point("tcoffee", "wall_seconds")).toHaveAccessibleName(/21 · Partial/);
+    expect(point("fmalign2", "wall_seconds")).toHaveAccessibleName(/21 · Partial/);
     fireEvent.click(point("clustalo", "wall_seconds")); expect(screen.getByRole("tooltip")).toHaveTextContent("20 s");
     fireEvent.click(screen.getByRole("button", { name: "Close result details" }));
     const table = exactValues(), clustal = within(table).getByRole("row", { name: /Clustal Omega/ });
@@ -198,7 +203,9 @@ describe("Benchmark pages", () => {
   it("renders distinct SP axis labels for the narrow real repair-score range", async () => {
     const snapshot = publishedSnapshot();
     const values = [824154130945, 824127788009];
-    snapshot.batches[1].results.slice(0, 2).forEach((result, index) => {
+    const partial = snapshot.batches[1].results.find(result => result.method_id === "tcoffee")!;
+    snapshot.batches[1].results = snapshot.batches[1].results.map(result => result.method_id === "fmalign2" ? { ...partial, method_id: "fmalign2" } : result);
+    snapshot.batches[1].results.filter(result => ["clustalo", "fmalign2"].includes(result.method_id)).forEach((result, index) => {
       result.metrics.sp_score = availableMetric(values[index], result.valid_repeats);
     });
     mount(snapshot, "/benchmark/datasets/case_ref?chart=metrics");
@@ -208,12 +215,12 @@ describe("Benchmark pages", () => {
     expect(labels).toHaveLength(3);
     expect(new Set(labels).size).toBe(3);
     expect(point("clustalo", "sp_score")).toHaveAttribute("data-raw-value", String(values[0]));
-    expect(point("tcoffee", "sp_score")).toHaveAttribute("data-raw-value", String(values[1]));
+    expect(point("fmalign2", "sp_score")).toHaveAttribute("data-raw-value", String(values[1]));
   });
 
   it("keeps overview versions and values on the selected batch", async () => {
     const snapshot = publishedSnapshot(); snapshot.batches[1].methods[0].version = "new-version";
-    mount(snapshot); await screen.findByTestId("benchmark-matrix"); fireEvent.click(screen.getByText("Methods, versions and parameters"));
+    mount(snapshot); await screen.findByTestId("benchmark-matrix"); fireEvent.click(screen.getByText("Experiment details"));
     expect(screen.getByText("new-version")).toBeVisible(); expect(cell("case_ref", "clustalo")).toHaveAttribute("data-raw-value", "20");
     fireEvent.change(screen.getByLabelText("Evaluation batch"), { target: { value: "older" } });
     expect(screen.queryByText("new-version")).not.toBeInTheDocument(); expect(cell("case_ref", "clustalo")).toHaveAttribute("data-raw-value", "10");
@@ -244,7 +251,7 @@ describe("Benchmark pages", () => {
   });
   it("rejects invalid snapshots and reloads on retry without exposing details", async () => {
     const invalid = publishedSnapshot(); invalid.batches[0].results[0].metrics.q.mean = 5; mount(invalid);
-    expect(await screen.findByRole("alert")).toHaveTextContent("Benchmark data could not be loaded or validated"); expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    expect(await screen.findByRole("alert")).toHaveTextContent("Could not load results. Try again."); expect(screen.queryByRole("table")).not.toBeInTheDocument();
     vi.mocked(fetch).mockResolvedValue({ ok: true, json: () => Promise.resolve(emptySnapshot()) } as Response);
     fireEvent.click(screen.getByRole("button", { name: "Try again" })); expect(await screen.findByTestId("benchmark-matrix")).toBeVisible();
   });
@@ -261,5 +268,5 @@ it("keeps rapid clear-and-type edits instead of restoring stale search parameter
   expect(screen.getByLabelText("Search datasets")).toHaveValue("");
   expect(screen.getByLabelText("Data origin")).toHaveValue("all");
   expect(screen.getByRole("combobox", { name: "Sequence type" })).toHaveValue("rna");
-  expect(screen.getByText("1 of 3 datasets")).toBeVisible();
+  expect(screen.getAllByTestId("dataset-nav-link")).toHaveLength(1);
 });

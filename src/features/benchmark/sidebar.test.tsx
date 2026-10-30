@@ -1,3 +1,4 @@
+import { datasetName } from "./names";
 import "@testing-library/jest-dom/vitest";
 import { readFileSync } from "node:fs";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
@@ -31,21 +32,20 @@ describe("Benchmark dataset sidebar", () => {
     expect(links).toHaveLength(26);
     for (const dataset of catalog) {
       const link = links.find(item => item.dataset.datasetId === dataset.id)!;
-      const format = (value: number) => value.toLocaleString(locale === "zh" ? "zh-CN" : "en-US");
-      expect(link).toHaveTextContent(`${format(dataset.min_length)}–${format(dataset.max_length)} nt`);
-      expect(link).toHaveTextContent(locale === "en" ? `${format(dataset.sequence_count)} sequences` : `${format(dataset.sequence_count)} 条序列`);
+      expect(link).toHaveTextContent(datasetName(dataset,locale,true));
+      expect(link).toHaveAccessibleName(datasetName(dataset,locale));
+      expect(link.textContent).not.toContain(" nt");
     }
-    expect(sidebar).toHaveTextContent(locale === "en" ? "26 datasets · 9 methods" : "26 个数据集 · 9 种方法");
+    expect(sidebar.querySelector(".benchmark-studio-sidebar-total")).toBeNull();
   });
 
   it("keeps simulation labels distinct from newly measured identity", () => {
     mount();
     const simulation = catalog.find(dataset => dataset.similarity_label !== null)!;
     const link = screen.getAllByTestId("dataset-nav-link").find(item => item.dataset.datasetId === simulation.id)!;
-    expect(link).toHaveTextContent(`Source label ${simulation.similarity_label}`);
-    expect(link).toHaveAccessibleName(/Source similarity label, not a newly measured identity/);
-    expect(link).toHaveAttribute("title", expect.stringContaining("Scientific simulation"));
-    expect(link.textContent).not.toContain(`${simulation.similarity_label}%`);
+    expect(link).toHaveTextContent(`${simulation.similarity_label}%`);
+    expect(link).toHaveAccessibleName(datasetName(simulation,"en"));
+    expect(link).not.toHaveAttribute("title");
   });
 
   it("retains batch, method, filters and chart state on dataset links while cleaning nested return locations", () => {
@@ -62,7 +62,7 @@ describe("Benchmark dataset sidebar", () => {
     const overview = new URL(screen.getByRole("link", {name:"All datasets"}).getAttribute("href")!, "https://example.org");
     for (const key of ["batch", "type", "search", "methods", "reference", "metric"]) expect(overview.searchParams.get(key)).toBe(params.get(key));
     for (const key of ["returnTo", "chart", "x", "y", "scale", "zoom", "method"]) expect(overview.searchParams.has(key)).toBe(false);
-    expect(screen.getByTestId("dataset-sidebar")).toHaveTextContent("6 of 26 datasets · 2 methods");
+    expect(screen.getAllByTestId("dataset-nav-link")).toHaveLength(6);
     expect(params.toString()).toBe(original);
   });
 
@@ -88,7 +88,7 @@ describe("Benchmark dataset sidebar", () => {
   it("honors an empty or sparse supplied selection without restoring excluded datasets", () => {
     const {rerender} = mount({datasets:[catalog[0]],methodCount:1});
     expect(screen.getAllByTestId("dataset-nav-link")).toHaveLength(1);
-    expect(screen.getByTestId("dataset-sidebar")).toHaveTextContent("1 of 26 datasets · 1 method");
+    expect(screen.getAllByTestId("dataset-nav-link")).toHaveLength(1);
     rerender(<MemoryRouter><BenchmarkSidebar datasets={[]} params={new URLSearchParams("search=missing")} locale="en" catalogCount={26}/></MemoryRouter>);
     expect(screen.queryAllByTestId("dataset-nav-link")).toHaveLength(0);
     expect(screen.getByRole("status")).toHaveTextContent("No datasets match the current filters.");
