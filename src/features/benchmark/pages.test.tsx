@@ -59,14 +59,14 @@ describe("Benchmark pages", () => {
     fireEvent.pointerDown(screen.getByLabelText("Sequence type"));
     expect(methods.open).toBe(false);
     fireEvent.click(methods.querySelector("summary")!);
-    fireEvent.change(screen.getByLabelText("Evaluation batch"), {target:{value:publishedSnapshot().batches[0].id}});
+    fireEvent.click(screen.getByRole("button", {name:"Clear filters"}));
     expect(methods.open).toBe(false);
   });
   it("shows real latest coverage and updates counts and navigation with RNA and method filters", async () => {
     const snapshot = parseSnapshot(JSON.parse(readFileSync("public/benchmark/snapshot.json", "utf8")));
     mount(snapshot);
     await screen.findByTestId("benchmark-matrix");
-    expect(screen.getByLabelText("Evaluation batch")).toHaveValue("latest");
+    expect(screen.queryByLabelText("Evaluation batch")).not.toBeInTheDocument();
     const coverage = screen.getByLabelText("Evaluation coverage");
     expect(coverage).toHaveTextContent(/Complete 127 \/ 156.*Timed out 14.*Memory limit 15/);
     expect(screen.getAllByTestId("matrix-cell")).toHaveLength(156);
@@ -175,7 +175,7 @@ describe("Benchmark pages", () => {
     expect(within(table).getAllByText("No reference")).toHaveLength(12); expect(within(table).queryByText("Failed")).not.toBeInTheDocument();
   });
 
-  it("keeps all methods visible and switches exact values and charts by batch", async () => {
+  it("keeps all methods and current measurements visible across views", async () => {
     const fixture = publishedSnapshot();
     for (const batch of fixture.batches) {
       const partial = batch.results.find(result => result.method_id === "tcoffee")!;
@@ -184,7 +184,7 @@ describe("Benchmark pages", () => {
       batch.results = batch.results.map(result => result.method_id === "halign4" ? { ...failure, method_id: "halign4" } : result);
     }
     mount(fixture, "/benchmark/datasets/case_ref"); await screen.findByTestId("dataset-title");
-    const selector = screen.getByLabelText("Evaluation batch"); expect(selector).toHaveValue("latest");
+    expect(screen.queryByLabelText("Evaluation batch")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Trade-off" })).toHaveAttribute("aria-pressed", "true");
     fireEvent.click(screen.getByRole("button", { name: "Metric plots" }));
     expect(screen.getAllByTestId("metric-point")).toHaveLength(30);
@@ -196,8 +196,6 @@ describe("Benchmark pages", () => {
     const table = exactValues(), clustal = within(table).getByRole("row", { name: /Clustal Omega/ });
     expect(within(clustal).getAllByText("20").length).toBeGreaterThan(0); expect(within(clustal).getByText("3/3", {exact:true})).toBeVisible();
     for (const state of ["Complete", "Partial", "Timed out", "Unsupported", "Failed"]) expect(within(table).getAllByText(state).length).toBeGreaterThan(0);
-    fireEvent.change(selector, { target: { value: "older" } }); expect(within(clustal).getAllByText("10").length).toBeGreaterThan(0);
-    fireEvent.click(screen.getByRole("button", {name:"Metric plots"})); expect(point("clustalo", "wall_seconds")).toHaveAttribute("data-raw-value", "10");
   });
 
   it("renders distinct SP axis labels for the narrow real repair-score range", async () => {
@@ -218,12 +216,11 @@ describe("Benchmark pages", () => {
     expect(point("fmalign2", "sp_score")).toHaveAttribute("data-raw-value", String(values[1]));
   });
 
-  it("keeps overview versions and values on the selected batch", async () => {
+  it("uses current versions and values even through a historical link", async () => {
     const snapshot = publishedSnapshot(); snapshot.batches[1].methods[0].version = "new-version";
-    mount(snapshot); await screen.findByTestId("benchmark-matrix"); fireEvent.click(screen.getByText("Experiment details"));
+    mount(snapshot,"/benchmark?batch=older"); await screen.findByTestId("benchmark-matrix"); fireEvent.click(screen.getByText("Experiment details"));
     expect(screen.getByText("new-version")).toBeVisible(); expect(cell("case_ref", "clustalo")).toHaveAttribute("data-raw-value", "20");
-    fireEvent.change(screen.getByLabelText("Evaluation batch"), { target: { value: "older" } });
-    expect(screen.queryByText("new-version")).not.toBeInTheDocument(); expect(cell("case_ref", "clustalo")).toHaveAttribute("data-raw-value", "10");
+    expect(screen.queryByLabelText("Evaluation batch")).not.toBeInTheDocument();
   });
 
   it("does not add standard deviation or error bars to a single valid run", async () => {

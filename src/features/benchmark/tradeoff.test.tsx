@@ -117,20 +117,20 @@ describe("tradeoff chart", () => {
     expect(methods[0]).toHaveAccessibleName(/Peak memory 1 MiB/);
   });
 
-  it("shows a shared source once, and individual sources only when observations differ", () => {
+  it("uses uniform markers without batch labels while retaining provenance", () => {
     const single = mount();
     expect(single.container.querySelectorAll(".tradeoff-row-source")).toHaveLength(0);
-    expect(single.container.querySelectorAll(".tradeoff-source-legend > span")).toHaveLength(1);
+    expect(single.container.querySelectorAll(".tradeoff-source-legend > span")).toHaveLength(0);
     single.unmount();
     const snapshot = publishedSnapshot();
     snapshot.batches[1].results = snapshot.batches[1].results.filter(result => result.method_id !== "tcoffee");
     const mixed = mount(snapshot);
-    expect(mixed.container.querySelectorAll(".tradeoff-row-source")).toHaveLength(9);
+    expect(mixed.container.querySelectorAll(".tradeoff-row-source")).toHaveLength(0);
     const row = screen.getAllByTestId("tradeoff-method").find(method => method.dataset.method === "tcoffee")!;
-    expect(row).toHaveTextContent("older");
+    expect(row).toHaveAttribute("data-batch-id", "older");
     fireEvent.click(row);
-    expect(screen.getByRole("tooltip")).toHaveTextContent("older");
-    expect(mixed.container.querySelectorAll(".tradeoff-source-legend > span")).toHaveLength(2);
+    expect(screen.getByRole("tooltip")).not.toHaveTextContent("older");
+    expect(mixed.container.querySelectorAll(".tradeoff-source-legend > span")).toHaveLength(0);
   });
 
   it("does not fall back to older valid values when one latest metric is missing", () => {
@@ -150,6 +150,26 @@ describe("tradeoff chart", () => {
     expect(screen.getByRole("option", {name:"TC · no reference"})).toBeDisabled();
     expect(Number(screen.getByTestId("tradeoff-chart").dataset.yMin)).toBeLessThan(-100);
     expect(screen.queryByText(/SP is a pairwise score/)).not.toBeInTheDocument();
+  });
+
+  it("defaults to SP when the current reference-backed records have no valid Q", () => {
+    const snapshot = publishedSnapshot();
+    for (const batch of snapshot.batches) for (const result of batch.results) result.metrics.q = absentMetric("execution_failed");
+    mount(snapshot);
+    expect(screen.getByTestId("tradeoff-chart")).toHaveAttribute("data-y-key","sp_score");
+  });
+
+  it.each([0,.8])("prefers a valid Q of %s, including a partial measurement", value => {
+    const snapshot = publishedSnapshot();
+    for (const batch of snapshot.batches) for (const result of batch.results) result.metrics.q = absentMetric("execution_failed");
+    snapshot.batches[1].results[0].metrics.q = availableMetric(value,1,3);
+    mount(snapshot);
+    expect(screen.getByTestId("tradeoff-chart")).toHaveAttribute("data-y-key","q");
+  });
+
+  it("retains an explicit SP choice on the current dataset", () => {
+    mount(publishedSnapshot(),"y=sp_score");
+    expect(screen.getByTestId("tradeoff-chart")).toHaveAttribute("data-y-key","sp_score");
   });
 
   it("uses a linear axis for zero resource values without adding offsets", () => {
@@ -172,7 +192,7 @@ describe("tradeoff chart", () => {
     expect(point).toHaveAccessibleName(/1 MiB/);
     fireEvent.click(point);
     expect(screen.getByRole("tooltip")).toHaveTextContent("Original: 1,024 KiB");
-    expect(screen.getByRole("tooltip")).toHaveTextContent("newer");
+    expect(screen.getByRole("tooltip")).not.toHaveTextContent("newer");
     fireEvent.keyDown(window, {key:"Escape"});
     expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
   });
@@ -289,7 +309,7 @@ it("aligned plots use each record's source and write relevant options to the URL
   const point = screen.getAllByTestId("metric-point").find(point => point.dataset.method === "clustalo" && point.dataset.metric === "wall_seconds")!;
   expect(point).toHaveAttribute("data-batch-id", "newer");
   fireEvent.click(point);
-  expect(screen.getByRole("tooltip")).toHaveTextContent("newer");
+  expect(screen.getByRole("tooltip")).not.toHaveTextContent("newer");
   expect(onParamsChange).toHaveBeenCalledWith({method:"clustalo"});
   fireEvent.change(screen.getByLabelText("SP measure"),{target:{value:"scaled_sp"}});
   expect(onParamsChange).toHaveBeenCalledWith({sp:"scaled_sp",metric:"scaled_sp"});

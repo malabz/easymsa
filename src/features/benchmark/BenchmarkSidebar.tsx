@@ -1,5 +1,5 @@
-import { datasetName } from "./names";
-import { useEffect, useRef, useState } from "react";
+import { datasetName, datasetFamily } from "./names";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ArrowLeft, ChevronDown, Search } from "lucide-react";
 import type { BenchmarkDataset } from "./model";
@@ -34,6 +34,20 @@ export function BenchmarkSidebar({ datasets, params, locale, selectedId, onSearc
   const [desktop, setDesktop] = useState(() => typeof window.matchMedia === "function" && window.matchMedia(desktopQuery).matches);
   const [expanded, setExpanded] = useState(false);
   const sidebar = useRef<HTMLElement>(null);
+  const scrollKey = `easymsa-dataset-navigation:${desktop ? "desktop" : "mobile"}`;
+  const scroller = () => desktop ? sidebar.current : sidebar.current?.querySelector<HTMLElement>(".benchmark-studio-sidebar-content");
+  useLayoutEffect(() => {
+    if (!desktop && !expanded) return;
+    const element = scroller();
+    if (!element) return;
+    try { element.scrollTop = Number(sessionStorage.getItem(scrollKey)) || 0; } catch { /* Optional position memory. */ }
+    const active = element.querySelector<HTMLElement>('[aria-current="page"][data-dataset-id]');
+    if (active) {
+      const viewport = element.getBoundingClientRect(), item = active.getBoundingClientRect();
+      if (item.top < viewport.top + 12) element.scrollTop += item.top - viewport.top - 12;
+      else if (item.bottom > viewport.bottom - 12) element.scrollTop += item.bottom - viewport.bottom + 12;
+    }
+  }, [selectedId, desktop, expanded, scrollKey]);
   useEffect(() => {
     const header = document.querySelector(".app-header");
     if (!header || typeof ResizeObserver === "undefined") return;
@@ -57,6 +71,7 @@ export function BenchmarkSidebar({ datasets, params, locale, selectedId, onSearc
   const selectedType = datasets.find(dataset => dataset.id === selectedId)?.sequence_type;
   const detailParams = new URLSearchParams(params);
   detailParams.delete("returnTo");
+  detailParams.delete("y");
   const overviewParams = new URLSearchParams(params);
   chartParameters.forEach(key => overviewParams.delete(key));
   const search = (value: string) => {
@@ -78,7 +93,10 @@ export function BenchmarkSidebar({ datasets, params, locale, selectedId, onSearc
     </Link></li>;
   })}</ul>;
 
-  return <aside ref={sidebar} className="benchmark-studio-sidebar" data-testid="dataset-sidebar" aria-label={words(locale,"Dataset navigation","数据集导航")}>
+  return <aside ref={sidebar} onScrollCapture={event => {
+    const element = scroller();
+    if (element && event.target === element) try { sessionStorage.setItem(scrollKey, String(element.scrollTop)); } catch { /* Optional position memory. */ }
+  }} className="benchmark-studio-sidebar" data-testid="dataset-sidebar" aria-label={words(locale,"Dataset navigation","数据集导航")}>
     <details className="benchmark-studio-sidebar-menu" open={desktop || expanded} onToggle={event => { if (!desktop) setExpanded(event.currentTarget.open); }}>
       <summary className="benchmark-studio-sidebar-toggle">{words(locale,"Datasets","数据集")}<span>{datasets.length}</span><ChevronDown size={18} aria-hidden="true"/></summary>
       <div className="benchmark-studio-sidebar-content">
@@ -89,7 +107,7 @@ export function BenchmarkSidebar({ datasets, params, locale, selectedId, onSearc
             const items = dna.filter(dataset => datasetGroup(dataset) === group);
             return items.length > 0 && <section key={group} className="benchmark-studio-source-group"><h3>{words(locale,en,zh)}</h3>{links(items)}</section>;
           })}</details>}
-          {rna.length > 0 && <details className="benchmark-studio-sequence-group" open={!selectedId || selectedType === "rna"}><summary><ChevronDown size={16} aria-hidden="true"/><strong>RNA</strong><span>{words(locale,`${rna.length} datasets`,`${rna.length} 个数据集`)}</span></summary>{links(rna)}</details>}
+          {rna.length > 0 && <details className="benchmark-studio-sequence-group" open={!selectedId || selectedType === "rna"}><summary><ChevronDown size={16} aria-hidden="true"/><strong>{rna.every(dataset => datasetFamily(dataset,locale) !== "RNA") ? words(locale,"Simulated RNA","RNA 模拟") : "RNA"}</strong><span>{words(locale,`${rna.length} datasets`,`${rna.length} 个数据集`)}</span></summary>{links(rna)}</details>}
           {datasets.length === 0 && <p className="benchmark-studio-sidebar-empty" role="status">{words(locale,"No datasets match the current filters.","没有符合当前筛选的数据集。")}</p>}
         </nav>
       </div>

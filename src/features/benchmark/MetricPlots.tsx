@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import type { BenchmarkBatch, BenchmarkDataset, BenchmarkMetric, BenchmarkResult, BenchmarkSnapshot, MetricKey } from "./model";
-import { formatAxisTicks, formatMetricSummary, formatMetricValue, makeMetricAxis, metricSpecs, selectMetricRows } from "./metrics";
+import { scoreAxisLabels, formatMetricSummary, formatMetricValue, makeMetricAxis, metricSpecs, selectMetricRows } from "./metrics";
 import { reasonLabel, stateLabel, words, type Locale } from "./presentation";
-import { batchLabel, type ResultScope } from "./selection";
+import { type ResultScope } from "./selection";
 import "./plots.css";
 
 type Props = { snapshot: BenchmarkSnapshot; batch?: BenchmarkBatch; dataset: BenchmarkDataset; locale: Locale; selectedMetric: MetricKey; selectedMethod?: string; scope?: ResultScope; params?: URLSearchParams; onParamsChange?: (patch: Record<string,string>) => void };
@@ -60,7 +60,7 @@ export function MetricPlots({ snapshot, batch, dataset, locale, selectedMetric, 
       <div className="benchmark-shared-methods" aria-hidden="true">
         <div className="benchmark-plot-heading">{words(locale, "Method", "方法")}</div>
         <div className="benchmark-axis-spacer" />
-        {methodRows.map(row => <div key={row.method.id} className={"benchmark-shared-method " + (activeMethod === row.method.id ? "is-active" : "")} onMouseEnter={() => { if (interaction.current === "pointer") setActiveMethod(row.method.id); }} onPointerMove={() => { interaction.current = "pointer"; setActiveMethod(row.method.id); }}>{row.method.name}{row.batch && <span className="benchmark-row-source" title={row.batch.id}>{batchLabel(row.batch, locale)}</span>}</div>)}
+        {methodRows.map(row => <div key={row.method.id} className={"benchmark-shared-method " + (activeMethod === row.method.id ? "is-active" : "")} onMouseEnter={() => { if (interaction.current === "pointer") setActiveMethod(row.method.id); }} onPointerMove={() => { interaction.current = "pointer"; setActiveMethod(row.method.id); }}>{row.method.name}</div>)}
       </div>
       {keys.map(key => {
         const spec = metricSpecs[key];
@@ -72,12 +72,12 @@ export function MetricPlots({ snapshot, batch, dataset, locale, selectedMetric, 
           const position = (value: number) => axis.position(key === "max_rss_kib" ? value * 1024 : value);
           return Math.abs(position(tick) - 50) < Math.abs(position(best) - 50) ? tick : best;
         }), axis.ticks[axis.ticks.length - 1]];
-        const tickLabels = formatAxisTicks(visibleTicks, key, locale);
+        const axisPresentation = scoreAxisLabels(visibleTicks,key,locale), tickLabels = axisPresentation.labels;
         const title = `${spec[locale]}${spec.unit ? ` (${spec.unit})` : ""}`;
         const hasValues = rows.some(row => row.raw !== null);
         const mobileShown = mobileMetric === (spKeys.includes(key) ? "sp_score" : key);
-        return <figure key={key} data-metric={key} data-scale={axis.scale} data-axis-scale={axis.scale} data-axis-min={axis.min} data-axis-max={axis.max} data-domain-min={axis.min} data-domain-max={axis.max} className={"benchmark-dot-figure " + (mobileShown ? "is-mobile-active " : "") + (selectedMetric === key ? "is-selected-metric" : "")} aria-label={title}>
-          <figcaption className="benchmark-plot-heading"><strong>{title} <span aria-hidden="true">{spec.direction === "higher" ? "↑" : "↓"}</span></strong><span>{words(locale, spec.direction === "higher" ? "Higher is better" : "Lower is better", spec.direction === "higher" ? "越高越好" : "越低越好")}</span>
+        return <figure key={key} data-metric={key} data-scale={axis.scale} data-axis-scale={axis.scale} data-axis-min={axis.min} data-axis-max={axis.max} data-domain-min={axis.min} data-domain-max={axis.max} data-axis-divisor={axisPresentation.divisor} className={"benchmark-dot-figure " + (mobileShown ? "is-mobile-active " : "") + (selectedMetric === key ? "is-selected-metric" : "")} aria-label={title}>
+          <figcaption className="benchmark-plot-heading"><strong>{title}{axisPresentation.unit && <span className="benchmark-score-unit"> ({axisPresentation.unit})</span>} <span aria-hidden="true">{spec.direction === "higher" ? "↑" : "↓"}</span></strong><span>{words(locale, spec.direction === "higher" ? "Higher is better" : "Lower is better", spec.direction === "higher" ? "越高越好" : "越低越好")}</span>
             {resource ? <label className="benchmark-axis-choice"><span className="sr-only">{title} {words(locale, "scale", "坐标")}</span><select aria-label={`${title} ${words(locale, "scale", "坐标")}`} value={linear[key] ? "linear" : "log"} onChange={event => { setLinear(current => ({ ...current, [key]: event.target.value === "linear" })); onParamsChange?.({[key === "wall_seconds" ? "timeScale" : "memoryScale"]:event.target.value}); }}><option value="log">{words(locale, "Log axis", "对数轴")}</option><option value="linear">{words(locale, "Linear axis", "线性轴")}</option></select></label> : <span className={quality && zoom ? "benchmark-local-range" : ""}>{quality ? words(locale, zoom ? "Zoomed range" : "Fixed 0–1", zoom ? "局部范围" : "固定 0–1") : words(locale, "Dataset range · linear", "本数据集范围 · 线性")}</span>}
           </figcaption>
           <div className="benchmark-dot-axis" aria-label={words(locale, "Axis values", "坐标数值")}>
@@ -98,7 +98,7 @@ export function MetricPlots({ snapshot, batch, dataset, locale, selectedMetric, 
             const tipOpen = tip?.method === row.method.id && tip.metric === key;
             return <button type="button" key={row.method.id} className={"benchmark-dot-row " + (selected ? "is-active " : "") + (row.metric?.status === "partial" ? "is-partial" : "")} data-testid="metric-point" data-method={row.method.id} data-batch-id={row.batch?.id ?? ""} data-metric={key} data-raw-value={value ?? ""} data-display-value={row.display ?? ""} data-status={row.outsideBatch ? "outside_batch" : row.metric?.status ?? "not_run"} data-valid-count={row.metric?.valid_count ?? 0} data-planned-count={row.metric?.planned_count ?? ""}
               aria-label={`${row.method.name}, ${title}: ${valueLabel}, ${coverage}`} aria-describedby={tipOpen ? "benchmark-point-description" : undefined} onMouseEnter={() => { if (interaction.current === "pointer") showPoint(row.method.id, key); }} onPointerMove={() => { interaction.current = "pointer"; showPoint(row.method.id, key); }} onFocus={() => { interaction.current = "focus"; showPoint(row.method.id, key); }} onClick={event => { interaction.current = event.detail === 0 ? "focus" : "pointer"; showPoint(row.method.id, key); onParamsChange?.({method:row.method.id}); }}>
-              <span className="benchmark-local-method">{row.method.name}{row.batch && <small>{batchLabel(row.batch, locale)}</small>}</span>
+              <span className="benchmark-local-method">{row.method.name}</span>
               <span className="benchmark-dot-track" aria-hidden="true">
                 {hasValues && axis.ticks.map((tick, index) => <i className="benchmark-grid-tick" key={index} style={{ left: `${clamp(axis.position(key === "max_rss_kib" ? tick * 1024 : tick))}%` }} />)}
                 {value === null ? <span className="benchmark-dot-missing">— {valueLabel}</span> : <>{low !== null && high !== null && <span className="benchmark-error-range" data-testid="plot-range" data-low={low} data-high={high} style={{ left: `${start}%`, width: `${Math.max(0, end - start)}%` }} />}<span className="benchmark-dot" data-testid="plot-dot" style={{ left: `${clamp(axis.position(value))}%` }} />{row.metric?.status === "partial" && <span className="benchmark-partial-mark">{words(locale, "partial", "部分")}</span>}</>}
@@ -113,7 +113,6 @@ export function MetricPlots({ snapshot, batch, dataset, locale, selectedMetric, 
     {tip && tipRow && <div className="benchmark-point-popup"><div id="benchmark-point-description" role="tooltip"><strong>{tipRow.method.name} · {metricSpecs[tip.metric][locale]}</strong><p className="benchmark-point-value">{tipRow.raw === null ? unavailable(tipRow.metric, locale, tipRow.result, tipRow.outsideBatch) : `${formatMetricSummary(tipRow.metric, tip.metric, locale)} ${metricSpecs[tip.metric].unit}`}</p>{tip.metric === "max_rss_kib" && tipRow.raw !== null && <p>{words(locale, "Original: ", "原始值：")}{tipRow.raw.toLocaleString(locale === "zh" ? "zh-CN" : "en-US", { maximumFractionDigits: 20 })} KiB</p>}
       {tipRow.spec && <p>{tipRow.spec.version}</p>}
       {tipRow.metric && (tipRow.metric.planned_count > 1 || tipRow.metric.status === "partial") && <p>{tipRow.metric.valid_count}/{tipRow.metric.planned_count} {words(locale,"valid","有效")}</p>}
-      {tipRow.batch && <p>{batchLabel(tipRow.batch,locale)}</p>}
       {tipRow.metric?.display === "mean_sd" && tipRow.metric.min !== null && tipRow.metric.max !== null && <p>{words(locale, "Observed range: ", "观测范围：")}{formatMetricValue(tipRow.metric.min, tip.metric, locale)}–{formatMetricValue(tipRow.metric.max, tip.metric, locale)}</p>}
     </div><button type="button" className="benchmark-popup-close" aria-label={words(locale, "Close result details", "关闭结果详情")} onClick={() => setTip(null)}><X size={16} aria-hidden="true" /></button></div>}
   </div>;

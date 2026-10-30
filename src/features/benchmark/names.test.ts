@@ -8,8 +8,8 @@ describe("dataset display names and search", () => {
   it.each([
     ["dna_16s_1k", "16S · 1,000 条", "16S · 1,000 sequences"],
     ["dna_mt_10k", "线粒体 · 10,000 条", "Mitochondrial · 10,000 sequences"],
-    ["dna_mt_sim_70", "线粒体模拟 · 70%", "Mitochondrial simulation · 70%"],
-    ["rna_1023", "RNA · 1,023 条", "RNA · 1,023 sequences"],
+    ["dna_mt_sim_70", "线粒体模拟 · 相似度 70%", "Mitochondrial simulation · Similarity 70%"],
+    ["rna_1023", "RNA 模拟 · 1,023 条", "Simulated RNA · 1,023 sequences"],
   ])("names %s consistently", (id, zh, en) => {
     const dataset = datasets.find(d => d.id === id)!;
     expect(datasetName(dataset, "zh")).toBe(zh);

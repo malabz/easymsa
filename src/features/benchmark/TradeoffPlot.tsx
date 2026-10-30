@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { BenchmarkBatch, BenchmarkDataset, BenchmarkMetric, BenchmarkSnapshot, MetricKey } from "./model";
-import { formatAxisTicks, formatMetricSummary, makeMetricAxis, metricSpecs, selectMetricRows, type MetricAxis } from "./metrics";
-import { batchLabel, batchMarker, type ResultScope } from "./selection";
+import { formatAxisTicks, scoreAxisLabels, formatMetricSummary, makeMetricAxis, metricSpecs, selectMetricRows, type MetricAxis } from "./metrics";
+import { type ResultScope } from "./selection";
 import { reasonLabel, stateLabel, words, type Locale } from "./presentation";
 import "./tradeoff.css";
 
@@ -90,7 +90,8 @@ function interval(metric?: BenchmarkMetric): [number, number] | null {
 export function TradeoffPlot({ snapshot, batch, scope, dataset, locale, params, onParamsChange }: Props) {
   const xKey: MetricKey = params.get("x") === "max_rss_kib" ? "max_rss_kib" : "wall_seconds";
   const requestedY = params.get("y") as MetricKey;
-  const yKey: MetricKey = qualityKeys.includes(requestedY) && (dataset.reference || !["q", "tc"].includes(requestedY)) ? requestedY : dataset.reference ? "q" : "sp_score";
+  const hasQ = dataset.reference && selectMetricRows(snapshot,batch,dataset.id,"q",scope).some(row => row.raw !== null);
+  const yKey: MetricKey = qualityKeys.includes(requestedY) && (dataset.reference || !["q", "tc"].includes(requestedY)) ? requestedY : hasQ ? "q" : "sp_score";
   const isQuality = yKey === "q" || yKey === "tc";
   const xRows = selectMetricRows(snapshot, batch, dataset.id, xKey, scope);
   const yRows = selectMetricRows(snapshot, batch, dataset.id, yKey, scope);
@@ -103,7 +104,8 @@ export function TradeoffPlot({ snapshot, batch, scope, dataset, locale, params, 
   const plotHeight = tradeoffPlotHeight(valid.length,labelFontSize);
   const xTicks = selectTradeoffXTicks(xAxis,xKey,locale,width,labelFontSize);
   const yTicks = yAxis.ticks.length > 5 ? [yAxis.ticks[0], yAxis.ticks[Math.floor(yAxis.ticks.length / 2)], yAxis.ticks[yAxis.ticks.length - 1]] : yAxis.ticks;
-  const xLabels = formatAxisTicks(xTicks, xKey, locale), yLabels = formatAxisTicks(yTicks, yKey, locale);
+  const xLabels = formatAxisTicks(xTicks, xKey, locale);
+  const yPresentation = scoreAxisLabels(yTicks,yKey,locale), yLabels = yPresentation.labels;
   const yGutter = tradeoffYAxisGutter(yLabels,labelFontSize);
   const plane = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(params.get("method") ?? "");
@@ -132,8 +134,6 @@ export function TradeoffPlot({ snapshot, batch, scope, dataset, locale, params, 
   }, []);
   const locations = valid.map(row => ({id:row.method.id, name:row.method.name, x:bounded(xAxis.position(row.x!)) / 100 * width, y:(100 - bounded(yAxis.position(row.y!))) / 100 * plotHeight}));
   const labels = placeTradeoffLabels(locations, width, labelFontSize,plotHeight);
-  const sources = [...new Map(rows.flatMap(row => row.batch ? [[row.batch.id, row.batch] as const] : [])).values()];
-  const mixedSources = sources.length > 1;
   const focused = rows.find(row => row.method.id === active);
   const choose = (id:string) => { setActive(id); setShowDetails(true); };
   const status = (row:typeof rows[number]) => row.outsideBatch ? stateLabel("outside_batch", locale) : row.result?.reason_code ? reasonLabel(row.result.reason_code, locale) : row.x === null || row.y === null ? [row.metric, row.yMetric].flatMap(metric => metric?.reason_codes ?? []).map(reason => reasonLabel(reason, locale)).join(" · ") || stateLabel("unavailable", locale) : stateLabel(row.result?.status ?? "not_run", locale);
@@ -143,8 +143,8 @@ export function TradeoffPlot({ snapshot, batch, scope, dataset, locale, params, 
     <div className="tradeoff-responsive">
     <div className="tradeoff-layout">
       <div className="tradeoff-chart-column">
-      <figure className="tradeoff-figure" data-testid="tradeoff-chart" data-x-key={xKey} data-y-key={yKey} data-x-min={xAxis.min} data-x-max={xAxis.max} data-x-scale={xAxis.scale} data-y-min={yAxis.min} data-y-max={yAxis.max} data-y-scale={yAxis.scale} aria-label={axes}>
-        <figcaption><span className="tradeoff-axis-summary">{metricSpecs[yKey][locale]} ↑ <span>{rangeLabel}</span></span>{isQuality && <label className="tradeoff-zoom"><input type="checkbox" aria-label={words(locale,"Zoom Q / TC differences","放大 Q / TC 差异")} checked={params.get("zoom") === "1"} onChange={e => onParamsChange({zoom:e.target.checked ? "1" : ""})} /><span>{words(locale,"Zoom differences","放大差异")}</span></label>}</figcaption>
+      <figure className="tradeoff-figure" data-testid="tradeoff-chart" data-x-key={xKey} data-y-key={yKey} data-x-min={xAxis.min} data-x-max={xAxis.max} data-x-scale={xAxis.scale} data-y-min={yAxis.min} data-y-max={yAxis.max} data-y-scale={yAxis.scale} data-y-divisor={yPresentation.divisor} aria-label={axes}>
+        <figcaption><span className="tradeoff-axis-summary">{metricSpecs[yKey][locale]}{yPresentation.unit && <span className="benchmark-score-unit"> ({yPresentation.unit})</span>} ↑ <span>{rangeLabel}</span></span>{isQuality && <label className="tradeoff-zoom"><input type="checkbox" aria-label={words(locale,"Zoom Q / TC differences","放大 Q / TC 差异")} checked={params.get("zoom") === "1"} onChange={e => onParamsChange({zoom:e.target.checked ? "1" : ""})} /><span>{words(locale,"Zoom differences","放大差异")}</span></label>}</figcaption>
         <div className="tradeoff-plot-area" style={{paddingLeft:yGutter}}>
           <div ref={plane} className="tradeoff-plane" style={{height:plotHeight}}>
             {valid.length > 0 && <svg className="tradeoff-grid" viewBox={`0 0 ${width} ${plotHeight}`} preserveAspectRatio="none" aria-hidden="true">
@@ -158,9 +158,9 @@ export function TradeoffPlot({ snapshot, batch, scope, dataset, locale, params, 
               return <div key={row.method.id} className={active === row.method.id ? "tradeoff-mark is-active" : "tradeoff-mark"}>
                 {xRange && <span className="tradeoff-range x" data-testid="tradeoff-x-range" style={{left:`${bounded(xAxis.position(xRange[0]))}%`, width:`${bounded(xAxis.position(xRange[1])) - bounded(xAxis.position(xRange[0]))}%`, top:`${100-y}%`}} />}
                 {yRange && <span className="tradeoff-range y" data-testid="tradeoff-y-range" style={{left:`${x}%`, top:`${100 - bounded(yAxis.position(yRange[1]))}%`, height:`${bounded(yAxis.position(yRange[1])) - bounded(yAxis.position(yRange[0]))}%`}} />}
-                <button type="button" className="tradeoff-point" data-testid="tradeoff-point" data-method={row.method.id} data-batch-id={row.batch?.id} data-shape={row.batch ? batchMarker(row.batch) : "circle"} data-x-raw={row.x!} data-y-raw={row.y!} data-x-percent={x} data-y-percent={y} style={{left:`${x}%`, top:`${100-y}%`}}
-                  aria-label={`${row.method.name}: ${formatMetricSummary(row.metric,xKey,locale)} ${metricSpecs[xKey].unit}; ${metricSpecs[yKey][locale]} ${formatMetricSummary(row.yMetric,yKey,locale)}; ${row.batch ? batchLabel(row.batch,locale) : ""}`} aria-describedby={showDetails && active === row.method.id ? "tradeoff-description" : undefined}
-                  onMouseEnter={() => { if (interaction.current === "pointer") choose(row.method.id); }} onPointerMove={() => { interaction.current = "pointer"; choose(row.method.id); }} onFocus={() => { interaction.current = "focus"; choose(row.method.id); }} onClick={event => { interaction.current = event.detail === 0 ? "focus" : "pointer"; onParamsChange({method:row.method.id}); choose(row.method.id); }}><i className={`tradeoff-marker ${row.batch ? batchMarker(row.batch) : "circle"}`} aria-hidden="true" /></button>
+                <button type="button" className="tradeoff-point" data-testid="tradeoff-point" data-method={row.method.id} data-batch-id={row.batch?.id} data-shape="circle" data-x-raw={row.x!} data-y-raw={row.y!} data-x-percent={x} data-y-percent={y} style={{left:`${x}%`, top:`${100-y}%`}}
+                  aria-label={`${row.method.name}: ${formatMetricSummary(row.metric,xKey,locale)} ${metricSpecs[xKey].unit}; ${metricSpecs[yKey][locale]} ${formatMetricSummary(row.yMetric,yKey,locale)}; `} aria-describedby={showDetails && active === row.method.id ? "tradeoff-description" : undefined}
+                  onMouseEnter={() => { if (interaction.current === "pointer") choose(row.method.id); }} onPointerMove={() => { interaction.current = "pointer"; choose(row.method.id); }} onFocus={() => { interaction.current = "focus"; choose(row.method.id); }} onClick={event => { interaction.current = event.detail === 0 ? "focus" : "pointer"; onParamsChange({method:row.method.id}); choose(row.method.id); }}><i className="tradeoff-marker circle" aria-hidden="true" /></button>
                 <span className="tradeoff-direct-label" style={{left:label.x, top:label.y, maxWidth:label.width}}>{row.method.name}</span>
               </div>;
             })}
@@ -180,20 +180,19 @@ export function TradeoffPlot({ snapshot, batch, scope, dataset, locale, params, 
       </div>
       <div className="tradeoff-methods" aria-label={words(locale, "Methods and result states", "方法与结果状态")}>
         <div className="tradeoff-method-heading" aria-hidden="true"><span>{words(locale,"Method","方法")}</span><span>{metricSpecs[xKey][locale]} ({metricSpecs[xKey].unit})</span><span>{metricSpecs[yKey][locale]}</span></div>
-        {rows.map(row => <button key={row.method.id} type="button" data-testid="tradeoff-method" data-method={row.method.id} data-batch-id={row.batch?.id ?? ""} data-status={row.outsideBatch ? "outside_batch" : row.result?.status ?? "not_run"} className={(active === row.method.id ? "is-active " : "") + (row.x === null || row.y === null ? "is-unavailable" : "")} aria-label={`${row.method.name}: ${metricSpecs[xKey][locale]} ${row.x === null ? status(row) : `${formatMetricSummary(row.metric,xKey,locale)} ${metricSpecs[xKey].unit}`}; ${metricSpecs[yKey][locale]} ${row.y === null ? status(row) : formatMetricSummary(row.yMetric,yKey,locale)}; ${row.batch ? batchLabel(row.batch,locale) : ""}`} aria-pressed={active === row.method.id} aria-describedby={showDetails && active === row.method.id ? "tradeoff-description" : undefined} onClick={event => { interaction.current = event.detail === 0 ? "focus" : "pointer"; onParamsChange({method:row.method.id}); choose(row.method.id); }} onFocus={() => { interaction.current = "focus"; choose(row.method.id); }}>
-          <span className="tradeoff-method-name">{row.batch && <i className={`tradeoff-marker ${batchMarker(row.batch)}`} aria-hidden="true" />}<span><strong>{row.method.name}</strong>{mixedSources && row.batch && <small className="tradeoff-row-source">{batchLabel(row.batch,locale)}</small>}</span></span>
+        {rows.map(row => <button key={row.method.id} type="button" data-testid="tradeoff-method" data-method={row.method.id} data-batch-id={row.batch?.id ?? ""} data-status={row.outsideBatch ? "outside_batch" : row.result?.status ?? "not_run"} className={(active === row.method.id ? "is-active " : "") + (row.x === null || row.y === null ? "is-unavailable" : "")} aria-label={`${row.method.name}: ${metricSpecs[xKey][locale]} ${row.x === null ? status(row) : `${formatMetricSummary(row.metric,xKey,locale)} ${metricSpecs[xKey].unit}`}; ${metricSpecs[yKey][locale]} ${row.y === null ? status(row) : formatMetricSummary(row.yMetric,yKey,locale)}; `} aria-pressed={active === row.method.id} aria-describedby={showDetails && active === row.method.id ? "tradeoff-description" : undefined} onClick={event => { interaction.current = event.detail === 0 ? "focus" : "pointer"; onParamsChange({method:row.method.id}); choose(row.method.id); }} onFocus={() => { interaction.current = "focus"; choose(row.method.id); }}>
+          <span className="tradeoff-method-name">{row.batch && <i className="tradeoff-marker circle" aria-hidden="true" />}<span><strong>{row.method.name}</strong></span></span>
           <span className={"tradeoff-method-value " + (row.x === null ? "is-missing" : "")} data-testid="tradeoff-method-x" data-raw={row.x ?? ""}>{row.x === null ? status(row) : formatMetricSummary(row.metric,xKey,locale,true)}</span>
           <span className={"tradeoff-method-value " + (row.y === null ? "is-missing" : "")} data-testid="tradeoff-method-y" data-raw={row.y ?? ""}>{row.y === null ? row.x === null ? "—" : status(row) : formatMetricSummary(row.yMetric,yKey,locale,true)}</span>
         </button>)}
       </div>
     </div>
-    <div className="tradeoff-source-footer"><div className="tradeoff-source-legend">{sources.map(source => <span key={source.id} title={source.id}><i className={`tradeoff-marker ${batchMarker(source)}`} aria-hidden="true" />{batchLabel(source,locale)}</span>)}</div></div>
     </div>
     {showDetails && focused && <div className="tradeoff-details" data-testid="tradeoff-details"><div className="tradeoff-details-content" id="tradeoff-description" role="tooltip">
       <strong>{focused.method.name} · {status(focused)}</strong>
       <p>{metricSpecs[xKey][locale]}: {formatMetricSummary(focused.metric,xKey,locale)} {metricSpecs[xKey].unit} · {metricSpecs[yKey][locale]}: {formatMetricSummary(focused.yMetric,yKey,locale)}</p>
       {xKey === "max_rss_kib" && focused.x !== null && <p>{words(locale,"Original: ","原始值：")}{focused.x.toLocaleString(locale === "zh" ? "zh-CN" : "en-US", {maximumSignificantDigits:21})} KiB</p>}
-      {focused.batch && <><p>{batchLabel(focused.batch,locale)} · {focused.spec?.version}</p><p>{focused.batch.conditions?.cpu_limit ?? focused.batch.threads} CPU · {focused.batch.conditions?.memory_limit_gib ?? "—"} GiB · {focused.batch.conditions ? focused.batch.conditions.alignment_timeout_seconds / 60 : "—"} {words(locale,"min limit","分钟限时")}</p></>}
+      {focused.spec && <p>{focused.spec.version}</p>}
       {((focused.metric?.planned_count ?? 0) > 1 || focused.metric?.status === "partial" || focused.yMetric?.status === "partial") && <p>{focused.metric?.valid_count ?? 0}/{focused.metric?.planned_count ?? "—"} {words(locale,"valid for horizontal metric","横轴指标有效")} · {focused.yMetric?.valid_count ?? 0}/{focused.yMetric?.planned_count ?? "—"} {words(locale,"valid for vertical metric","纵轴指标有效")}</p>}
       </div><button type="button" aria-label={words(locale,"Close result details","关闭结果详情")} onClick={() => setShowDetails(false)}>×</button>
     </div>}

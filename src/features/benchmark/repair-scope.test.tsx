@@ -24,7 +24,7 @@ function cell(dataset: string, method: string) {
 describe("targeted repair batch scope", () => {
   it("defaults to latest whole records while retaining each original source", async () => {
     mount(); await screen.findByTestId("benchmark-matrix");
-    expect(screen.getByLabelText("Evaluation batch")).toHaveValue("latest");
+    expect(screen.queryByLabelText("Evaluation batch")).not.toBeInTheDocument();
     expect(screen.getAllByTestId("matrix-cell")).toHaveLength(72);
     expect(screen.getByLabelText("Evaluation coverage")).toHaveTextContent("Complete 72 / 72");
     expect(cell("mt100", "halign4")).toHaveAttribute("data-batch-id", "test-repair15");
@@ -34,15 +34,12 @@ describe("targeted repair batch scope", () => {
     expect(screen.getAllByTestId("matrix-cell").every(item => item.dataset.heat === "")).toBe(true);
   });
 
-  it("scopes a sparse explicit batch to its included methods until the full catalog is requested", async () => {
+  it("historical overview links now open the complete current view", async () => {
     mount("/benchmark?batch=test-repair15"); await screen.findByTestId("benchmark-matrix");
-    expect(screen.getAllByTestId("matrix-cell")).toHaveLength(16);
-    expect(new Set(screen.getAllByTestId("matrix-cell").map(item => item.dataset.methodId))).toEqual(new Set(["halign4", "minipoa"]));
-    expect(screen.getByLabelText("Evaluation coverage")).toHaveTextContent("Complete 11 / 11");
-    fireEvent.click(screen.getByLabelText("Show all"));
     expect(screen.getAllByTestId("matrix-cell")).toHaveLength(72);
-    expect(cell("mt100", "mafft")).toHaveAttribute("data-state", "outside_batch");
-    expect(screen.getByLabelText("Evaluation coverage")).toHaveTextContent("Complete 11 / 11");
+    expect(cell("mt100","mafft")).toHaveAttribute("data-raw-value","10");
+    expect(cell("mt100","halign4")).toHaveAttribute("data-raw-value","20");
+    expect(screen.queryByLabelText("Show all")).not.toBeInTheDocument();
   });
 
   it("validates sparse v2 and selects only 15 pairs without filling from the baseline", () => {
@@ -54,35 +51,22 @@ describe("targeted repair batch scope", () => {
     expect(rows.find(row=>row.method.id==="mafft")).toMatchObject({raw:null,result:undefined,outsideBatch:true});
     expect(snapshot.batches[0].results.find(result=>result.method_id==="mafft"&&result.dataset_id==="mt100")?.metrics.wall_seconds.value).toBe(10);
   });
-  it.each(["en","zh"] as const)("shows actual pair coverage and distinguishes outside-batch cells in %s", async locale => {
+  it.each(["en","zh"] as const)("presents one current result set in %s", async locale => {
     mount("/benchmark?batch=test-repair15&all=1",locale);await screen.findByTestId("benchmark-matrix");
-    expect(screen.getByLabelText(locale==="en"?"Evaluation coverage":"评测覆盖")).toHaveTextContent("11 / 11");
-    expect(screen.getByLabelText(locale==="en"?"Evaluation batch":"评测批次")).toHaveValue("test-repair15");
-    const outside=cell("mt100","mafft");expect(outside).toHaveTextContent(locale==="en"?"Not tested":"未测试");
-    expect(outside).toHaveAttribute("data-raw-value","");expect(outside).toHaveAttribute("data-heat","");
-    await act(async () => {});
-    fireEvent.focus(outside);expect(screen.getByRole("tooltip")).toHaveTextContent(locale==="en"?"Not tested":"未测试");
-    expect(screen.getByRole("tooltip")).not.toHaveTextContent("0/1");
-    fireEvent.change(screen.getByLabelText(locale==="en"?"Evaluation batch":"评测批次"),{target:{value:"test-baseline"}});
-    expect(cell("mt100","mafft")).toHaveAttribute("data-raw-value","10");
+    expect(screen.getByLabelText(locale==="en"?"Evaluation coverage":"评测覆盖")).toHaveTextContent("72 / 72");
+    expect(screen.queryByLabelText(locale==="en"?"Evaluation batch":"评测批次")).not.toBeInTheDocument();
+    const result=cell("mt100","mafft"); expect(result).toHaveAttribute("data-raw-value","10");
+    fireEvent.focus(result);expect(screen.getByRole("tooltip")).not.toHaveTextContent("test-baseline");
   });
-  it("keeps the explicitly selected batch on a dataset with no selected pairs", async () => {
-    const snapshot = repairSnapshot();snapshot.batches[1].results=snapshot.batches[1].results.filter(result=>result.dataset_id!=="sim70");
-    localStorage.setItem("easymsa.locale","en");vi.stubGlobal("fetch",vi.fn().mockResolvedValue({ok:true,json:()=>Promise.resolve(snapshot)}));
-    render(<LanguageProvider><MemoryRouter initialEntries={["/benchmark/datasets/sim70?batch=test-repair15"]}><Routes><Route path="/benchmark/datasets/:caseId" element={<BenchmarkDatasetPage/>}/></Routes></MemoryRouter></LanguageProvider>);
+  it("historical detail links show the current dataset results", async () => {
+    mount("/benchmark/datasets/sim70?batch=test-repair15");
     await screen.findByTestId("dataset-title");
-    expect(screen.getByLabelText("Evaluation batch")).toHaveValue("test-repair15");
-    expect(screen.queryAllByTestId("tradeoff-method")).toHaveLength(0);
-    expect(screen.queryAllByTestId("metric-point")).toHaveLength(0);
-    fireEvent.click(screen.getByLabelText("Show all"));
-    expect(screen.getAllByTestId("metric-point")).toHaveLength(30);
-    expect(screen.getAllByTestId("metric-point").every(point=>point.dataset.rawValue==="")).toBe(true);
-    expect(screen.getAllByTestId("metric-point").every(point=>point.dataset.status==="outside_batch")).toBe(true);
+    expect(screen.queryByLabelText("Evaluation batch")).not.toBeInTheDocument();
+    expect(screen.getAllByTestId("tradeoff-method")).toHaveLength(6);
     fireEvent.click(screen.getByRole("button",{name:"Values"}));
-    const cells = screen.getByTestId("precise-results").querySelectorAll("td[data-metric]");
+    const cells=screen.getByTestId("precise-results").querySelectorAll("td[data-metric]");
     expect(cells).toHaveLength(42);
-    expect([...cells].every(cell => cell.textContent === "Not tested")).toBe(true);
-    expect(screen.getByRole("link",{name:"Next"})).toHaveAttribute("href",expect.stringContaining("batch=test-repair15"));
+    expect([...cells].some(cell=>cell.getAttribute("data-raw-value")!=="")).toBe(true);
   });
   it("keeps both formats scoped to selected pairs, including an empty dataset scope", () => {
     const snapshot = repairSnapshot();const before=JSON.stringify(snapshot.batches[0]);

@@ -16,6 +16,9 @@ export function expectedWebsiteSnapshot(archive: BenchmarkSnapshot): BenchmarkSn
   const ids = ["clustalo", "mafft", "muscle5", "halign4", "fmalign2", "minipoa"];
   return {
     ...archive,
+    catalog:{...archive.catalog,datasets:archive.catalog.datasets.map(dataset=>
+      ["rna_255","rna_511","rna_1023","rna_2047","rna_4095","rna_8191"].includes(dataset.id)
+        ? {...dataset,source_kind:"simulated" as const} : dataset)},
     methods: archive.methods.filter(method => ids.includes(method.id))
       .map(method => ({ ...method, name: method.id === "halign4" ? "HAlign" : method.name })),
     batches: archive.batches.map(batch => ({ ...batch,
@@ -79,16 +82,6 @@ export async function assertDatasetConsistency(page: Page, snapshot: BenchmarkSn
   const dataset = snapshot.catalog.datasets.find(d => d.id === caseId)!;
   const batchId = batch === "latest" ? "latest" : batch.id;
   const records = expectedRecords(snapshot,batchId);
-  const selector=page.getByRole("combobox", {name:locale === "en" ? "Evaluation batch" : "评测批次", exact:true});
-  await selector.selectOption(batchId);
-  await expect(selector).toHaveValue(batchId);
-  const full = page.getByRole("checkbox", {name:locale === "en" ? "Show all" : "显示全部",exact:true});
-  if (await full.count()) {
-    if(!await full.isChecked()) await full.click();
-    // The checkbox commits through the router, so wait for React's checked
-    // state instead of Playwright check()'s immediate post-click assertion.
-    await expect(full).toBeChecked();
-  }
   const tableToggle = page.getByRole("button", {name:locale === "en" ? "Values" : "数值表", exact:true});
   await tableToggle.click();
   const table = page.getByTestId("precise-results");
@@ -197,7 +190,7 @@ export async function assertScatterConsistency(page: Page, snapshot: BenchmarkSn
     expect(point,`${caseId}/${result.method_id}`).toBeDefined();
     expect(point.batch).toBe(batch.id);
     expect(point.xRaw).toBe(String(values.x));expect(point.yRaw).toBe(String(values.y));
-    expect(point.shape).toBe(batch.id.startsWith("baseline-") ? "circle" : batch.id.startsWith("repair15-") ? "square" : batch.id.startsWith("memory32-") ? "triangle" : "diamond");
+    expect(point.shape).toBe("circle");
     for(const axis of ["x","y"] as const) {
       const a=axes[axis]; const converted=a.key==="max_rss_kib" ? values[axis]/1024 : values[axis];
       const percent=a.scale==="log" ? (Math.log10(converted)-Math.log10(a.min))/(Math.log10(a.max)-Math.log10(a.min))*100 : (converted-a.min)/(a.max-a.min)*100;

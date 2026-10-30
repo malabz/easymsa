@@ -1,4 +1,4 @@
-import { datasetName } from "./names";
+import { datasetName, datasetFamily } from "./names";
 import { Fragment, useEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { ArrowUpRight, CircleAlert, Clock3, Minus } from "lucide-react";
@@ -7,7 +7,7 @@ import type { BenchmarkBatch, BenchmarkDataset, BenchmarkSnapshot, MetricKey } f
 import { formatMetricSummary, formatMetricValue, metricSpecs, rowHeat, selectMetricRows } from "./metrics";
 import { reasonLabel, stateLabel, words, type Locale } from "./presentation";
 import "./matrix.css";
-import { batchLabel, type ResultScope } from "./selection";
+import { type ResultScope } from "./selection";
 
 export function datasetGroup(dataset: BenchmarkDataset) {
   if (dataset.sequence_type === "rna") return 3;
@@ -30,7 +30,7 @@ function shortReason(reason: string | undefined, locale: Locale) {
   };
   return reason && labels[reason] ? words(locale, ...labels[reason]) : reason ? reasonLabel(reason, locale) : words(locale, "Unavailable", "无可用值");
 }
-type Tooltip = { id: string; x: number; y: number; heading: string; value: string; raw: string | null; state: string; coverage: string; version: string; source: string };
+type Tooltip = { id: string; x: number; y: number; heading: string; value: string; raw: string | null; state: string; coverage: string; version: string };
 
 export function BenchmarkMatrix({ snapshot, batch, datasets, metricKey, locale, returnTo, scope }: {
   snapshot: BenchmarkSnapshot; batch?: BenchmarkBatch; datasets: BenchmarkDataset[]; metricKey: MetricKey; locale: Locale; returnTo: string; scope?: ResultScope;
@@ -82,7 +82,8 @@ export function BenchmarkMatrix({ snapshot, batch, datasets, metricKey, locale, 
   const detailHref = (dataset: string, method?: string) => {
     const query = new URLSearchParams(returnTo.split("?")[1] ?? "");
     query.set("metric", metricKey); query.set("returnTo", returnTo);
-    query.set(["wall_seconds", "max_rss_kib"].includes(metricKey) ? "x" : "y", metricKey);
+    query.delete("y");
+    if (["wall_seconds", "max_rss_kib"].includes(metricKey)) query.set("x", metricKey);
     if (batch) query.set("batch", batch.id);
     if (method) query.set("method", method);
     return "/benchmark/datasets/" + dataset + "?" + query.toString();
@@ -104,7 +105,7 @@ export function BenchmarkMatrix({ snapshot, batch, datasets, metricKey, locale, 
           const rows = selectMetricRows(snapshot, batch, dataset.id, metricKey, scope);
           const heat = scope?.mode === "latest" ? rows.map(() => null) : rowHeat(metricKey, rows.map(row => row.metric));
           return <Fragment key={dataset.id}>
-            {startGroup && <tr className="benchmark-matrix-group"><th colSpan={snapshot.methods.length + 1} scope="rowgroup"><span>{words(locale, ...groupNames[group] as [string, string])}</span></th></tr>}
+            {startGroup && <tr className="benchmark-matrix-group"><th colSpan={snapshot.methods.length + 1} scope="rowgroup"><span>{group === 3 ? datasetFamily(dataset,locale) : words(locale, ...groupNames[group] as [string, string])}</span></th></tr>}
             <tr data-dataset-id={dataset.id}>
               <th scope="row" className="benchmark-matrix-dataset"><Link onClick={savePosition} to={detailHref(dataset.id)}><span className="benchmark-matrix-row-name">{datasetName(dataset,locale,true)}<ArrowUpRight size={12} aria-hidden="true" /></span>{dataset.validation_status === "requires_review" && <span className="benchmark-warning">{words(locale, "Input needs review", "输入待处理")}</span>}</Link></th>
               {rows.map((row, mi) => {
@@ -127,7 +128,7 @@ export function BenchmarkMatrix({ snapshot, batch, datasets, metricKey, locale, 
                     value: available ? `${spec[locale]}: ${formatMetricSummary(row.metric, metricKey, locale)}${spec.unit ? " " + spec.unit : ""}` : row.outsideBatch ? stateLabel("outside_batch", locale) : shortReason(reason, locale),
                     raw: available && metricKey === "max_rss_kib" ? words(locale, "Original: ", "原始值：") + row.raw + " KiB" : null,
                     state, coverage: row.metric?.planned_count === 1 && row.metric.valid_count === 1 ? "" : row.outsideBatch ? "" : `${row.metric?.valid_count ?? 0}/${row.metric?.planned_count ?? row.result?.planned_repeats ?? batch?.repeats ?? "—"} ${words(locale, "valid", "有效")}`,
-                    version: row.spec?.version ?? (batch ? stateLabel("outside_batch", locale) : words(locale, "Version pending", "版本待确认")), source: row.batch ? batchLabel(row.batch, locale) : ""});
+                    version: row.spec?.version ?? (batch ? stateLabel("outside_batch", locale) : words(locale, "Version pending", "版本待确认"))});
                 };
                 return <td key={row.method.id} className={`benchmark-heat-${tone}`}><Link to={detailHref(dataset.id, row.method.id)} onClick={savePosition} className={available ? "benchmark-matrix-cell" : "benchmark-matrix-cell is-unavailable"}
                   data-testid="matrix-cell" data-batch-id={row.batch?.id ?? ""} data-dataset-id={dataset.id} data-method-id={row.method.id} data-metric={metricKey} data-raw-value={row.raw ?? ""} data-display-value={row.display ?? ""} data-state={row.outsideBatch ? "outside_batch" : row.metric?.status ?? "not_run"} data-heat={strength ?? ""}
@@ -136,7 +137,7 @@ export function BenchmarkMatrix({ snapshot, batch, datasets, metricKey, locale, 
                   onMouseEnter={event => show(event.currentTarget)} onMouseLeave={dismissTooltip} onFocus={event => show(event.currentTarget)} onBlur={() => setTooltip(null)}>
                   {!available && (reason === "timeout" ? <Clock3 size={12} aria-hidden="true" /> : reason === "no_reference" || reason === "not_run" ? <Minus size={12} aria-hidden="true" /> : <CircleAlert size={12} aria-hidden="true" />)}
                   <span>{value}</span>{row.metric?.status === "partial" && <span className="benchmark-cell-partial">{words(locale, "Partial", "部分")}</span>}
-                  {scope?.mode === "latest" && row.batch && row.batch.id !== "baseline-single-20261027" && <small className="benchmark-cell-source">{batchLabel(row.batch, locale)}</small>}
+
                 </Link></td>;
               })}
             </tr>
@@ -146,7 +147,7 @@ export function BenchmarkMatrix({ snapshot, batch, datasets, metricKey, locale, 
       {!ordered.length && <p className="benchmark-empty">{words(locale, "No datasets match these filters.", "没有符合筛选条件的数据集。")}</p>}
     </div>
     {tooltip && createPortal(<div id="benchmark-cell-tooltip" role="tooltip" className="benchmark-matrix-tooltip" style={{left:tooltip.x, top:tooltip.y} as CSSProperties} onMouseEnter={keepTooltip} onMouseLeave={dismissTooltip}>
-      <strong>{tooltip.heading}</strong><p className="benchmark-tooltip-value">{tooltip.value}</p>{tooltip.raw && <p>{tooltip.raw}</p>}{tooltip.coverage && <p>{tooltip.coverage}</p>}<p>{words(locale, "Version: ", "版本：")}{tooltip.version}</p><p>{tooltip.source}</p>
+      <strong>{tooltip.heading}</strong><p className="benchmark-tooltip-value">{tooltip.value}</p>{tooltip.raw && <p>{tooltip.raw}</p>}{tooltip.coverage && <p>{tooltip.coverage}</p>}<p>{words(locale, "Version: ", "版本：")}{tooltip.version}</p>
     </div>, document.body)}
   </>;
 }

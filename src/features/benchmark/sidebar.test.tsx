@@ -57,7 +57,8 @@ describe("Benchmark dataset sidebar", () => {
     expect(current).toHaveAttribute("aria-current", "page");
     expect(current).toHaveClass("is-active");
     const next = new URL(current.getAttribute("href")!, "https://example.org");
-    for (const [key,value] of params) if (key !== "returnTo") expect(next.searchParams.get(key)).toBe(value);
+    for (const [key,value] of params) if (!["returnTo","y"].includes(key)) expect(next.searchParams.get(key)).toBe(value);
+    expect(next.searchParams.has("y")).toBe(false);
     expect(next.searchParams.has("returnTo")).toBe(false);
     const overview = new URL(screen.getByRole("link", {name:"All datasets"}).getAttribute("href")!, "https://example.org");
     for (const key of ["batch", "type", "search", "methods", "reference", "metric"]) expect(overview.searchParams.get(key)).toBe(params.get(key));

@@ -1,5 +1,11 @@
 # Benchmark reading experience
 
+Current RNA identity and score labels: [CIPRES simulation and readable SP scales](BENCHMARK_RNA_AND_SCORES.md).
+
+Current navigation and result view: [unified Benchmark presentation](BENCHMARK_UNIFIED.md).
+This replaces the visible batch selector and source badges described below;
+the historical report format remains available in exports.
+
 Current copy and naming: [concise Benchmark presentation](BENCHMARK_COPY.md).
 
 Current catalog update: [six displayed methods, excluding T-Coffee](BENCHMARK_SIX_METHODS.md).

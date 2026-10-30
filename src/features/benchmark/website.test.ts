@@ -11,6 +11,18 @@ const ids = ["clustalo", "mafft", "muscle5", "halign4", "fmalign2", "minipoa"];
 const latest = { mode: "latest" } as const;
 
 describe("website method catalog", () => {
+  it("corrects the six identified CIPRES RNA datasets without modifying observations or unknown datasets", () => {
+    const source = archive(), before = JSON.stringify(source);
+    const snapshot = websiteSnapshot(source);
+    const rna = snapshot.catalog.datasets.filter(dataset => dataset.sequence_type === "rna");
+    expect(rna).toHaveLength(6);
+    expect(rna.every(dataset => dataset.source_kind === "simulated")).toBe(true);
+    expect(snapshot.catalog.datasets.filter(dataset => dataset.source_kind === "simulated")).toHaveLength(20);
+    expect(selectViewSnapshot(snapshot,latest).catalog.datasets.filter(dataset => dataset.sequence_type === "rna").every(dataset => dataset.source_kind === "simulated")).toBe(true);
+    expect(JSON.stringify(source)).toBe(before);
+    source.catalog.datasets[20] = {...source.catalog.datasets[20],id:"other-rna",source_id:"mt1x",source_kind:"unconfirmed"};
+    expect(websiteSnapshot(source).catalog.datasets[20].source_kind).toBe("unconfirmed");
+  });
   it("renames HAlign and removes retired methods from every public catalog and batch", () => {
     const snapshot = websiteSnapshot(archive());
     expect(snapshot.methods.map(method => method.id)).toEqual(ids);

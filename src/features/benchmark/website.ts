@@ -1,4 +1,5 @@
 import type { BenchmarkSnapshot } from "./model";
+import { isCipresRna } from "./provenance";
 
 /** Website catalog policy. Keep the frozen scientific archive and method IDs intact. */
 export function websiteSnapshot(snapshot: BenchmarkSnapshot): BenchmarkSnapshot {
@@ -8,6 +9,8 @@ export function websiteSnapshot(snapshot: BenchmarkSnapshot): BenchmarkSnapshot 
   const visible = new Set(methods.map(method => method.id));
   return {
     ...snapshot,
+    catalog: {...snapshot.catalog, datasets:snapshot.catalog.datasets.map(dataset =>
+      isCipresRna(dataset) ? {...dataset, source_kind:"simulated" as const} : dataset)},
     methods,
     batches: snapshot.batches.map(batch => ({
       ...batch,

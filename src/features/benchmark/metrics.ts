@@ -41,15 +41,43 @@ function formatNumber(value: number, locale: MetricLocale, compact: boolean, sci
   return value.toLocaleString(language, { maximumSignificantDigits: 5 });
 }
 
+function scoreUnit(values: number[], locale: MetricLocale) {
+  const magnitude = Math.max(0, ...values.map(Math.abs));
+  const units = locale === "zh"
+    ? [[1e12,"万亿","万亿"], [1e8,"亿","亿"], [1e4,"万","万"]] as const
+    : [[1e12,"trillion","tn"], [1e9,"billion","bn"], [1e6,"million","m"], [1e3,"thousand","k"]] as const;
+  const selected = units.find(([divisor]) => magnitude >= divisor);
+  return selected ? {divisor:selected[0], unit:selected[1], compactUnit:selected[2]} : {divisor:1,unit:"",compactUnit:""};
+}
+
+/** Shared readable scale for score axes; positions continue to use raw values. */
+export function scoreAxisLabels(values: number[], key: MetricKey, locale: MetricLocale) {
+  if (!["sp_score", "avg_sp", "scaled_sp"].includes(key)) return {labels:formatAxisTicks(values,key,locale),divisor:1,unit:""};
+  const {divisor,unit} = scoreUnit(values,locale);
+  const scaled = values.map(value => value / divisor);
+  const distinct = new Set(values).size;
+  let labels: string[] = [];
+  for (let precision=5; precision<=17; precision++) {
+    labels = scaled.map(value => value.toLocaleString(locale === "zh" ? "zh-CN" : "en-US",{notation:"standard", maximumSignificantDigits:precision}));
+    if (new Set(labels).size === distinct) break;
+  }
+  return {labels,divisor,unit};
+}
+
 /** Accepts the raw reported value; memory is converted exactly once. */
 export function formatMetricValue(raw: number, key: MetricKey, locale: MetricLocale, compact = false): string {
   const value = toDisplayValue(key, raw);
+  if (compact && ["sp_score", "avg_sp", "scaled_sp"].includes(key)) {
+    const {divisor,compactUnit} = scoreUnit([value],locale);
+    const number = (value/divisor).toLocaleString(locale === "zh" ? "zh-CN" : "en-US",{notation:"standard",useGrouping:false,maximumSignificantDigits:5});
+    return number + (compactUnit ? " " + compactUnit : "");
+  }
   return formatNumber(value, locale, compact, ["sp_score", "avg_sp"].includes(key) && Math.abs(value) >= 1e6);
 }
 
 /** Axis ticks already use display units, unlike formatMetricValue's input. */
 export function formatAxisTick(displayValue: number, key: MetricKey, locale: MetricLocale): string {
-  return formatNumber(displayValue, locale, true, Math.abs(displayValue) >= 1e6);
+  return formatNumber(displayValue, locale, true, (key === "sp_score" && displayValue !== 0) || Math.abs(displayValue) >= 1e6);
 }
 
 /** Keep distinct visible ticks distinguishable even within a narrow large-score range. */
@@ -59,7 +87,7 @@ export function formatAxisTicks(displayValues: number[], key: MetricKey, locale:
   const language = locale === "zh" ? "zh-CN" : "en-US";
   for (let precision = 5; new Set(labels).size < distinctValues && precision <= 17; precision++) {
     labels = displayValues.map(value => value.toLocaleString(language, {
-      notation: Math.abs(value) >= 1e6 || (value !== 0 && Math.abs(value) < 0.0001) ? "scientific" : "standard",
+      notation: (key === "sp_score" && value !== 0) || Math.abs(value) >= 1e6 || (value !== 0 && Math.abs(value) < 0.0001) ? "scientific" : "standard",
       maximumSignificantDigits: precision,
     }));
   }

@@ -81,7 +81,7 @@ export function DownloadButtons({ snapshot, locale, batchId, datasetId, datasetI
     <div className="benchmark-download-panel">
       {!datasetId && <label>{words(locale, "Download scope", "下载范围")}<select value={scope} onChange={event => setScope(event.target.value)}>
         <option value="filtered">{words(locale, "Current filters", "当前筛选结果")}</option>
-        <option value="batch">{latest ? words(locale, "All latest records", "全部最新记录") : words(locale, "Full batch", "完整批次")}</option>
+        <option value="batch">{latest ? words(locale, "All results", "全部结果") : words(locale, "Full batch", "完整批次")}</option>
       </select></label>}
       <p>{words(locale, `${subset.catalog.datasets.length} datasets · ${subset.batches.reduce((n,b) => n+b.results.length,0)} results`, `${subset.catalog.datasets.length} 个数据集 · ${subset.batches.reduce((n,b) => n+b.results.length,0)} 项结果`)}</p>
       <div className="benchmark-downloads">

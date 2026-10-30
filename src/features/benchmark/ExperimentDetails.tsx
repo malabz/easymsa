@@ -2,6 +2,7 @@ import type { BenchmarkBatch, BenchmarkDataset, BenchmarkSnapshot } from "./mode
 import { BatchContext, sourceLabel, words, type Locale } from "./presentation";
 import { datasetName } from "./names";
 import { batchLabel } from "./selection";
+import { isCipresRna, rnaEvidence } from "./provenance";
 
 export function ExperimentDetails({snapshot, batches, dataset, locale}: {
   snapshot: BenchmarkSnapshot; batches: BenchmarkBatch[]; dataset?: BenchmarkDataset; locale: Locale;
@@ -14,6 +15,7 @@ export function ExperimentDetails({snapshot, batches, dataset, locale}: {
       {dataset && <>
         <p>{datasetName(dataset, locale)} · <code>{dataset.id}</code></p>
         <p>{sourceLabel(dataset.source_kind, locale)}</p>
+        {isCipresRna(dataset) && <p>{words(locale,"Dataset: CIPRES simulated RNA · ","数据集：CIPRES 模拟 RNA · ")}<a href={rnaEvidence.paper} target="_blank" rel="noreferrer">{words(locale,"Dataset description","数据说明")}</a></p>}
         {source && <p><a href={source.url} target="_blank" rel="noreferrer">{source.title}</a></p>}
         {dataset.similarity_label !== null && <p>{words(locale, "Simulation similarity (source parameter): ", "模拟相似度（来源参数）：")}{dataset.similarity_label}%</p>}
         {dataset.sampling && <p>{words(locale, "Sampling: ", "抽样方式：")}{words(locale, dataset.sampling.with_replacement ? "With replacement" : "Without replacement", dataset.sampling.with_replacement ? "有放回" : "无放回")} · {words(locale, "Seed: ", "种子：")}{dataset.sampling.seed}</p>}

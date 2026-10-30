@@ -1,6 +1,8 @@
 import type { BenchmarkBatch, BenchmarkResult, BenchmarkSnapshot } from "./model";
 
 export type ResultScope = { mode: "latest" } | { mode: "batch"; batchId: string };
+/** The public website presents one current observation for every dataset/method. */
+export const currentResultScope: ResultScope = { mode: "latest" };
 export type SourcedResult = {
   result: BenchmarkResult;
   batch: BenchmarkBatch;

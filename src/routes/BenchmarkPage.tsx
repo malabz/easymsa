@@ -4,14 +4,14 @@ import { useSearchParams, Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { PageContainer } from "../components/layout/PageContainer";
 import { useLanguage } from "../lib/i18n/useLanguage";
-import { compatibleBatches, emptyFilters, metricKeys, type DatasetFilters, type MetricKey } from "../features/benchmark/model";
+import { emptyFilters, metricKeys, type DatasetFilters, type MetricKey } from "../features/benchmark/model";
 import { useBenchmark } from "../features/benchmark/useBenchmark";
 import { metricSpecs } from "../features/benchmark/metrics";
 import { BenchmarkSidebar } from "../features/benchmark/BenchmarkSidebar";
 import { BenchmarkMatrix } from "../features/benchmark/BenchmarkMatrix";
-import { BatchSelector, DownloadButtons, LoadState, sourceLabel, words } from "../features/benchmark/presentation";
-import { scopeFromParams } from "../features/benchmark/selection";
-import { displaySelection, changeScope, MethodFilter, SourceLegend, uniqueSources } from "../features/benchmark/view";
+import { DownloadButtons, LoadState, sourceLabel, words } from "../features/benchmark/presentation";
+import { currentResultScope } from "../features/benchmark/selection";
+import { displaySelection, MethodFilter, uniqueSources } from "../features/benchmark/view";
 import "../features/benchmark/benchmark.css";
 import "../features/benchmark/matrix.css";
 import "../features/benchmark/reading.css";
@@ -47,16 +47,13 @@ export function BenchmarkPage() {
     [...Object.keys(emptyFilters), "methods"].forEach(key => next.delete(key)); commit(next);
   };
   if (!data) return <PageContainer className="benchmark-page benchmark-explorer"><LoadState failed={failed} retry={retry} locale={locale}/></PageContainer>;
-  const scope = scopeFromParams(query);
-  const batches = compatibleBatches(data);
-  const batch = scope.mode === "batch" ? batches.find(b => b.id === scope.batchId) : undefined;
+  const scope = currentResultScope;
   const selection = displaySelection(data, scope, query);
   const {datasets, methods, availableMethods, filters, visibleRecords, records} = selection;
   const metricKey: MetricKey = metricKeys.includes(query.get("metric") as MetricKey) ? query.get("metric") as MetricKey : "wall_seconds";
   const results = visibleRecords.map(row => row.result);
   const count = (state: string) => results.filter(result => result.status === state).length;
   const memoryFailures = results.filter(result => result.status === "failed" && result.reason_code === "oom").length;
-  const sources = uniqueSources(visibleRecords);
   const allSources = uniqueSources(records);
   const active = new URLSearchParams(query); active.set("metric", metricKey);
   const returnTo = "/benchmark?" + active.toString();
@@ -68,7 +65,7 @@ export function BenchmarkPage() {
     <Link to="/about" className="benchmark-back"><ArrowLeft size={15} aria-hidden="true"/>{words(locale,"About EasyMSA","关于 EasyMSA")}</Link>
     <header className="benchmark-overview-header">
       <div><h1>Benchmark</h1><p className="benchmark-overview-deck">{datasets.length} {words(locale,"datasets","个数据集")} · {methods.length} {words(locale,"methods","种方法")}</p></div>
-      <div className="benchmark-overview-actions"><BatchSelector includeLatest batches={batches} value={scope.mode === "latest" ? "latest" : scope.batchId} onChange={value => commit(changeScope(queryRef.current,value))} locale={locale}/><DownloadButtons snapshot={data} batchId={batch?.id} resultScope={scope} datasetIds={datasets.map(d => d.id)} methodIds={methods.map(m => m.id)} locale={locale}/></div>
+      <div className="benchmark-overview-actions"><DownloadButtons snapshot={data} resultScope={scope} datasetIds={datasets.map(d => d.id)} methodIds={methods.map(m => m.id)} locale={locale}/></div>
     </header>
     <div className="benchmark-run-summary" aria-label={words(locale,"Evaluation coverage","评测覆盖")}>
       <p><span className="benchmark-run-complete">{words(locale,"Complete","完成")} <strong>{count("complete")}</strong> / {results.length}</span><span>{words(locale,"Timed out","超时")} <strong>{count("timeout")}</strong></span>{memoryFailures > 0 && <span>{words(locale,"Memory limit","内存超限")} <strong>{memoryFailures}</strong></span>}{count("failed") > memoryFailures && <span>{words(locale,"Other failures","其他失败")} <strong>{count("failed") - memoryFailures}</strong></span>}{count("partial") > 0 && <span>{words(locale,"Partial","部分完成")} <strong>{count("partial")}</strong></span>}{count("unsupported") + count("not_run") > 0 && <span>{words(locale,"Unsupported / not evaluated","不支持 / 待评测")} <strong>{count("unsupported") + count("not_run")}</strong></span>}</p>
@@ -91,11 +88,10 @@ export function BenchmarkPage() {
         </div></details>
         <button type="button" className="benchmark-clear" onClick={clear}>{words(locale,"Clear filters","清除筛选")}</button>
       </div>
-      <div className="benchmark-filter-bottom">{scope.mode === "batch" && <label className="benchmark-full-catalog"><input type="checkbox" checked={query.get("all") === "1"} onChange={e => update("all",e.target.checked ? "1" : "")}/>{words(locale,"Show all","显示全部")}</label>}</div>
       {invalidRange && <p className="benchmark-warning" role="status">{words(locale,"Minimum sequence count exceeds the maximum.","最少序列数不能大于最多序列数。")}</p>}
-      {methods.length ? <BenchmarkMatrix snapshot={filteredSnapshot} batch={batch} scope={scope} datasets={datasets} metricKey={metricKey} locale={locale} returnTo={returnTo}/> : <p role="status" className="benchmark-empty">{words(locale,"Select a method to compare its records.","选择方法以查看成绩。")}</p>}
+      {methods.length ? <BenchmarkMatrix snapshot={filteredSnapshot} scope={scope} datasets={datasets} metricKey={metricKey} locale={locale} returnTo={returnTo}/> : <p role="status" className="benchmark-empty">{words(locale,"Select a method to compare its records.","选择方法以查看成绩。")}</p>}
     </section>
-    <SourceLegend batches={sources} locale={locale} latest={scope.mode === "latest"}/>
+
     <ExperimentDetails snapshot={data} batches={allSources} locale={locale}/>
     </div>
   </PageContainer>;

@@ -2,11 +2,22 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { absentMetric, availableMetric, publishedSnapshot } from "./__tests__/fixtures";
 import { metricKeys, parseSnapshot, type BenchmarkMetric } from "./model";
-import { formatAxisTick, formatAxisTicks, formatMetricSummary, formatMetricValue, makeMetricAxis, metricSpecs, metricValue, rowHeat, selectMetricRows, selectSnapshot, toDisplayValue } from "./metrics";
+import { scoreAxisLabels, formatAxisTick, formatAxisTicks, formatMetricSummary, formatMetricValue, makeMetricAxis, metricSpecs, metricValue, rowHeat, selectMetricRows, selectSnapshot, toDisplayValue } from "./metrics";
 
 const metric = (value: number, fields: Partial<BenchmarkMetric> = {}): BenchmarkMetric => ({ ...availableMetric(value, 1, 1), ...fields });
 
 describe("shared benchmark values and display units", () => {
+  it("scales score labels with one readable unit, preserving close, negative and zero ticks", () => {
+    expect(scoreAxisLabels([150000000,230200000],"sp_score","zh")).toEqual({labels:["1.5","2.302"],divisor:1e8,unit:"亿"});
+    expect(scoreAxisLabels([150000000,230200000],"sp_score","en")).toEqual({labels:["150","230.2"],divisor:1e6,unit:"million"});
+    expect(scoreAxisLabels([-1e8,0,1e8],"sp_score","zh")).toMatchObject({labels:["-1","0","1"],divisor:1e8});
+    expect(scoreAxisLabels([0],"sp_score","zh")).toEqual({labels:["0"],divisor:1,unit:""});
+    expect(scoreAxisLabels([],"sp_score","zh")).toEqual({labels:[],divisor:1,unit:""});
+    expect(new Set(scoreAxisLabels([230200000,230210000,230220000],"sp_score","zh").labels).size).toBe(3);
+    expect(scoreAxisLabels([1e12,2e12],"sp_score","zh").unit).toBe("万亿");
+    expect(scoreAxisLabels([1e9,2e9],"sp_score","en").unit).toBe("billion");
+    expect(scoreAxisLabels([0,.5,1],"q","zh")).toEqual({labels:["0","0.5","1"],divisor:1,unit:""});
+  });
   it("retains zero, falls back to reported mean, and never turns a missing observation into zero", () => {
     expect(metricValue(metric(0))).toBe(0);
     expect(metricValue(metric(12.5, { value: null }))).toBe(12.5);
@@ -34,7 +45,7 @@ describe("shared benchmark values and display units", () => {
   it("keeps full reported precision and uses scientific notation only in compact large-score displays", () => {
     expect(formatMetricValue(0.12345678901234567, "q", "en")).toBe("0.12345678901234566");
     expect(formatMetricValue(824153212309, "sp_score", "en")).toBe("824,153,212,309");
-    expect(formatMetricValue(824153212309, "sp_score", "zh", true)).toBe("8.242E11");
+    expect(formatMetricValue(824153212309, "sp_score", "zh", true)).toBe("8241.5 亿");
     expect(formatMetricValue(0, "q", "en", true)).toBe("0");
     expect(formatMetricValue(0.000000003, "q", "en", true)).not.toBe("0");
   });

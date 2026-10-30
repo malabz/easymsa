@@ -72,7 +72,7 @@ describe("download controls", () => {
     fireEvent.click(screen.getByRole("button", {name:"Download CSV"}));
     compareCsvToJson(await text(blobs[1]), filtered);
     fireEvent.change(screen.getByLabelText("Download scope"), {target:{value:"batch"}});
-    expect(screen.getByRole("option", {name:"All latest records"})).toHaveProperty("selected", true);
+    expect(screen.getByRole("option", {name:"All results"})).toHaveProperty("selected", true);
     fireEvent.click(screen.getByRole("button", {name:"Download JSON"}));
     const full = parseSnapshot(JSON.parse(await text(blobs[2])));
     expect(full.catalog.datasets).toHaveLength(12);
