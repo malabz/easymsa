@@ -31,7 +31,7 @@ export function ExperimentDetails({snapshot, batches, dataset, locale}: {
     <section><h3>{words(locale,"Metrics","指标释义")}</h3><dl className="benchmark-metadata">
       <div><dt>{words(locale,"Time","时间")}</dt><dd>{words(locale,"Alignment wall time (s)","比对耗时（秒）")}</dd></div>
       <div><dt>{words(locale,"Memory","内存")}</dt><dd>{words(locale,"Peak RSS (MiB); downloads use KiB","峰值 RSS（MiB）；下载单位为 KiB")}</dd></div>
-      <div><dt>SP / Avg SP / Scaled SP</dt><dd>{words(locale,"Pairwise alignment scores","配对比对评分")}</dd></div>
+      <div><dt>{words(locale,"Normalized SP","归一化 SP")}</dt><dd>{words(locale,"Average SP per sequence pair per alignment column","每对序列、每个比对列的平均 SP 得分")}</dd></div>
       <div><dt>Q / TC</dt><dd>{words(locale,"Reference pair / column agreement (0–1)","与参考比对的配对／整列一致率（0–1）")}</dd></div>
     </dl></section>
   </details>;

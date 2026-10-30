@@ -31,7 +31,7 @@ describe("targeted repair batch scope", () => {
     expect(cell("mt100", "halign4")).toHaveAttribute("data-raw-value", "20");
     expect(cell("mt100", "mafft")).toHaveAttribute("data-batch-id", "test-baseline");
     expect(cell("mt100", "mafft")).toHaveAttribute("data-raw-value", "10");
-    expect(screen.getAllByTestId("matrix-cell").every(item => item.dataset.heat === "")).toBe(true);
+    expect(screen.getAllByTestId("matrix-cell").some(item => item.dataset.heat !== "")).toBe(true);
   });
 
   it("historical overview links now open the complete current view", async () => {
@@ -65,7 +65,7 @@ describe("targeted repair batch scope", () => {
     expect(screen.getAllByTestId("tradeoff-method")).toHaveLength(6);
     fireEvent.click(screen.getByRole("button",{name:"Values"}));
     const cells=screen.getByTestId("precise-results").querySelectorAll("td[data-metric]");
-    expect(cells).toHaveLength(42);
+    expect(cells).toHaveLength(30);
     expect([...cells].some(cell=>cell.getAttribute("data-raw-value")!=="")).toBe(true);
   });
   it("keeps both formats scoped to selected pairs, including an empty dataset scope", () => {

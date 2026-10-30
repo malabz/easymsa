@@ -6,7 +6,7 @@ import { PageContainer } from "../components/layout/PageContainer";
 import { useLanguage } from "../lib/i18n/useLanguage";
 import { emptyFilters, metricKeys, type DatasetFilters, type MetricKey } from "../features/benchmark/model";
 import { useBenchmark } from "../features/benchmark/useBenchmark";
-import { metricSpecs } from "../features/benchmark/metrics";
+import { displayMetricKey, displayMetricKeys, metricSpecs } from "../features/benchmark/metrics";
 import { BenchmarkSidebar } from "../features/benchmark/BenchmarkSidebar";
 import { BenchmarkMatrix } from "../features/benchmark/BenchmarkMatrix";
 import { DownloadButtons, LoadState, sourceLabel, words } from "../features/benchmark/presentation";
@@ -17,7 +17,7 @@ import "../features/benchmark/matrix.css";
 import "../features/benchmark/reading.css";
 import "../features/benchmark/studio.css";
 
-const mainMetrics: MetricKey[] = ["wall_seconds", "max_rss_kib", "sp_score", "q", "tc"];
+const mainMetrics = displayMetricKeys;
 export function BenchmarkPage() {
   const { locale } = useLanguage();
   const { data, failed, retry } = useBenchmark();
@@ -50,7 +50,7 @@ export function BenchmarkPage() {
   const scope = currentResultScope;
   const selection = displaySelection(data, scope, query);
   const {datasets, methods, availableMethods, filters, visibleRecords, records} = selection;
-  const metricKey: MetricKey = metricKeys.includes(query.get("metric") as MetricKey) ? query.get("metric") as MetricKey : "wall_seconds";
+  const metricKey: MetricKey = metricKeys.includes(query.get("metric") as MetricKey) ? displayMetricKey(query.get("metric") as MetricKey) : "wall_seconds";
   const results = visibleRecords.map(row => row.result);
   const count = (state: string) => results.filter(result => result.status === state).length;
   const memoryFailures = results.filter(result => result.status === "failed" && result.reason_code === "oom").length;
@@ -75,7 +75,7 @@ export function BenchmarkPage() {
       <h2 id="benchmark-matrix-heading" className="sr-only">{words(locale,"Compare all datasets","比较所有数据集")}</h2>
       <div className="benchmark-metric-navigation" role="group" aria-label={words(locale,"Comparison metric","比较指标")}>
         <div className="benchmark-main-metrics">{mainMetrics.map(key => <button type="button" key={key} data-testid={`metric-${key}`} aria-pressed={metricKey === key} className={metricKey === key ? "is-active" : ""} onClick={() => update("metric",key)}>{metricSpecs[key][locale]} <span aria-hidden="true">{metricSpecs[key].direction === "lower" ? "↓" : "↑"}</span></button>)}</div>
-        <label className="benchmark-more-metrics">{words(locale,"More metrics","更多指标")}<select aria-label={words(locale,"More metrics","更多指标")} value={["avg_sp","scaled_sp"].includes(metricKey) ? metricKey : ""} onChange={e => update("metric",e.target.value)}><option value="" disabled>Avg / Scaled SP</option><option value="avg_sp">Avg SP ↑</option><option value="scaled_sp">Scaled SP ↑</option></select></label>
+
       </div>
       <div className="benchmark-compact-filters">
         <label className="benchmark-field">{words(locale,"Sequence type","序列类型")}<select value={filters.type} onChange={e => field("type",e.target.value)}><option value="all">{words(locale,"All types","全部类型")}</option><option value="dna">DNA</option><option value="rna">RNA</option></select></label>

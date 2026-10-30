@@ -4,7 +4,20 @@ import { readFileSync } from "node:fs";
 import type { BenchmarkBatch, BenchmarkMetric, BenchmarkSnapshot, MetricKey } from "../../src/features/benchmark/model";
 
 const keys: MetricKey[] = ["wall_seconds", "max_rss_kib", "sp_score", "avg_sp", "scaled_sp", "q", "tc"];
-const chartKeys: MetricKey[] = ["wall_seconds", "max_rss_kib", "sp_score", "q", "tc", "avg_sp", "scaled_sp"];
+const chartKeys: MetricKey[] = ["wall_seconds", "max_rss_kib", "scaled_sp", "q", "tc"];
+export function expectedEmphasis(values:(number|null)[],key:MetricKey) {
+  const valid=values.filter((value):value is number=>value!==null);
+  const lower=["wall_seconds","max_rss_kib"].includes(key);
+  const logarithmic=lower && valid.every(value=>value>0);
+  const transform=(value:number)=>logarithmic ? Math.log10(value) : value;
+  const min=Math.min(...valid.map(transform)),max=Math.max(...valid.map(transform));
+  const best=lower ? Math.min(...valid) : Math.max(...valid);
+  return values.map(value=>{
+    if(value===null || valid.length<2 || min===max) return {heat:"",tone:"neutral",best:"false"};
+    const strength=lower ? 1-(transform(value)-min)/(max-min) : (transform(value)-min)/(max-min);
+    return {heat:String(strength),tone:String(Math.min(4,Math.floor(strength*4))),best:String(value===best)};
+  });
+}
 const states: Record<string, string> = {complete:"Complete", partial:"Partial", failed:"Failed", timeout:"Timed out", unsupported:"Unsupported", not_run:"Not evaluated", unavailable:"Unavailable", not_applicable:"Not applicable"};
 const reasons: Record<string, string> = {no_reference:"No reference alignment", reference_invalid:"Reference requires review", invalid_output:"Invalid output", timeout:"Timed out", oom:"Memory limit", unsupported:"Unsupported", not_run:"Not evaluated", execution_failed:"Failed", scoring_failed:"Scoring failed", cancelled:"Cancelled", incomplete:"Incomplete repetitions", platform_error:"Evaluation unavailable"};
 const statesZh: Record<string, string> = {complete:"完整", partial:"部分完成", failed:"失败", timeout:"超时", unsupported:"不支持", not_run:"待评测", unavailable:"无可用成绩", not_applicable:"不适用"};
@@ -88,14 +101,20 @@ export async function assertDatasetConsistency(page: Page, snapshot: BenchmarkSn
   await expect(table).toBeVisible();
   const observed = await table.locator("td[data-metric]").evaluateAll(cells => cells.map(cell => ({
     method:cell.getAttribute("data-method"), key:cell.getAttribute("data-metric"), raw:cell.getAttribute("data-raw-value"),
-    batch:cell.getAttribute("data-batch-id"), display:cell.querySelector("div > span")?.textContent, text:cell.textContent
+    batch:cell.getAttribute("data-batch-id"), display:cell.querySelector("div > span")?.textContent, text:cell.textContent,
+    heat:cell.getAttribute("data-heat"),tone:cell.getAttribute("data-tone"),best:cell.getAttribute("data-best")
   })));
-  expect(observed).toHaveLength(snapshot.methods.length * 7);
-  for (const method of snapshot.methods) for (const key of keys) {
+  expect(observed).toHaveLength(snapshot.methods.length * 5);
+  for (const method of snapshot.methods) for (const key of chartKeys) {
     const record = records.find(({result}) => result.dataset_id === caseId && result.method_id === method.id);
     const metric = record?.result.metrics[key];
     const cell = observed.find(c => c.method === method.id && c.key === key)!;
     const context = `${batchId}/${caseId}/${method.id}/${key}`;
+    const emphasis=expectedEmphasis(snapshot.methods.map(method=>{
+      const metric=records.find(row=>row.result.dataset_id===caseId&&row.result.method_id===method.id)?.result.metrics[key];
+      return metric ? numeric(metric) : null;
+    }),key)[snapshot.methods.indexOf(method)];
+    expect({heat:cell.heat,tone:cell.tone,best:cell.best},context).toEqual(emphasis);
     if (!metric) {
       expect(cell.raw, context).toBe("");
       expect(cell.text, context).toBe(locale === "en" ? "Not tested" : "未测试");
@@ -122,17 +141,6 @@ export async function assertDatasetConsistency(page: Page, snapshot: BenchmarkSn
     }))
   })));
   const charts = await readCharts();
-  const mobileMetrics = page.getByRole("group", {name:locale === "en" ? "Chart metric" : "图表指标",exact:true});
-  if ((page.viewportSize()?.width ?? 1280) < 768) {
-    await expect(mobileMetrics).toBeVisible();
-    await mobileMetrics.getByRole("button", {name:locale === "en" ? "SP score ↑" : "SP 分数 ↑",exact:true}).click();
-  }
-  for (const key of ["avg_sp", "scaled_sp"] as const) {
-    await page.getByRole("combobox", {name:locale === "en" ? "SP measure" : "SP 类型", exact:true}).selectOption(key);
-    await expect(page.locator(`figure[data-metric="${key}"]`)).toHaveCount(1);
-    charts.push((await readCharts()).find(chart => chart.key === key)!);
-  }
-  await page.getByRole("combobox", {name:locale === "en" ? "SP measure" : "SP 类型", exact:true}).selectOption("sp_score");
   for (const key of chartKeys) {
     const chart = charts.find(c => c.key === key)!;
     expect(chart, `${caseId}/${key}`).toBeDefined();
@@ -176,6 +184,17 @@ export async function assertScatterConsistency(page: Page, snapshot: BenchmarkSn
   }])));
   const x = axes.x.key as MetricKey, y = axes.y.key as MetricKey;
   const records = expectedRecords(snapshot,batchId).filter(({result}) => result.dataset_id===caseId);
+  for(const key of [x,y]) {
+    const axis=key===x ? "x" : "y";
+    const rows=await page.getByTestId(`tradeoff-method-${axis}`).evaluateAll(nodes=>nodes.map(node=>({
+      method:node.closest("button")?.getAttribute("data-method"),heat:node.getAttribute("data-heat"),tone:node.getAttribute("data-tone"),best:node.getAttribute("data-best")
+    })));
+    const emphasis=expectedEmphasis(snapshot.methods.map(method=>{
+      const metric=records.find(row=>row.result.method_id===method.id)?.result.metrics[key];
+      return metric ? numeric(metric) : null;
+    }),key);
+    rows.forEach((row,index)=>expect({heat:row.heat,tone:row.tone,best:row.best},`${caseId}/${row.method}/${key}`).toEqual(emphasis[index]));
+  }
   const eligible = records.filter(({result}) => numeric(result.metrics[x])!==null && numeric(result.metrics[y])!==null);
   const points = await page.getByTestId("tradeoff-point").evaluateAll(nodes=>nodes.map(node=>({
     method:node.getAttribute("data-method"), batch:node.getAttribute("data-batch-id"),

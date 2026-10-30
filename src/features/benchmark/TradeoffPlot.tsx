@@ -1,15 +1,16 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { ArrowUpLeft } from "lucide-react";
 import type { BenchmarkBatch, BenchmarkDataset, BenchmarkMetric, BenchmarkSnapshot, MetricKey } from "./model";
-import { formatAxisTicks, scoreAxisLabels, formatMetricSummary, makeMetricAxis, metricSpecs, selectMetricRows, type MetricAxis } from "./metrics";
+import { displayMetricKey, formatAxisTicks, scoreAxisLabels, formatMetricSummary, makeMetricAxis, metricSpecs, metricEmphasis, selectMetricRows, type MetricAxis } from "./metrics";
 import { type ResultScope } from "./selection";
-import { reasonLabel, stateLabel, words, type Locale } from "./presentation";
+import { ComparisonLegend, reasonLabel, stateLabel, words, type Locale } from "./presentation";
 import "./tradeoff.css";
 
 type Props = {
   snapshot: BenchmarkSnapshot; batch?: BenchmarkBatch; scope: ResultScope; dataset: BenchmarkDataset; locale: Locale;
   params: URLSearchParams; onParamsChange: (patch: Record<string, string>) => void;
 };
-const qualityKeys: MetricKey[] = ["q", "tc", "sp_score", "avg_sp", "scaled_sp"];
+const qualityKeys: MetricKey[] = ["q", "tc", "scaled_sp"];
 const bounded = (n: number) => Math.min(100, Math.max(0, n));
 type Label = { id: string; x: number; y: number; width: number };
 export const tradeoffPlotHeight = (count:number, fontSize:number) => Math.max(420, Math.ceil(count * (fontSize * 1.5 + 16) + 24));
@@ -89,13 +90,15 @@ function interval(metric?: BenchmarkMetric): [number, number] | null {
 
 export function TradeoffPlot({ snapshot, batch, scope, dataset, locale, params, onParamsChange }: Props) {
   const xKey: MetricKey = params.get("x") === "max_rss_kib" ? "max_rss_kib" : "wall_seconds";
-  const requestedY = params.get("y") as MetricKey;
+  const requestedY = displayMetricKey(params.get("y") as MetricKey);
   const hasQ = dataset.reference && selectMetricRows(snapshot,batch,dataset.id,"q",scope).some(row => row.raw !== null);
-  const yKey: MetricKey = qualityKeys.includes(requestedY) && (dataset.reference || !["q", "tc"].includes(requestedY)) ? requestedY : hasQ ? "q" : "sp_score";
+  const yKey: MetricKey = qualityKeys.includes(requestedY) && (dataset.reference || !["q", "tc"].includes(requestedY)) ? requestedY : hasQ ? "q" : "scaled_sp";
   const isQuality = yKey === "q" || yKey === "tc";
   const xRows = selectMetricRows(snapshot, batch, dataset.id, xKey, scope);
   const yRows = selectMetricRows(snapshot, batch, dataset.id, yKey, scope);
   const rows = xRows.map((x, index) => ({...x, x:x.raw, y:yRows[index].raw, yMetric:yRows[index].metric}));
+  const xEmphasis = metricEmphasis(xKey,rows.map(row => row.metric));
+  const yEmphasis = metricEmphasis(yKey,rows.map(row => row.yMetric));
   const valid = rows.filter(row => row.x !== null && row.y !== null);
   const xAxis = makeMetricAxis(xKey, valid.map(row => row.metric), {linear:params.get("scale") === "linear"});
   const yAxis = makeMetricAxis(yKey, valid.map(row => row.yMetric), {zoom:isQuality && params.get("zoom") === "1"});
@@ -145,6 +148,7 @@ export function TradeoffPlot({ snapshot, batch, scope, dataset, locale, params, 
       <div className="tradeoff-chart-column">
       <figure className="tradeoff-figure" data-testid="tradeoff-chart" data-x-key={xKey} data-y-key={yKey} data-x-min={xAxis.min} data-x-max={xAxis.max} data-x-scale={xAxis.scale} data-y-min={yAxis.min} data-y-max={yAxis.max} data-y-scale={yAxis.scale} data-y-divisor={yPresentation.divisor} aria-label={axes}>
         <figcaption><span className="tradeoff-axis-summary">{metricSpecs[yKey][locale]}{yPresentation.unit && <span className="benchmark-score-unit"> ({yPresentation.unit})</span>} ↑ <span>{rangeLabel}</span></span>{isQuality && <label className="tradeoff-zoom"><input type="checkbox" aria-label={words(locale,"Zoom Q / TC differences","放大 Q / TC 差异")} checked={params.get("zoom") === "1"} onChange={e => onParamsChange({zoom:e.target.checked ? "1" : ""})} /><span>{words(locale,"Zoom differences","放大差异")}</span></label>}</figcaption>
+        {valid.length > 0 && <p className="tradeoff-direction" data-testid="tradeoff-direction"><ArrowUpLeft size={20} aria-hidden="true"/><strong>{words(locale,"Upper left is better","左上更优")}</strong><span>· {words(locale,xKey === "max_rss_kib" ? "Less memory" : "Faster",xKey === "max_rss_kib" ? "更省内存" : "更快")} · {words(locale,`Higher ${metricSpecs[yKey].en}`,`${metricSpecs[yKey].zh} 更高`)}</span></p>}
         <div className="tradeoff-plot-area" style={{paddingLeft:yGutter}}>
           <div ref={plane} className="tradeoff-plane" style={{height:plotHeight}}>
             {valid.length > 0 && <svg className="tradeoff-grid" viewBox={`0 0 ${width} ${plotHeight}`} preserveAspectRatio="none" aria-hidden="true">
@@ -179,11 +183,12 @@ export function TradeoffPlot({ snapshot, batch, scope, dataset, locale, params, 
       </div>
       </div>
       <div className="tradeoff-methods" aria-label={words(locale, "Methods and result states", "方法与结果状态")}>
+        <ComparisonLegend locale={locale}/>
         <div className="tradeoff-method-heading" aria-hidden="true"><span>{words(locale,"Method","方法")}</span><span>{metricSpecs[xKey][locale]} ({metricSpecs[xKey].unit})</span><span>{metricSpecs[yKey][locale]}</span></div>
-        {rows.map(row => <button key={row.method.id} type="button" data-testid="tradeoff-method" data-method={row.method.id} data-batch-id={row.batch?.id ?? ""} data-status={row.outsideBatch ? "outside_batch" : row.result?.status ?? "not_run"} className={(active === row.method.id ? "is-active " : "") + (row.x === null || row.y === null ? "is-unavailable" : "")} aria-label={`${row.method.name}: ${metricSpecs[xKey][locale]} ${row.x === null ? status(row) : `${formatMetricSummary(row.metric,xKey,locale)} ${metricSpecs[xKey].unit}`}; ${metricSpecs[yKey][locale]} ${row.y === null ? status(row) : formatMetricSummary(row.yMetric,yKey,locale)}; `} aria-pressed={active === row.method.id} aria-describedby={showDetails && active === row.method.id ? "tradeoff-description" : undefined} onClick={event => { interaction.current = event.detail === 0 ? "focus" : "pointer"; onParamsChange({method:row.method.id}); choose(row.method.id); }} onFocus={() => { interaction.current = "focus"; choose(row.method.id); }}>
+        {rows.map((row,index) => <button key={row.method.id} type="button" data-testid="tradeoff-method" data-method={row.method.id} data-batch-id={row.batch?.id ?? ""} data-status={row.outsideBatch ? "outside_batch" : row.result?.status ?? "not_run"} className={(active === row.method.id ? "is-active " : "") + (row.x === null || row.y === null ? "is-unavailable" : "")} aria-label={`${row.method.name}: ${metricSpecs[xKey][locale]} ${row.x === null ? status(row) : `${formatMetricSummary(row.metric,xKey,locale)} ${metricSpecs[xKey].unit}`}; ${metricSpecs[yKey][locale]} ${row.y === null ? status(row) : formatMetricSummary(row.yMetric,yKey,locale)}; `} aria-pressed={active === row.method.id} aria-describedby={showDetails && active === row.method.id ? "tradeoff-description" : undefined} onClick={event => { interaction.current = event.detail === 0 ? "focus" : "pointer"; onParamsChange({method:row.method.id}); choose(row.method.id); }} onFocus={() => { interaction.current = "focus"; choose(row.method.id); }}>
           <span className="tradeoff-method-name">{row.batch && <i className="tradeoff-marker circle" aria-hidden="true" />}<span><strong>{row.method.name}</strong></span></span>
-          <span className={"tradeoff-method-value " + (row.x === null ? "is-missing" : "")} data-testid="tradeoff-method-x" data-raw={row.x ?? ""}>{row.x === null ? status(row) : formatMetricSummary(row.metric,xKey,locale,true)}</span>
-          <span className={"tradeoff-method-value " + (row.y === null ? "is-missing" : "")} data-testid="tradeoff-method-y" data-raw={row.y ?? ""}>{row.y === null ? row.x === null ? "—" : status(row) : formatMetricSummary(row.yMetric,yKey,locale,true)}</span>
+          <span className={"benchmark-emphasis tradeoff-method-value " + (row.x === null ? "is-missing" : "")} data-tone={xEmphasis[index].tone} data-best={xEmphasis[index].best} data-heat={xEmphasis[index].strength ?? ""} data-testid="tradeoff-method-x" data-raw={row.x ?? ""}>{row.x === null ? status(row) : formatMetricSummary(row.metric,xKey,locale,true)}</span>
+          <span className={"benchmark-emphasis tradeoff-method-value " + (row.y === null ? "is-missing" : "")} data-tone={yEmphasis[index].tone} data-best={yEmphasis[index].best} data-heat={yEmphasis[index].strength ?? ""} data-testid="tradeoff-method-y" data-raw={row.y ?? ""}>{row.y === null ? row.x === null ? "—" : status(row) : formatMetricSummary(row.yMetric,yKey,locale,true)}</span>
         </button>)}
       </div>
     </div>

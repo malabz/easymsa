@@ -34,6 +34,40 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 describe("Benchmark pages", () => {
+  it.each(["sp_score","avg_sp","scaled_sp"])("shows reported normalized SP for the %s legacy route",async key=>{
+    const snapshot=publishedSnapshot(),batch=snapshot.batches[1];
+    const first=batch.results.find(result=>result.method_id==="clustalo")!;
+    first.metrics.sp_score=availableMetric(1000000);
+    first.metrics.scaled_sp=availableMetric(.8);
+    const other={...structuredClone(first),method_id:"mafft" as const};
+    other.metrics.sp_score=availableMetric(999999999);
+    other.metrics.scaled_sp=availableMetric(.4);
+    batch.results=batch.results.map(result=>result.method_id==="mafft"?other:result);
+    const before=JSON.stringify(snapshot);
+    mount(snapshot,`/benchmark/datasets/case_ref?y=${key}&metric=${key}&chart=table`);
+    await screen.findByTestId("dataset-title");
+    const cells=screen.getByTestId("precise-results").querySelectorAll("td[data-metric]");
+    expect(cells).toHaveLength(30);
+    expect(screen.getByTestId("precise-results").querySelector('[data-metric="sp_score"],[data-metric="avg_sp"]')).toBeNull();
+    const normalized=screen.getByTestId("precise-results").querySelector('[data-method="clustalo"][data-metric="scaled_sp"]')!;
+    expect(normalized).toHaveAttribute("data-raw-value","0.8");
+    expect(normalized).toHaveAttribute("data-best","true");
+    expect(screen.getByTestId("tradeoff-chart")).toHaveAttribute("data-y-key","scaled_sp");
+    expect(JSON.stringify(snapshot)).toBe(before);
+    expect(screen.queryByLabelText("SP measure")).not.toBeInTheDocument();
+  });
+
+  it("never substitutes a large raw SP when normalized scoring is unavailable",async()=>{
+    const snapshot=publishedSnapshot(),batch=snapshot.batches[1];
+    for(const result of batch.results){
+      result.metrics.scaled_sp={...result.metrics.scaled_sp,status:"unavailable",valid_count:0,value:null,mean:null,min:null,max:null,sd:null,display:null,reason_codes:["scoring_failed"]};
+      if(result.status==="complete") result.status="partial";
+    }
+    mount(snapshot,"/benchmark/datasets/case_ref?y=sp_score");
+    await screen.findByTestId("dataset-title");
+    expect(screen.getByTestId("tradeoff-chart")).toHaveAttribute("data-y-key","scaled_sp");
+    expect(screen.queryAllByTestId("tradeoff-point")).toHaveLength(0);
+  });
   it("keeps filter panels exclusive without losing active filters and closes them with Escape", async () => {
     mount(publishedSnapshot());
     await screen.findByTestId("benchmark-matrix");
@@ -70,7 +104,7 @@ describe("Benchmark pages", () => {
     const coverage = screen.getByLabelText("Evaluation coverage");
     expect(coverage).toHaveTextContent(/Complete 127 \/ 156.*Timed out 14.*Memory limit 15/);
     expect(screen.getAllByTestId("matrix-cell")).toHaveLength(156);
-    expect(screen.getAllByTestId("matrix-cell").every(item => item.dataset.heat === "")).toBe(true);
+    expect(screen.getAllByTestId("matrix-cell").some(item => item.dataset.heat !== "")).toBe(true);
     fireEvent.change(screen.getByLabelText("Sequence type"), {target:{value:"rna"}});
     expect(coverage).toHaveTextContent(/Complete 30 \/ 36.*Timed out 6/);
     expect(screen.getAllByTestId("matrix-cell")).toHaveLength(36);
@@ -200,20 +234,20 @@ describe("Benchmark pages", () => {
 
   it("renders distinct SP axis labels for the narrow real repair-score range", async () => {
     const snapshot = publishedSnapshot();
-    const values = [824154130945, 824127788009];
+    const values = [.993242,.993241];
     const partial = snapshot.batches[1].results.find(result => result.method_id === "tcoffee")!;
     snapshot.batches[1].results = snapshot.batches[1].results.map(result => result.method_id === "fmalign2" ? { ...partial, method_id: "fmalign2" } : result);
     snapshot.batches[1].results.filter(result => ["clustalo", "fmalign2"].includes(result.method_id)).forEach((result, index) => {
-      result.metrics.sp_score = availableMetric(values[index], result.valid_repeats);
+      result.metrics.scaled_sp = availableMetric(values[index], result.valid_repeats);
     });
     mount(snapshot, "/benchmark/datasets/case_ref?chart=metrics");
     await screen.findByTestId("dataset-title");
-    const figure = screen.getByRole("figure", { name: "SP score" });
+    const figure = screen.getByRole("figure", { name: "Normalized SP" });
     const labels = [...figure.querySelectorAll(".benchmark-dot-axis span")].map(label => label.textContent);
     expect(labels).toHaveLength(3);
     expect(new Set(labels).size).toBe(3);
-    expect(point("clustalo", "sp_score")).toHaveAttribute("data-raw-value", String(values[0]));
-    expect(point("fmalign2", "sp_score")).toHaveAttribute("data-raw-value", String(values[1]));
+    expect(point("clustalo", "scaled_sp")).toHaveAttribute("data-raw-value", String(values[0]));
+    expect(point("fmalign2", "scaled_sp")).toHaveAttribute("data-raw-value", String(values[1]));
   });
 
   it("uses current versions and values even through a historical link", async () => {
@@ -238,8 +272,8 @@ describe("Benchmark pages", () => {
     const q = screen.getByRole("figure", {name:"Q"}); expect(q).toHaveAttribute("data-domain-min", "0"); expect(q).toHaveAttribute("data-domain-max", "1");
     fireEvent.click(screen.getByRole("checkbox", {name:"Zoom Q / TC differences"})); expect(Number(q.getAttribute("data-domain-min"))).toBeGreaterThan(0);
     expect(point("clustalo", "q")).toHaveAttribute("data-raw-value", "0.8");
-    fireEvent.change(screen.getByLabelText("SP measure"), {target:{value:"scaled_sp"}});
-    expect(screen.getByRole("figure", {name:"Scaled SP"})).toBeInTheDocument(); expect(point("clustalo", "scaled_sp")).toHaveAttribute("data-raw-value", "20");
+    expect(screen.queryByLabelText("SP measure")).not.toBeInTheDocument();
+    expect(screen.getByRole("figure", {name:"Normalized SP"})).toBeInTheDocument(); expect(point("clustalo", "scaled_sp")).toHaveAttribute("data-raw-value", "20");
   });
 
   it("shows an accessible not-found state", async () => {

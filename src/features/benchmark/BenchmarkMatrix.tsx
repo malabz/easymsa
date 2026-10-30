@@ -4,8 +4,8 @@ import { createPortal } from "react-dom";
 import { ArrowUpRight, CircleAlert, Clock3, Minus } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { BenchmarkBatch, BenchmarkDataset, BenchmarkSnapshot, MetricKey } from "./model";
-import { formatMetricSummary, formatMetricValue, metricSpecs, rowHeat, selectMetricRows } from "./metrics";
-import { reasonLabel, stateLabel, words, type Locale } from "./presentation";
+import { formatMetricSummary, formatMetricValue, metricSpecs, metricEmphasis, selectMetricRows } from "./metrics";
+import { ComparisonLegend, reasonLabel, stateLabel, words, type Locale } from "./presentation";
 import "./matrix.css";
 import { type ResultScope } from "./selection";
 
@@ -89,12 +89,7 @@ export function BenchmarkMatrix({ snapshot, batch, datasets, metricKey, locale, 
     return "/benchmark/datasets/" + dataset + "?" + query.toString();
   };
   return <>
-    <div className="benchmark-matrix-key" id="benchmark-matrix-guide">
-      {scope?.mode === "latest" ? null : <>
-      <span className="benchmark-heat-swatch" aria-hidden="true"><i /><i /><i /><i /><i /></span>
-      <span>{words(locale, "Darker = better within each row", "同一行内，深色更优")}</span>
-      </>}
-    </div>
+    <ComparisonLegend locale={locale} id="benchmark-matrix-guide" className="benchmark-matrix-key"/>
     <div className="benchmark-matrix-scroll" ref={region} role="region" tabIndex={0} aria-label={words(locale, "Scrollable results matrix", "可滚动的成绩矩阵")} aria-describedby="benchmark-matrix-guide">
       <table className="benchmark-matrix" style={{minWidth:`calc(12.25rem + ${snapshot.methods.length} * var(--benchmark-method-width, 8rem))`}} data-testid="benchmark-matrix" data-metric={metricKey}>
         <caption className="sr-only">{words(locale, "Dataset by method results: ", "数据集与方法成绩：")}{spec[locale]}{spec.unit ? ` (${spec.unit})` : ""}</caption>
@@ -103,7 +98,7 @@ export function BenchmarkMatrix({ snapshot, batch, datasets, metricKey, locale, 
           const group = datasetGroup(dataset);
           const startGroup = index === 0 || datasetGroup(ordered[index - 1]) !== group;
           const rows = selectMetricRows(snapshot, batch, dataset.id, metricKey, scope);
-          const heat = scope?.mode === "latest" ? rows.map(() => null) : rowHeat(metricKey, rows.map(row => row.metric));
+          const emphasis = metricEmphasis(metricKey, rows.map(row => row.metric));
           return <Fragment key={dataset.id}>
             {startGroup && <tr className="benchmark-matrix-group"><th colSpan={snapshot.methods.length + 1} scope="rowgroup"><span>{group === 3 ? datasetFamily(dataset,locale) : words(locale, ...groupNames[group] as [string, string])}</span></th></tr>}
             <tr data-dataset-id={dataset.id}>
@@ -116,8 +111,7 @@ export function BenchmarkMatrix({ snapshot, batch, datasets, metricKey, locale, 
                 const available = row.raw !== null;
                 const value = available ? formatMetricValue(row.raw!, metricKey, locale, true) : row.outsideBatch ? stateLabel("outside_batch", locale) : shortReason(reason, locale);
                 const id = `${dataset.id}-${row.method.id}-${metricKey}`;
-                const strength = heat[mi];
-                const tone = strength === null ? "neutral" : String(Math.min(4, Math.floor(strength * 4)));
+                const {strength,tone,best} = emphasis[mi];
                 const state = row.outsideBatch ? stateLabel("outside_batch", locale) : stateLabel(row.result?.status ?? "not_run", locale) + (reason ? " · " + reasonLabel(reason, locale) : "");
                 const show = (element: HTMLAnchorElement) => {
                   keepTooltip();
@@ -130,7 +124,8 @@ export function BenchmarkMatrix({ snapshot, batch, datasets, metricKey, locale, 
                     state, coverage: row.metric?.planned_count === 1 && row.metric.valid_count === 1 ? "" : row.outsideBatch ? "" : `${row.metric?.valid_count ?? 0}/${row.metric?.planned_count ?? row.result?.planned_repeats ?? batch?.repeats ?? "—"} ${words(locale, "valid", "有效")}`,
                     version: row.spec?.version ?? (batch ? stateLabel("outside_batch", locale) : words(locale, "Version pending", "版本待确认"))});
                 };
-                return <td key={row.method.id} className={`benchmark-heat-${tone}`}><Link to={detailHref(dataset.id, row.method.id)} onClick={savePosition} className={available ? "benchmark-matrix-cell" : "benchmark-matrix-cell is-unavailable"}
+                return <td key={row.method.id}><Link to={detailHref(dataset.id, row.method.id)} onClick={savePosition} className={`benchmark-emphasis benchmark-matrix-cell${available ? "" : " is-unavailable"}`}
+                  data-tone={tone} data-best={best}
                   data-testid="matrix-cell" data-batch-id={row.batch?.id ?? ""} data-dataset-id={dataset.id} data-method-id={row.method.id} data-metric={metricKey} data-raw-value={row.raw ?? ""} data-display-value={row.display ?? ""} data-state={row.outsideBatch ? "outside_batch" : row.metric?.status ?? "not_run"} data-heat={strength ?? ""}
                   aria-label={`${datasetName(dataset,locale)} · ${row.method.name} · ${spec[locale]}: ${value}${available && spec.unit ? " " + spec.unit : ""}`}
                   aria-describedby={tooltip?.id === id ? "benchmark-cell-tooltip" : undefined}

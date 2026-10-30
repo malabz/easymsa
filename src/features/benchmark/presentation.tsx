@@ -1,4 +1,5 @@
 import { Download } from "lucide-react";
+import "./emphasis.css";
 import { useState } from "react";
 import { metricValue, metricSpecs, formatMetricSummary, selectSnapshot } from "./metrics";
 export { metricValue } from "./metrics";
@@ -8,6 +9,12 @@ import { batchLabel, selectViewSnapshot, type ResultScope } from "./selection";
 
 export type Locale = "en" | "zh";
 export const words = (locale: Locale, en: string, zh: string) => locale === "zh" ? zh : en;
+export function ComparisonLegend({locale,id,className=""}: {locale:Locale;id?:string;className?:string}) {
+  return <div id={id} className={`benchmark-comparison-key ${className}`} data-testid="comparison-legend">
+    <span className="benchmark-comparison-swatches" aria-hidden="true">{[0,1,2,3,4].map(tone => <i key={tone} className="benchmark-emphasis" data-tone={tone}/>)}</span>
+    <span>{words(locale,"Within each dataset, darker means better","同一数据集内，颜色越深表现越好")}</span>
+  </div>;
+}
 /** Export labels retain the public report units; visual units live in metricSpecs. */
 export const metricLabels = Object.fromEntries(metricKeys.map(key => [key, {
   en: metricSpecs[key].en, zh: metricSpecs[key].zh, unit: metricSpecs[key].rawUnit,

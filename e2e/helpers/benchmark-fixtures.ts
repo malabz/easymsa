@@ -26,7 +26,7 @@ export function publicBenchmarkFixture(): BenchmarkSnapshot {
       const reason = method.id === "fmalign2" ? "scoring_failed" : status === "timeout" ? "timeout" : status === "failed" ? "execution_failed" : status === "unsupported" ? "unsupported" : status === "not_run" ? "not_run" : status === "partial" ? "incomplete" : null;
       const metrics = Object.fromEntries(metricKeys.map(key => {
         const na = !d.reference && (key === "q" || key === "tc");
-        const scorerFailed = method.id === "fmalign2" && key === "sp_score";
+        const scorerFailed = method.id === "fmalign2" && ["sp_score","avg_sp","scaled_sp"].includes(key);
         let metric: BenchmarkMetric;
         if (na || !valid || scorerFailed) metric = {
           status: na ? "not_applicable" : "unavailable", valid_count: 0, planned_count: 3,

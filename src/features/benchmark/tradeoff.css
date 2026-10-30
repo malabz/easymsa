@@ -59,7 +59,7 @@
 .tradeoff-method-value { min-width:0; text-align:right; font-size:.8125rem; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; line-height:1.45; }
 .tradeoff-method-value.is-missing { color:#9c6500; font-size:.75rem; }
 .tradeoff-method-value:not(.is-missing) { white-space:nowrap; overflow-wrap:normal; }
-.tradeoff-methods button.is-active,.tradeoff-methods button:hover { background:var(--bench-soft); }
+.tradeoff-methods button.is-active,.tradeoff-methods button:hover { box-shadow:inset 0 0 0 1px var(--bench-border); }
 .tradeoff-methods button:focus-visible { outline:2px solid var(--bench-accent); outline-offset:-2px; }
 .tradeoff-methods button.is-unavailable .tradeoff-marker { background:#c78b22; }
 .tradeoff-source-footer { display:flex; align-items:center; flex-wrap:wrap; gap:.5rem 1.5rem; padding:.85rem 0; border-top:1px solid var(--bench-rule); }
@@ -77,11 +77,11 @@
 .benchmark-studio .tradeoff-point:hover,.benchmark-studio .tradeoff-point:focus-visible,.benchmark-studio .tradeoff-mark.is-active .tradeoff-point { background:transparent; }
 .benchmark-studio .tradeoff-point::after { content:""; position:absolute; width:24px; height:24px; border:1.5px solid var(--bench-accent); border-radius:50%; opacity:0; }
 .benchmark-studio .tradeoff-mark.is-active .tradeoff-point::after,.benchmark-studio .tradeoff-point:focus-visible::after { opacity:1; }
-.benchmark-studio .tradeoff-methods button.is-active { background:var(--bench-selected); color:var(--bench-accent-strong); border-bottom-color:transparent; }
+.benchmark-studio .tradeoff-methods button.is-active { background:transparent; box-shadow:inset 0 0 0 2px var(--bench-accent); }
 .benchmark-studio .tradeoff-methods button.is-active strong { font-weight:600; }
 .benchmark-studio .tradeoff-method-value { color:var(--bench-ink); }
 .benchmark-studio .tradeoff-method-value.is-missing { color:#9c6500; }
-.benchmark-studio .tradeoff-methods button.is-active .tradeoff-method-value:not(.is-missing) { color:var(--bench-accent-strong); }
+
 .benchmark-studio .tradeoff-details { border-color:var(--bench-border); border-top-color:var(--bench-accent); }
 @container(max-width:850px) {
  .tradeoff-layout { grid-template-columns:minmax(0,1fr); gap:.75rem; }
@@ -98,3 +98,10 @@
  .tradeoff-plot-area { padding-left:58px; padding-right:10px; }
  .tradeoff-details { right:16px; bottom:12px; }
 }
+
+.tradeoff-direction { display:flex; align-items:center; flex-wrap:wrap; gap:.3rem .5rem; margin:.35rem 0 0; font-size:.8125rem; line-height:1.6; color:var(--bench-accent-strong); }
+.tradeoff-direction svg { flex-shrink:0; }
+.tradeoff-direction span { color:var(--bench-muted); }
+.tradeoff-methods .benchmark-comparison-key { align-items:flex-start; font-size:.6875rem; padding-top:0; }
+.tradeoff-methods .benchmark-comparison-swatches { margin-top:.2rem; }
+.tradeoff-method-value.benchmark-emphasis { display:flex; align-items:center; justify-content:flex-end; min-height:36px; padding:6px 3px; border-radius:3px; }

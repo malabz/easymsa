@@ -143,12 +143,12 @@ describe("tradeoff chart", () => {
 
   it("defaults to SP without a reference, supports negative values and disables Q/TC", () => {
     const snapshot = publishedSnapshot();
-    snapshot.batches[1].results[0].metrics.sp_score = availableMetric(-100);
+    snapshot.batches[1].results[0].metrics.scaled_sp = availableMetric(-.1);
     mount(snapshot, "y=q", false);
-    expect(screen.getByLabelText("Vertical axis")).toHaveValue("sp_score");
+    expect(screen.getByLabelText("Vertical axis")).toHaveValue("scaled_sp");
     expect(screen.getByRole("option", {name:"Q · no reference"})).toBeDisabled();
     expect(screen.getByRole("option", {name:"TC · no reference"})).toBeDisabled();
-    expect(Number(screen.getByTestId("tradeoff-chart").dataset.yMin)).toBeLessThan(-100);
+    expect(Number(screen.getByTestId("tradeoff-chart").dataset.yMin)).toBeLessThan(-.1);
     expect(screen.queryByText(/SP is a pairwise score/)).not.toBeInTheDocument();
   });
 
@@ -156,7 +156,7 @@ describe("tradeoff chart", () => {
     const snapshot = publishedSnapshot();
     for (const batch of snapshot.batches) for (const result of batch.results) result.metrics.q = absentMetric("execution_failed");
     mount(snapshot);
-    expect(screen.getByTestId("tradeoff-chart")).toHaveAttribute("data-y-key","sp_score");
+    expect(screen.getByTestId("tradeoff-chart")).toHaveAttribute("data-y-key","scaled_sp");
   });
 
   it.each([0,.8])("prefers a valid Q of %s, including a partial measurement", value => {
@@ -169,7 +169,7 @@ describe("tradeoff chart", () => {
 
   it("retains an explicit SP choice on the current dataset", () => {
     mount(publishedSnapshot(),"y=sp_score");
-    expect(screen.getByTestId("tradeoff-chart")).toHaveAttribute("data-y-key","sp_score");
+    expect(screen.getByTestId("tradeoff-chart")).toHaveAttribute("data-y-key","scaled_sp");
   });
 
   it("uses a linear axis for zero resource values without adding offsets", () => {
@@ -311,8 +311,8 @@ it("aligned plots use each record's source and write relevant options to the URL
   fireEvent.click(point);
   expect(screen.getByRole("tooltip")).not.toHaveTextContent("newer");
   expect(onParamsChange).toHaveBeenCalledWith({method:"clustalo"});
-  fireEvent.change(screen.getByLabelText("SP measure"),{target:{value:"scaled_sp"}});
-  expect(onParamsChange).toHaveBeenCalledWith({sp:"scaled_sp",metric:"scaled_sp"});
+  expect(screen.queryByLabelText("SP measure")).not.toBeInTheDocument();
+  expect(screen.getByRole("figure",{name:"Normalized SP"})).toBeInTheDocument();
 });
 
 it("aligned plots preserve keyboard details through layout-induced mouse entry", () => {

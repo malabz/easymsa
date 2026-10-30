@@ -1,15 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import type { BenchmarkBatch, BenchmarkDataset, BenchmarkMetric, BenchmarkResult, BenchmarkSnapshot, MetricKey } from "./model";
-import { scoreAxisLabels, formatMetricSummary, formatMetricValue, makeMetricAxis, metricSpecs, selectMetricRows } from "./metrics";
+import { displayMetricKey, displayMetricKeys, scoreAxisLabels, formatMetricSummary, formatMetricValue, makeMetricAxis, metricSpecs, selectMetricRows } from "./metrics";
 import { reasonLabel, stateLabel, words, type Locale } from "./presentation";
 import { type ResultScope } from "./selection";
 import "./plots.css";
 
 type Props = { snapshot: BenchmarkSnapshot; batch?: BenchmarkBatch; dataset: BenchmarkDataset; locale: Locale; selectedMetric: MetricKey; selectedMethod?: string; scope?: ResultScope; params?: URLSearchParams; onParamsChange?: (patch: Record<string,string>) => void };
 type Point = { method: string; metric: MetricKey };
-const spKeys: MetricKey[] = ["sp_score", "avg_sp", "scaled_sp"];
-const primaryKeys: MetricKey[] = ["wall_seconds", "max_rss_kib", "sp_score", "q", "tc"];
+const primaryKeys = displayMetricKeys;
 const clamp = (n: number) => Math.min(100, Math.max(0, n));
 
 function unavailable(metric: BenchmarkMetric | undefined, locale: Locale, result?: BenchmarkResult, outsideBatch = false) {
@@ -21,8 +20,7 @@ function unavailable(metric: BenchmarkMetric | undefined, locale: Locale, result
 }
 
 export function MetricPlots({ snapshot, batch, dataset, locale, selectedMetric, selectedMethod, scope, params, onParamsChange }: Props) {
-  const [spKey, setSpKey] = useState<MetricKey>(spKeys.includes(selectedMetric) ? selectedMetric : "sp_score");
-  const [mobileMetric, setMobileMetric] = useState<MetricKey>(spKeys.includes(selectedMetric) ? "sp_score" : selectedMetric);
+  const [mobileMetric, setMobileMetric] = useState<MetricKey>(displayMetricKey(selectedMetric));
   const [localLinear, setLinear] = useState({ wall_seconds: false, max_rss_kib: false });
   const [localZoom, setZoom] = useState(false);
   const linear = params ? {wall_seconds:params.get("timeScale") === "linear", max_rss_kib:params.get("memoryScale") === "linear"} : localLinear;
@@ -33,8 +31,7 @@ export function MetricPlots({ snapshot, batch, dataset, locale, selectedMetric, 
   // Keep keyboard details stable until the user actually moves or presses a pointer.
   const interaction = useRef<"focus" | "pointer">("pointer");
   useEffect(() => {
-    setSpKey(spKeys.includes(params?.get("sp") as MetricKey) ? params!.get("sp") as MetricKey : spKeys.includes(selectedMetric) ? selectedMetric : "sp_score");
-    setMobileMetric(spKeys.includes(selectedMetric) ? "sp_score" : selectedMetric);
+    setMobileMetric(displayMetricKey(selectedMetric));
     setActiveMethod(selectedMethod ?? "");
     setTip(null);
   }, [selectedMetric, dataset.id, batch?.id, scope?.mode, params?.get("sp")]);
@@ -44,18 +41,17 @@ export function MetricPlots({ snapshot, batch, dataset, locale, selectedMetric, 
     window.addEventListener("keydown", dismiss);
     return () => window.removeEventListener("keydown", dismiss);
   }, []);
-  const keys: MetricKey[] = ["wall_seconds", "max_rss_kib", spKey, "q", "tc"];
+  const keys = displayMetricKeys;
   const tipRow = tip ? selectMetricRows(snapshot, batch, dataset.id, tip.metric, scope).find(row => row.method.id === tip.method) : undefined;
   const methodRows = selectMetricRows(snapshot, batch, dataset.id, "wall_seconds", scope);
   const showPoint = (method: string, metric: MetricKey) => { setActiveMethod(method); setTip({ method, metric }); };
 
   return <div className="benchmark-dot-comparison" data-mobile-metric={mobileMetric}>
     <div className="benchmark-plot-options">
-      <label className="benchmark-sp-option">{words(locale, "SP measure", "SP 类型")}<select value={spKey} onChange={event => { setSpKey(event.target.value as MetricKey); setTip(null); onParamsChange?.({sp:event.target.value, metric:event.target.value}); }}>{spKeys.map(key => <option value={key} key={key}>{metricSpecs[key][locale]}</option>)}</select></label>
       <label className="benchmark-zoom-option"><input type="checkbox" checked={zoom} onChange={event => { setZoom(event.target.checked); onParamsChange?.({plotZoom:event.target.checked ? "1" : ""}); }} />{words(locale, "Zoom Q / TC differences", "放大 Q / TC 差异")}</label>
       {methodRows.some(row => Object.values(row.result?.metrics ?? {}).some(metric => metric.display === "mean_sd" || metric.display === "mean_range")) && <span className="benchmark-plot-note">{words(locale, "Point = reported value; whiskers = reported SD or range, when available.", "点表示报告数值；有统计量时，须线表示报告中的标准差或范围。")}</span>}
     </div>
-    <div className="benchmark-mobile-metrics" role="group" aria-label={words(locale, "Chart metric", "图表指标")}>{primaryKeys.map(key => <button type="button" key={key} aria-pressed={mobileMetric === key} onClick={() => { setMobileMetric(key); setTip(null); onParamsChange?.({metric:key === "sp_score" ? spKey : key}); }}>{metricSpecs[key === "sp_score" ? spKey : key][locale]} {metricSpecs[key].direction === "higher" ? "↑" : "↓"}</button>)}</div>
+    <div className="benchmark-mobile-metrics" role="group" aria-label={words(locale, "Chart metric", "图表指标")}>{primaryKeys.map(key => <button type="button" key={key} aria-pressed={mobileMetric === key} onClick={() => { setMobileMetric(key); setTip(null); onParamsChange?.({metric:key}); }}>{metricSpecs[key][locale]} {metricSpecs[key].direction === "higher" ? "↑" : "↓"}</button>)}</div>
     <div className="benchmark-dot-grid" data-testid="metric-plots" onMouseLeave={() => { if (interaction.current === "pointer") setActiveMethod(selectedMethod ?? ""); }}>
       <div className="benchmark-shared-methods" aria-hidden="true">
         <div className="benchmark-plot-heading">{words(locale, "Method", "方法")}</div>
@@ -75,8 +71,8 @@ export function MetricPlots({ snapshot, batch, dataset, locale, selectedMetric, 
         const axisPresentation = scoreAxisLabels(visibleTicks,key,locale), tickLabels = axisPresentation.labels;
         const title = `${spec[locale]}${spec.unit ? ` (${spec.unit})` : ""}`;
         const hasValues = rows.some(row => row.raw !== null);
-        const mobileShown = mobileMetric === (spKeys.includes(key) ? "sp_score" : key);
-        return <figure key={key} data-metric={key} data-scale={axis.scale} data-axis-scale={axis.scale} data-axis-min={axis.min} data-axis-max={axis.max} data-domain-min={axis.min} data-domain-max={axis.max} data-axis-divisor={axisPresentation.divisor} className={"benchmark-dot-figure " + (mobileShown ? "is-mobile-active " : "") + (selectedMetric === key ? "is-selected-metric" : "")} aria-label={title}>
+        const mobileShown = mobileMetric === key;
+        return <figure key={key} data-metric={key} data-scale={axis.scale} data-axis-scale={axis.scale} data-axis-min={axis.min} data-axis-max={axis.max} data-domain-min={axis.min} data-domain-max={axis.max} data-axis-divisor={axisPresentation.divisor} className={"benchmark-dot-figure " + (mobileShown ? "is-mobile-active " : "") + (displayMetricKey(selectedMetric) === key ? "is-selected-metric" : "")} aria-label={title}>
           <figcaption className="benchmark-plot-heading"><strong>{title}{axisPresentation.unit && <span className="benchmark-score-unit"> ({axisPresentation.unit})</span>} <span aria-hidden="true">{spec.direction === "higher" ? "↑" : "↓"}</span></strong><span>{words(locale, spec.direction === "higher" ? "Higher is better" : "Lower is better", spec.direction === "higher" ? "越高越好" : "越低越好")}</span>
             {resource ? <label className="benchmark-axis-choice"><span className="sr-only">{title} {words(locale, "scale", "坐标")}</span><select aria-label={`${title} ${words(locale, "scale", "坐标")}`} value={linear[key] ? "linear" : "log"} onChange={event => { setLinear(current => ({ ...current, [key]: event.target.value === "linear" })); onParamsChange?.({[key === "wall_seconds" ? "timeScale" : "memoryScale"]:event.target.value}); }}><option value="log">{words(locale, "Log axis", "对数轴")}</option><option value="linear">{words(locale, "Linear axis", "线性轴")}</option></select></label> : <span className={quality && zoom ? "benchmark-local-range" : ""}>{quality ? words(locale, zoom ? "Zoomed range" : "Fixed 0–1", zoom ? "局部范围" : "固定 0–1") : words(locale, "Dataset range · linear", "本数据集范围 · 线性")}</span>}
           </figcaption>

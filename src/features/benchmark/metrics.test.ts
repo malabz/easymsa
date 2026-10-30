@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { absentMetric, availableMetric, publishedSnapshot } from "./__tests__/fixtures";
 import { metricKeys, parseSnapshot, type BenchmarkMetric } from "./model";
-import { scoreAxisLabels, formatAxisTick, formatAxisTicks, formatMetricSummary, formatMetricValue, makeMetricAxis, metricSpecs, metricValue, rowHeat, selectMetricRows, selectSnapshot, toDisplayValue } from "./metrics";
+import { metricEmphasis, scoreAxisLabels, formatAxisTick, formatAxisTicks, formatMetricSummary, formatMetricValue, makeMetricAxis, metricSpecs, metricValue, rowHeat, selectMetricRows, selectSnapshot, toDisplayValue } from "./metrics";
 
 const metric = (value: number, fields: Partial<BenchmarkMetric> = {}): BenchmarkMetric => ({ ...availableMetric(value, 1, 1), ...fields });
 
@@ -60,6 +60,29 @@ describe("shared benchmark values and display units", () => {
 });
 
 describe("row-local colour scales", () => {
+  it("uses all five tones and marks only exact best values, including ties", () => {
+    const result=metricEmphasis("q",[metric(0),metric(.3),metric(.6),metric(.9),metric(1),metric(1)]);
+    expect(result.map(item=>item.tone)).toEqual([0,1,2,3,4,4]);
+    expect(result.map(item=>item.best)).toEqual([false,false,false,false,true,true]);
+  });
+  it("keeps ties, single observations and failures neutral", () => {
+    for(const values of [[metric(1),metric(1)],[metric(1),absentMetric("timeout")],[absentMetric("timeout"),undefined]]) {
+      expect(metricEmphasis("wall_seconds",values).every(item=>item.tone==="neutral" && item.best===false && item.strength===null)).toBe(true);
+    }
+  });
+  it("compares unrounded values and recalculates after filtering", () => {
+    expect(formatMetricValue(.990001,"q","en",true)).toBe(formatMetricValue(.990002,"q","en",true));
+    expect(metricEmphasis("q",[metric(.990001),metric(.990002)]).map(item=>item.best)).toEqual([false,true]);
+    const selected=[metric(10),metric(20)];
+    expect(metricEmphasis("wall_seconds",selected).map(item=>item.tone)).toEqual([4,0]);
+    expect(metricEmphasis("wall_seconds",selected.slice(1))[0]).toEqual({strength:null,tone:"neutral",best:false});
+  });
+  it("handles zero resources, negative scores and partial results without colouring unavailable metrics", () => {
+    const partial=metric(-10,{status:"partial",valid_count:1,planned_count:3});
+    const scores=metricEmphasis("sp_score",[metric(-20),partial,absentMetric("no_reference")]);
+    expect(scores.map(item=>item.tone)).toEqual([0,4,"neutral"]);
+    expect(metricEmphasis("max_rss_kib",[metric(0),metric(1),metric(2)]).map(item=>item.strength)).toEqual([1,.5,0]);
+  });
   it("uses a logarithmic relative resource scale so multiplicative differences remain visible", () => {
     expect(rowHeat("wall_seconds", [metric(1), metric(10), metric(100), absentMetric("timeout")])).toEqual([1, 0.5, 0, null]);
     const memory = rowHeat("max_rss_kib", [metric(1024), metric(10240), metric(102400)]);

@@ -2,6 +2,10 @@ import type { BenchmarkBatch, BenchmarkMetric, BenchmarkSnapshot, MetricKey } fr
 import { selectRecords, type ResultScope } from "./selection";
 
 export type MetricLocale = "en" | "zh";
+export const displayMetricKeys = ["wall_seconds", "max_rss_kib", "scaled_sp", "q", "tc"] as const;
+export function displayMetricKey(key: MetricKey): MetricKey {
+  return key === "sp_score" || key === "avg_sp" ? "scaled_sp" : key;
+}
 export type MetricSpec = {
   en: string;
   zh: string;
@@ -17,7 +21,7 @@ export const metricSpecs: Record<MetricKey, MetricSpec> = {
   max_rss_kib: { en: "Peak memory", zh: "峰值内存", rawUnit: "KiB", unit: "MiB", direction: "lower", scale: "log" },
   sp_score: { en: "SP score", zh: "SP 分数", rawUnit: "", unit: "", direction: "higher", scale: "linear" },
   avg_sp: { en: "Avg SP", zh: "平均 SP", rawUnit: "", unit: "", direction: "higher", scale: "linear" },
-  scaled_sp: { en: "Scaled SP", zh: "缩放 SP", rawUnit: "", unit: "", direction: "higher", scale: "linear" },
+  scaled_sp: { en: "Normalized SP", zh: "归一化 SP", rawUnit: "", unit: "", direction: "higher", scale: "linear" },
   q: { en: "Q", zh: "Q", rawUnit: "", unit: "", direction: "higher", scale: "linear" },
   tc: { en: "TC", zh: "TC", rawUnit: "", unit: "", direction: "higher", scale: "linear" },
 };
@@ -123,6 +127,21 @@ export function rowHeat(key: MetricKey, metrics: (BenchmarkMetric | undefined)[]
     const fraction = (transform(value) - min) / (max - min);
     return metricSpecs[key].direction === "lower" ? 1 - fraction : fraction;
   });
+}
+
+export type MetricEmphasis = { strength: number | null; tone: "neutral" | 0 | 1 | 2 | 3 | 4; best: boolean };
+
+/** One presentation rule for every method comparison, using unrounded values. */
+export function metricEmphasis(key: MetricKey, metrics: (BenchmarkMetric | undefined)[]): MetricEmphasis[] {
+  const strengths = rowHeat(key,metrics);
+  const values = metrics.map(metricValue);
+  const valid = values.filter((value): value is number => value !== null);
+  const best = metricSpecs[key].direction === "lower" ? Math.min(...valid) : Math.max(...valid);
+  return strengths.map((strength,index) => ({
+    strength,
+    tone: strength === null ? "neutral" : Math.min(4, Math.floor(Math.max(0,strength) * 4)) as 0 | 1 | 2 | 3 | 4,
+    best: strength !== null && values[index] === best,
+  }));
 }
 
 export type MetricAxis = {

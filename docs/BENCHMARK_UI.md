@@ -1,5 +1,9 @@
 # Benchmark reading experience
 
+Current SP display: [normalized SP across all views](BENCHMARK_NORMALIZED_SP.md).
+
+Current comparison emphasis: [direction hints and green value scales](BENCHMARK_EMPHASIS.md).
+
 Current RNA identity and score labels: [CIPRES simulation and readable SP scales](BENCHMARK_RNA_AND_SCORES.md).
 
 Current navigation and result view: [unified Benchmark presentation](BENCHMARK_UNIFIED.md).

@@ -100,25 +100,14 @@ body:has(.benchmark-studio) { background:#fff; }
 .benchmark-studio .benchmark-matrix thead th { background:var(--bench-subtle); border-bottom-color:var(--bench-rule); box-shadow:none; color:var(--bench-muted); }
 .benchmark-studio .benchmark-matrix-group th { background:var(--bench-soft); color:var(--bench-muted); }
 .benchmark-studio .benchmark-matrix-dataset { background:#fff; }
-.benchmark-studio .benchmark-heat-neutral .benchmark-matrix-cell { background:#fff; color:var(--bench-ink); }
-.benchmark-studio .benchmark-heat-0 .benchmark-matrix-cell,
-.benchmark-studio .benchmark-heat-swatch i:nth-child(1) { background:#eff8f3; }
-.benchmark-studio .benchmark-heat-1 .benchmark-matrix-cell,
-.benchmark-studio .benchmark-heat-swatch i:nth-child(2) { background:#daefe2; }
-.benchmark-studio .benchmark-heat-2 .benchmark-matrix-cell,
-.benchmark-studio .benchmark-heat-swatch i:nth-child(3) { background:#add7bf; }
-.benchmark-studio .benchmark-heat-3 .benchmark-matrix-cell,
-.benchmark-studio .benchmark-heat-swatch i:nth-child(4) { background:#368065; color:#fff; }
-.benchmark-studio .benchmark-heat-4 .benchmark-matrix-cell,
-.benchmark-studio .benchmark-heat-swatch i:nth-child(5) { background:#146448; color:#fff; }
-.benchmark-studio .benchmark-matrix-cell.is-unavailable { background:var(--bench-subtle); color:var(--bench-muted); }
-.benchmark-studio .benchmark-matrix-cell:hover { box-shadow:inset 0 0 0 1px var(--bench-border); background:var(--bench-hover); color:var(--bench-accent-strong); }
+.benchmark-studio .benchmark-matrix-cell.is-unavailable { color:var(--bench-muted); }
+.benchmark-studio .benchmark-matrix-cell:hover { box-shadow:inset 0 0 0 2px currentColor; }
 .benchmark-studio .benchmark-matrix-row-id { font-family:inherit; font-size:0.6875rem; color:var(--bench-muted); }
 .benchmark-studio .tradeoff-zoom input { width:36px; height:20px; }
 .benchmark-studio .tradeoff-method-name strong,
 .benchmark-studio .tradeoff-method-value { font-size:0.875rem; }
 .benchmark-studio .benchmark-matrix-tooltip { border-color:var(--bench-border); border-radius:7px; }
-.benchmark-studio .benchmark-table tbody tr:hover { background:var(--bench-hover); }
+.benchmark-studio .benchmark-table tbody tr:hover { outline:1px solid var(--bench-border); outline-offset:-1px; }
 .benchmark-studio :is(.benchmark-dot-row,.benchmark-shared-method).is-active { background:var(--bench-selected); }
 .benchmark-studio .benchmark-dot { background:var(--bench-accent); }
 .benchmark-studio :is(button,a,input,select,summary):focus-visible { outline:2px solid var(--bench-accent); outline-offset:3px; }

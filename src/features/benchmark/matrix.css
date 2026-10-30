@@ -39,13 +39,6 @@
 .benchmark-advanced-filters .benchmark-filter-range { margin: 0 0 .75rem; }
 .benchmark-filter-bottom .benchmark-clear { min-height: 44px; padding: 0 .3rem; margin-left: 0; font-size: .75rem; text-decoration: underline; text-underline-offset: 3px; background: transparent; color: var(--bench-muted); }
 .benchmark-matrix-key { display: flex; align-items: center; gap: .55rem; padding: .6rem 0 .8rem; color: var(--bench-muted); font-size: .6875rem; line-height: 1.6; }
-.benchmark-heat-swatch { display: inline-flex; flex: 0 0 auto; gap: 2px; }
-.benchmark-heat-swatch i { display: block; height: 9px; width: 14px; }
-.benchmark-heat-swatch i:nth-child(1) { background: #f0f6f3; border: 1px solid #d8e3de; }
-.benchmark-heat-swatch i:nth-child(2) { background: #dcece7; }
-.benchmark-heat-swatch i:nth-child(3) { background: #b7d9ce; }
-.benchmark-heat-swatch i:nth-child(4) { background: #327b6d; }
-.benchmark-heat-swatch i:nth-child(5) { background: #12584e; }
 .benchmark-matrix-scroll { overflow: auto; max-height: min(72vh, 760px); min-height: 180px; max-width: 100%; isolation: isolate; border-block: 1px solid var(--bench-rule); scrollbar-color: #a3bcb2 #f6f8f7; scrollbar-width: thin; }
 .benchmark-matrix { border-collapse: separate; border-spacing: 0; table-layout: fixed; width: 100%; min-width: 65rem; font-variant-numeric: tabular-nums; }
 .benchmark-matrix :is(th, td) { border-bottom: 1px solid #e2e9e5; }
@@ -64,12 +57,6 @@
 .benchmark-matrix-cell { position: relative; min-height: 48px; display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: .2rem; padding: .4rem .2rem; font-size: .75rem; text-decoration: none; line-height: 1.35; color: #16312e; }
 .benchmark-matrix-cell:hover { box-shadow: inset 0 0 0 2px currentColor; }
 .benchmark-matrix a:focus-visible { outline-offset: -3px; outline: 2px solid currentColor; }
-.benchmark-heat-neutral .benchmark-matrix-cell { background: #f4f6f5; }
-.benchmark-heat-0 .benchmark-matrix-cell { background: #f0f6f3; }
-.benchmark-heat-1 .benchmark-matrix-cell { background: #dcece7; }
-.benchmark-heat-2 .benchmark-matrix-cell { background: #b7d9ce; }
-.benchmark-heat-3 .benchmark-matrix-cell { background: #327b6d; color: #fff; }
-.benchmark-heat-4 .benchmark-matrix-cell { background: #12584e; color: #fff; }
 .benchmark-matrix-cell.is-unavailable { color: #687770; background: #fafbfA; font-size: .625rem; }
 .benchmark-matrix-cell.is-unavailable svg { flex: 0 0 auto; }
 .benchmark-cell-partial { display: block; flex-basis: 100%; text-align: center; font-size: .5625rem; }
@@ -103,8 +90,7 @@
   .benchmark-more-metrics { margin-left: auto; }
   .benchmark-metric-navigation { gap: 0; }
   .benchmark-matrix-key { align-items: flex-start; font-size: .625rem; }
-  .benchmark-heat-swatch { margin-top: .2rem; }
-  .benchmark-filter-bottom > .benchmark-caption { flex-basis: 100%; margin-top: -.3rem; margin-bottom: .3rem; }
+    .benchmark-filter-bottom > .benchmark-caption { flex-basis: 100%; margin-top: -.3rem; margin-bottom: .3rem; }
   .benchmark-matrix .benchmark-matrix-dataset { width: 152px; }
   .benchmark-matrix-row-name { font-size: .6875rem; }
   .benchmark-matrix tbody .benchmark-matrix-dataset a { padding-inline: .5rem; }
