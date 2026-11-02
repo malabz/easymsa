@@ -29,11 +29,12 @@ describe("reviewed dna-rna-v1 public catalog", () => {
     expect(raw).not.toMatch(/\/opt\/|\/mnt\/|[A-Z]:\\|private_key|password|access_token|raw_output_path/);
   });
 
-  it("preserves both earlier batches byte-for-byte after JSON normalization", () => {
+  it("preserves all three earlier batches byte-for-byte after JSON normalization", () => {
     const original = JSON.parse(raw) as {batches: {id:string}[]};
     const hashes = {
       "baseline-single-20261027": "fc6875ed1c3221308d95871684254ac97c44e0fbc9ba5ccc2153d76828c171fe",
       "repair15-single-20261028": "09871a79cf75ddf516b5419b4cc031d5c1ac9c0a02d096ef41b7f075790f85ca",
+      "memory32-single-20261029": "c689fd6ad9d1450ea61803c7f8b62cfa2664c95debcee447d13eb2cc48b508e1",
     };
     for (const [id, hash] of Object.entries(hashes)) {
       const batch = original.batches.find(batch => batch.id === id);
@@ -44,9 +45,10 @@ describe("reviewed dna-rna-v1 public catalog", () => {
 
   it("publishes exactly the 41 memory retries with their real outcomes and 28 GiB Java heap", () => {
     expect(snapshot.batches.map(batch => batch.id)).toEqual([
+      "repair15-single-20261028-qscore64-20261102", "baseline-single-20261027-qscore64-20261102",
       "memory32-single-20261029", "repair15-single-20261028", "baseline-single-20261027",
     ]);
-    const batch = snapshot.batches[0];
+    const batch = snapshot.batches.find(batch => batch.id === "memory32-single-20261029")!;
     const simulations = [70,75,80,85,90,91,92,93,94,95,96,97,98,99].map(n => `dna_mt_sim_${n}`);
     const samples = ["dna_mt_100", "dna_mt_1k", "dna_mt_10k"];
     const pairs = [

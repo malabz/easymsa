@@ -24,9 +24,11 @@ describe("latest benchmark observations", () => {
     expect(new Set(records.map(({ result }) => `${result.dataset_id}/${result.method_id}`)).size).toBe(234);
     expect(counts(records.map(({ result }) => result.status))).toEqual({ complete: 178, timeout: 22, failed: 34 });
     expect(counts(records.map(({ batch }) => batch.id))).toEqual({
-      "baseline-single-20261027": 182,
-      "repair15-single-20261028": 11,
+      "baseline-single-20261027": 171,
+      "repair15-single-20261028": 9,
       "memory32-single-20261029": 41,
+      "baseline-single-20261027-qscore64-20261102": 11,
+      "repair15-single-20261028-qscore64-20261102": 2,
     });
     for (const record of records) {
       expect(record.batch.results).toContain(record.result);
@@ -178,7 +180,12 @@ describe("scope links and source names", () => {
       expect(batchLabel(batch, "en")).toBe(en);
       expect(batchMarker(batch)).toBe(marker);
     }
-    const future = { ...snapshot.batches[0], id: "future-batch" };
+    const revised = { ...snapshot.batches.find(batch => batch.id === "baseline-single-20261027")!,
+      id: "baseline-single-20261027-qscore64-20261102" };
+    expect(batchLabel(revised, "zh")).toBe("基线 · Q 修订 · 16 GiB");
+    expect(batchLabel(revised, "en")).toBe("Baseline · Q corrected · 16 GiB");
+    expect(batchMarker(revised)).toBe("circle");
+    const future = { ...snapshot.batches.find(batch => batch.id === "memory32-single-20261029")!, id: "future-batch" };
     expect(batchLabel(future, "en")).toBe("future-batch · 32 GiB");
     expect(batchMarker(future)).toBe("diamond");
     const old = publishedSnapshot().batches[0];

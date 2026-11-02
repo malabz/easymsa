@@ -437,7 +437,7 @@ test("latest whole records match 780 displayed and 1092 exported metrics", async
   expect(records.filter(r=>r.result.status==="complete")).toHaveLength(127);
   expect(records.filter(r=>r.result.status==="timeout")).toHaveLength(14);
   expect(records.filter(r=>r.result.reason_code==="oom")).toHaveLength(15);
-  expect(rawSnapshot.batches.map(b=>records.filter(r=>r.batch.id===b.id).length)).toEqual([17,11,128]);
+  expect(rawSnapshot.batches.map(b=>records.filter(r=>r.batch.id===b.id).length)).toEqual([2,7,17,9,121]);
   await openBenchmark(page,"/#/benchmark");
   await expect(page.getByRole("combobox",{name:"Evaluation batch",exact:true})).toHaveCount(0);
   await expect(page.locator(".benchmark-run-summary")).toContainText("127");
@@ -494,7 +494,7 @@ test("latest whole records match 780 displayed and 1092 exported metrics", async
   await openBenchmark(page,"/#/benchmark?metric=q");
   await capturePageFromTop(page,info.outputPath("latest-matrix-zh.png"));
   await info.attach("latest-consistency.json",{contentType:"application/json",body:JSON.stringify({
-    pairs:156,metrics:780,complete:127,timeout:14,oom:15,sourceCounts:[17,11,128],
+    pairs:156,metrics:780,complete:127,timeout:14,oom:15,sourceCounts:[2,7,17,9,121],
     datasets:26,scatterAxesChecked:10,jsonDownloads:28,csvDownloads:28,status:"passed",
   })});
 });

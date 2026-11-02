@@ -71,10 +71,14 @@ export type BatchMarker = "circle" | "square" | "triangle" | "diamond";
 
 /** Friendly display labels do not replace the stored batch IDs or conditions. */
 export function batchLabel(batch: BenchmarkBatch, locale: "en" | "zh"): string {
-  const name = batchNames[batch.id]?.[locale] ?? batch.id;
+  const sourceId = batch.id.replace(/-qscore64-\d{8}$/, "");
+  const sourceName = batchNames[sourceId]?.[locale];
+  const name = sourceId !== batch.id && sourceName
+    ? `${sourceName} · ${locale === "zh" ? "Q 修订" : "Q corrected"}`
+    : batchNames[batch.id]?.[locale] ?? batch.id;
   return batch.conditions ? `${name} · ${batch.conditions.memory_limit_gib} GiB` : name;
 }
 
 export function batchMarker(batch: BenchmarkBatch): BatchMarker {
-  return batchNames[batch.id]?.marker ?? "diamond";
+  return batchNames[batch.id.replace(/-qscore64-\d{8}$/, "")]?.marker ?? "diamond";
 }

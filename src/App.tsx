@@ -1,6 +1,6 @@
 import { StorageNotice } from "./components/common/StorageNotice";
 import { lazy, Suspense } from "react";
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import { RouteLoadingState } from "./components/layout/RouteLoadingState";
 import { focusMainContent, RouteNavigation } from "./components/layout/RouteNavigation";
@@ -42,6 +42,10 @@ const LicensePage = lazy(() => import("./routes/LicensePage").then(m => ({defaul
 const PrivacyPage = lazy(() => import("./routes/PrivacyPage").then(m => ({default:m.PrivacyPage})));
 const BenchmarkPage = lazy(() => import("./routes/BenchmarkPage").then(m => ({default:m.BenchmarkPage})));
 const BenchmarkDatasetPage = lazy(() => import("./routes/BenchmarkDatasetPage").then(m => ({default:m.BenchmarkDatasetPage})));
+const BenchmarkSubmitPage = lazy(() => import("./routes/BenchmarkSubmitPage").then(m => ({default:m.BenchmarkSubmitPage})));
+const BenchmarkMinePage = lazy(() => import("./routes/BenchmarkMinePage").then(m => ({default:m.BenchmarkMinePage})));
+const BenchmarkRunPage = lazy(() => import("./routes/BenchmarkRunPage").then(m => ({default:m.BenchmarkRunPage})));
+const BenchmarkExamplePage = lazy(() => import("./routes/BenchmarkExamplePage").then(m => ({default:m.BenchmarkExamplePage})));
 
 function AppRoutes() {
   const location = useLocation();
@@ -68,6 +72,11 @@ function AppRoutes() {
           <Route path="/examples/:exampleId" element={<ExamplesPage />} />
           <Route path="/benchmark" element={<BenchmarkPage />} />
           <Route path="/benchmark/datasets/:caseId" element={<BenchmarkDatasetPage />} />
+          <Route path="/benchmark/submit" element={<BenchmarkSubmitPage />} />
+          <Route path="/benchmark/recent" element={<BenchmarkMinePage />} />
+          <Route path="/benchmark/mine" element={<Navigate to="/benchmark/recent" replace />} />
+          <Route path="/benchmark/runs/:runId" element={<BenchmarkRunPage />} />
+          <Route path="/benchmark/examples/msa-kit" element={<BenchmarkExamplePage />} />
           <Route path="/license" element={<LicensePage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/about" element={<AboutPage />} />

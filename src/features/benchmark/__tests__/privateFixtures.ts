@@ -1,0 +1,10 @@
+// Synthetic private submissions for tests only. Never imported by application code.
+import {metricKeys,type BenchmarkMetric,type MetricKey} from "../model";
+import {availableMetric,absentMetric,emptySnapshot} from "./fixtures";
+import type {PrivateResult,PrivateRun} from "../privateModel";
+
+export function privateRun(overrides:Partial<PrivateRun>={}):PrivateRun{return {id:"benchmark-test-run",method_name:"Test MSA",repository_url:"https://github.com/test-author/test-msa",commit_sha:"a".repeat(40),supported_types:["dna","rna"],status:"completed",stage:"completed",completed_units:3,total_units:26,successful_units:3,created_at:"2026-10-30T10:00:00Z",started_at:"2026-10-30T10:00:01Z",completed_at:"2026-10-30T10:02:00Z",error:null,cancel_requested:false,profile_id:"submission-single-v1",has_results:true,expires_at:"2027-01-28T10:02:00Z",email_status:"skipped",...overrides};}
+export function privateReport():PrivateResult{
+  const catalog=emptySnapshot().catalog;catalog.status="frozen";catalog.datasets.forEach(dataset=>{dataset.preprocessing=null;});
+  return {schema_version:3,run_id:"benchmark-test-run",method:{id:"gh_123",name:"Test MSA",repository_url:"https://github.com/test-author/test-msa",commit_sha:"a".repeat(40),supported_types:["dna","rna"],version_id:"test-version-a"},profile:{id:"submission-single-v1",dataset_version:catalog.version,threads:4,repeats:1,limits:{cpu:4,memory_gib:32,alignment_timeout_seconds:1800,scorer_timeout_seconds:1800},runtime:"test-runsc-systrap",measurement:"test-gnu-time"},catalog,results:catalog.datasets.map((dataset,index)=>({method_id:"gh_123",dataset_id:dataset.id,status:"complete",reason_code:null,planned_repeats:1,valid_repeats:1,metrics:Object.fromEntries(metricKeys.map(key=>[key,!dataset.reference&&["q","tc"].includes(key)?absentMetric("no_reference",1):availableMetric(key==="wall_seconds"?index===0?0:2.5+index:key==="max_rss_kib"?2048:key==="q"?.9:key==="tc"?.8:key==="scaled_sp"?index===0?-.2:.7:10000000,1,1)])) as Record<MetricKey,BenchmarkMetric>}))};
+}

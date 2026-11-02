@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "id": "qscore64-20261102",
+  "created_at": "2026-11-01T16:41:22.215833+00:00",
+  "scoring": {
+    "id": "sp1-mismatch-1-gap-2-0-qscore21-u64-v1",
+    "label": "SP +1/-1, gap -2/0; Q/TC against full reference; no T/U conversion; Qscore 2.1+easymsa.u64.1 (uint64 residue-pair counts)"
+  },
+  "records": [
+    {
+      "batch_id": "baseline-single-20261027",
+      "method_id": "clustalo",
+      "dataset_id": "rna_4095",
+      "q": 0.9429324126733369,
+      "alignment_sha256": "80c14f41052b2e007c408720b5125ab5a53f88f0f55a2a47ff7c0320e3e178d3",
+      "reference_sha256": "5982c56f5f23a41f72ba9ca7403d287f6bc62293aceb831526b547a7e3aac124",
+      "previous_q": 0.825
+    },
+    {
+      "batch_id": "baseline-single-20261027",
+      "method_id": "fmalign2",
+      "dataset_id": "rna_4095",
+      "q": 0.9828209295151532,
+      "alignment_sha256": "0e09f9d033f64999727ea26b4c6f1c8eb2303242eb5efe48cb0567021ce364de",
+      "reference_sha256": "5982c56f5f23a41f72ba9ca7403d287f6bc62293aceb831526b547a7e3aac124",
+      "previous_q": 0.947
+    },
+    {
+      "batch_id": "baseline-single-20261027",
+      "method_id": "halign3",
+      "dataset_id": "rna_4095",
+      "q": 0.9721327599866098,
+      "alignment_sha256": "3912946e24e24a84a11e2a7226ca9530a4842b48f63f62ce84118ee180402b90",
+      "reference_sha256": "5982c56f5f23a41f72ba9ca7403d287f6bc62293aceb831526b547a7e3aac124",
+      "previous_q": 0.915
+    },
+    {
+      "batch_id": "baseline-single-20261027",
+      "method_id": "kalign3",
+      "dataset_id": "rna_4095",
+      "q": 0.9959202490782311,
+      "alignment_sha256": "4f59bc1be73e717de511f0ac07b65c0ee73028a319c58e6a29c16de5a0a4a430",
+      "reference_sha256": "5982c56f5f23a41f72ba9ca7403d287f6bc62293aceb831526b547a7e3aac124",
+      "previous_q": 0.988
+    },
+    {
+      "batch_id": "baseline-single-20261027",
+      "method_id": "mafft",
+      "dataset_id": "rna_4095",
+      "q": 0.9828209295151532,
+      "alignment_sha256": "0e09f9d033f64999727ea26b4c6f1c8eb2303242eb5efe48cb0567021ce364de",
+      "reference_sha256": "5982c56f5f23a41f72ba9ca7403d287f6bc62293aceb831526b547a7e3aac124",
+      "previous_q": 0.947
+    },
+    {
+      "batch_id": "baseline-single-20261027",
+      "method_id": "minipoa",
+      "dataset_id": "rna_4095",
+      "q": 0.9761777485712012,
+      "alignment_sha256": "5a923928fdd3ae0657f11cb5fb529915d681a5b6adfc31008cd35decee5bf547",
+      "reference_sha256": "5982c56f5f23a41f72ba9ca7403d287f6bc62293aceb831526b547a7e3aac124",
+      "previous_q": 0.927
+    },
+    {
+      "batch_id": "baseline-single-20261027",
+      "method_id": "fmalign2",
+      "dataset_id": "rna_8191",
+      "q": 0.9564064529014978,
+      "alignment_sha256": "c3c62efd1320e780ea1eb1a60f510ccfc0746353f962a8633e0c2b58076ab450",
+      "reference_sha256": "281eadfaadd0f6a1a81695ff3df8fc6f294c0968d6232a8d3135cda34966f26c",
+      "previous_q": 0.418
+    },
+    {
+      "batch_id": "baseline-single-20261027",
+      "method_id": "halign3",
+      "dataset_id": "rna_8191",
+      "q": 0.974175077944793,
+      "alignment_sha256": "58106f9ee8d9697b534e7c174420dafd606b853c18d6a3326fbf54709d727726",
+      "reference_sha256": "281eadfaadd0f6a1a81695ff3df8fc6f294c0968d6232a8d3135cda34966f26c",
+      "previous_q": 0.655
+    },
+    {
+      "batch_id": "baseline-single-20261027",
+      "method_id": "kalign3",
+      "dataset_id": "rna_8191",
+      "q": 0.9948252794322616,
+      "alignment_sha256": "0354bd025c2cda76ed5037c0ac221eee95d753adeaeb6241e7db287b0c03fcce",
+      "reference_sha256": "281eadfaadd0f6a1a81695ff3df8fc6f294c0968d6232a8d3135cda34966f26c",
+      "previous_q": 0.931
+    },
+    {
+      "batch_id": "baseline-single-20261027",
+      "method_id": "mafft",
+      "dataset_id": "rna_8191",
+      "q": 0.9564064529014978,
+      "alignment_sha256": "c3c62efd1320e780ea1eb1a60f510ccfc0746353f962a8633e0c2b58076ab450",
+      "reference_sha256": "281eadfaadd0f6a1a81695ff3df8fc6f294c0968d6232a8d3135cda34966f26c",
+      "previous_q": 0.418
+    },
+    {
+      "batch_id": "baseline-single-20261027",
+      "method_id": "minipoa",
+      "dataset_id": "rna_8191",
+      "q": 0.9621652987528562,
+      "alignment_sha256": "1a18f4dcc472cc65300a977d37e645b5fa74e7e3bff4dcc5f1ab4f2b2521baa4",
+      "reference_sha256": "281eadfaadd0f6a1a81695ff3df8fc6f294c0968d6232a8d3135cda34966f26c",
+      "previous_q": 0.495
+    },
+    {
+      "batch_id": "repair15-single-20261028",
+      "method_id": "halign4",
+      "dataset_id": "rna_4095",
+      "q": 0.9882138891700792,
+      "alignment_sha256": "cd2b6787d511118641c60ebe2b1ae08dfab7309a5d39b4f25776fdc9f2e17ad6",
+      "reference_sha256": "5982c56f5f23a41f72ba9ca7403d287f6bc62293aceb831526b547a7e3aac124",
+      "previous_q": 0.964
+    },
+    {
+      "batch_id": "repair15-single-20261028",
+      "method_id": "halign4",
+      "dataset_id": "rna_8191",
+      "q": 0.9897027804616891,
+      "alignment_sha256": "e089dbf36da93cd44a1867855f0d9c168be62f2f6eb7d5a23e7b704718f349ac",
+      "reference_sha256": "281eadfaadd0f6a1a81695ff3df8fc6f294c0968d6232a8d3135cda34966f26c",
+      "previous_q": 0.862
+    }
+  ],
+  "batches": [
+    {
+      "batch_id": "repair15-single-20261028-qscore64-20261102",
+      "source_batch_id": "repair15-single-20261028",
+      "records": 2
+    },
+    {
+      "batch_id": "baseline-single-20261027-qscore64-20261102",
+      "source_batch_id": "baseline-single-20261027",
+      "records": 11
+    }
+  ],
+  "source_snapshot_normalized_sha256": "ca4d5563593039e6190368e3caf609391dc19d7d00c3fcafaa5fe4e755deac11"
+}

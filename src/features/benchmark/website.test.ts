@@ -27,7 +27,7 @@ describe("website method catalog", () => {
     const snapshot = websiteSnapshot(archive());
     expect(snapshot.methods.map(method => method.id)).toEqual(ids);
     expect(snapshot.methods.find(method => method.id === "halign4")?.name).toBe("HAlign");
-    expect(snapshot.batches.map(batch => batch.results.length)).toEqual([17, 11, 156]);
+    expect(snapshot.batches.map(batch => batch.results.length)).toEqual([2, 7, 17, 11, 156]);
     for (const batch of snapshot.batches) {
       expect(batch.methods.every(method => ids.includes(method.method_id))).toBe(true);
       expect(batch.results.every(result => ids.includes(result.method_id))).toBe(true);
