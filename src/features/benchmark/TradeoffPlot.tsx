@@ -59,11 +59,13 @@ export function placeTradeoffLabels(points: {id:string; name:string; x:number; y
         const x = Math.max(0, Math.min(width - labelWidth, candidateX));
         const labelsOverlapped = placed.filter(other => x < other.x + other.width + 4 && x + labelWidth + 4 > other.x && y < other.y + height + 2 && y + height + 2 > other.y).length;
         const pointsCovered = points.filter(other => x < other.x + 8 && x + labelWidth > other.x - 8 && y < other.y + 8 && y + height > other.y - 8).length;
-        const cost = labelsOverlapped * 10 + pointsCovered;
+        // Prefer a nearby free label over one on the opposite side of the plot.
+        // Only labels move: measured point positions always remain unchanged.
+        const nearestX = Math.max(x,Math.min(point.x,x+labelWidth));
+        const distance = Math.abs(nearestX-point.x)*2 + Math.abs(y+height/2-point.y);
+        const cost = labelsOverlapped * 1e7 + pointsCovered * 1e5 + distance;
         if (cost < bestCost) { label = {id:point.id, x, y, width:labelWidth}; bestCost = cost; }
-        if (cost === 0) break;
       }
-      if (bestCost === 0) break;
     }
     placed.push(label);
   }

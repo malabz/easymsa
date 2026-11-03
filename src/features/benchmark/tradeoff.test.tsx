@@ -248,6 +248,13 @@ describe("tradeoff chart", () => {
     }
   });
 
+  it("keeps clustered labels near their own points instead of drawing cross-chart leaders", () => {
+    const points=[{id:"a",name:"HAlign",x:80,y:2},{id:"b",name:"MAFFT",x:150,y:2},{id:"c",name:"FMAlign2",x:210,y:2},{id:"d",name:"minipoa",x:82,y:3}];
+    const original=structuredClone(points),labels=placeTradeoffLabels(points,740,13,300);
+    for(const label of labels){const point=points.find(point=>point.id===label.id)!;const nearest=Math.max(label.x,Math.min(point.x,label.x+label.width));expect(Math.abs(nearest-point.x)).toBeLessThan(80);}
+    expect(points).toEqual(original);
+  });
+
   it.each([8,9])("keeps %i tightly clustered method labels disjoint at 200 percent text", count => {
     const allNames = ["Clustal Omega","T-Coffee","MAFFT","MUSCLE 5","Kalign 3","HAlign 3","HAlign 4","FMAlign2","minipoa"];
     const names = count === 8 ? allNames.filter(name => name !== "T-Coffee") : allNames;

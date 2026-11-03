@@ -9,6 +9,7 @@ import { useBenchmark } from "../features/benchmark/useBenchmark";
 import { displayMetricKey, displayMetricKeys, metricSpecs } from "../features/benchmark/metrics";
 import { BenchmarkSidebar } from "../features/benchmark/BenchmarkSidebar";
 import { BenchmarkMatrix } from "../features/benchmark/BenchmarkMatrix";
+import { BenchmarkNavigation } from "../features/benchmark/BenchmarkNavigation";
 import { DownloadButtons, LoadState, sourceLabel, words } from "../features/benchmark/presentation";
 import { currentResultScope } from "../features/benchmark/selection";
 import { displaySelection, MethodFilter, uniqueSources } from "../features/benchmark/view";
@@ -61,13 +62,15 @@ export function BenchmarkPage() {
   const invalidRange = filters.min !== "" && filters.max !== "" && Number(filters.min) > Number(filters.max);
   const filteredSnapshot = {...data, methods};
   return <PageContainer className="benchmark-page benchmark-explorer benchmark-reading-v3 benchmark-studio">
+    <BenchmarkNavigation/>
     <BenchmarkSidebar datasets={datasets} params={query} locale={locale} onSearch={value => field("search",value)} catalogCount={data.catalog.datasets.length} methodCount={methods.length}/>
     <div className="benchmark-studio-content">
     <Link to="/about" className="benchmark-back"><ArrowLeft size={15} aria-hidden="true"/>{words(locale,"About EasyMSA","关于 EasyMSA")}</Link>
     <header className="benchmark-overview-header">
       <div><h1>Benchmark</h1><p className="benchmark-overview-deck">{datasets.length} {words(locale,"datasets","个数据集")} · {methods.length} {words(locale,"methods","种方法")}</p></div>
-      <div className="benchmark-overview-actions"><div className="benchmark-private-links"><Link to="/benchmark/submit">{words(locale,"Evaluate my program","评测我的程序")}</Link><Link to="/benchmark/recent">{words(locale,"Recent evaluations","最近评测")}</Link></div><DownloadButtons snapshot={data} resultScope={scope} datasetIds={datasets.map(d => d.id)} methodIds={methods.map(m => m.id)} locale={locale}/></div>
+      <div className="benchmark-overview-actions"><Link className="benchmark-start-link" to="/benchmark/submit">{words(locale,"Evaluate my program","评测我的程序")}</Link><DownloadButtons snapshot={data} resultScope={scope} datasetIds={datasets.map(d => d.id)} methodIds={methods.map(m => m.id)} locale={locale}/></div>
     </header>
+    <p className="benchmark-overview-intro">{words(locale,"Choose a dataset to compare time, memory and alignment quality.","选择数据集，比较各方法的时间、内存和比对质量。")}</p>
     <div className="benchmark-run-summary" aria-label={words(locale,"Evaluation coverage","评测覆盖")}>
       <p><span className="benchmark-run-complete">{words(locale,"Complete","完成")} <strong>{count("complete")}</strong> / {results.length}</span><span>{words(locale,"Timed out","超时")} <strong>{count("timeout")}</strong></span>{memoryFailures > 0 && <span>{words(locale,"Memory limit","内存超限")} <strong>{memoryFailures}</strong></span>}{count("failed") > memoryFailures && <span>{words(locale,"Other failures","其他失败")} <strong>{count("failed") - memoryFailures}</strong></span>}{count("partial") > 0 && <span>{words(locale,"Partial","部分完成")} <strong>{count("partial")}</strong></span>}{count("unsupported") + count("not_run") > 0 && <span>{words(locale,"Unsupported / not evaluated","不支持 / 待评测")} <strong>{count("unsupported") + count("not_run")}</strong></span>}</p>
     </div>

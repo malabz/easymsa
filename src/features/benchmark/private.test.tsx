@@ -29,6 +29,31 @@ describe("private result contract",()=>{
  it.each(["identity","duplicate","unavailable","range","reference"])("rejects contradictory %s results",kind=>{const report=privateReport();if(kind==="identity")report.results[0].method_id="other";if(kind==="duplicate")report.results[1]=report.results[0];if(kind==="unavailable")report.results[0].metrics.scaled_sp.status="unavailable";if(kind==="range")report.results[0].metrics.q.value=2;if(kind==="reference")report.results[1].metrics.q=report.results[0].metrics.q;expect(privateResultSchema.safeParse(report).success).toBe(false);});
 });
 describe("anonymous submissions",()=>{
+ it("keeps the real draft when trying the example and returning",async()=>{
+  mount();const repository=await screen.findByRole("textbox",{name:"GitHub repository"});
+  fireEvent.change(repository,{target:{value:run.repository_url}});fireEvent.click(screen.getByText("More settings"));
+  fireEvent.change(screen.getByLabelText("Method name"),{target:{value:"Draft method"}});fireEvent.change(screen.getByLabelText("Version"),{target:{value:"draft-branch"}});
+  fireEvent.click(screen.getByRole("link",{name:"Try MSA-Kit"}));
+  expect(screen.getByRole("link",{name:"Try MSA-Kit"})).toHaveFocus();
+  expect(screen.getByRole("textbox",{name:"GitHub repository"})).toHaveAttribute("readonly");expect(screen.queryByLabelText(/Notification email/)).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("link",{name:"Submit my program"}));
+  expect(screen.getByRole("textbox",{name:"GitHub repository"})).toHaveValue(run.repository_url);expect(screen.getByLabelText("Method name")).toHaveValue("Draft method");expect(screen.getByLabelText("Version")).toHaveValue("draft-branch");
+  expect(fetcher.mock.calls.every(([,options])=>!options?.method||options.method==="GET")).toBe(true);
+ });
+ it("shows repository errors beside the field and focuses it on submission",async()=>{
+  mount();const repository=await screen.findByRole("textbox",{name:"GitHub repository"});await waitFor(()=>expect(screen.getByRole("button",{name:"Start evaluation"})).toBeEnabled());
+  fireEvent.change(repository,{target:{value:"https://gitlab.com/example/msa"}});fireEvent.blur(repository);
+  expect(repository).toHaveAttribute("aria-invalid","true");expect(repository).toHaveAccessibleDescription("Enter a public GitHub repository URL.");
+  fireEvent.submit(screen.getByRole("form",{name:"GitHub evaluation"}));expect(repository).toHaveFocus();expect(fetcher.mock.calls.some(([url])=>url.includes("/submissions"))).toBe(false);
+  fireEvent.change(repository,{target:{value:run.repository_url}});expect(repository).toHaveAttribute("aria-invalid","false");
+ });
+ it("opens the sequence settings and focuses a choice when none are selected",async()=>{
+  mount();const repository=await screen.findByRole("textbox",{name:"GitHub repository"});await waitFor(()=>expect(screen.getByRole("button",{name:"Start evaluation"})).toBeEnabled());
+  fireEvent.change(repository,{target:{value:run.repository_url}});const settings=screen.getByText("More settings").parentElement as HTMLDetailsElement;settings.open=true;
+  fireEvent.click(screen.getByRole("checkbox",{name:"DNA"}));fireEvent.click(screen.getByRole("checkbox",{name:"RNA"}));settings.open=false;
+  fireEvent.submit(screen.getByRole("form",{name:"GitHub evaluation"}));expect(settings.open).toBe(true);expect(screen.getByRole("checkbox",{name:"DNA"})).toHaveFocus();expect(screen.getByRole("alert")).toHaveTextContent("Select at least one sequence type.");
+  expect(fetcher.mock.calls.some(([url])=>url.includes("/submissions"))).toBe(false);
+ });
  it("shows the direct form with only repository required and no login",async()=>{mount();expect(await screen.findByRole("textbox",{name:"GitHub repository"})).toBeRequired();expect(screen.getByRole("textbox",{name:/Notification email/})).not.toBeRequired();expect(screen.queryByText(/Sign in with GitHub/)).not.toBeInTheDocument();expect(screen.getByLabelText("Method name")).not.toBeRequired();expect(screen.getByText("More settings").parentElement).not.toHaveAttribute("open");expect(fetcher.mock.calls.every(([url])=>!url.includes("/auth/"))).toBe(true);});
  it("disables optional email when delivery is not ready",async()=>{mock(path=>path.endsWith("/status")?ok({...feature,email_available:false}):undefined);mount();expect(await screen.findByRole("textbox",{name:/Notification email/})).toBeDisabled();expect(screen.getByText("Email notifications are currently unavailable.")).toBeVisible();});
  it("keeps saved results accessible while new submissions are paused",async()=>{mock(path=>path.endsWith("/status")?ok({...feature,accepting:false,reason:"paused"}):undefined);mount();expect(await screen.findByRole("button",{name:"Start evaluation"})).toBeDisabled();expect(screen.getByRole("link",{name:"Recent evaluations"})).toHaveAttribute("href","/benchmark/recent");});

@@ -11,6 +11,7 @@ import { useBenchmark } from "../features/benchmark/useBenchmark";
 import { displayMetricKey, displayMetricKeys, metricSpecs, metricValue, metricEmphasis, selectMetricRows } from "../features/benchmark/metrics";
 import { MetricPlots } from "../features/benchmark/MetricPlots";
 import { BenchmarkSidebar } from "../features/benchmark/BenchmarkSidebar";
+import { BenchmarkNavigation } from "../features/benchmark/BenchmarkNavigation";
 import { TradeoffPlot } from "../features/benchmark/TradeoffPlot";
 import { ComparisonLegend, DownloadButtons, LoadState, MetricCell, reasonLabel, stateLabel, words } from "../features/benchmark/presentation";
 import { currentResultScope } from "../features/benchmark/selection";
@@ -57,6 +58,7 @@ export function BenchmarkDatasetPage() {
   const chart = ["tradeoff","metrics","table"].includes(params.get("chart") ?? "") ? params.get("chart")! : "tradeoff";
   const metricKey = metricKeys.includes(params.get("metric") as MetricKey) ? displayMetricKey(params.get("metric") as MetricKey) : "wall_seconds";
   return <PageContainer className="benchmark-page benchmark-detail-v2 benchmark-reading-v3 benchmark-studio">
+    <BenchmarkNavigation/>
     <BenchmarkSidebar datasets={navigation} params={params} selectedId={dataset.id} locale={locale} onSearch={value => patch({search:value})} catalogCount={data.catalog.datasets.length} methodCount={selection.methods.length}/>
     <div className="benchmark-studio-content">
     <header className="benchmark-detail-header">
