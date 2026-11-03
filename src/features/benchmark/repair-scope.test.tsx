@@ -9,13 +9,15 @@ import { repairSnapshot } from "./__tests__/repair-fixture";
 import { batchCoverage, selectMetricRows, selectSnapshot } from "./metrics";
 import { parseSnapshot } from "./model";
 import { snapshotCsv } from "./presentation";
+import { queryClient } from "../../lib/query/queryClient";
 
 function mount(path = "/benchmark", locale: "en" | "zh" = "en") {
+  const route=new URL(path,"https://example.org");if(route.pathname==="/benchmark")route.searchParams.set("view","matrix");path=route.pathname+route.search;
   localStorage.setItem("easymsa.locale", locale);
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ok:true,json:()=>Promise.resolve(repairSnapshot())}));
   render(<LanguageProvider><MemoryRouter initialEntries={[path]}><Routes><Route path="/benchmark" element={<BenchmarkPage />} /><Route path="/benchmark/datasets/:caseId" element={<BenchmarkDatasetPage />} /></Routes></MemoryRouter></LanguageProvider>);
 }
-beforeEach(() => { localStorage.clear(); sessionStorage.clear(); vi.stubGlobal("requestAnimationFrame", vi.fn(() => 0)); });
+beforeEach(() => { queryClient.clear(); localStorage.clear(); sessionStorage.clear(); vi.stubGlobal("requestAnimationFrame", vi.fn(() => 0)); });
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 function cell(dataset: string, method: string) {
   return screen.getAllByTestId("matrix-cell").find(element => element.dataset.datasetId === dataset && element.dataset.methodId === method)!;
@@ -62,8 +64,8 @@ describe("targeted repair batch scope", () => {
     mount("/benchmark/datasets/sim70?batch=test-repair15");
     await screen.findByTestId("dataset-title");
     expect(screen.queryByLabelText("Evaluation batch")).not.toBeInTheDocument();
-    expect(screen.getAllByTestId("tradeoff-method")).toHaveLength(6);
-    fireEvent.click(screen.getByRole("button",{name:"Values"}));
+    expect(screen.getAllByTestId("tradeoff-chart")).toHaveLength(2);
+    expect(screen.getByTestId("precise-results")).toBeVisible();
     const cells=screen.getByTestId("precise-results").querySelectorAll("td[data-metric]");
     expect(cells).toHaveLength(30);
     expect([...cells].some(cell=>cell.getAttribute("data-raw-value")!=="")).toBe(true);

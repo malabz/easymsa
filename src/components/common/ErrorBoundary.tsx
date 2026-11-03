@@ -6,6 +6,7 @@ type Props = {
   title: string;
   description: string;
   retryLabel: string;
+  resetKey?: string;
 };
 
 type State = {
@@ -21,6 +22,10 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error("EasyMSA render error", error, info);
+  }
+
+  componentDidUpdate(previous: Props) {
+    if (this.state.error && previous.resetKey !== this.props.resetKey) this.reset();
   }
 
   private reset = () => {

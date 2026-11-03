@@ -4,6 +4,7 @@ import {expect,type Page} from "@playwright/test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import type {BenchmarkMetric,MetricKey} from "../../src/features/benchmark/model";
+import {expectedEmphasis} from "./benchmark-consistency";
 // Pure data checks use Node assertions, avoiding tens of thousands of traced
 // Playwright expectation steps while retaining exact comparisons.
 
@@ -48,12 +49,15 @@ export function assertRealContract(report:Comparison){
 
 export async function assertTable(page:Page,report:Comparison,dataset:string){
  const table=page.getByTestId("comparison-table");await expect(table).toBeVisible();
- const cells=await table.locator("td[data-metric]").evaluateAll(nodes=>nodes.map(n=>({method:n.getAttribute("data-method"),metric:n.getAttribute("data-metric"),raw:n.getAttribute("data-raw-value")})));
+ const cells=await table.locator("td[data-metric]").evaluateAll(nodes=>nodes.map(n=>({method:n.getAttribute("data-method"),metric:n.getAttribute("data-metric"),raw:n.getAttribute("data-raw-value"),tone:n.getAttribute("data-tone"),best:n.getAttribute("data-best")})));
  assert.equal(cells.length,35);
  for(const cell of cells){const row=report.results.find(x=>x.dataset_id===dataset&&x.method_id===cell.method)!;assert.equal(cell.raw,metricString(row.metrics?.[cell.metric as MetricKey]),dataset+"/"+cell.method+"/"+cell.metric);}
  const methods=await table.locator("tbody tr").evaluateAll(nodes=>nodes.map(n=>n.getAttribute("data-method")));
  assert.equal(methods[0],report.candidate.id);assert.equal(new Set(methods).size,7);
- assert.equal(await table.locator("[data-best=true]").count(),0);
+ for(const key of displayedMetrics){
+  const expected=expectedEmphasis(methods.map(method=>metricNumber(report.results.find(row=>row.dataset_id===dataset&&row.method_id===method)?.metrics?.[key])),key);
+  methods.forEach((method,index)=>{const cell=cells.find(cell=>cell.method===method&&cell.metric===key)!;assert.equal(cell.tone,expected[index].tone,dataset+'/'+method+'/'+key+'/tone');assert.equal(cell.best,expected[index].best,dataset+'/'+method+'/'+key+'/best');});
+ }
  return cells.length;
 }
 
@@ -63,15 +67,19 @@ function axisPercent(value:number,key:string,min:number,max:number,scale:string)
  return Math.max(0,Math.min(100,position*100));
 }
 export async function assertScatter(page:Page,report:Comparison,dataset:string){
- const plot=page.getByTestId("comparison-scatter");await expect(plot).toBeVisible();
+ const plots=page.getByTestId("comparison-scatter");await expect(plots).toHaveCount(2);
+ assert.deepEqual(await plots.evaluateAll(nodes=>nodes.map(n=>n.getAttribute("data-x-key"))),["wall_seconds","max_rss_kib"]);
+ let count=0;
+ for(const plot of await plots.all()){
+ await expect(plot).toBeVisible();
  const meta=await plot.evaluate(n=>({x:n.getAttribute("data-x-key")!,y:n.getAttribute("data-y-key")!,xmin:Number(n.getAttribute("data-x-min")),xmax:Number(n.getAttribute("data-x-max")),ymin:Number(n.getAttribute("data-y-min")),ymax:Number(n.getAttribute("data-y-max")),xscale:n.getAttribute("data-x-scale")!,yscale:n.getAttribute("data-y-scale")!}));
- const points=await page.getByTestId("comparison-point").evaluateAll(nodes=>nodes.map(n=>({method:n.getAttribute("data-method"),x:n.getAttribute("data-x-raw"),y:n.getAttribute("data-y-raw"),shape:n.getAttribute("data-shape"),xp:Number(n.getAttribute("data-x-percent")),yp:Number(n.getAttribute("data-y-percent"))})));
+ const points=await plot.getByTestId("comparison-point").evaluateAll(nodes=>nodes.map(n=>({method:n.getAttribute("data-method"),x:n.getAttribute("data-x-raw"),y:n.getAttribute("data-y-raw"),shape:n.getAttribute("data-shape"),xp:Number(n.getAttribute("data-x-percent")),yp:Number(n.getAttribute("data-y-percent"))})));
  const eligible=report.results.filter(row=>row.dataset_id===dataset&&metricNumber(row.metrics?.[meta.x as MetricKey])!==null&&metricNumber(row.metrics?.[meta.y as MetricKey])!==null);
  assert.equal(points.length,eligible.length);
  for(const row of eligible){const point=points.find(p=>p.method===row.method_id)!;assert.ok(point,row.method_id);assert.equal(point.x,metricString(row.metrics?.[meta.x as MetricKey]),row.method_id+"/x");assert.equal(point.y,metricString(row.metrics?.[meta.y as MetricKey]),row.method_id+"/y");assert.equal(point.shape,row.method_id===report.candidate.id?"diamond":"circle",row.method_id);assert.ok(Math.abs(point.xp-axisPercent(metricNumber(row.metrics?.[meta.x as MetricKey])!,meta.x,meta.xmin,meta.xmax,meta.xscale))<.5e-7,row.method_id+"/x-coordinate");assert.ok(Math.abs(point.yp-axisPercent(metricNumber(row.metrics?.[meta.y as MetricKey])!,meta.y,meta.ymin,meta.ymax,meta.yscale))<.5e-7,row.method_id+"/y-coordinate");}
- const listed=await page.getByTestId("comparison-method").evaluateAll(nodes=>nodes.map(n=>n.getAttribute("data-method")));
- assert.equal(listed.length,7);assert.equal(listed[0],report.candidate.id);
- return eligible.length;
+ count+=eligible.length;
+ }
+ return count;
 }
 
 export async function assertMetricPlots(page:Page,report:Comparison,dataset:string){

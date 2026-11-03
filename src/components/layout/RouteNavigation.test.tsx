@@ -44,3 +44,21 @@ it("skip action focuses main without changing the hash route", () => {
   expect(document.getElementById("main-content")).toHaveFocus();
   expect(window.location.hash).toBe(previous);
 });
+
+it("keeps the report position for adjacent dataset selections but restores Back positions", () => {
+  function Datasets() {
+    const navigate = useNavigate();
+    return <><RouteNavigation /><Link to="/benchmark/datasets/b">Next dataset</Link>
+      <Link to="/benchmark/recent">Recent</Link><button onClick={() => navigate(-1)}>Back</button>
+      <main id="main-content" tabIndex={-1}><h1>Benchmark</h1></main></>;
+  }
+  render(<MemoryRouter initialEntries={["/benchmark/datasets/a"]}><Datasets /></MemoryRouter>);
+  setScroll(380); fireEvent.scroll(window); scroll.mockClear();
+  fireEvent.click(screen.getByRole("link", { name: "Next dataset" }));
+  expect(scroll).not.toHaveBeenCalled();
+  setScroll(520); fireEvent.scroll(window);
+  fireEvent.click(screen.getByRole("button", { name: "Back" }));
+  expect(scroll).toHaveBeenLastCalledWith({ top: 380, behavior: "instant" });
+  fireEvent.click(screen.getByRole("link", { name: "Recent" }));
+  expect(scroll).toHaveBeenLastCalledWith({ top: 0, behavior: "instant" });
+});

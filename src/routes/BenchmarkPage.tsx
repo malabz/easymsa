@@ -1,6 +1,6 @@
 import { ExperimentDetails } from "../features/benchmark/ExperimentDetails";
 import { useEffect, useRef, useState } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams, Link, Navigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { PageContainer } from "../components/layout/PageContainer";
 import { useLanguage } from "../lib/i18n/useLanguage";
@@ -49,6 +49,11 @@ export function BenchmarkPage() {
     [...Object.keys(emptyFilters), "methods"].forEach(key => next.delete(key)); commit(next);
   };
   if (!data) return <PageContainer className="benchmark-page benchmark-explorer"><LoadState failed={failed} retry={retry} locale={locale}/></PageContainer>;
+  if (query.get("view") !== "matrix") {
+    const candidates = displaySelection(data,currentResultScope,query).datasets;
+    const selected = candidates.find(dataset=>dataset.id===query.get("dataset")) ?? candidates.find(dataset=>dataset.id==="rna_255") ?? candidates[0];
+    if (selected) return <Navigate replace to={`/benchmark/datasets/${selected.id}?${query.toString()}`}/>;
+  }
   const scope = currentResultScope;
   const selection = displaySelection(data, scope, query);
   const {datasets, methods, availableMethods, filters, visibleRecords, records} = selection;
@@ -58,6 +63,7 @@ export function BenchmarkPage() {
   const memoryFailures = results.filter(result => result.status === "failed" && result.reason_code === "oom").length;
   const allSources = uniqueSources(records);
   const active = new URLSearchParams(query); active.set("metric", metricKey);
+  active.set("view","matrix");
   const returnTo = "/benchmark?" + active.toString();
   const invalidRange = filters.min !== "" && filters.max !== "" && Number(filters.min) > Number(filters.max);
   const filteredSnapshot = {...data, methods};

@@ -32,6 +32,10 @@ export function RouteNavigation() {
     if (positions.current.size > 100) positions.current.delete(positions.current.keys().next().value!);
     previous.current = { key: location.key, pathname: location.pathname };
     if (from.pathname === location.pathname) return;
+    // A dataset selection changes the report inside the same workspace. Keep
+    // the reading position and keyboard focus; Back still restores history.
+    const datasetRoute = /^\/benchmark\/datasets\/[^/]+$/;
+    if (navigationType !== "POP" && datasetRoute.test(from.pathname) && datasetRoute.test(location.pathname)) return;
 
     const top = navigationType === "POP" ? positions.current.get(location.key) ?? 0 : 0;
     const main = document.getElementById("main-content");

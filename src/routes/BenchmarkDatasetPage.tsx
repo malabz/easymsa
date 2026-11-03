@@ -8,8 +8,8 @@ import { PageContainer } from "../components/layout/PageContainer";
 import { useLanguage } from "../lib/i18n/useLanguage";
 import { metricKeys, type MetricKey } from "../features/benchmark/model";
 import { useBenchmark } from "../features/benchmark/useBenchmark";
-import { displayMetricKey, displayMetricKeys, metricSpecs, metricValue, metricEmphasis, selectMetricRows } from "../features/benchmark/metrics";
-import { MetricPlots } from "../features/benchmark/MetricPlots";
+import { displayMetricKey, displayMetricKeys, metricSpecs, metricValue,isBenchmarkFailure,isMetricFailure, metricEmphasis, selectMetricRows } from "../features/benchmark/metrics";
+import { BenchmarkReadingControls } from "../features/benchmark/BenchmarkReading";
 import { BenchmarkSidebar } from "../features/benchmark/BenchmarkSidebar";
 import { BenchmarkNavigation } from "../features/benchmark/BenchmarkNavigation";
 import { TradeoffPlot } from "../features/benchmark/TradeoffPlot";
@@ -50,12 +50,15 @@ export function BenchmarkDatasetPage() {
   const next = index >= 0 ? navigation[index+1] : undefined;
   const backQuery = new URLSearchParams(params);
   ["returnTo","chart","x","y","scale","zoom","method","sp","timeScale","memoryScale","plotZoom"].forEach(key => backQuery.delete(key));
+  backQuery.set("view","matrix");
   const returnTo = "/benchmark" + (backQuery.size ? "?" + backQuery.toString() : "");
   const destination = (id: string) => {
     const next = new URLSearchParams(params); next.delete("y");
     return `/benchmark/datasets/${encodeURIComponent(id)}?${next.toString()}`;
   };
-  const chart = ["tradeoff","metrics","table"].includes(params.get("chart") ?? "") ? params.get("chart")! : "tradeoff";
+  const requestedY = displayMetricKey(params.get("y") as MetricKey);
+  const hasQ = rows.some(row=>metricValue(row.result?.metrics.q)!==null);
+  const quality:MetricKey = ["q","tc","scaled_sp"].includes(requestedY)&&(dataset.reference||requestedY==="scaled_sp")?requestedY:dataset.reference&&hasQ?"q":"scaled_sp";
   const metricKey = metricKeys.includes(params.get("metric") as MetricKey) ? displayMetricKey(params.get("metric") as MetricKey) : "wall_seconds";
   return <PageContainer className="benchmark-page benchmark-detail-v2 benchmark-reading-v3 benchmark-studio">
     <BenchmarkNavigation/>
@@ -68,12 +71,13 @@ export function BenchmarkDatasetPage() {
       </div>
     </header>
     <section aria-labelledby="dataset-comparison-heading">
-      <div className="benchmark-view-controls"><h2 id="dataset-comparison-heading" className="sr-only">{words(locale,"Method comparison","方法对比")}</h2><div className="benchmark-view-tabs" role="group" aria-label={words(locale,"Result view","结果视图")}>{[["tradeoff","Trade-off","速度—质量"],["metrics","Metric plots","分项指标"],["table","Values","数值表"]].map(([id,en,zh]) => <button type="button" key={id} aria-pressed={chart === id} onClick={() => patch({chart:id})}>{words(locale,en,zh)}</button>)}</div><div className="benchmark-detail-controls"><MethodFilter methods={selection.availableMethods} selected={selection.methods.map(m => m.id)} onChange={value => patch({methods:value})} locale={locale}/></div></div>
+      <h2 id="dataset-comparison-heading" className="sr-only">{words(locale,"Method comparison","方法对比")}</h2>
       {!selection.methods.length && <p role="status" className="benchmark-empty">{words(locale,"Choose a method to view results.","选择方法以查看成绩。")}</p>}
-      <div hidden={chart !== "tradeoff"}><TradeoffPlot snapshot={filteredSnapshot} scope={scope} dataset={dataset} locale={locale} params={params} onParamsChange={patch}/></div>
-      <div hidden={chart !== "metrics"}><MetricPlots snapshot={filteredSnapshot} scope={scope} dataset={dataset} locale={locale} selectedMetric={metricKey} selectedMethod={params.get("method") ?? undefined} params={params} onParamsChange={patch}/></div>
-      {chart === "table" && <ComparisonLegend locale={locale}/>}
-      <div hidden={chart !== "table"} className="benchmark-detail-precise" data-testid="precise-results"><div tabIndex={0} role="region" aria-label={words(locale,"Scrollable method comparison","可横向滚动的方法对比")} className="benchmark-table-scroll"><table className="benchmark-table"><caption className="sr-only">{words(locale,"Method results for ","方法成绩：")}{datasetName(dataset,locale)}</caption><thead><tr><th scope="col">{words(locale,"Method","方法")}</th><th scope="col">{words(locale,"State","状态")}</th><th scope="col">{words(locale,"Valid repeats","有效重复")}</th>{displayMetricKeys.map(key => <th key={key} scope="col">{metricSpecs[key][locale]}{metricSpecs[key].unit ? ` (${metricSpecs[key].unit})` : ""}</th>)}</tr></thead><tbody>{rows.map((row,index) => <tr key={row.method.id} data-method={row.method.id}><th scope="row">{row.method.name}</th><td>{row.outsideBatch ? stateLabel("outside_batch",locale) : row.result?.reason_code ? reasonLabel(row.result.reason_code,locale) : stateLabel(row.result?.status ?? "not_run",locale)}</td><td>{row.result ? `${row.result.valid_repeats}/${row.result.planned_repeats}` : "—"}</td>{displayMetricKeys.map(key => <td key={key} className="benchmark-emphasis" data-tone={emphasis.get(key)![index].tone} data-best={emphasis.get(key)![index].best} data-heat={emphasis.get(key)![index].strength ?? ""} data-method={row.method.id} data-metric={key} data-batch-id={row.batch?.id ?? ""} data-raw-value={metricValue(row.result?.metrics[key]) ?? ""}>{row.outsideBatch ? stateLabel("outside_batch",locale) : <MetricCell metric={row.result?.metrics[key]} metricKey={key} locale={locale} noReference={!dataset.reference && ["q","tc"].includes(key)}/>}</td>)}</tr>)}</tbody></table></div></div>
+      <div className="benchmark-report-toolbar"><BenchmarkReadingControls locale={locale} quality={quality} reference={Boolean(dataset.reference)} params={params} patch={patch}/><MethodFilter methods={selection.availableMethods} selected={selection.methods.map(m => m.id)} onChange={value => patch({methods:value})} locale={locale}/></div>
+      <div className="benchmark-report-plots" data-testid="benchmark-report-plots"><TradeoffPlot snapshot={filteredSnapshot} scope={scope} dataset={dataset} locale={locale} params={params} onParamsChange={patch} fixedX="wall_seconds" embedded/><TradeoffPlot snapshot={filteredSnapshot} scope={scope} dataset={dataset} locale={locale} params={params} onParamsChange={patch} fixedX="max_rss_kib" embedded/></div>
+      <h3 className="benchmark-report-values-heading">{words(locale,"All metrics","完整指标")}</h3>
+      <ComparisonLegend locale={locale}/>
+      <div className="benchmark-detail-precise benchmark-report-table" data-testid="precise-results"><div tabIndex={0} role="region" aria-label={words(locale,"Scrollable method comparison","可横向滚动的方法对比")} className="benchmark-table-scroll"><table className="benchmark-table" data-single-observation={rows.every(row=>(row.result?.planned_repeats??1)===1)}><caption className="sr-only">{words(locale,"Method results for ","方法成绩：")}{datasetName(dataset,locale)}</caption><thead><tr><th scope="col">{words(locale,"Method","方法")}</th><th scope="col">{words(locale,"State","状态")}</th><th scope="col">{words(locale,"Valid repeats","有效重复")}</th>{displayMetricKeys.map(key => <th key={key} scope="col">{metricSpecs[key][locale]}{metricSpecs[key].unit ? ` (${metricSpecs[key].unit})` : ""}</th>)}</tr></thead><tbody>{rows.map((row,index) => <tr key={row.method.id} data-method={row.method.id}><th scope="row">{row.method.name}</th><td data-failure={!row.outsideBatch && isBenchmarkFailure(row.result?.status,row.result?.reason_code?[row.result.reason_code]:[])}>{row.outsideBatch ? stateLabel("outside_batch",locale) : row.result?.reason_code ? reasonLabel(row.result.reason_code,locale) : stateLabel(row.result?.status ?? "not_run",locale)}</td><td>{row.result ? `${row.result.valid_repeats}/${row.result.planned_repeats}` : "—"}</td>{displayMetricKeys.map(key => <td key={key} className="benchmark-emphasis" data-tone={emphasis.get(key)![index].tone} data-best={emphasis.get(key)![index].best} data-heat={emphasis.get(key)![index].strength ?? ""} data-method={row.method.id} data-metric={key} data-failure={!row.outsideBatch && isMetricFailure(row.result?.metrics[key],row.result?.status,row.result?.reason_code)} data-batch-id={row.batch?.id ?? ""} data-raw-value={metricValue(row.result?.metrics[key]) ?? ""}>{row.outsideBatch ? stateLabel("outside_batch",locale) : <MetricCell metric={row.result?.metrics[key]} metricKey={key} locale={locale} noReference={!dataset.reference && ["q","tc"].includes(key)}/>}</td>)}</tr>)}</tbody></table></div></div>
     </section>
 
     <ExperimentDetails snapshot={data} batches={sources} dataset={dataset} locale={locale}/>

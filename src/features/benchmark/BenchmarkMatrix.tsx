@@ -1,3 +1,4 @@
+import {isBenchmarkFailure,isMetricFailure} from "./metrics";
 import { datasetName, datasetFamily } from "./names";
 import { Fragment, useEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
@@ -125,7 +126,7 @@ export function BenchmarkMatrix({ snapshot, batch, datasets, metricKey, locale, 
                     version: row.spec?.version ?? (batch ? stateLabel("outside_batch", locale) : words(locale, "Version pending", "版本待确认"))});
                 };
                 return <td key={row.method.id}><Link to={detailHref(dataset.id, row.method.id)} onClick={savePosition} className={`benchmark-emphasis benchmark-matrix-cell${available ? "" : " is-unavailable"}`}
-                  data-tone={tone} data-best={best}
+                  data-failure={!row.outsideBatch && isMetricFailure(row.metric,row.result?.status,row.result?.reason_code)} data-tone={tone} data-best={best}
                   data-testid="matrix-cell" data-batch-id={row.batch?.id ?? ""} data-dataset-id={dataset.id} data-method-id={row.method.id} data-metric={metricKey} data-raw-value={row.raw ?? ""} data-display-value={row.display ?? ""} data-state={row.outsideBatch ? "outside_batch" : row.metric?.status ?? "not_run"} data-heat={strength ?? ""}
                   aria-label={`${datasetName(dataset,locale)} · ${row.method.name} · ${spec[locale]}: ${value}${available && spec.unit ? " " + spec.unit : ""}`}
                   aria-describedby={tooltip?.id === id ? "benchmark-cell-tooltip" : undefined}

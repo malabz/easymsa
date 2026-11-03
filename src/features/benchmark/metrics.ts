@@ -32,6 +32,16 @@ export function metricValue(metric?: BenchmarkMetric): number | null {
   return value !== null && Number.isFinite(value) ? value : null;
 }
 
+/** Missing data is neutral; execution and scoring failures are errors. */
+export function isBenchmarkFailure(status?:string,reasons:readonly string[]=[]):boolean {
+  return status === "failed" || status === "timeout" || reasons.some(reason =>
+    ["timeout","oom","execution_failed","invalid_output","scoring_failed","platform_error","reference_invalid"].includes(reason));
+}
+export function isMetricFailure(metric?:BenchmarkMetric,status?:string,reason?:string|null):boolean {
+  if (metricValue(metric)!==null || metric?.status==="not_applicable" || metric?.reason_codes.includes("no_reference")) return false;
+  return isBenchmarkFailure(status,[...(metric?.reason_codes??[]),...(reason?[reason]:[])]);
+}
+
 export function toDisplayValue(key: MetricKey, raw: number): number {
   return key === "max_rss_kib" ? raw / 1024 : raw;
 }

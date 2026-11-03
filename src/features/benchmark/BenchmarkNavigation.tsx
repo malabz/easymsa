@@ -2,6 +2,7 @@ import {Check,ChevronRight} from "lucide-react";
 import {Link,useLocation} from "react-router-dom";
 import {useLanguage} from "../../lib/i18n/useLanguage";
 import "./workflow.css";
+import "./report.css";
 
 /** One navigation model for public results, submissions, examples and saved runs. */
 export function BenchmarkNavigation(){

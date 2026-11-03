@@ -57,14 +57,11 @@ test("a clear entry lets visitors try the example and return to an intact form",
   await page.getByRole("link",{name:"Try MSA-Kit",exact:true}).click();
   await page.getByRole("button",{name:"Try evaluation",exact:true}).click();
   await expect(page.getByTestId("comparison-root")).toHaveAttribute("data-dataset-id","rna_255");
-  await page.getByRole("button",{name:"Metrics",exact:true}).click();
-  if(info.project.name.includes("mobile")){
-    await expect(page.getByLabel("Displayed metric",{exact:true})).toBeVisible();await page.getByLabel("Displayed metric",{exact:true}).selectOption("max_rss_kib");
-    await expect(page.locator('[data-testid="comparison-metric-plot"]:visible')).toHaveCount(1);await expect(page.locator('[data-testid="comparison-metric-plot"]:visible')).toHaveAttribute("data-metric","max_rss_kib");
-  }
-  const memory=page.locator(`[data-testid="comparison-metric-value"][data-method="${candidate.id}"][data-metric="max_rss_kib"]`);
-  const reportedMemory=comparison.results.find((row:any)=>row.dataset_id==="rna_255"&&row.method_id===candidate.id).metrics.max_rss_kib;expect(await memory.getAttribute("data-raw-value")).toBe(String(reportedMemory.value??reportedMemory.mean));
-  await page.getByRole("button",{name:"Trade-off",exact:true}).click();
+  await expect(page.getByTestId("comparison-scatter")).toHaveCount(2);
+  const table=page.getByTestId("comparison-table");await expect(table).toBeVisible();
+  const memory=table.locator(`[data-method="${candidate.id}"][data-metric="max_rss_kib"]`);
+  const reportedMemory=comparison.results.find((row:any)=>row.dataset_id==="rna_255"&&row.method_id===candidate.id).metrics.max_rss_kib;
+  expect(await memory.getAttribute("data-raw-value")).toBe(String(reportedMemory.value??reportedMemory.mean));
   expect(mutations).toEqual([]);
   await page.getByRole("button",{name:"Switch language",exact:true}).click();await settle(page);
   await page.screenshot({path:info.outputPath("guided-example-zh.png"),fullPage:true});
@@ -86,13 +83,13 @@ test("submission progresses to a real-data comparison with secondary recovery co
   stage="building";await expect(page.locator(".private-progress [role=status]")).toHaveText("Building",{timeout:10000});
   await expect(page.getByText("Your evaluation runs in the background. Find it again in Recent evaluations.")).toBeVisible();
   stage="completed";await expect(page.getByTestId("comparison-root")).toBeVisible({timeout:15000});
-  await expect(page.getByTestId("comparison-scatter")).toHaveAttribute("data-y-key","q");
+  await expect(page.getByTestId("comparison-scatter").first()).toHaveAttribute("data-y-key","q");
   await expect(page.getByRole("progressbar")).toHaveCount(0);
   await expect(page.getByRole("button",{name:"Save recovery file",exact:true})).not.toBeVisible();
   await page.locator(".benchmark-save-menu > summary").click();await expect(page.getByRole("button",{name:"Save recovery file",exact:true})).toBeVisible();
   await page.locator(".benchmark-save-menu > summary").press("Escape");await expect(page.locator(".benchmark-save-menu")).not.toHaveAttribute("open");
   await page.getByRole("button",{name:"My results",exact:true}).click();await expect(page.getByTestId("private-results-table")).toBeVisible();
-  await page.getByRole("button",{name:"Compare methods",exact:true}).click();await expect(page.getByTestId("comparison-scatter")).toBeVisible();
+  await page.getByRole("button",{name:"Compare methods",exact:true}).click();await expect(page.getByTestId("comparison-scatter").first()).toBeVisible();
   expect(mutations).toEqual(["/api/benchmark/client","/api/benchmark/submissions"]);
   await settle(page);await page.screenshot({path:info.outputPath("guided-completed-task-en.png"),fullPage:true});
 });

@@ -1,0 +1,81 @@
+/* One reading surface. Tables grow with the document; only wide columns scroll. */
+.benchmark-report-plots { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:28px; margin:4px 0 24px; }
+.benchmark-report-controls { display:flex; align-items:center; flex-wrap:wrap; gap:12px 22px; padding:12px 0; margin-bottom:8px; }
+.benchmark-report-controls label { display:flex; align-items:center; gap:8px; font-size:13px; color:#475569; min-height:44px; }
+.benchmark-report-controls select { border:1px solid #cbd5e1; border-radius:5px; min-height:44px; padding:6px 10px; background:#fff; color:#0f172a; font-size:13px; }
+.benchmark-report-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 20px; }
+.benchmark-workflow .comparison-toolbar { flex-wrap:wrap; margin-bottom:8px; }
+.benchmark-report-toolbar .benchmark-report-controls,.comparison-toolbar .benchmark-report-controls { margin:0; }
+#main-content .benchmark-studio .benchmark-detail-header { padding-bottom:4px; }
+#main-content .benchmark-studio .benchmark-detail-titleline h1 { font-size:26px; margin:4px 0; }
+#main-content .benchmark-studio .benchmark-detail-titleline>div:first-child>p { font-size:14px; margin:4px 0; }
+#main-content .benchmark-studio .benchmark-detail-topline { margin-bottom:4px; }
+.benchmark-report-toolbar .benchmark-method-filter { margin-left:auto; }
+.benchmark-workflow .comparison-method-filter { margin-left:auto; }
+.benchmark-workflow .comparison-method-filter>div { max-width:calc(100vw - 36px); }
+.benchmark-navigation a { transition:color .15s ease,border-color .15s ease; }
+.benchmark-report-zoom input { min-height:0; width:16px; height:16px; accent-color:#0f766e; }
+.benchmark-report-plots h3 { font-size:15px; font-weight:600; margin:0 0 6px; color:#0f172a; }
+.benchmark-report-plots .tradeoff-layout,.benchmark-report-plots .comparison-scatter-layout { display:block; }
+.benchmark-report-plots .tradeoff-responsive { padding:0; }
+.benchmark-report-plots .tradeoff-chart-column,.benchmark-report-plots .comparison-chart-column { min-width:0; }
+.benchmark-report-plots .tradeoff-figure { margin:0; }
+.benchmark-report-plots .tradeoff-figure figcaption,.benchmark-report-plots .comparison-axis-caption { font-size:12px; min-height:28px; margin:0; }
+.benchmark-report-plots .comparison-direction,.benchmark-report-plots .tradeoff-direction { margin:0 0 12px; font-size:12px; }
+#main-content .benchmark-report-plots .comparison-axis-caption small,
+#main-content .benchmark-report-plots .comparison-direction span { font-size:12px; }
+.benchmark-report-plots .comparison-plot-inset { padding-top:6px; }
+.benchmark-report-plots .comparison-x-title { margin-bottom:0; }
+.benchmark-report-plots .tradeoff-point-popup { position:fixed; }
+.benchmark-report-plots .tradeoff-direct-label,.benchmark-report-plots .comparison-point-label { font-size:12px; }
+.benchmark-report-values-heading { font-size:15px; font-weight:600; margin:14px 0 10px; }
+.benchmark-report-values-heading + .benchmark-matrix-key { padding:0 0 10px; }
+.benchmark-report-table .comparison-values { font-size:13px; table-layout:fixed; min-width:850px; }
+.benchmark-report-table .comparison-values th,.benchmark-report-table .comparison-values td { padding:11px 8px; }
+.benchmark-report-table .comparison-values th:first-child { width:150px; white-space:normal; }
+.benchmark-report-table .comparison-values th:nth-child(2) { width:96px; }
+.benchmark-report-table .comparison-values th:last-child { width:155px; }
+.benchmark-report-table .comparison-values thead th { font-size:12px; }
+.benchmark-report-table .comparison-values td:last-child { font-size:12px; white-space:normal; }
+.benchmark-report-table .comparison-values .candidate td:last-child { color:#475569; }
+.benchmark-report-table .comparison-values td[data-metric] { white-space:nowrap; }
+#main-content .benchmark-report-table td[data-metric] { text-align:right; font-variant-numeric:tabular-nums; }
+#main-content .benchmark-report-table .benchmark-table thead th:nth-child(n+4) { text-align:right; }
+.benchmark-report-table .comparison-values .candidate th { border-left:3px solid #0f766e; }
+.benchmark-report-table td.benchmark-emphasis[data-tone="neutral"] { background:#f4f6f5; color:#16312e; }
+.benchmark-report-table td.benchmark-emphasis[data-tone="0"] { background:#f0f6f3; color:#16312e; }
+.benchmark-report-table td.benchmark-emphasis[data-tone="1"] { background:#dcece7; color:#16312e; }
+.benchmark-report-table td.benchmark-emphasis[data-tone="2"] { background:#b7d9ce; color:#16312e; }
+.benchmark-report-table td.benchmark-emphasis[data-tone="3"] { background:#327b6d; color:#fff; }
+.benchmark-report-table td.benchmark-emphasis[data-tone="4"] { background:#0f766e; color:#fff; }
+.benchmark-report-table td.benchmark-emphasis[data-best="true"] { font-weight:700; }
+.benchmark-report-table .comparison-values td[data-tone="3"],.benchmark-report-table .comparison-values td[data-tone="4"] { color:white; }
+.benchmark-studio .benchmark-matrix-scroll { max-height:none; overflow-x:auto; overflow-y:hidden; }
+.benchmark-matrix-scroll,.benchmark-table-scroll,.comparison-table-scroll,.private-result-scroll { overscroll-behavior-x:contain; }
+/* CSS overflow-x creates a scroll container on both axes. Natural block height
+   prevents a second vertical scroller, without intercepting wheel/touch events. */
+.benchmark-table-scroll,.comparison-table-scroll { overflow-x:auto; overflow-y:hidden; max-height:none; }
+.benchmark-report-context { font-size:12px; color:#64748b; line-height:1.6; margin:10px 0; }
+/* Error colour overrides only failed states and missing failed measurements. */
+#main-content :is(.benchmark-studio,.benchmark-workflow) [data-failure="true"] {
+  color:#b91c1c; background:#fef2f2; font-weight:600;
+}
+#main-content :is(.benchmark-studio,.benchmark-workflow) [data-failure="true"] .private-result-status { color:inherit; }
+@media(max-width:1100px) {
+  .benchmark-report-plots { gap:20px; }
+}
+@media(max-width:700px) {
+  .benchmark-report-plots { grid-template-columns:minmax(0,1fr); gap:24px; }
+  .benchmark-report-controls { gap:8px 14px; padding-top:4px; }
+  .benchmark-report-controls label { font-size:12px; }
+  .benchmark-report-controls select { max-width:150px; }
+  .benchmark-report-table .comparison-values th:first-child { width:130px; }
+  #main-content .benchmark-report-table .benchmark-table :is(th,td):first-child { width:120px; min-width:120px; max-width:120px; white-space:normal; }
+  #main-content .benchmark-report-table .benchmark-table :is(th,td):nth-child(2) { min-width:64px; padding-inline:8px; }
+  #main-content .benchmark-report-table .benchmark-table[data-single-observation="true"] :is(th,td):nth-child(3) { display:none; }
+  #main-content .benchmark-studio .benchmark-detail-titleline h1 { font-size:24px; }
+  #main-content .benchmark-studio .benchmark-compact-filters { grid-template-columns:repeat(auto-fit,minmax(min(100%,10rem),1fr)); }
+  #main-content .benchmark-studio .benchmark-compact-filters summary { flex-wrap:wrap; gap:4px 8px; }
+  #main-content .benchmark-studio .benchmark-compact-filters summary>span { min-width:0; overflow-wrap:anywhere; }
+}
+@media(prefers-reduced-motion:reduce) { .benchmark-navigation a { transition:none; } }

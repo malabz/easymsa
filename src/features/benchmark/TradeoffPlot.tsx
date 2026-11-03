@@ -9,6 +9,7 @@ import "./tradeoff.css";
 type Props = {
   snapshot: BenchmarkSnapshot; batch?: BenchmarkBatch; scope: ResultScope; dataset: BenchmarkDataset; locale: Locale;
   params: URLSearchParams; onParamsChange: (patch: Record<string, string>) => void;
+  fixedX?: "wall_seconds" | "max_rss_kib"; embedded?: boolean;
 };
 const qualityKeys: MetricKey[] = ["q", "tc", "scaled_sp"];
 const bounded = (n: number) => Math.min(100, Math.max(0, n));
@@ -90,8 +91,8 @@ function interval(metric?: BenchmarkMetric): [number, number] | null {
   return null;
 }
 
-export function TradeoffPlot({ snapshot, batch, scope, dataset, locale, params, onParamsChange }: Props) {
-  const xKey: MetricKey = params.get("x") === "max_rss_kib" ? "max_rss_kib" : "wall_seconds";
+export function TradeoffPlot({ snapshot, batch, scope, dataset, locale, params, onParamsChange, fixedX, embedded = false }: Props) {
+  const xKey: MetricKey = fixedX ?? (params.get("x") === "max_rss_kib" ? "max_rss_kib" : "wall_seconds");
   const requestedY = displayMetricKey(params.get("y") as MetricKey);
   const hasQ = dataset.reference && selectMetricRows(snapshot,batch,dataset.id,"q",scope).some(row => row.raw !== null);
   const yKey: MetricKey = qualityKeys.includes(requestedY) && (dataset.reference || !["q", "tc"].includes(requestedY)) ? requestedY : hasQ ? "q" : "scaled_sp";
@@ -106,7 +107,7 @@ export function TradeoffPlot({ snapshot, batch, scope, dataset, locale, params, 
   const yAxis = makeMetricAxis(yKey, valid.map(row => row.yMetric), {zoom:isQuality && params.get("zoom") === "1"});
   const [width, setWidth] = useState(560);
   const [labelFontSize, setLabelFontSize] = useState(12);
-  const plotHeight = tradeoffPlotHeight(valid.length,labelFontSize);
+  const plotHeight = embedded ? Math.max(250,Math.ceil(valid.length * (labelFontSize * 1.5 + 12) + 24)) : tradeoffPlotHeight(valid.length,labelFontSize);
   const xTicks = selectTradeoffXTicks(xAxis,xKey,locale,width,labelFontSize);
   const yTicks = yAxis.ticks.length > 5 ? [yAxis.ticks[0], yAxis.ticks[Math.floor(yAxis.ticks.length / 2)], yAxis.ticks[yAxis.ticks.length - 1]] : yAxis.ticks;
   const xLabels = formatAxisTicks(xTicks, xKey, locale);
@@ -144,12 +145,12 @@ export function TradeoffPlot({ snapshot, batch, scope, dataset, locale, params, 
   const status = (row:typeof rows[number]) => row.outsideBatch ? stateLabel("outside_batch", locale) : row.result?.reason_code ? reasonLabel(row.result.reason_code, locale) : row.x === null || row.y === null ? [row.metric, row.yMetric].flatMap(metric => metric?.reason_codes ?? []).map(reason => reasonLabel(reason, locale)).join(" · ") || stateLabel("unavailable", locale) : stateLabel(row.result?.status ?? "not_run", locale);
   const axes = `${metricSpecs[xKey][locale]} (${metricSpecs[xKey].unit}) / ${metricSpecs[yKey][locale]}`;
   const rangeLabel = isQuality ? params.get("zoom") === "1" ? `${words(locale,"Zoomed range","局部范围")} ${formatAxisTicks([yAxis.min,yAxis.max],yKey,locale).join("–")}` : "0–1" : words(locale,"Dataset range · linear","本数据集范围 · 线性");
-  return <section className="tradeoff" aria-label={words(locale, "Resource and quality comparison", "资源与质量比较")}>
+  return <section className="tradeoff" aria-label={embedded ? `${metricSpecs[xKey][locale]} / ${metricSpecs[yKey][locale]}` : words(locale, "Resource and quality comparison", "资源与质量比较")}>
     <div className="tradeoff-responsive">
     <div className="tradeoff-layout">
-      <div className="tradeoff-chart-column">
+      <div className="tradeoff-chart-column">{embedded && <h3>{metricSpecs[xKey][locale]} · {metricSpecs[yKey][locale]}</h3>}
       <figure className="tradeoff-figure" data-testid="tradeoff-chart" data-x-key={xKey} data-y-key={yKey} data-x-min={xAxis.min} data-x-max={xAxis.max} data-x-scale={xAxis.scale} data-y-min={yAxis.min} data-y-max={yAxis.max} data-y-scale={yAxis.scale} data-y-divisor={yPresentation.divisor} aria-label={axes}>
-        <figcaption><span className="tradeoff-axis-summary">{metricSpecs[yKey][locale]}{yPresentation.unit && <span className="benchmark-score-unit"> ({yPresentation.unit})</span>} ↑ <span>{rangeLabel}</span></span>{isQuality && <label className="tradeoff-zoom"><input type="checkbox" aria-label={words(locale,"Zoom Q / TC differences","放大 Q / TC 差异")} checked={params.get("zoom") === "1"} onChange={e => onParamsChange({zoom:e.target.checked ? "1" : ""})} /><span>{words(locale,"Zoom differences","放大差异")}</span></label>}</figcaption>
+        <figcaption><span className="tradeoff-axis-summary">{metricSpecs[yKey][locale]}{yPresentation.unit && <span className="benchmark-score-unit"> ({yPresentation.unit})</span>} ↑ <span>{rangeLabel}</span></span>{!embedded && isQuality && <label className="tradeoff-zoom"><input type="checkbox" aria-label={words(locale,"Zoom Q / TC differences","放大 Q / TC 差异")} checked={params.get("zoom") === "1"} onChange={e => onParamsChange({zoom:e.target.checked ? "1" : ""})} /><span>{words(locale,"Zoom differences","放大差异")}</span></label>}</figcaption>
         {valid.length > 0 && <p className="tradeoff-direction" data-testid="tradeoff-direction"><ArrowUpLeft size={20} aria-hidden="true"/><strong>{words(locale,"Upper left is better","左上更优")}</strong><span>· {words(locale,xKey === "max_rss_kib" ? "Less memory" : "Faster",xKey === "max_rss_kib" ? "更省内存" : "更快")} · {words(locale,`Higher ${metricSpecs[yKey].en}`,`${metricSpecs[yKey].zh} 更高`)}</span></p>}
         <div className="tradeoff-plot-area" style={{paddingLeft:yGutter}}>
           <div ref={plane} className="tradeoff-plane" style={{height:plotHeight}}>
@@ -164,7 +165,7 @@ export function TradeoffPlot({ snapshot, batch, scope, dataset, locale, params, 
               return <div key={row.method.id} className={active === row.method.id ? "tradeoff-mark is-active" : "tradeoff-mark"}>
                 {xRange && <span className="tradeoff-range x" data-testid="tradeoff-x-range" style={{left:`${bounded(xAxis.position(xRange[0]))}%`, width:`${bounded(xAxis.position(xRange[1])) - bounded(xAxis.position(xRange[0]))}%`, top:`${100-y}%`}} />}
                 {yRange && <span className="tradeoff-range y" data-testid="tradeoff-y-range" style={{left:`${x}%`, top:`${100 - bounded(yAxis.position(yRange[1]))}%`, height:`${bounded(yAxis.position(yRange[1])) - bounded(yAxis.position(yRange[0]))}%`}} />}
-                <button type="button" className="tradeoff-point" data-testid="tradeoff-point" data-method={row.method.id} data-batch-id={row.batch?.id} data-shape="circle" data-x-raw={row.x!} data-y-raw={row.y!} data-x-percent={x} data-y-percent={y} style={{left:`${x}%`, top:`${100-y}%`}}
+                <button type="button" aria-pressed={active === row.method.id} className="tradeoff-point" data-testid="tradeoff-point" data-method={row.method.id} data-batch-id={row.batch?.id} data-shape="circle" data-x-raw={row.x!} data-y-raw={row.y!} data-x-percent={x} data-y-percent={y} style={{left:`${x}%`, top:`${100-y}%`}}
                   aria-label={`${row.method.name}: ${formatMetricSummary(row.metric,xKey,locale)} ${metricSpecs[xKey].unit}; ${metricSpecs[yKey][locale]} ${formatMetricSummary(row.yMetric,yKey,locale)}; `} aria-describedby={showDetails && active === row.method.id ? "tradeoff-description" : undefined}
                   onMouseEnter={() => { if (interaction.current === "pointer") choose(row.method.id); }} onPointerMove={() => { interaction.current = "pointer"; choose(row.method.id); }} onFocus={() => { interaction.current = "focus"; choose(row.method.id); }} onClick={event => { interaction.current = event.detail === 0 ? "focus" : "pointer"; onParamsChange({method:row.method.id}); choose(row.method.id); }}><i className="tradeoff-marker circle" aria-hidden="true" /></button>
                 <span className="tradeoff-direct-label" style={{left:label.x, top:label.y, maxWidth:label.width}}>{row.method.name}</span>
@@ -178,13 +179,13 @@ export function TradeoffPlot({ snapshot, batch, scope, dataset, locale, params, 
         <p className="tradeoff-x-title">{metricSpecs[xKey][locale]} ({metricSpecs[xKey].unit}) ↓ · {xAxis.scale === "log" ? words(locale,"Log scale","对数刻度") : words(locale,"Linear scale","线性刻度")}</p>
         {xAxis.zeroFallback && <p className="tradeoff-note">{words(locale, "Non-positive value or interval: linear axis used.", "数值或区间含非正值：已采用线性轴。")}</p>}
       </figure>
-      <div className="tradeoff-controls">
+      {!embedded && <div className="tradeoff-controls">
         <label><span aria-hidden="true">{words(locale,"X axis","X 轴")}</span><select aria-label={words(locale,"Horizontal axis","横轴指标")} value={xKey} onChange={e => onParamsChange({x:e.target.value})}><option value="wall_seconds">{metricSpecs.wall_seconds[locale]} (s)</option><option value="max_rss_kib">{metricSpecs.max_rss_kib[locale]} (MiB)</option></select></label>
         <label><span aria-hidden="true">{words(locale,"Y axis","Y 轴")}</span><select aria-label={words(locale,"Vertical axis","纵轴指标")} value={yKey} onChange={e => onParamsChange({y:e.target.value})}>{qualityKeys.map(key => <option key={key} value={key} disabled={!dataset.reference && (key === "q" || key === "tc")}>{metricSpecs[key][locale]}{!dataset.reference && (key === "q" || key === "tc") ? words(locale," · no reference"," · 无参考") : ""}</option>)}</select></label>
         <label><span aria-hidden="true">{words(locale,"Scale","刻度")}</span><select aria-label={words(locale,"Horizontal scale","横轴坐标")} value={params.get("scale") === "linear" ? "linear" : "log"} onChange={e => onParamsChange({scale:e.target.value})}><option value="log">{words(locale,"Log","对数")}</option><option value="linear">{words(locale,"Linear","线性")}</option></select></label>
+      </div>}
       </div>
-      </div>
-      <div className="tradeoff-methods" aria-label={words(locale, "Methods and result states", "方法与结果状态")}>
+      {!embedded && <div className="tradeoff-methods" aria-label={words(locale, "Methods and result states", "方法与结果状态")}>
         <ComparisonLegend locale={locale}/>
         <div className="tradeoff-method-heading" aria-hidden="true"><span>{words(locale,"Method","方法")}</span><span>{metricSpecs[xKey][locale]} ({metricSpecs[xKey].unit})</span><span>{metricSpecs[yKey][locale]}</span></div>
         {rows.map((row,index) => <button key={row.method.id} type="button" data-testid="tradeoff-method" data-method={row.method.id} data-batch-id={row.batch?.id ?? ""} data-status={row.outsideBatch ? "outside_batch" : row.result?.status ?? "not_run"} className={(active === row.method.id ? "is-active " : "") + (row.x === null || row.y === null ? "is-unavailable" : "")} aria-label={`${row.method.name}: ${metricSpecs[xKey][locale]} ${row.x === null ? status(row) : `${formatMetricSummary(row.metric,xKey,locale)} ${metricSpecs[xKey].unit}`}; ${metricSpecs[yKey][locale]} ${row.y === null ? status(row) : formatMetricSummary(row.yMetric,yKey,locale)}; `} aria-pressed={active === row.method.id} aria-describedby={showDetails && active === row.method.id ? "tradeoff-description" : undefined} onClick={event => { interaction.current = event.detail === 0 ? "focus" : "pointer"; onParamsChange({method:row.method.id}); choose(row.method.id); }} onFocus={() => { interaction.current = "focus"; choose(row.method.id); }}>
@@ -192,10 +193,10 @@ export function TradeoffPlot({ snapshot, batch, scope, dataset, locale, params, 
           <span className={"benchmark-emphasis tradeoff-method-value " + (row.x === null ? "is-missing" : "")} data-tone={xEmphasis[index].tone} data-best={xEmphasis[index].best} data-heat={xEmphasis[index].strength ?? ""} data-testid="tradeoff-method-x" data-raw={row.x ?? ""}>{row.x === null ? status(row) : formatMetricSummary(row.metric,xKey,locale,true)}</span>
           <span className={"benchmark-emphasis tradeoff-method-value " + (row.y === null ? "is-missing" : "")} data-tone={yEmphasis[index].tone} data-best={yEmphasis[index].best} data-heat={yEmphasis[index].strength ?? ""} data-testid="tradeoff-method-y" data-raw={row.y ?? ""}>{row.y === null ? row.x === null ? "—" : status(row) : formatMetricSummary(row.yMetric,yKey,locale,true)}</span>
         </button>)}
-      </div>
+      </div>}
     </div>
     </div>
-    {showDetails && focused && <div className="tradeoff-details" data-testid="tradeoff-details"><div className="tradeoff-details-content" id="tradeoff-description" role="tooltip">
+    {!embedded && showDetails && focused && <div className="tradeoff-details" data-testid="tradeoff-details"><div className="tradeoff-details-content" id="tradeoff-description" role="tooltip">
       <strong>{focused.method.name} · {status(focused)}</strong>
       <p>{metricSpecs[xKey][locale]}: {formatMetricSummary(focused.metric,xKey,locale)} {metricSpecs[xKey].unit} · {metricSpecs[yKey][locale]}: {formatMetricSummary(focused.yMetric,yKey,locale)}</p>
       {xKey === "max_rss_kib" && focused.x !== null && <p>{words(locale,"Original: ","原始值：")}{focused.x.toLocaleString(locale === "zh" ? "zh-CN" : "en-US", {maximumSignificantDigits:21})} KiB</p>}

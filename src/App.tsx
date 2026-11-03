@@ -53,7 +53,8 @@ function AppRoutes() {
 
   return (
     <ErrorBoundary
-      key={location.pathname}
+      key={/^\/benchmark\/datasets\/[^/]+$/.test(location.pathname) ? "benchmark-dataset" : location.pathname}
+      resetKey={location.pathname}
       description={d.common.appErrorDescription}
       retryLabel={d.common.retry}
       title={d.common.appErrorTitle}
@@ -92,9 +93,10 @@ export function App() {
   const { pathname } = useLocation();
   const form = ["/submit", "/realign"].includes(pathname);
   const analysis = /^\/(job|results|examples)\/.+/.test(pathname);
+  const benchmark = /^\/benchmark(?:\/|$)/.test(pathname);
 
   return (
-    <div className={`app-shell flex min-h-screen flex-col${form ? " submission-shell" : ""}${analysis ? " analysis-shell" : ""}${pathname === "/lookup" ? " lookup-shell" : ""}`}>
+    <div className={`app-shell flex min-h-screen flex-col${form ? " submission-shell" : ""}${analysis ? " analysis-shell" : ""}${pathname === "/lookup" ? " lookup-shell" : ""}${benchmark ? " benchmark-shell" : ""}`}>
       <a
         className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-lg transition focus:translate-y-0"
         href="#main-content"

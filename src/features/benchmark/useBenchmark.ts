@@ -1,19 +1,24 @@
-import { useEffect, useState } from "react";
-import { parseSnapshot, type BenchmarkSnapshot } from "./model";
+import { useQuery } from "@tanstack/react-query";
+import { queryClient } from "../../lib/query/queryClient";
+import { parseSnapshot } from "./model";
 import { websiteSnapshot } from "./website";
 
 export function useBenchmark() {
-  const [data, setData] = useState<BenchmarkSnapshot | null>(null);
-  const [failed, setFailed] = useState(false);
-  const [revision, setRevision] = useState(0);
-  useEffect(() => {
-    const controller = new AbortController();
-    setData(null); setFailed(false);
-    fetch(`${import.meta.env.BASE_URL}benchmark/snapshot.json`, { signal: controller.signal })
-      .then(response => { if (!response.ok) throw new Error("Benchmark data unavailable"); return response.json(); })
-      .then(value => { if (!controller.signal.aborted) setData(websiteSnapshot(parseSnapshot(value))); })
-      .catch(() => { if (!controller.signal.aborted) setFailed(true); });
-    return () => controller.abort();
-  }, [revision]);
-  return { data, failed, retry: () => setRevision(value => value + 1) };
+  const url = `${import.meta.env.BASE_URL}benchmark/snapshot.json`;
+  // The public report is one comparison snapshot for this browser session.
+  // Sharing it keeps navigation from replacing the workspace with a loader.
+  const query = useQuery({
+    queryKey: ["benchmark", "public-snapshot", url],
+    queryFn: async ({ signal }) => {
+      const response = await fetch(url, { signal });
+      if (!response.ok) throw new Error("Benchmark data unavailable");
+      return websiteSnapshot(parseSnapshot(await response.json()));
+    },
+    staleTime: Infinity,
+    gcTime: Infinity,
+    retry: false,
+    retryOnMount: false,
+    refetchOnWindowFocus: false
+  }, queryClient);
+  return { data: query.data ?? null, failed: query.isError, retry: () => { void query.refetch(); } };
 }

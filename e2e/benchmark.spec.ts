@@ -20,18 +20,18 @@ async function openBenchmark(page: Page, url: string) {
   // Hash navigation can return before React commits the next route. The h1 is
   // unchanged between metrics, so wait for the requested view before reading cells.
   const route = new URL(new URL(url, "http://localhost").hash.slice(1), "http://localhost");
-  const batch = route.searchParams.get("batch");
+  const matrix = route.searchParams.get("view") === "matrix";
   const caseId=route.pathname.startsWith("/benchmark/datasets/") ? decodeURIComponent(route.pathname.split("/").pop()!) : null;
   if(caseId && caseId!=="missing") {
     await expect(page.getByTestId("dataset-title")).toBeVisible();
     await expect(page.getByTestId("dataset-title")).toHaveAttribute("data-dataset-id",caseId);
   }
   await expect(page.getByRole("combobox", {name:/^(Evaluation batch|评测批次)$/})).toHaveCount(0);
-  if (route.pathname === "/benchmark") {
+  if (route.pathname === "/benchmark" && matrix) {
     await expect(page.getByTestId("benchmark-matrix")).toHaveAttribute("data-metric", ["sp_score","avg_sp"].includes(route.searchParams.get("metric") ?? "") ? "scaled_sp" : route.searchParams.get("metric") ?? "wall_seconds");
   }
-  // The shared page now fades in. Read final contrast and geometry after its
-  // finite entry animation; keep the normal-motion UI and every axe rule enabled.
+  // Settle finite site-level motion before contrast/geometry checks. The
+  // Benchmark report itself stays visible during dataset and control changes.
   await page.locator(".benchmark-page").evaluate(async element => {
     await Promise.race([new Promise(resolve => setTimeout(resolve, 2000)), Promise.all(element.getAnimations()
       .filter(animation => animation.effect?.getComputedTiming().iterations !== Infinity)
@@ -91,17 +91,15 @@ test("concise bilingual names, collapsed experiment details and original-ID sear
       await expect(page.locator(`[data-testid="dataset-nav-link"][data-dataset-id="${dataset.id}"]`)).toHaveAttribute("aria-label",readableName(dataset,zh));
     }
     expect(await page.locator(".benchmark-studio-sidebar-content").innerText()).not.toMatch(/dna_mt_|\bnt\b|来源标签|Source label/);
-    await expect(page.getByTestId("precise-results")).toBeHidden();
-    await page.getByRole("button",{name:zh?"数值表":"Values",exact:true}).click();
+    await expect(page.getByTestId("precise-results")).toBeVisible();
     await expect(page.getByTestId("dataset-title")).toHaveText(readableName(rawSnapshot.catalog.datasets.find(d=>d.id==="dna_mt_10k")!,zh));
     expect(await page.getByTestId("precise-results").innerText()).not.toMatch(/1\/1 (valid|有效)/);
     await details.locator("summary").click();
     await expect(details).toContainText("dna_mt_10k");
     await expect(details).toContainText("KiB");
     await details.locator("summary").click();
-    await page.getByRole("button",{name:zh?"速度—质量":"Trade-off",exact:true}).click();
-    await expect(page.getByTestId("tradeoff-chart")).toBeVisible();
-    const numericRows=await page.locator(".tradeoff-method-value:not(.is-missing)").evaluateAll(elements=>elements.filter(element=>element.getClientRects().length).map(element=>{const range=document.createRange();range.selectNodeContents(element);return {height:range.getBoundingClientRect().height,lineHeight:parseFloat(getComputedStyle(element).lineHeight),width:element.clientWidth,scrollWidth:element.scrollWidth};}));
+    await expect(page.getByTestId("tradeoff-chart")).toHaveCount(2);
+    const numericRows=await page.locator('.benchmark-table td[data-metric]:not([data-raw-value=""]) div > span').evaluateAll(elements=>elements.filter(element=>element.getClientRects().length).map(element=>{const range=document.createRange();range.selectNodeContents(element);return {height:range.getBoundingClientRect().height,lineHeight:parseFloat(getComputedStyle(element).lineHeight),width:element.clientWidth,scrollWidth:element.scrollWidth};}));
     expect(numericRows.length).toBeGreaterThan(0);
     for(const value of numericRows) { expect(value.height).toBeLessThanOrEqual(value.lineHeight+1); expect(value.scrollWidth).toBeLessThanOrEqual(value.width+1); }
     await page.keyboard.press("Escape");
@@ -111,10 +109,10 @@ test("concise bilingual names, collapsed experiment details and original-ID sear
     await page.getByTestId("experiment-details").locator("summary").click();
     await expect(page.getByTestId("experiment-details")).toContainText(zh?"模拟相似度（来源参数）：70%":"Simulation similarity (source parameter): 70%");
     for(const search of ["线粒体", "Mitochondrial", "10,000", "dna_mt_10k"]) {
-      await openBenchmark(page,`/#/benchmark?search=${encodeURIComponent(search)}`);
+      await openBenchmark(page,`/#/benchmark?view=matrix&search=${encodeURIComponent(search)}`);
       await expect(page.locator('[data-testid="dataset-nav-link"][data-dataset-id="dna_mt_10k"]')).toHaveCount(1);
     }
-    await openBenchmark(page,"/#/benchmark");
+    await openBenchmark(page,"/#/benchmark?view=matrix");
     await expectDocumentFits(page);
     await capturePageFromTop(page,info.outputPath(`concise-overview-${zh?"zh":"en"}.png`));
   }
@@ -124,7 +122,7 @@ test("real matrix preserves every result and all five displayed metrics", async 
   test.setTimeout(120_000);
   const batch = originalBatch;
   for (const key of keys) {
-    await openBenchmark(page, `/#/benchmark?all=1&batch=${batch.id}&metric=${key}`);
+    await openBenchmark(page, `/#/benchmark?view=matrix&all=1&batch=${batch.id}&metric=${key}`);
     await expect(page.getByTestId("matrix-cell")).toHaveCount(156);
     const cells = await page.getByTestId("matrix-cell").evaluateAll(nodes => nodes.map(n => ({
       dataset:n.getAttribute("data-dataset-id"), method:n.getAttribute("data-method-id"), key:n.getAttribute("data-metric"),
@@ -152,7 +150,7 @@ test("real matrix preserves every result and all five displayed metrics", async 
 });
 
 test("filters, selected-cell deep links and download scope stay together", async ({page}) => {
-  await openBenchmark(page, `/#/benchmark?all=1&batch=${originalBatch.id}`);
+  await openBenchmark(page, `/#/benchmark?view=matrix&all=1&batch=${originalBatch.id}`);
   await expect(page.getByTestId("dataset-nav-link")).toHaveCount(26);
   await expand(page,".benchmark-extra-filters");
   await page.getByRole("combobox", {name:"Data origin",exact:true}).selectOption("simulated");
@@ -175,8 +173,7 @@ test("filters, selected-cell deep links and download scope stay together", async
   await page.keyboard.press("Escape"); await expect(page.getByRole("tooltip")).toHaveCount(0);
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/datasets\/dna_mt_sim_70.*method=mafft/);
-  await page.getByRole("button",{name:"Metric plots",exact:true}).click();
-  await expect(page.locator('[data-testid="metric-point"][data-method="mafft"][data-metric="wall_seconds"]')).toBeVisible();
+  await expect(page.getByTestId("precise-results").locator('td[data-method="mafft"][data-metric="wall_seconds"]')).toBeVisible();
   await page.locator(".benchmark-detail-topline .benchmark-back").click();
   await expect(page.getByLabel("Search datasets",{exact:true})).toHaveValue("sim_70");
   await page.getByRole("button",{name:"Clear filters",exact:true}).click();
@@ -192,7 +189,7 @@ test("filters, selected-cell deep links and download scope stay together", async
 test("every real detail, point position, exact table and download matches the report", async ({page}, info) => {
   test.setTimeout(300_000);
   const batch = originalBatch;
-  await openBenchmark(page,`/#/benchmark?all=1&batch=${batch.id}`);
+  await openBenchmark(page,`/#/benchmark?view=matrix&all=1&batch=${batch.id}`);
   await assertDownloadConsistency(page,rawSnapshot,batch.id);
   for (const dataset of rawSnapshot.catalog.datasets) {
     await test.step(dataset.id, async () => {
@@ -208,7 +205,7 @@ test("every real detail, point position, exact table and download matches the re
   await assertDownloadConsistency(page,rawSnapshot,batch.id,"rna_255","zh");
   await page.getByTestId("download-controls").locator("summary").click();
   await capturePageFromTop(page,info.outputPath("real-results-detail.png"));
-  await info.attach("real-results-consistency.json",{contentType:"application/json",body:JSON.stringify({batch:batch.id,datasets:26,tableMetrics:780,chartPanels:130,methodChartPositions:780,jsonDownloads:28,csvDownloads:28,chineseDataset:"rna_255",status:"passed"})});
+  await info.attach("real-results-consistency.json",{contentType:"application/json",body:JSON.stringify({batch:batch.id,datasets:26,tableMetrics:780,scatterPanels:52,jsonDownloads:28,csvDownloads:28,chineseDataset:"rna_255",status:"passed"})});
 });
 
 test("future repeats, negative SP, zero, partial and failed metrics remain distinct",async ({page})=>{
@@ -231,7 +228,7 @@ test("empty and invalid data never create measurements", async ({page})=>{
   const empty=JSON.parse(readFileSync("contracts/benchmark-empty-catalog-v1.json","utf8"));
   let invalid=true;
   await page.route("**/benchmark/snapshot.json",r=>r.fulfill({json:invalid?{schema_version:99}:empty}));
-  await page.goto("/#/benchmark");
+  await page.goto("/#/benchmark?view=matrix");
   await expect(page.getByRole("alert")).toContainText("Could not load results. Try again.");
   invalid=false; await page.getByRole("button",{name:"Try again",exact:true}).click();
   await expect(page.getByTestId("matrix-cell")).toHaveCount(156);
@@ -247,54 +244,25 @@ test("empty and invalid data never create measurements", async ({page})=>{
 });
 
 test("responsive charts, tooltips, zoom and keyboard access in both languages",async({page},info)=>{
-  // Multiple axe scans create temporary pages; Windows WebKit needs a larger
-  // whole-journey budget. Individual expectations keep their existing limits.
   test.setTimeout(180_000);
-  await openBenchmark(page,"/#/benchmark?search=rna_255");
+  await openBenchmark(page,"/#/benchmark?view=matrix&search=rna_255");
   expect((await new AxeBuilder({page}).include("#main-content").analyze()).violations).toEqual([]);
   await expectDocumentFits(page);
   await capturePageFromTop(page,info.outputPath("matrix.png"));
-  await openBenchmark(page,`/#/benchmark/datasets/rna_255?all=1&batch=${originalBatch.id}`);
-  if(page.viewportSize()!.width >= 1024) {
-    await page.evaluate(()=>{
-      const aside=document.querySelector(".benchmark-studio-sidebar")!;
-      const header=document.querySelector(".app-header")!.getBoundingClientRect();
-      const lastPinnedScroll=aside.parentElement!.getBoundingClientRect().bottom+scrollY-aside.getBoundingClientRect().height-header.bottom;
-      // A sticky sidebar intentionally leaves with its parent at the footer.
-      // Exercise the content-scroll range where it should remain under the header.
-      scrollTo({top:Math.max(0,Math.min(300,lastPinnedScroll/2)),behavior:"instant"});
-    });
-    const geometry=await page.evaluate(()=>({
-      headerBottom:document.querySelector(".app-header")!.getBoundingClientRect().bottom,
-      sidebarTitleTop:document.querySelector(".benchmark-studio-sidebar-heading")!.getBoundingClientRect().top,
-    }));
-    expect(geometry.sidebarTitleTop).toBeGreaterThanOrEqual(geometry.headerBottom);
-    await page.evaluate(()=>scrollTo({top:0,behavior:"instant"}));
-  }
-  expect((await new AxeBuilder({page}).include("#main-content").analyze()).violations).toEqual([]);
-  await page.getByRole("button",{name:"Metric plots",exact:true}).click();
-  const mobile=page.viewportSize()!.width < 768;
-  if(mobile) for(const name of ["Time ↓","Peak memory ↓","Normalized SP ↑","Q ↑","TC ↑"]) {
-    await page.getByRole("group",{name:"Chart metric",exact:true}).getByRole("button",{name,exact:true}).click();
-    await expect(page.locator("figure[data-metric]:visible")).toHaveCount(1);
-    await expect(page.locator("figure[data-metric]:visible").getByTestId("metric-point")).toHaveCount(6);
-  }
-  if(mobile) await page.getByRole("group",{name:"Chart metric",exact:true}).getByRole("button",{name:"Time ↓",exact:true}).click();
-  if(mobile) await expect(page).toHaveURL(/metric=wall_seconds/);
-  const point=page.locator('[data-testid="metric-point"][data-method="mafft"][data-metric="wall_seconds"]');
-  await expect(point).toBeVisible();
-  await point.focus(); await expect(page.getByRole("tooltip")).toContainText("1.01");
-  await page.keyboard.press("Escape"); await expect(page.getByRole("tooltip")).toHaveCount(0);
-  await page.getByRole("combobox",{name:"Time (s) scale",exact:true}).selectOption("linear");
-  await expect(page.locator('figure[data-metric="wall_seconds"]')).toHaveAttribute("data-axis-scale","linear");
-  if(mobile) await page.getByRole("group",{name:"Chart metric",exact:true}).getByRole("button",{name:"Normalized SP ↑",exact:true}).click();
-  await expect(page.locator('figure[data-metric="scaled_sp"]')).toHaveCount(1);
-  if(mobile) await page.getByRole("group",{name:"Chart metric",exact:true}).getByRole("button",{name:"Q ↑",exact:true}).click();
+  await openBenchmark(page,"/#/benchmark/datasets/rna_255");
+  await assertDatasetConsistency(page,rawSnapshot,"latest","rna_255");
+  await expect(page.getByTestId("tradeoff-chart")).toHaveCount(2);
+  await expect(page.getByTestId("precise-results")).toBeVisible();
+  const point=page.getByTestId("tradeoff-chart").first().locator('[data-testid="tradeoff-point"][data-method="mafft"]');
+  await point.focus();await point.press("Enter");
+  await expect(page).toHaveURL(/method=mafft/);
+  await expect(point.locator("..")).toHaveClass(/is-active/);
+  await expect(point).toHaveAttribute("aria-label",/1\.01/);
+  await page.getByRole("combobox",{name:"Horizontal scale",exact:true}).selectOption("linear");
+  for(const chart of await page.getByTestId("tradeoff-chart").all())await expect(chart).toHaveAttribute("data-x-scale","linear");
   await page.getByRole("checkbox",{name:"Zoom Q / TC differences",exact:true}).click();
   await expect(page.getByRole("checkbox",{name:"Zoom Q / TC differences",exact:true})).toBeChecked();
-  expect(Number(await page.locator('figure[data-metric="q"]').getAttribute("data-axis-min"))).toBeGreaterThan(.9);
-  if(mobile) await page.getByRole("group",{name:"Chart metric",exact:true}).getByRole("button",{name:"Q ↑",exact:true}).click();
-  await expect(page.getByText("Zoomed range",{exact:true}).first()).toBeVisible();
+  for(const chart of await page.getByTestId("tradeoff-chart").all())expect(Number(await chart.getAttribute("data-y-min"))).toBeGreaterThan(.9);
   await page.getByRole("button",{name:"Switch language",exact:true}).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "zh-CN");
   await expectDocumentFits(page);
@@ -336,11 +304,10 @@ test("Benchmark is reached from About rather than the primary navigation in both
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
     await capturePageFromTop(page, testInfo.outputPath(`about-${locale}.png`));
     await entry.focus();
-    const loaded = page.waitForResponse(response => new URL(response.url()).pathname === "/benchmark/snapshot.json");
     await page.keyboard.press("Enter");
-    await (await loaded).finished();
-    await expect(page).toHaveURL(/#\/benchmark$/);
-    await expect(page.getByRole("heading", {level:1, name:"Benchmark", exact:true})).toBeVisible();
+    await expect(page).toHaveURL(/#\/benchmark\/datasets\/rna_255/);
+    await expect(page.getByTestId("dataset-title")).toHaveAttribute("data-dataset-id","rna_255");
+    await expect(page.getByTestId("precise-results")).toBeVisible();
   }
 });
 
@@ -351,17 +318,17 @@ test("small screens and 200 percent text keep controls, plots and tables usable"
   await page.emulateMedia({reducedMotion:"reduce"});
   for(const viewport of [{width:375,height:812},{width:812,height:375}]) {
     await page.setViewportSize(viewport);
-    await openBenchmark(page,"/#/benchmark?search=rna_255");
+    await openBenchmark(page,"/#/benchmark?view=matrix&search=rna_255");
     await page.addStyleTag({content:"html {font-size:200% !important;}"});
     await expectDocumentFits(page);
     await openBenchmark(page,`/#/benchmark/datasets/rna_255?all=1&batch=${originalBatch.id}`);
     await expectDocumentFits(page);
-    const ticks=await page.getByTestId("tradeoff-chart").locator(".tradeoff-x-tick").evaluateAll(elements=>elements.map(element=>{
+    const ticks=await page.getByTestId("tradeoff-chart").first().locator(".tradeoff-x-tick").evaluateAll(elements=>elements.map(element=>{
       const box=element.getBoundingClientRect();return {left:box.left,right:box.right,text:element.textContent};
     }).sort((a,b)=>a.left-b.left));
     expect(ticks.length).toBeGreaterThan(1);
     for(let i=1;i<ticks.length;i++) expect(ticks[i-1].right,`${viewport.width}px/200%: ${ticks[i-1].text} overlaps ${ticks[i].text}`).toBeLessThanOrEqual(ticks[i].left);
-    const labels=await page.getByTestId("tradeoff-chart").locator(".tradeoff-direct-label").evaluateAll(elements=>elements.map(element=>{
+    const labels=await page.getByTestId("tradeoff-chart").first().locator(".tradeoff-direct-label").evaluateAll(elements=>elements.map(element=>{
       const range=document.createRange();range.selectNodeContents(element);
       const box=range.getBoundingClientRect();return {left:box.left,right:box.right,top:box.top,bottom:box.bottom,text:element.textContent};
     }));
@@ -374,8 +341,8 @@ test("small screens and 200 percent text keep controls, plots and tables usable"
     await capturePageFromTop(page,info.outputPath(`text-200-scatter-${viewport.width}.png`));
     const zoom=page.getByRole("checkbox",{name:"Zoom Q / TC differences",exact:true});
     await zoom.click();await expect(zoom).toBeChecked();
-    expect(Number(await page.getByTestId("tradeoff-chart").getAttribute("data-y-min"))).toBeGreaterThan(0);
-    const yTicks=await page.getByTestId("tradeoff-chart").locator(".tradeoff-y-tick").evaluateAll(elements=>elements.map(element=>{
+    expect(Number(await page.getByTestId("tradeoff-chart").first().getAttribute("data-y-min"))).toBeGreaterThan(0);
+    const yTicks=await page.getByTestId("tradeoff-chart").first().locator(".tradeoff-y-tick").evaluateAll(elements=>elements.map(element=>{
       const box=element.getBoundingClientRect(),plane=element.closest(".tradeoff-plane")!,area=element.closest(".tradeoff-plot-area")!;
       return {left:box.left,right:box.right,text:element.textContent,fontSize:getComputedStyle(element).fontSize,
         planeLeft:plane.getBoundingClientRect().left,paddingLeft:getComputedStyle(area).paddingLeft,scrollX,
@@ -386,18 +353,9 @@ test("small screens and 200 percent text keep controls, plots and tables usable"
       expect(tick.right,`${viewport.width}px/200% zoom: ${tick.text} clipped right`).toBeLessThanOrEqual(viewport.width+1);
     }
     await capturePageFromTop(page,info.outputPath(`text-200-zoom-${viewport.width}.png`));
-    await page.locator('[data-testid="tradeoff-method"][data-method="mafft"]').click();
-    const popup=page.getByTestId("tradeoff-details");
-    await expect(popup).toBeVisible();
-    await expect(page.getByRole("tooltip")).toContainText("MAFFT");
-    await expect(page.getByRole("tooltip")).toContainText("1.01");
-    const box=(await popup.boundingBox())!;
-    expect(box.x).toBeGreaterThanOrEqual(0);expect(box.y).toBeGreaterThanOrEqual(0);
-    expect(box.x+box.width).toBeLessThanOrEqual(viewport.width+1);
-    expect(box.y+box.height).toBeLessThanOrEqual(viewport.height+1);
-    await page.screenshot({path:info.outputPath(`text-200-popup-${viewport.width}.png`)});
-    await page.keyboard.press("Escape");await expect(popup).toHaveCount(0);
-    await page.getByRole("button",{name:"Values",exact:true}).click();
+    const point=page.getByTestId("tradeoff-chart").first().locator('[data-testid="tradeoff-point"][data-method="mafft"]');
+    await point.focus();await point.press("Enter");await expect(page).toHaveURL(/method=mafft/);
+    await expect(point).toHaveAttribute("aria-label",/MAFFT.*1\.01/);
     const region=page.getByRole("region",{name:"Scrollable method comparison",exact:true});
     await region.focus();await page.keyboard.press("ArrowRight");
     await expect.poll(()=>region.evaluate(e=>e.scrollLeft)).toBeGreaterThan(0);
@@ -407,7 +365,7 @@ test("small screens and 200 percent text keep controls, plots and tables usable"
 });
 
 test("Historical ID: repair15-single-20261028 opens the unified results", async ({page})=>{
-  await openBenchmark(page,"/#/benchmark?batch=repair15-single-20261028");
+  await openBenchmark(page,"/#/benchmark?view=matrix&batch=repair15-single-20261028");
   await expect(page.getByTestId("matrix-cell")).toHaveCount(156);
   await expect(page.locator(".benchmark-run-summary")).toContainText("127 / 156");
   await expect(page.locator(".benchmark-cell-source, .benchmark-source-legend")).toHaveCount(0);
@@ -419,7 +377,7 @@ test("Historical ID: repair15-single-20261028 opens the unified results", async 
 });
 
 test("Historical ID: memory32-single-20261029 opens the unified results", async ({page})=>{
-  await openBenchmark(page,"/#/benchmark?batch=memory32-single-20261029");
+  await openBenchmark(page,"/#/benchmark?view=matrix&batch=memory32-single-20261029");
   await expect(page.getByTestId("matrix-cell")).toHaveCount(156);
   await expect(page.locator(".benchmark-run-summary")).toContainText("127 / 156");
   await expect(page.locator(".benchmark-cell-source, .benchmark-source-legend")).toHaveCount(0);
@@ -438,13 +396,13 @@ test("latest whole records match 780 displayed and 1092 exported metrics", async
   expect(records.filter(r=>r.result.status==="timeout")).toHaveLength(14);
   expect(records.filter(r=>r.result.reason_code==="oom")).toHaveLength(15);
   expect(rawSnapshot.batches.map(b=>records.filter(r=>r.batch.id===b.id).length)).toEqual([2,7,17,9,121]);
-  await openBenchmark(page,"/#/benchmark");
+  await openBenchmark(page,"/#/benchmark?view=matrix");
   await expect(page.getByRole("combobox",{name:"Evaluation batch",exact:true})).toHaveCount(0);
   await expect(page.locator(".benchmark-run-summary")).toContainText("127");
   await assertSidebarScope(page,rawSnapshot.catalog.datasets.map(dataset=>dataset.id));
   await capturePageFromTop(page,info.outputPath("latest-matrix-en.png"));
   for(const key of keys) {
-    await openBenchmark(page,`/#/benchmark?metric=${key}`);
+    await openBenchmark(page,`/#/benchmark?view=matrix&metric=${key}`);
     const cells=await page.getByTestId("matrix-cell").evaluateAll(nodes=>nodes.map(n=>({
       dataset:n.getAttribute("data-dataset-id"),method:n.getAttribute("data-method-id"),batch:n.getAttribute("data-batch-id"),
       raw:n.getAttribute("data-raw-value"),shown:n.getAttribute("data-display-value"),heat:n.getAttribute("data-heat"),text:n.textContent,
@@ -479,10 +437,9 @@ test("latest whole records match 780 displayed and 1092 exported metrics", async
   await openBenchmark(page,"/#/benchmark/datasets/dna_mt_sim_70");
   await capturePageFromTop(page,info.outputPath("latest-tradeoff-en.png"));
   for(const x of ["wall_seconds","max_rss_kib"] as const) for(const y of ["q","tc","scaled_sp"] as const) {
-    await page.getByRole("combobox",{name:"Horizontal axis",exact:true}).selectOption(x);
     await page.getByRole("combobox",{name:"Vertical axis",exact:true}).selectOption(y);
-    await expect(page.getByTestId("tradeoff-chart")).toHaveAttribute("data-x-key",x);
-    await expect(page.getByTestId("tradeoff-chart")).toHaveAttribute("data-y-key",y);
+    await expect(page.locator(`[data-testid="tradeoff-chart"][data-x-key="${x}"]`)).toBeVisible();
+    await expect(page.getByTestId("tradeoff-chart").first()).toHaveAttribute("data-y-key",y);
     await assertScatterConsistency(page,rawSnapshot,"latest","dna_mt_sim_70");
   }
   await page.getByRole("button",{name:"Switch language",exact:true}).click();
@@ -491,7 +448,7 @@ test("latest whole records match 780 displayed and 1092 exported metrics", async
   await assertDownloadConsistency(page,rawSnapshot,"latest","dna_mt_sim_70","zh");
   await page.getByTestId("download-controls").locator("summary").click();
   await capturePageFromTop(page,info.outputPath("latest-tradeoff-zh.png"));
-  await openBenchmark(page,"/#/benchmark?metric=q");
+  await openBenchmark(page,"/#/benchmark?view=matrix&metric=q");
   await capturePageFromTop(page,info.outputPath("latest-matrix-zh.png"));
   await info.attach("latest-consistency.json",{contentType:"application/json",body:JSON.stringify({
     pairs:156,metrics:780,complete:127,timeout:14,oom:15,sourceCounts:[2,7,17,9,121],
@@ -501,7 +458,7 @@ test("latest whole records match 780 displayed and 1092 exported metrics", async
 
 test("latest filters, sparse batch defaults, navigation and export scopes agree",async({page})=>{
   test.setTimeout(120_000);
-  await openBenchmark(page,"/#/benchmark?type=rna");
+  await openBenchmark(page,"/#/benchmark?view=matrix&type=rna");
   await expect(page.getByTestId("matrix-cell")).toHaveCount(36);
   await assertSidebarScope(page,rawSnapshot.catalog.datasets.filter(dataset=>dataset.sequence_type==="rna").map(dataset=>dataset.id));
   const summary=page.locator(".benchmark-run-summary");
@@ -511,11 +468,12 @@ test("latest filters, sparse batch defaults, navigation and export scopes agree"
   await page.getByRole("combobox",{name:"Download scope",exact:true}).selectOption("batch");
   await assertDownloadConsistency(page,rawSnapshot,"latest");
 
-  await openBenchmark(page,"/#/benchmark?type=rna&min=1000&max=4095&methods=mafft,halign4&metric=q");
+  await openBenchmark(page,"/#/benchmark?view=matrix&type=rna&min=1000&max=4095&methods=mafft,halign4&metric=q");
   await expect(page.getByTestId("matrix-cell")).toHaveCount(6);
   await assertSidebarScope(page,["rna_1023","rna_2047","rna_4095"]);
   await page.locator('.benchmark-matrix-dataset a[href*="datasets/rna_1023"]').click();
-  await expect(page.getByRole("button",{name:"Trade-off",exact:true})).toHaveAttribute("aria-pressed","true");
+  await expect(page.getByTestId("tradeoff-chart")).toHaveCount(2);
+  await expect(page.getByTestId("precise-results")).toBeVisible();
   await assertSidebarScope(page,["rna_1023","rna_2047","rna_4095"],"rna_1023");
   await expect(page.getByRole("link",{name:"Previous",exact:true})).toHaveCount(0);
   await expand(page,".benchmark-studio-sidebar-menu");
@@ -539,7 +497,7 @@ test("latest filters, sparse batch defaults, navigation and export scopes agree"
   await expect(page.getByTestId("matrix-cell")).toHaveCount(3);
   await assertDownloadConsistency(page,rawSnapshot,"latest",["rna_1023","rna_2047","rna_4095"],"en",["halign4"]);
 
-  await openBenchmark(page,"/#/benchmark?batch=memory32-single-20261029");
+  await openBenchmark(page,"/#/benchmark?view=matrix&batch=memory32-single-20261029");
   await expect(page.getByTestId("matrix-cell")).toHaveCount(156);
   await assertSidebarScope(page,rawSnapshot.catalog.datasets.map(dataset=>dataset.id));
   await expect(page.locator(".benchmark-run-summary")).toContainText("127");
@@ -558,7 +516,7 @@ test("latest failures never fall back to older valid numbers",async({page})=>{
   for(const metric of Object.values(record.metrics)) Object.assign(metric,{status:"unavailable",valid_count:0,value:null,mean:null,sd:null,min:null,max:null,display:null,reason_codes:["oom"]});
   snapshot.batches.push({...structuredClone(old),id:"test-latest-failed",created_at:"2026-11-01T00:00:00Z",results:[record]});
   await page.route("**/benchmark/snapshot.json",route=>route.fulfill({json:snapshot}));
-  await openBenchmark(page,"/#/benchmark?search=rna_255");
+  await openBenchmark(page,"/#/benchmark?view=matrix&search=rna_255");
   const cell=page.locator('[data-testid="matrix-cell"][data-method-id="mafft"]');
   await expect(cell).toHaveAttribute("data-batch-id","test-latest-failed");
   await expect(cell).toHaveAttribute("data-raw-value","");
@@ -566,11 +524,11 @@ test("latest failures never fall back to older valid numbers",async({page})=>{
   await assertDownloadConsistency(page,snapshot,"latest","rna_255");
   await openBenchmark(page,"/#/benchmark/datasets/rna_255");
   await assertScatterConsistency(page,snapshot,"latest","rna_255");
-  await expect(page.locator('[data-testid="tradeoff-point"][data-method="mafft"]')).toHaveCount(0);
+  await expect(page.getByTestId("tradeoff-chart").first().locator('[data-testid="tradeoff-point"][data-method="mafft"]')).toHaveCount(0);
   await assertDatasetConsistency(page,snapshot,"latest","rna_255");
   await openBenchmark(page,`/#/benchmark/datasets/rna_255?batch=${old.id}`);
   await assertScatterConsistency(page,snapshot,"latest","rna_255");
-  await expect(page.locator('[data-testid="tradeoff-point"][data-method="mafft"]')).toHaveCount(0);
+  await expect(page.getByTestId("tradeoff-chart").first().locator('[data-testid="tradeoff-point"][data-method="mafft"]')).toHaveCount(0);
 });
 
 test("scatter keeps zero, overlapping, single and failed methods readable",async({page})=>{
@@ -587,43 +545,42 @@ test("scatter keeps zero, overlapping, single and failed methods readable",async
   await page.route("**/benchmark/snapshot.json",route=>route.fulfill({json:snapshot}));
   await openBenchmark(page,"/#/benchmark/datasets/rna_255");
   await assertScatterConsistency(page,snapshot,"latest","rna_255");
-  await expect(page.getByTestId("tradeoff-chart")).toHaveAttribute("data-x-scale","linear");
-  await expect(page.getByTestId("tradeoff-chart").getByText("Non-positive value or interval: linear axis used.",{exact:true})).toBeVisible();
+  await expect(page.getByTestId("tradeoff-chart").first()).toHaveAttribute("data-x-scale","linear");
+  await expect(page.getByTestId("tradeoff-chart").first().getByText("Non-positive value or interval: linear axis used.",{exact:true})).toBeVisible();
   for(const axis of ["x","y"]) {
-    const a=page.locator('[data-testid="tradeoff-point"][data-method="mafft"]');
-    const b=page.locator('[data-testid="tradeoff-point"][data-method="halign4"]');
+    const a=page.getByTestId("tradeoff-chart").first().locator('[data-testid="tradeoff-point"][data-method="mafft"]');
+    const b=page.getByTestId("tradeoff-chart").first().locator('[data-testid="tradeoff-point"][data-method="halign4"]');
     expect(await a.getAttribute(`data-${axis}-percent`)).toBe(await b.getAttribute(`data-${axis}-percent`));
   }
-  // Coincident measurements retain their real coordinates. The accessible
-  // method list lets keyboard and touch users inspect either method separately.
+  // Coincident measurements retain their real coordinates. Each point remains
+  // keyboard-selectable, with every method's exact values in the table below.
   for(const method of ["mafft","halign4"]) {
-    const item=page.locator(`[data-testid="tradeoff-method"][data-method="${method}"]`);
+    const item=page.getByTestId("tradeoff-chart").first().locator(`[data-testid="tradeoff-point"][data-method="${method}"]`);
     await item.focus();await page.keyboard.press("Enter");
-    await expect(item).toHaveAttribute("aria-pressed","true");
-    await expect(page.getByRole("tooltip")).toContainText(snapshot.methods.find(m=>m.id===method)!.name);
-    await page.keyboard.press("Escape");await expect(page.getByRole("tooltip")).toHaveCount(0);
+    await expect(item.locator("..")).toHaveClass(/is-active/);
+    await expect(item).toHaveAttribute("aria-label",new RegExp(snapshot.methods.find(m=>m.id===method)!.name));
   }
   await page.getByRole("checkbox",{name:"Zoom Q / TC differences",exact:true}).click();
   await expect(page.getByRole("checkbox",{name:"Zoom Q / TC differences",exact:true})).toBeChecked();
-  await expect(page.getByTestId("tradeoff-chart").getByText(/^Zoomed range [0-9.]+–[0-9.]+$/)).toBeVisible();
+  await expect(page.getByTestId("tradeoff-chart").first().getByText(/^Zoomed range [0-9.]+–[0-9.]+$/)).toBeVisible();
   await assertScatterConsistency(page,snapshot,"latest","rna_255");
-  expect(Number(await page.getByTestId("tradeoff-chart").getAttribute("data-y-min"))).toBeGreaterThan(0);
+  expect(Number(await page.getByTestId("tradeoff-chart").first().getAttribute("data-y-min"))).toBeGreaterThan(0);
   await page.getByRole("combobox",{name:"Vertical axis",exact:true}).selectOption("scaled_sp");
   await assertScatterConsistency(page,snapshot,"latest","rna_255");
-  expect(Number(await page.getByTestId("tradeoff-chart").getAttribute("data-y-max"))).toBeLessThan(0);
+  expect(Number(await page.getByTestId("tradeoff-chart").first().getAttribute("data-y-max"))).toBeLessThan(0);
   await expect(page.locator('[data-testid="tradeoff-point"][data-method="fmalign2"]')).toHaveCount(0);
-  await expect(page.locator('[data-testid="tradeoff-method"][data-method="fmalign2"]')).toContainText("Scoring failed");
+  await expect(page.getByTestId("precise-results").locator('tbody tr[data-method="fmalign2"]')).toContainText("Scoring failed");
   await openBenchmark(page,"/#/benchmark/datasets/dna_16s_100");
   await expect(page.getByRole("combobox",{name:"Vertical axis",exact:true})).toHaveValue("scaled_sp");
   await expect(page.getByRole("combobox",{name:"Vertical axis",exact:true}).locator('option[value="q"]')).toHaveJSProperty("disabled",true);
   await assertScatterConsistency(page,snapshot,"latest","dna_16s_100");
   await openBenchmark(page,"/#/benchmark/datasets/rna_255?methods=mafft");
-  await expect(page.getByTestId("tradeoff-point")).toHaveCount(1);
-  await expect(page.getByTestId("tradeoff-method")).toHaveCount(1);
+  for(const chart of await page.getByTestId("tradeoff-chart").all())await expect(chart.getByTestId("tradeoff-point")).toHaveCount(1);
+  await expect(page.getByTestId("precise-results").locator("tbody tr")).toHaveCount(1);
   await openBenchmark(page,"/#/benchmark/datasets/rna_255?methods=tcoffee,muscle5,kalign3,halign3");
   await expect(page.getByTestId("tradeoff-point")).toHaveCount(0);
-  await expect(page.getByTestId("tradeoff-method")).toHaveCount(1);
-  await expect(page.getByText("No results to plot",{exact:true})).toBeVisible();
+  await expect(page.getByTestId("precise-results").locator("tbody tr")).toHaveCount(1);
+  await expect(page.getByText("No results to plot",{exact:true})).toHaveCount(2);
   await expectDocumentFits(page);
 });
 
@@ -631,7 +588,7 @@ test("scatter keeps zero, overlapping, single and failed methods readable",async
 test("website uses HAlign, six methods and the shared green theme", async ({page}, info) => {
   const names = ["Clustal Omega", "MAFFT", "MUSCLE 5", "HAlign", "FMAlign2", "minipoa"];
   const removed = /HAlign 3|HAlign 4|Kalign 3|T-Coffee/;
-  await openBenchmark(page, "/#/benchmark");
+  await openBenchmark(page, "/#/benchmark?view=matrix");
   await expand(page, ".benchmark-method-filter");
   const labels = await page.getByRole("group", {name:"Select methods"}).locator("label").allTextContents();
   expect(labels).toEqual(names);
@@ -639,7 +596,7 @@ test("website uses HAlign, six methods and the shared green theme", async ({page
   const colors = await page.locator(".benchmark-page").evaluate(element => ({
     site:getComputedStyle(document.documentElement).getPropertyValue("--color-accent").trim(),
     accent:getComputedStyle(element).getPropertyValue("--bench-accent").trim(),
-    button:getComputedStyle(element.querySelector(".benchmark-download-menu > summary")!).backgroundColor,
+    button:getComputedStyle(element.querySelector(".benchmark-start-link")!).backgroundColor,
   }));
   expect(colors.site).toBe("#0f766e");
   expect(colors.accent).toBe(colors.site);
@@ -647,18 +604,18 @@ test("website uses HAlign, six methods and the shared green theme", async ({page
   expect(await page.locator("#main-content").innerText()).not.toMatch(removed);
   await assertDownloadConsistency(page,rawSnapshot,"latest");
   await openBenchmark(page,"/#/benchmark/datasets/rna_255?scope=latest&zoom=1&method=halign4");
-  await expect(page.getByTestId("tradeoff-method")).toHaveCount(6);
-  await expect(page.locator('[data-testid="tradeoff-method"][data-method="halign4"]')).toContainText("HAlign");
-  await expect(page.locator('[data-testid="tradeoff-method"][data-method="halign4"]')).not.toContainText("HAlign 4");
+  await expect(page.getByTestId("precise-results").locator("tbody tr")).toHaveCount(6);
+  await expect(page.getByTestId("precise-results").locator('tbody tr[data-method="halign4"]')).toContainText("HAlign");
+  await expect(page.getByTestId("precise-results").locator('tbody tr[data-method="halign4"]')).not.toContainText("HAlign 4");
   expect(await page.locator("#main-content").innerText()).not.toMatch(removed);
-  await expect(page.locator('[data-testid="tradeoff-point"][data-method="halign4"] .tradeoff-marker')).toHaveCSS("background-color","rgb(15, 118, 110)");
+  await expect(page.getByTestId("tradeoff-chart").first().locator('[data-testid="tradeoff-point"][data-method="halign4"] .tradeoff-marker')).toHaveCSS("background-color","rgb(15, 118, 110)");
   await page.getByRole("button",{name:"Switch language",exact:true}).click();
   await expect(page.locator("html")).toHaveAttribute("lang","zh-CN");
   expect(await page.locator("#main-content").innerText()).not.toMatch(removed);
   await capturePageFromTop(page,info.outputPath("green-halign-detail-zh.png"));
-  await openBenchmark(page,"/#/benchmark?scope=latest&metric=wall_seconds");
+  await openBenchmark(page,"/#/benchmark?view=matrix&scope=latest&metric=wall_seconds");
   await capturePageFromTop(page,info.outputPath("green-overview-zh.png"));
-  await openBenchmark(page,"/#/benchmark?all=1&methods=tcoffee,halign3,kalign3,mafft");
+  await openBenchmark(page,"/#/benchmark?view=matrix&all=1&methods=tcoffee,halign3,kalign3,mafft");
   await expect(page.getByTestId("matrix-cell")).toHaveCount(26);
   expect(await page.getByTestId("matrix-cell").evaluateAll(elements=>elements.every(element=>element.getAttribute("data-method-id")==="mafft"))).toBe(true);
   await expectDocumentFits(page);
@@ -714,23 +671,23 @@ test("RNA is CIPRES simulated data; score axes use readable shared units",async(
 
 test("quality defaults to available Q, resets on dataset changes and falls back to SP",async({page},info)=>{
   await openBenchmark(page,"/#/benchmark/datasets/rna_255");
-  await expect(page.getByTestId("tradeoff-chart")).toHaveAttribute("data-y-key","q");
+  await expect(page.getByTestId("tradeoff-chart").first()).toHaveAttribute("data-y-key","q");
   await page.getByRole("combobox",{name:"Vertical axis",exact:true}).selectOption("scaled_sp");
-  await expect(page.getByTestId("tradeoff-chart")).toHaveAttribute("data-y-key","scaled_sp");
+  await expect(page.getByTestId("tradeoff-chart").first()).toHaveAttribute("data-y-key","scaled_sp");
   await page.getByRole("link",{name:"Next",exact:true}).click();
   await expect(page.getByTestId("dataset-title")).toHaveAttribute("data-dataset-id","rna_511");
-  await expect(page.getByTestId("tradeoff-chart")).toHaveAttribute("data-y-key","q");
+  await expect(page.getByTestId("tradeoff-chart").first()).toHaveAttribute("data-y-key","q");
   await page.getByRole("combobox",{name:"Vertical axis",exact:true}).selectOption("scaled_sp");
   await expand(page,".benchmark-studio-sidebar-menu");
   await page.locator('[data-testid="dataset-nav-link"][data-dataset-id="rna_255"]').click();
   await expect(page.getByTestId("dataset-title")).toHaveAttribute("data-dataset-id","rna_255");
-  await expect(page.getByTestId("tradeoff-chart")).toHaveAttribute("data-y-key","q");
+  await expect(page.getByTestId("tradeoff-chart").first()).toHaveAttribute("data-y-key","q");
   await capturePageFromTop(page,info.outputPath("q-priority.png"));
   await openBenchmark(page,"/#/benchmark/datasets/dna_mt_10k");
-  await expect(page.getByTestId("tradeoff-chart")).toHaveAttribute("data-y-key","scaled_sp");
-  await openBenchmark(page,"/#/benchmark?type=rna&metric=sp_score");
+  await expect(page.getByTestId("tradeoff-chart").first()).toHaveAttribute("data-y-key","scaled_sp");
+  await openBenchmark(page,"/#/benchmark?view=matrix&type=rna&metric=sp_score");
   await page.locator('.benchmark-matrix-dataset a[href*="datasets/rna_255"]').click();
-  await expect(page.getByTestId("tradeoff-chart")).toHaveAttribute("data-y-key","q");
+  await expect(page.getByTestId("tradeoff-chart").first()).toHaveAttribute("data-y-key","q");
   const fixture=expectedWebsiteSnapshot(publicBenchmarkFixture());
   for(const batch of fixture.batches) for(const result of batch.results) {
     if(result.metrics.q.status!=="complete" && result.metrics.q.status!=="partial") continue;
@@ -739,7 +696,7 @@ test("quality defaults to available Q, resets on dataset changes and falls back 
   }
   await page.route("**/benchmark/snapshot.json",route=>route.fulfill({json:fixture}));
   await page.reload();await expect(page.getByTestId("dataset-title")).toHaveAttribute("data-dataset-id","rna_255");
-  await expect(page.getByTestId("tradeoff-chart")).toHaveAttribute("data-y-key","scaled_sp");
+  await expect(page.getByTestId("tradeoff-chart").first()).toHaveAttribute("data-y-key","scaled_sp");
 });
 
 test("green emphasis agrees across filtered tables and scatter directions",async({page},info)=>{
@@ -758,20 +715,20 @@ test("green emphasis agrees across filtered tables and scatter directions",async
     method:node.getAttribute("data-method")??node.getAttribute("data-method-id")??node.closest("button")?.getAttribute("data-method")??null,
     heat:node.getAttribute("data-heat"),tone:node.getAttribute("data-tone"),best:node.getAttribute("data-best")
   })));
-  await openBenchmark(page,"/#/benchmark?search=rna_255&metric=q");
+  await openBenchmark(page,"/#/benchmark?view=matrix&search=rna_255&metric=q");
   const mafft=page.locator('[data-testid="matrix-cell"][data-method-id="mafft"]');
   expect(await mafft.getAttribute("data-best")).toBe("false");
   await openBenchmark(page,`/#/benchmark/datasets/rna_255?methods=${methods.join(",")}&chart=table`);
   for(const key of keys) compare(await read(`td[data-metric="${key}"]`),key);
   for(const key of keys){
-    await openBenchmark(page,`/#/benchmark?search=rna_255&methods=${methods.join(",")}&metric=${key}`);
+    await openBenchmark(page,`/#/benchmark?view=matrix&search=rna_255&methods=${methods.join(",")}&metric=${key}`);
     compare(await read('[data-testid="matrix-cell"]'),key);
     for(const cell of await page.getByTestId("matrix-cell").all()){
       const tone=await cell.getAttribute("data-tone");
       if(tone!=="neutral") await expect(cell).toHaveCSS("background-color",palette[Number(tone)]);
     }
   }
-  await openBenchmark(page,`/#/benchmark?search=rna_255&methods=${methods.join(",")}&metric=q`);
+  await openBenchmark(page,`/#/benchmark?view=matrix&search=rna_255&methods=${methods.join(",")}&metric=q`);
   const best=page.locator('[data-testid="matrix-cell"][data-method-id="mafft"]');
   await expect(best).toHaveAttribute("data-best","true");
   const color=await best.evaluate(element=>getComputedStyle(element).backgroundColor);
@@ -779,51 +736,48 @@ test("green emphasis agrees across filtered tables and scatter directions",async
   await expect(best).toHaveCSS("background-color",color);
   await expect(best).toHaveCSS("font-weight","700");
   await page.keyboard.press("Escape");
-  for(const x of ["wall_seconds","max_rss_kib"] as const) for(const y of ["q","tc","scaled_sp"] as const){
-    await openBenchmark(page,`/#/benchmark/datasets/rna_255?methods=${methods.join(",")}&x=${x}&y=${y}`);
-    compare(await read('[data-testid="tradeoff-method-x"]'),x);
-    compare(await read('[data-testid="tradeoff-method-y"]'),y);
-    await expect(page.getByTestId("tradeoff-direction")).toContainText("Upper left is better");
-    await expect(page.getByTestId("tradeoff-direction")).toContainText(x==="wall_seconds"?"Faster":"Less memory");
-    const names={q:"Q",tc:"TC",sp_score:"SP score",avg_sp:"Avg SP",scaled_sp:"Normalized SP"};
-    await expect(page.getByTestId("tradeoff-direction")).toContainText(`Higher ${names[y]}`);
-    const hintBox=(await page.getByTestId("tradeoff-direction").boundingBox())!;
-    const plotBox=(await page.locator(".tradeoff-plane").boundingBox())!;
-    expect(hintBox.y+hintBox.height).toBeLessThanOrEqual(plotBox.y);
-    if(x==="wall_seconds" && y==="q") {
+  for(const y of ["q","tc","scaled_sp"] as const){
+    await openBenchmark(page,`/#/benchmark/datasets/rna_255?methods=${methods.join(",")}&y=${y}`);
+    for(const key of keys) compare(await read(`td[data-metric="${key}"]`),key);
+    for(const chart of await page.getByTestId("tradeoff-chart").all()){
+      const x=await chart.getAttribute("data-x-key");
+      const hint=chart.getByTestId("tradeoff-direction");
+      await expect(hint).toContainText("Upper left is better");
+      await expect(hint).toContainText(x==="wall_seconds"?"Faster":"Less memory");
+      const names={q:"Q",tc:"TC",scaled_sp:"Normalized SP"};
+      await expect(hint).toContainText(`Higher ${names[y]}`);
+      const hintBox=(await hint.boundingBox())!,plotBox=(await chart.locator(".tradeoff-plane").boundingBox())!;
+      expect(hintBox.y+hintBox.height).toBeLessThanOrEqual(plotBox.y);
+    }
+    if(y==="q") {
       await page.getByRole("combobox",{name:"Horizontal scale",exact:true}).selectOption("linear");
-      await expect(page.getByTestId("tradeoff-chart")).toHaveAttribute("data-x-scale","linear");
+      for(const chart of await page.getByTestId("tradeoff-chart").all())await expect(chart).toHaveAttribute("data-x-scale","linear");
       const zoom=page.getByRole("checkbox",{name:"Zoom Q / TC differences",exact:true});
-      await zoom.click();
-      await expect(zoom).toBeChecked();
-      await expect(page.getByTestId("tradeoff-direction")).toContainText("Higher Q");
-      compare(await read('[data-testid="tradeoff-method-x"]'),x);
-      compare(await read('[data-testid="tradeoff-method-y"]'),y);
-      const selected=page.locator('[data-testid="tradeoff-method"][data-method="mafft"]');
-      const quality=selected.getByTestId("tradeoff-method-y");
+      await zoom.click();await expect(zoom).toBeChecked();
+      const quality=page.getByTestId("precise-results").locator('td[data-method="mafft"][data-metric="q"]');
       const before=await quality.evaluate(element=>getComputedStyle(element).backgroundColor);
-      await selected.click();
+      const selected=page.getByTestId("tradeoff-chart").first().locator('[data-testid="tradeoff-point"][data-method="mafft"]');
+      await selected.focus();await selected.press("Enter");
+      await expect(page).toHaveURL(/method=mafft/);
       await expect(quality).toHaveCSS("background-color",before);
       await expect(quality).toHaveCSS("color","rgb(255, 255, 255)");
-      await page.keyboard.press("Escape");
     }
   }
   await openBenchmark(page,"/#/benchmark/datasets/rna_255");
   await page.getByRole("button",{name:"Switch language",exact:true}).click();
-  await expect(page.getByTestId("tradeoff-direction")).toContainText("左上更优");
-  await expect(page.getByTestId("tradeoff-direction")).toContainText("更快");
+  await expect(page.getByTestId("tradeoff-direction").first()).toContainText("左上更优");
+  await expect(page.getByTestId("tradeoff-direction").first()).toContainText("更快");
   await capturePageFromTop(page,info.outputPath("emphasis-scatter-zh.png"));
-  await page.getByRole("button",{name:"数值表",exact:true}).click();
-  await expect(page.getByTestId("comparison-legend").filter({visible:true})).toHaveCount(1);
+  await expect(page.getByTestId("comparison-legend")).toHaveCount(1);
   await capturePageFromTop(page,info.outputPath("emphasis-table-zh.png"));
-  await openBenchmark(page,"/#/benchmark");
+  await openBenchmark(page,"/#/benchmark?view=matrix");
   await capturePageFromTop(page,info.outputPath("emphasis-matrix-zh.png"));
 });
 
 test("all SP surfaces use the reported normalized metric, including legacy links",async({page},info)=>{
   const records=expectedRecords(rawSnapshot,"latest").filter(row=>row.result.dataset_id==="dna_mt_10k");
   for(const alias of ["sp_score","avg_sp","scaled_sp"]){
-    await openBenchmark(page,`/#/benchmark?search=dna_mt_10k&metric=${alias}`);
+    await openBenchmark(page,`/#/benchmark?view=matrix&search=dna_mt_10k&metric=${alias}`);
     await expect(page.getByTestId("benchmark-matrix")).toHaveAttribute("data-metric","scaled_sp");
     await expect(page.getByTestId("metric-scaled_sp")).toHaveAttribute("aria-pressed","true");
     await expect(page.getByRole("combobox",{name:"More metrics",exact:true})).toHaveCount(0);
@@ -834,7 +788,7 @@ test("all SP surfaces use the reported normalized metric, including legacy links
       expect(cell.value).toBe(value===null?"":String(value));
     }
     await openBenchmark(page,`/#/benchmark/datasets/dna_mt_10k?y=${alias}&metric=${alias}`);
-    await expect(page.getByTestId("tradeoff-chart")).toHaveAttribute("data-y-key","scaled_sp");
+    await expect(page.getByTestId("tradeoff-chart").first()).toHaveAttribute("data-y-key","scaled_sp");
     await expect(page.getByRole("combobox",{name:"Vertical axis",exact:true}).locator("option")).toHaveCount(3);
     await assertScatterConsistency(page,rawSnapshot,"latest","dna_mt_10k");
     await assertDatasetConsistency(page,rawSnapshot,"latest","dna_mt_10k");
@@ -846,11 +800,10 @@ test("all SP surfaces use the reported normalized metric, including legacy links
   if(await downloadMenu.getAttribute("open")!==null) await downloadMenu.locator("summary").click();
   await openBenchmark(page,"/#/benchmark/datasets/dna_mt_10k");
   await page.getByRole("button",{name:"Switch language",exact:true}).click();
-  await expect(page.getByTestId("tradeoff-direction")).toContainText("归一化 SP 更高");
+  await expect(page.getByTestId("tradeoff-direction").first()).toContainText("归一化 SP 更高");
   await capturePageFromTop(page,info.outputPath("normalized-scatter-zh.png"));
-  await page.getByRole("button",{name:"数值表",exact:true}).click();
   await expect(page.getByTestId("precise-results").locator("td[data-metric]")).toHaveCount(30);
   await capturePageFromTop(page,info.outputPath("normalized-table-zh.png"));
-  await openBenchmark(page,"/#/benchmark?metric=scaled_sp");
+  await openBenchmark(page,"/#/benchmark?view=matrix&metric=scaled_sp");
   await capturePageFromTop(page,info.outputPath("normalized-matrix-zh.png"));
 });

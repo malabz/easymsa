@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import AxeBuilder from "@axe-core/playwright";
 import {privateRun} from "../src/features/benchmark/__tests__/privateFixtures";
-import {assertDownloads,assertMetricPlots,assertRealContract,assertScatter,assertTable,comparisonMetrics,displayedMetrics,metricString,realExample,type Comparison} from "./helpers/comparison-expectations";
+import {assertDownloads,assertRealContract,assertScatter,assertTable,comparisonMetrics,displayedMetrics,metricString,realExample,type Comparison} from "./helpers/comparison-expectations";
 
 const examplePath="/#/benchmark/examples/msa-kit";
 const asset="**/benchmark/examples/msa-kit.json";
@@ -43,12 +43,11 @@ test("MSA-Kit example reuses all 1274 real metric positions across matrix, figur
  test.setTimeout(360_000);const report=realExample();assertRealContract(report);const mutations=await prepare(page);
  const errors:string[]=[];page.on("pageerror",error=>errors.push(error.message));
  await openExample(page);const root=page.getByTestId("comparison-root");await expect(root).toHaveAttribute("data-snapshot-id",report.snapshot_id);await expect(root).toHaveAttribute("data-candidate-id",report.candidate.id);
- await expect(page.getByTestId("comparison-scatter")).toHaveAttribute("data-y-key","q");
+ await expect(page.getByTestId("comparison-scatter").first()).toHaveAttribute("data-y-key","q");
  let displayed=0,plotted=0,downloaded=0;
  for(const dataset of report.catalog.datasets){
   await openExample(page,dataset.id);plotted+=await assertScatter(page,report,dataset.id);
-  await page.getByRole("button",{name:"Values",exact:true}).click();displayed+=await assertTable(page,report,dataset.id);
-  await page.getByRole("button",{name:"Metrics",exact:true}).click();await assertMetricPlots(page,report,dataset.id);
+  displayed+=await assertTable(page,report,dataset.id);
   downloaded+=await assertDownloads(page,report,dataset.id);await assertFit(page);
  }
  await openExample(page);downloaded+=await assertDownloads(page,report);
@@ -127,17 +126,17 @@ test("candidate identity survives same method name, overlap, zero values and mis
  for(const key of ["wall_seconds","max_rss_kib"]as const){const m=row.metrics![key];m.value=m.mean=m.min=m.max=0;}
  row.metrics!.q={status:"unavailable",valid_count:0,planned_count:1,value:null,mean:null,sd:null,min:null,max:null,display:null,reason_codes:["scoring_failed"]};row.status="partial";row.reason_code="scoring_failed";
  const sp=row.metrics!.scaled_sp;sp.value=sp.mean=sp.min=sp.max=-.2;
- await page.reload();await expect(page.getByTestId("comparison-root")).toHaveAttribute("data-dataset-id","rna_255");await expect(page.getByTestId("comparison-scatter")).toHaveAttribute("data-y-key","scaled_sp");await expect(page.getByTestId("comparison-scatter")).toHaveAttribute("data-x-scale","linear");await assertScatter(page,report,"rna_255");
- await page.getByRole("button",{name:"Values",exact:true}).click();await assertTable(page,report,"rna_255");
+ await page.reload();await expect(page.getByTestId("comparison-root")).toHaveAttribute("data-dataset-id","rna_255");await expect(page.getByTestId("comparison-scatter").first()).toHaveAttribute("data-y-key","scaled_sp");await expect(page.getByTestId("comparison-scatter").first()).toHaveAttribute("data-x-scale","linear");await assertScatter(page,report,"rna_255");
+ await assertTable(page,report,"rna_255");
 });
 
 test("unmatched and failed results remain visible without zero points",async({page})=>{
  const report=structuredClone(realExample());report.snapshot_id="e".repeat(64);
  for(const row of report.results){if(row.method_id!==report.candidate.id){row.status="unmatched";row.reason_code=null;row.metrics=null;row.source=null;row.valid_repeats=0;}else if(row.dataset_id==="rna_255"){row.status="unsupported";row.reason_code="unsupported";row.valid_repeats=0;for(const metric of Object.values(row.metrics!))Object.assign(metric,{status:"unavailable",valid_count:0,value:null,mean:null,sd:null,min:null,max:null,display:null,reason_codes:["unsupported"]});}}
  await prepare(page);await page.route(asset,route=>json(route,report));await openExample(page,"rna_255");
- await expect(page.getByTestId("comparison-point")).toHaveCount(0);await expect(page.getByTestId("comparison-method")).toHaveCount(7);
+ await expect(page.getByTestId("comparison-point")).toHaveCount(0);await expect(page.getByTestId("comparison-table").locator("tbody tr")).toHaveCount(7);
  await expect(page.getByText(/No matching baseline|暂无匹配对照/).first()).toBeVisible();
- await page.getByRole("button",{name:"Values",exact:true}).click();await assertTable(page,report,"rna_255");
+ await assertTable(page,report,"rna_255");
 });
 
 test("dataset selection preserves sidebar position, URL, keyboard focus and the candidate filter",async({page},info)=>{
@@ -153,7 +152,7 @@ test("dataset selection preserves sidebar position, URL, keyboard focus and the 
  await expect(exact).toHaveAttribute("aria-current","page");expect(await sidebar.evaluate(node=>node.scrollTop)).toBeGreaterThanOrEqual(Math.max(0,focusedScroll-80));
  await expect(page).toHaveURL(/dataset=rna_4095/);await page.reload();await expect(page.getByTestId("comparison-root")).toHaveAttribute("data-dataset-id","rna_4095");
  await page.getByText(/^Methods \d/).click();const own=page.getByRole("checkbox",{name:/MSA-Kit/});await expect(own).toBeChecked();await expect(own).toBeDisabled();
- await page.getByRole("checkbox",{name:"MAFFT",exact:true}).click();await expect(page.getByRole("checkbox",{name:"MAFFT",exact:true})).not.toBeChecked();await expect(page.getByTestId("comparison-method")).toHaveCount(6);await expect(page.getByTestId("comparison-method").first()).toHaveAttribute("data-method",report.candidate.id);await expect(page).toHaveURL(/methods=/);
+ await page.getByRole("checkbox",{name:"MAFFT",exact:true}).click();await expect(page.getByRole("checkbox",{name:"MAFFT",exact:true})).not.toBeChecked();await expect(page.getByTestId("comparison-table").locator("tbody tr")).toHaveCount(6);await expect(page.getByTestId("comparison-table").locator("tbody tr").first()).toHaveAttribute("data-method",report.candidate.id);await expect(page).toHaveURL(/methods=/);
  await page.getByRole("checkbox",{name:"MAFFT",exact:true}).click();await expect(page.getByRole("checkbox",{name:"MAFFT",exact:true})).toBeChecked();await page.getByText(/^Methods \d/).click();
  if(await menu.getAttribute("open")===null)await menu.locator("summary").click();
  const search=page.getByRole("searchbox",{name:"Search comparison datasets",exact:true});
@@ -162,7 +161,7 @@ test("dataset selection preserves sidebar position, URL, keyboard focus and the 
  await expect(downloads.getByRole("button",{name:"CSV",exact:true})).toBeDisabled();await expect(downloads.getByRole("button",{name:"JSON",exact:true})).toBeDisabled();await expect(downloads.locator("p").first()).toContainText("0 datasets");
  await expect(page.getByLabel("Download scope",{exact:true}).locator('option[value="dataset"]')).toHaveJSProperty('disabled',true);await page.getByLabel("Download scope",{exact:true}).selectOption("all");await expect(downloads.getByRole("button",{name:"JSON",exact:true})).toBeEnabled();await expect(page.getByLabel("Download scope",{exact:true}).locator('option[value="dataset"]')).toHaveJSProperty('disabled',true);
  if(await downloads.getAttribute("open")!==null)await downloads.locator("summary").click();
- await search.fill("");await expect(page.getByTestId("comparison-root")).toHaveAttribute("data-dataset-id","rna_255");await expect(page.getByTestId("comparison-method")).toHaveCount(7);await expect(page.getByTestId("comparison-method").first()).toHaveAttribute("data-method",report.candidate.id);
- const mine=page.locator(`[data-testid="comparison-method"][data-method="${report.candidate.id}"]`);await mine.focus();await mine.press("Enter");await expect(page.getByTestId("comparison-tooltip")).toBeVisible();await mine.press("Escape");
+ await search.fill("");await expect(page.getByTestId("comparison-root")).toHaveAttribute("data-dataset-id","rna_255");await expect(page.getByTestId("comparison-table").locator("tbody tr")).toHaveCount(7);await expect(page.getByTestId("comparison-table").locator("tbody tr").first()).toHaveAttribute("data-method",report.candidate.id);
+ const mine=page.getByTestId("comparison-scatter").first().locator(`[data-testid="comparison-point"][data-method="${report.candidate.id}"]`);await mine.focus();await mine.press("Enter");await expect(page).toHaveURL(new RegExp("method="+report.candidate.id));await expect(mine).toBeFocused();
  await page.getByRole("button",{name:"Switch language",exact:true}).click();await expect(page.locator("html")).toHaveAttribute("lang","zh-CN");await page.evaluate(()=>document.documentElement.style.fontSize="200%");await assertFit(page);await settle(page);await page.screenshot({path:info.outputPath("comparison-keyboard-zh-200.png"),fullPage:true});
 });

@@ -8,25 +8,31 @@ import { BenchmarkPage } from "../../routes/BenchmarkPage";
 import { BenchmarkDatasetPage } from "../../routes/BenchmarkDatasetPage";
 import { availableMetric, emptySnapshot, publishedSnapshot } from "./__tests__/fixtures";
 import { metricKeys, parseSnapshot, type BenchmarkSnapshot } from "./model";
+import { queryClient } from "../../lib/query/queryClient";
 
-function mount(snapshot: BenchmarkSnapshot, path = "/benchmark", locale: "en" | "zh" = "en") {
+function mount(snapshot: BenchmarkSnapshot, path = "/benchmark", locale: "en" | "zh" = "en", matrix = true) {
+  const route = new URL(path, "https://example.org");
+  if (matrix && route.pathname === "/benchmark") route.searchParams.set("view", "matrix");
+  path = route.pathname + route.search;
   localStorage.setItem("easymsa.locale", locale);
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(snapshot) }));
   return render(<LanguageProvider><MemoryRouter initialEntries={[path]}><Routes><Route path="/benchmark" element={<BenchmarkPage />} /><Route path="/benchmark/datasets/:caseId" element={<BenchmarkDatasetPage />} /></Routes></MemoryRouter></LanguageProvider>);
 }
-function exactValues(locale: "en" | "zh" = "en") {
-  fireEvent.click(screen.getByRole("button", { name: locale === "en" ? "Values" : "数值表" }));
+function exactValues(_locale: "en" | "zh" = "en") {
   return screen.getByTestId("precise-results");
 }
-function point(method: string, key: string) {
-  const result = screen.getAllByTestId("metric-point").find(element => element.dataset.method === method && element.dataset.metric === key);
-  expect(result).toBeDefined(); return result!;
+function chart(x = "wall_seconds") {
+  return screen.getAllByTestId("tradeoff-chart").find(figure => figure.dataset.xKey === x)!;
+}
+function scoreCell(method: string, key: string) {
+  return screen.getByTestId("precise-results").querySelector<HTMLElement>(`td[data-method="${method}"][data-metric="${key}"]`)!;
 }
 function cell(dataset: string, method: string) {
   const result = screen.getAllByTestId("matrix-cell").find(element => element.dataset.datasetId === dataset && element.dataset.methodId === method);
   expect(result).toBeDefined(); return result!;
 }
 beforeEach(() => {
+  queryClient.clear();
   localStorage.clear(); sessionStorage.clear();
   // Scroll restoration itself is covered in browser tests, not jsdom.
   vi.stubGlobal("requestAnimationFrame", vi.fn(() => 0));
@@ -34,6 +40,15 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 describe("Benchmark pages", () => {
+  it("opens the complete RNA255 report from the default Benchmark entry", async () => {
+    const snapshot = parseSnapshot(JSON.parse(readFileSync("public/benchmark/snapshot.json", "utf8")));
+    mount(snapshot, "/benchmark", "en", false);
+    expect(await screen.findByTestId("dataset-title")).toHaveAttribute("data-dataset-id", "rna_255");
+    expect(screen.getAllByTestId("tradeoff-chart").map(figure=>figure.dataset.xKey)).toEqual(["wall_seconds","max_rss_kib"]);
+    expect(exactValues()).toBeVisible();
+    expect(exactValues().querySelectorAll("td[data-metric]")).toHaveLength(30);
+    expect(screen.queryByRole("button", {name:"Values"})).not.toBeInTheDocument();
+  });
   it.each(["sp_score","avg_sp","scaled_sp"])("shows reported normalized SP for the %s legacy route",async key=>{
     const snapshot=publishedSnapshot(),batch=snapshot.batches[1];
     const first=batch.results.find(result=>result.method_id==="clustalo")!;
@@ -52,7 +67,7 @@ describe("Benchmark pages", () => {
     const normalized=screen.getByTestId("precise-results").querySelector('[data-method="clustalo"][data-metric="scaled_sp"]')!;
     expect(normalized).toHaveAttribute("data-raw-value","0.8");
     expect(normalized).toHaveAttribute("data-best","true");
-    expect(screen.getByTestId("tradeoff-chart")).toHaveAttribute("data-y-key","scaled_sp");
+    expect(chart()).toHaveAttribute("data-y-key","scaled_sp");
     expect(JSON.stringify(snapshot)).toBe(before);
     expect(screen.queryByLabelText("SP measure")).not.toBeInTheDocument();
   });
@@ -65,7 +80,7 @@ describe("Benchmark pages", () => {
     }
     mount(snapshot,"/benchmark/datasets/case_ref?y=sp_score");
     await screen.findByTestId("dataset-title");
-    expect(screen.getByTestId("tradeoff-chart")).toHaveAttribute("data-y-key","scaled_sp");
+    expect(chart()).toHaveAttribute("data-y-key","scaled_sp");
     expect(screen.queryAllByTestId("tradeoff-point")).toHaveLength(0);
   });
   it("keeps filter panels exclusive without losing active filters and closes them with Escape", async () => {
@@ -119,8 +134,8 @@ describe("Benchmark pages", () => {
     expect(url.searchParams.get("methods")?.split(",")).not.toContain("mafft");
     fireEvent.click(link);
     expect(await screen.findByTestId("dataset-title")).toHaveAttribute("data-dataset-id",link.dataset.datasetId!);
-    expect(screen.getByRole("button", {name:"Trade-off"})).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getAllByTestId("tradeoff-method")).toHaveLength(5);
+    expect(screen.getAllByTestId("tradeoff-chart")).toHaveLength(2);
+    expect(within(exactValues()).getAllByRole("row")).toHaveLength(6);
     expect(screen.getAllByTestId("dataset-nav-link")).toHaveLength(6);
     const next = screen.getByRole("link", {name:"Next"});
     expect(next).toHaveAttribute("href", expect.stringContaining("type=rna"));
@@ -193,7 +208,7 @@ describe("Benchmark pages", () => {
     expect(href.searchParams.get("method")).toBe("clustalo"); expect(href.searchParams.get("metric")).toBe("max_rss_kib");
     expect(href.searchParams.get("batch")).toBeNull(); expect(href.searchParams.get("returnTo")).toContain("source=simulated");
     fireEvent.click(selected); await screen.findByTestId("dataset-title");
-    expect(point("clustalo", "max_rss_kib")).toHaveClass("is-active");
+    expect(chart("max_rss_kib").querySelector('[data-testid="tradeoff-point"][data-method="clustalo"]')).toHaveAttribute("aria-pressed", "true");
     fireEvent.click(document.querySelector(".benchmark-detail-topline .benchmark-back")!); await screen.findByTestId("benchmark-matrix");
     expect(screen.getByTestId("metric-max_rss_kib")).toHaveAttribute("aria-pressed", "true"); expect(screen.getByLabelText("Data origin")).toHaveValue("simulated");
   });
@@ -204,50 +219,47 @@ describe("Benchmark pages", () => {
     fireEvent.click(screen.getByText("Experiment details"));
     expect(screen.getByRole("heading", { name: "Input needs review" })).toBeVisible();
     expect(screen.getByText(/Invalid colon characters: 411/)).toBeVisible(); expect(screen.getByText(/Sampling: With replacement/)).toBeVisible();
-    expect(screen.getAllByText("No reference alignment: this metric is not applicable.")).toHaveLength(2);
+    expect(screen.getAllByTestId("tradeoff-chart").every(figure=>figure.dataset.yKey==="scaled_sp")).toBe(true);
     const table = exactValues();
     expect(within(table).getAllByText("No reference")).toHaveLength(12); expect(within(table).queryByText("Failed")).not.toBeInTheDocument();
   });
 
-  it("keeps all methods and current measurements visible across views", async () => {
+  it("shows all five metrics and two resource plots together, retaining partial and failed methods", async () => {
     const fixture = publishedSnapshot();
     for (const batch of fixture.batches) {
       const partial = batch.results.find(result => result.method_id === "tcoffee")!;
-      batch.results = batch.results.map(result => result.method_id === "fmalign2" ? { ...partial, method_id: "fmalign2" } : result);
       const failure = batch.results.find(result => result.method_id === "kalign3")!;
-      batch.results = batch.results.map(result => result.method_id === "halign4" ? { ...failure, method_id: "halign4" } : result);
+      batch.results = batch.results.map(result => result.method_id === "fmalign2" ? { ...partial, method_id: "fmalign2" } : result.method_id === "halign4" ? { ...failure, method_id: "halign4" } : result);
     }
     mount(fixture, "/benchmark/datasets/case_ref"); await screen.findByTestId("dataset-title");
-    expect(screen.queryByLabelText("Evaluation batch")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Trade-off" })).toHaveAttribute("aria-pressed", "true");
-    fireEvent.click(screen.getByRole("button", { name: "Metric plots" }));
-    expect(screen.getAllByTestId("metric-point")).toHaveLength(30);
-    expect(point("clustalo", "wall_seconds")).toHaveAttribute("data-raw-value", "20");
-    expect(point("mafft", "wall_seconds")).toHaveAttribute("data-raw-value", ""); expect(point("mafft", "wall_seconds")).toHaveAccessibleName(/Timed out/);
-    expect(point("fmalign2", "wall_seconds")).toHaveAccessibleName(/21 · Partial/);
-    fireEvent.click(point("clustalo", "wall_seconds")); expect(screen.getByRole("tooltip")).toHaveTextContent("20 s");
-    fireEvent.click(screen.getByRole("button", { name: "Close result details" }));
-    const table = exactValues(), clustal = within(table).getByRole("row", { name: /Clustal Omega/ });
-    expect(within(clustal).getAllByText("20").length).toBeGreaterThan(0); expect(within(clustal).getByText("3/3", {exact:true})).toBeVisible();
+    expect(screen.getAllByTestId("tradeoff-chart").map(figure=>figure.dataset.xKey)).toEqual(["wall_seconds","max_rss_kib"]);
+    const table = exactValues();
+    expect(table).toBeVisible();
+    expect(table.querySelectorAll("td[data-metric]")).toHaveLength(30);
+    expect(scoreCell("clustalo","wall_seconds")).toHaveAttribute("data-raw-value","20");
+    expect(scoreCell("mafft","wall_seconds")).toHaveAttribute("data-raw-value","");
+    expect(scoreCell("fmalign2","wall_seconds")).toHaveAttribute("data-raw-value","21");
+    const clustal = within(table).getByRole("row", { name: /Clustal Omega/ });
+    expect(within(clustal).getByText("3/3", {exact:true})).toBeVisible();
     for (const state of ["Complete", "Partial", "Timed out", "Unsupported", "Failed"]) expect(within(table).getAllByText(state).length).toBeGreaterThan(0);
+    expect(screen.queryByRole("button",{name:"Values"})).not.toBeInTheDocument();
   });
 
-  it("renders distinct SP axis labels for the narrow real repair-score range", async () => {
+  it("renders distinct normalized SP axes without changing narrow-range scores", async () => {
     const snapshot = publishedSnapshot();
     const values = [.993242,.993241];
     const partial = snapshot.batches[1].results.find(result => result.method_id === "tcoffee")!;
     snapshot.batches[1].results = snapshot.batches[1].results.map(result => result.method_id === "fmalign2" ? { ...partial, method_id: "fmalign2" } : result);
-    snapshot.batches[1].results.filter(result => ["clustalo", "fmalign2"].includes(result.method_id)).forEach((result, index) => {
-      result.metrics.scaled_sp = availableMetric(values[index], result.valid_repeats);
-    });
-    mount(snapshot, "/benchmark/datasets/case_ref?chart=metrics");
+    snapshot.batches[1].results.filter(result => ["clustalo", "fmalign2"].includes(result.method_id)).forEach((result, index) => { result.metrics.scaled_sp = availableMetric(values[index], result.valid_repeats); });
+    mount(snapshot, "/benchmark/datasets/case_ref?y=scaled_sp");
     await screen.findByTestId("dataset-title");
-    const figure = screen.getByRole("figure", { name: "Normalized SP" });
-    const labels = [...figure.querySelectorAll(".benchmark-dot-axis span")].map(label => label.textContent);
-    expect(labels).toHaveLength(3);
-    expect(new Set(labels).size).toBe(3);
-    expect(point("clustalo", "scaled_sp")).toHaveAttribute("data-raw-value", String(values[0]));
-    expect(point("fmalign2", "scaled_sp")).toHaveAttribute("data-raw-value", String(values[1]));
+    for(const figure of screen.getAllByTestId("tradeoff-chart")){
+      expect(figure).toHaveAttribute("data-y-key","scaled_sp");
+      const labels=[...figure.querySelectorAll(".tradeoff-y-tick")].map(label=>label.textContent);
+      expect(labels.length).toBeGreaterThan(1); expect(new Set(labels).size).toBe(labels.length);
+    }
+    expect(scoreCell("clustalo", "scaled_sp")).toHaveAttribute("data-raw-value", String(values[0]));
+    expect(scoreCell("fmalign2", "scaled_sp")).toHaveAttribute("data-raw-value", String(values[1]));
   });
 
   it("uses current versions and values even through a historical link", async () => {
@@ -262,18 +274,22 @@ describe("Benchmark pages", () => {
     const r = snapshot.batches[0].results[0]; snapshot.batches[0].results = [r]; r.planned_repeats = r.valid_repeats = 1;
     for (const key of metricKeys) r.metrics[key] = availableMetric(key === "q" || key === "tc" ? .8 : 10, 1, 1);
     mount(snapshot, "/benchmark/datasets/case_ref"); await screen.findByTestId("dataset-title");
-    expect(screen.getByTestId("metric-plots").querySelector(".benchmark-error-range")).toBeNull();
+    for (const figure of screen.getAllByTestId("tradeoff-chart")) expect(figure.querySelector(".tradeoff-range")).toBeNull();
     const row = within(exactValues()).getByRole("row", { name: /Clustal Omega/ });
     expect(within(row).getByText("1/1", {exact:true})).toBeVisible(); expect(row.textContent).not.toContain("±");
   });
 
-  it("changes Q/TC zoom and SP measure without changing measurements", async () => {
-    mount(publishedSnapshot(), "/benchmark/datasets/case_ref?chart=metrics"); await screen.findByTestId("metric-plots");
-    const q = screen.getByRole("figure", {name:"Q"}); expect(q).toHaveAttribute("data-domain-min", "0"); expect(q).toHaveAttribute("data-domain-max", "1");
-    fireEvent.click(screen.getByRole("checkbox", {name:"Zoom Q / TC differences"})); expect(Number(q.getAttribute("data-domain-min"))).toBeGreaterThan(0);
-    expect(point("clustalo", "q")).toHaveAttribute("data-raw-value", "0.8");
-    expect(screen.queryByLabelText("SP measure")).not.toBeInTheDocument();
-    expect(screen.getByRole("figure", {name:"Normalized SP"})).toBeInTheDocument(); expect(point("clustalo", "scaled_sp")).toHaveAttribute("data-raw-value", "20");
+  it("updates both charts from one quality and zoom control while the full table stays unchanged", async () => {
+    mount(publishedSnapshot(), "/benchmark/datasets/case_ref"); await screen.findByTestId("dataset-title");
+    const values = [...exactValues().querySelectorAll("td[data-metric]")].map(cell=>cell.getAttribute("data-raw-value"));
+    expect(screen.getAllByTestId("tradeoff-chart").every(figure=>figure.dataset.yMin==="0"&&figure.dataset.yMax==="1")).toBe(true);
+    fireEvent.click(screen.getByRole("checkbox", {name:"Zoom Q / TC differences"}));
+    expect(screen.getAllByTestId("tradeoff-chart").every(figure=>Number(figure.dataset.yMin)>0)).toBe(true);
+    fireEvent.change(screen.getByLabelText("Vertical axis"),{target:{value:"scaled_sp"}});
+    expect(screen.getAllByTestId("tradeoff-chart").every(figure=>figure.dataset.yKey==="scaled_sp")).toBe(true);
+    expect([...exactValues().querySelectorAll("td[data-metric]")].map(cell=>cell.getAttribute("data-raw-value"))).toEqual(values);
+    expect(scoreCell("clustalo", "q")).toHaveAttribute("data-raw-value", "0.8");
+    expect(scoreCell("clustalo", "scaled_sp")).toHaveAttribute("data-raw-value", "20");
   });
 
   it("shows an accessible not-found state", async () => {

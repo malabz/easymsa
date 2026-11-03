@@ -88,6 +88,9 @@ textarea {
 @keyframes app-fade-in { from { opacity: 0; } }
 @keyframes app-icon-turn { from { opacity: 0; transform: rotate(-90deg) scale(.7); } }
 @keyframes app-page-enter { from { opacity: 0; transform: translateY(10px); } }
+/* A report stays a stable reading surface while datasets and lazy routes change. */
+.benchmark-shell { background:#fff; }
+.benchmark-shell #main-content > :not(.work-return) { animation:none; }
 .app-footer-inner { display: flex; justify-content: flex-end; align-items: center; min-height: 44px; padding-block: 8px; font-size: 12px; color: var(--color-muted); }
 .app-footer nav a { display: inline-flex; align-items: center; min-height: 28px; text-underline-offset: 3px; }
 .page-container { width: 100%; max-width: var(--layout-reading-width); margin-inline: auto; padding: var(--page-space) var(--page-gutter); }

@@ -74,6 +74,7 @@ export function BenchmarkSidebar({ datasets, params, locale, selectedId, onSearc
   detailParams.delete("y");
   const overviewParams = new URLSearchParams(params);
   chartParameters.forEach(key => overviewParams.delete(key));
+  overviewParams.set("view", "matrix");
   const search = (value: string) => {
     if (onSearch) { onSearch(value); return; }
     const next = new URLSearchParams(params);

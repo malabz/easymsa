@@ -95,8 +95,6 @@ export async function assertDatasetConsistency(page: Page, snapshot: BenchmarkSn
   const dataset = snapshot.catalog.datasets.find(d => d.id === caseId)!;
   const batchId = batch === "latest" ? "latest" : batch.id;
   const records = expectedRecords(snapshot,batchId);
-  const tableToggle = page.getByRole("button", {name:locale === "en" ? "Values" : "数值表", exact:true});
-  await tableToggle.click();
   const table = page.getByTestId("precise-results");
   await expect(table).toBeVisible();
   const observed = await table.locator("td[data-metric]").evaluateAll(cells => cells.map(cell => ({
@@ -128,55 +126,15 @@ export async function assertDatasetConsistency(page: Page, snapshot: BenchmarkSn
       expect(cell.text, context).toContain((locale === "en" ? reasons : reasonsZh)[reason]);
     }
   }
-  await page.getByRole("button", {name:locale === "en" ? "Metric plots" : "分项指标", exact:true}).click();
-  await expect(page.getByTestId("metric-plots")).toBeVisible();
-  // Read all responsive chart panels, including mobile's inactive panels. The
-  // dedicated interaction test also switches every mobile metric into view.
-  const readCharts = () => page.locator("figure[data-metric]").evaluateAll(figures => figures.map(figure => ({
-    key:figure.getAttribute("data-metric"), min:Number(figure.getAttribute("data-axis-min")), max:Number(figure.getAttribute("data-axis-max")), scale:figure.getAttribute("data-axis-scale"),
-    rows:[...figure.querySelectorAll<HTMLElement>("[data-testid='metric-point']")].map(point => ({
-      method:point.dataset.method, raw:point.dataset.rawValue, batch:point.dataset.batchId, label:point.getAttribute("aria-label"),
-      position:point.querySelector<HTMLElement>("[data-testid='plot-dot']")?.style.left ?? null,
-      ranges:point.querySelectorAll("[data-testid='plot-range']").length,
-    }))
-  })));
-  const charts = await readCharts();
-  for (const key of chartKeys) {
-    const chart = charts.find(c => c.key === key)!;
-    expect(chart, `${caseId}/${key}`).toBeDefined();
-    expect(chart.rows.map(r => r.method)).toEqual(snapshot.methods.map(m => m.id));
-    if (key === "q" || key === "tc") { expect(chart.min).toBe(0); expect(chart.max).toBe(1); }
-    for (const method of snapshot.methods) {
-      const record = records.find(({result}) => result.dataset_id === caseId && result.method_id === method.id);
-      const metric = record?.result.metrics[key];
-      const row = chart.rows.find(r => r.method === method.id)!;
-      const context = `${caseId}/${method.id}/${key}`;
-      if (!metric) {
-        expect(row.raw, context).toBe(""); expect(row.position, context).toBeNull();
-        expect(row.label, context).toContain(locale === "en" ? "Not tested" : "未测试");
-        continue;
-      }
-      expect(row.batch, context).toBe(record!.batch.id);
-      const value = numeric(metric);
-      expect(row.raw, context).toBe(value === null ? "" : String(value));
-      if (value === null) { expect(row.position, context).toBeNull(); continue; }
-      const converted = key === "max_rss_kib" ? value / 1024 : value;
-      const expected = chart.scale === "log" ? (Math.log10(converted) - Math.log10(chart.min)) / (Math.log10(chart.max) - Math.log10(chart.min)) * 100 : (converted - chart.min) / (chart.max - chart.min) * 100;
-      // CSSOM rounds percentages and Firefox also stores CSS numbers as floats.
-      // 0.001 percentage point is at most 0.01px on a 1000px plot; raw values
-      // and table/export values above are still compared exactly.
-      expect(Math.abs(parseFloat(row.position!) - Math.max(0, Math.min(100, expected))), context).toBeLessThanOrEqual(0.001);
-      expect(row.label, context).toContain(number(value, key, locale));
-      if (metric.display === "single") expect(row.ranges, context).toBe(0);
-      else expect(row.ranges, context).toBe(1);
-    }
-  }
+  await assertScatterConsistency(page,snapshot,batchId,caseId,locale);
 }
 
 /** Validate actual scatter coordinates, including unit conversion and provenance. */
 export async function assertScatterConsistency(page: Page, snapshot: BenchmarkSnapshot, batchId: string, caseId: string, locale: Locale = "en") {
-  await page.getByRole("button", {name:locale === "en" ? "Trade-off" : "速度—质量",exact:true}).click();
-  const chart = page.getByTestId("tradeoff-chart");
+  const charts = page.getByTestId("tradeoff-chart");
+  await expect(charts).toHaveCount(2);
+  expect(await charts.evaluateAll(nodes=>nodes.map(node=>node.getAttribute("data-x-key")))).toEqual(["wall_seconds","max_rss_kib"]);
+  for (const chart of await charts.all()) {
   await expect(chart).toBeVisible();
   const axes = await chart.evaluate(element => Object.fromEntries(["x", "y"].map(axis => [axis, {
     key:element.getAttribute(`data-${axis}-key`), min:Number(element.getAttribute(`data-${axis}-min`)),
@@ -184,19 +142,8 @@ export async function assertScatterConsistency(page: Page, snapshot: BenchmarkSn
   }])));
   const x = axes.x.key as MetricKey, y = axes.y.key as MetricKey;
   const records = expectedRecords(snapshot,batchId).filter(({result}) => result.dataset_id===caseId);
-  for(const key of [x,y]) {
-    const axis=key===x ? "x" : "y";
-    const rows=await page.getByTestId(`tradeoff-method-${axis}`).evaluateAll(nodes=>nodes.map(node=>({
-      method:node.closest("button")?.getAttribute("data-method"),heat:node.getAttribute("data-heat"),tone:node.getAttribute("data-tone"),best:node.getAttribute("data-best")
-    })));
-    const emphasis=expectedEmphasis(snapshot.methods.map(method=>{
-      const metric=records.find(row=>row.result.method_id===method.id)?.result.metrics[key];
-      return metric ? numeric(metric) : null;
-    }),key);
-    rows.forEach((row,index)=>expect({heat:row.heat,tone:row.tone,best:row.best},`${caseId}/${row.method}/${key}`).toEqual(emphasis[index]));
-  }
   const eligible = records.filter(({result}) => numeric(result.metrics[x])!==null && numeric(result.metrics[y])!==null);
-  const points = await page.getByTestId("tradeoff-point").evaluateAll(nodes=>nodes.map(node=>({
+  const points = await chart.getByTestId("tradeoff-point").evaluateAll(nodes=>nodes.map(node=>({
     method:node.getAttribute("data-method"), batch:node.getAttribute("data-batch-id"),
     xRaw:node.getAttribute("data-x-raw"), yRaw:node.getAttribute("data-y-raw"), shape:node.getAttribute("data-shape"),
     x:Number(node.getAttribute("data-x-percent")), y:Number(node.getAttribute("data-y-percent")),
@@ -221,6 +168,7 @@ export async function assertScatterConsistency(page: Page, snapshot: BenchmarkSn
   if(y==="q" || y==="tc") {
     const zoom=page.getByRole("checkbox",{name:locale==="en"?"Zoom Q / TC differences":"放大 Q / TC 差异",exact:true});
     if(!await zoom.isChecked()){expect(axes.y.min).toBe(0);expect(axes.y.max).toBe(1);}
+  }
   }
 }
 
