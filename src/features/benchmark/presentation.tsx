@@ -100,7 +100,7 @@ export function DownloadButtons({ snapshot, locale, batchId, datasetId, datasetI
   const latest = resultScope?.mode === "latest";
   const filename = `benchmark-${datasetId ?? (ids ? "filtered" : snapshot.catalog.id)}-${latest ? "latest" : batchId ?? "catalog"}`;
   return <details className="benchmark-download-menu" data-testid="download-controls">
-    <summary><Download size={14} aria-hidden="true" />{words(locale, "Download data", "下载数据")}</summary>
+    <summary><Download size={14} aria-hidden="true" />{words(locale, "Export results", "导出成绩")}</summary>
     <div className="benchmark-download-panel">
       {!datasetId && <label>{words(locale, "Download scope", "下载范围")}<select value={scope} onChange={event => setScope(event.target.value)}>
         <option value="filtered">{words(locale, "Current filters", "当前筛选结果")}</option>

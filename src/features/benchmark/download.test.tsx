@@ -61,7 +61,7 @@ describe("download controls", () => {
     const snapshot = repairSnapshot();
     const unchanged = JSON.stringify(snapshot);
     render(<DownloadButtons snapshot={snapshot} resultScope={{mode:"latest"}} datasetIds={["mt100"]} methodIds={["halign4", "mafft"]} locale="en" />);
-    fireEvent.click(screen.getByText("Download data"));
+    fireEvent.click(screen.getByText("Export results"));
     fireEvent.click(screen.getByRole("button", {name:"Download JSON"}));
     const filtered = parseSnapshot(JSON.parse(await text(blobs[0])));
     expect(filtered.catalog.datasets.map(dataset => dataset.id)).toEqual(["mt100"]);
@@ -85,7 +85,7 @@ describe("download controls", () => {
 
   it("keeps a latest detail download limited to the current dataset and method filter", async () => {
     render(<DownloadButtons snapshot={repairSnapshot()} resultScope={{mode:"latest"}} datasetId="mt100" methodIds={["minipoa"]} locale="en" />);
-    fireEvent.click(screen.getByText("Download data"));
+    fireEvent.click(screen.getByText("Export results"));
     expect(screen.queryByLabelText("Download scope")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", {name:"Download JSON"}));
     const json = parseSnapshot(JSON.parse(await text(blobs[0])));
@@ -99,7 +99,7 @@ describe("download controls", () => {
   it("exports the selected filter and batch with identical JSON/CSV metrics and raw memory units", async () => {
     const snapshot = publishedSnapshot(); snapshot.methods[0].name = 'Clustal, "quoted"';
     render(<DownloadButtons snapshot={snapshot} batchId="newer" datasetIds={["case_ref"]} locale="en" />);
-    fireEvent.click(screen.getByText("Download data"));
+    fireEvent.click(screen.getByText("Export results"));
     expect(screen.getByLabelText("Download scope")).toHaveValue("filtered");
     expect(screen.getByText("1 datasets · 9 results")).toBeVisible();
     fireEvent.click(screen.getByRole("button", {name:"Download JSON"}));
@@ -113,7 +113,7 @@ describe("download controls", () => {
   it("switches to a full batch explicitly and retains a truly empty current filter", async () => {
     const snapshot = publishedSnapshot();
     render(<DownloadButtons snapshot={snapshot} batchId="older" datasetIds={[]} locale="en" />);
-    fireEvent.click(screen.getByText("Download data"));
+    fireEvent.click(screen.getByText("Export results"));
     fireEvent.click(screen.getByRole("button", {name:"Download JSON"}));
     const empty = parseSnapshot(JSON.parse(await text(blobs[0])));
     expect(empty.catalog.datasets).toEqual([]); expect(empty.batches[0].results).toEqual([]);
@@ -126,7 +126,7 @@ describe("download controls", () => {
   });
   it("limits detail downloads to the selected dataset and keeps localized controls usable", async () => {
     render(<DownloadButtons snapshot={publishedSnapshot()} batchId="newer" datasetId="case_ref" locale="zh" />);
-    fireEvent.click(screen.getByText("下载数据"));
+    fireEvent.click(screen.getByText("导出成绩"));
     expect(screen.queryByLabelText("下载范围")).not.toBeInTheDocument();
     expect(screen.getByText("1 个数据集 · 9 项结果")).toBeVisible();
     fireEvent.click(screen.getByRole("button", {name:"下载 JSON"}));

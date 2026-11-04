@@ -1,0 +1,192 @@
+{
+  "version": "frozen-colon-n-20261027",
+  "files": [
+    {
+      "id": "dna_16s_100",
+      "filename": "dna_16s_100.fasta",
+      "bytes": 149862,
+      "sha256": "0b5eeec874a6539e02280b3197e53422f9314cbdae8314be983b127cc33506c3",
+      "sequence_count": 100
+    },
+    {
+      "id": "dna_16s_1k",
+      "filename": "dna_16s_1k.fasta",
+      "bytes": 1501951,
+      "sha256": "ed72388d54fc50e66372a17e8c6b0b1de5c35b7c7da956972eef322925e34fd7",
+      "sequence_count": 1000
+    },
+    {
+      "id": "dna_16s_10k",
+      "filename": "dna_16s_10k.fasta",
+      "bytes": 15039384,
+      "sha256": "56c3ce228aabd2b6356fc3bf8911ebbc4420f21eb73d2e99787efb41255bbfba",
+      "sequence_count": 10000
+    },
+    {
+      "id": "dna_mt_100",
+      "filename": "dna_mt_100.fasta",
+      "bytes": 1659555,
+      "sha256": "d1cb430cc6ae670ba61c9c460164c1e07d8e61e02c6d7ad47958abb04259bb20",
+      "sequence_count": 100
+    },
+    {
+      "id": "dna_mt_1k",
+      "filename": "dna_mt_1k.fasta",
+      "bytes": 16594637,
+      "sha256": "446f71bbe4c1aa6a1f4370cd5c927b0499c24a4a2c12d3f2c6a793d0a3bbe580",
+      "sequence_count": 1000
+    },
+    {
+      "id": "dna_mt_10k",
+      "filename": "dna_mt_10k.fasta",
+      "bytes": 165957404,
+      "sha256": "d356de1b7c9e1a4b2ac640c9998dd25c141cfe231e65e3ad03fb3784490bd9ee",
+      "sequence_count": 10000
+    },
+    {
+      "id": "dna_mt_sim_70",
+      "filename": "dna_mt_sim_70.fasta",
+      "bytes": 1422286,
+      "sha256": "920c08d0943116ea8cc14cd8c8a5fc94fcc35c312220e003b086ca04b8bd463e",
+      "sequence_count": 100
+    },
+    {
+      "id": "dna_mt_sim_75",
+      "filename": "dna_mt_sim_75.fasta",
+      "bytes": 1447141,
+      "sha256": "2f14d40628e31bd55761a59840b2bae17be5c2ac04b484341705fe6ca12ba4c9",
+      "sequence_count": 100
+    },
+    {
+      "id": "dna_mt_sim_80",
+      "filename": "dna_mt_sim_80.fasta",
+      "bytes": 1495210,
+      "sha256": "fd8f69b8a62df7b99839bb4a2092cde237358f61b4b55c6d85368bafcb3c65e8",
+      "sequence_count": 100
+    },
+    {
+      "id": "dna_mt_sim_85",
+      "filename": "dna_mt_sim_85.fasta",
+      "bytes": 1536366,
+      "sha256": "14498d8488a6ee6cd1a642bfcf7992b0d3eab8ecbb44dd00c61aa46ae3604572",
+      "sequence_count": 100
+    },
+    {
+      "id": "dna_mt_sim_90",
+      "filename": "dna_mt_sim_90.fasta",
+      "bytes": 1566261,
+      "sha256": "ca5c8dd1f6fdb0932aa6d311ff4509157805406496c9b4e2b7d49d1066640dff",
+      "sequence_count": 100
+    },
+    {
+      "id": "dna_mt_sim_91",
+      "filename": "dna_mt_sim_91.fasta",
+      "bytes": 1573309,
+      "sha256": "8afc1c1ae7f795e51552067ae86438698adef8297dcf2e7d48ec271d0428d1a7",
+      "sequence_count": 100
+    },
+    {
+      "id": "dna_mt_sim_92",
+      "filename": "dna_mt_sim_92.fasta",
+      "bytes": 1577875,
+      "sha256": "09a86ef98a70006f74d31d57edb58a50d524441534495b672098f96f339ef541",
+      "sequence_count": 100
+    },
+    {
+      "id": "dna_mt_sim_93",
+      "filename": "dna_mt_sim_93.fasta",
+      "bytes": 1581203,
+      "sha256": "79c79a79026bb11508f34a121edb8b55e478e1fac8dec35af9001e16a26b0b36",
+      "sequence_count": 100
+    },
+    {
+      "id": "dna_mt_sim_94",
+      "filename": "dna_mt_sim_94.fasta",
+      "bytes": 1587893,
+      "sha256": "a19f2effbae1cc90e6cd29449e894ca676887691b64d978654678e391508a871",
+      "sequence_count": 100
+    },
+    {
+      "id": "dna_mt_sim_95",
+      "filename": "dna_mt_sim_95.fasta",
+      "bytes": 1591464,
+      "sha256": "69fa50528baa9f5ed5068ab2ca341aa9ccfde04fe5d2795d2e390bb2d6787b93",
+      "sequence_count": 100
+    },
+    {
+      "id": "dna_mt_sim_96",
+      "filename": "dna_mt_sim_96.fasta",
+      "bytes": 1594232,
+      "sha256": "01bcb383c36cc6d160152ac0da7d3daaa14f8f8b971d8ef520bc6e2384f77d73",
+      "sequence_count": 100
+    },
+    {
+      "id": "dna_mt_sim_97",
+      "filename": "dna_mt_sim_97.fasta",
+      "bytes": 1597058,
+      "sha256": "e6a50dbc8d1b3e768c079165a2538cc4fe9ab3729d25e027c1c297fd19552fbf",
+      "sequence_count": 100
+    },
+    {
+      "id": "dna_mt_sim_98",
+      "filename": "dna_mt_sim_98.fasta",
+      "bytes": 1597956,
+      "sha256": "90589cb16b0168335c6cc57cab46e30567d11fa7a050f81475c9744f854e6ad6",
+      "sequence_count": 100
+    },
+    {
+      "id": "dna_mt_sim_99",
+      "filename": "dna_mt_sim_99.fasta",
+      "bytes": 1600020,
+      "sha256": "211946257297f4ed7b5f7bb279bedd2203a7f2ba641a705559cbfdbdb0a30d7f",
+      "sequence_count": 100
+    },
+    {
+      "id": "rna_255",
+      "filename": "rna_255.fasta",
+      "bytes": 397463,
+      "sha256": "80580e430ccb60a541a1d03a9d63c6f5490b5c3aac646b5dc090833eb8e60c72",
+      "sequence_count": 255
+    },
+    {
+      "id": "rna_511",
+      "filename": "rna_511.fasta",
+      "bytes": 798755,
+      "sha256": "510b6562110a4ffcfbb5d605fb78ae9d955316cef6e0c73a3ac387d595f36095",
+      "sequence_count": 511
+    },
+    {
+      "id": "rna_1023",
+      "filename": "rna_1023.fasta",
+      "bytes": 1597255,
+      "sha256": "61db5f3ac36722eef3fcddb4fc436abca9b471f1873c5d1def887c11505de752",
+      "sequence_count": 1023
+    },
+    {
+      "id": "rna_2047",
+      "filename": "rna_2047.fasta",
+      "bytes": 3204386,
+      "sha256": "a9f8240565fc4651134ced5004dbb3aa861099d97266bfad59183e5d5f12e139",
+      "sequence_count": 2047
+    },
+    {
+      "id": "rna_4095",
+      "filename": "rna_4095.fasta",
+      "bytes": 6398055,
+      "sha256": "31675fe182de58c62466cb90a5eb29d3e2aa0ebdb64367f51b65f30b690a6a64",
+      "sequence_count": 4095
+    },
+    {
+      "id": "rna_8191",
+      "filename": "rna_8191.fasta",
+      "bytes": 12804558,
+      "sha256": "59ac83fd6919d57e921d5c78fb7d4bc65444c7fa0cf69f4b6fab2ea5a39a36dc",
+      "sequence_count": 8191
+    }
+  ],
+  "archive": {
+    "filename": "all-inputs.zip",
+    "bytes": 20233350,
+    "sha256": "66834449a6b84e66712ae368fd83ae0ecf3cbc9731faaaf785c92a071fcc047e"
+  }
+}

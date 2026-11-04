@@ -1,13 +1,14 @@
 import type { BenchmarkBatch, BenchmarkDataset, BenchmarkSnapshot } from "./model";
-import { BatchContext, sourceLabel, words, type Locale } from "./presentation";
+import { DownloadButtons, sourceLabel, words, type Locale } from "./presentation";
 import { datasetName } from "./names";
-import { batchLabel } from "./selection";
+import { ResourceLimits } from "./ResourceLimits";
 import { isCipresRna, rnaEvidence } from "./provenance";
 
-export function ExperimentDetails({snapshot, batches, dataset, locale}: {
-  snapshot: BenchmarkSnapshot; batches: BenchmarkBatch[]; dataset?: BenchmarkDataset; locale: Locale;
+export function ExperimentDetails({snapshot, batches, dataset, locale, datasetIds, methodIds}: {
+  snapshot: BenchmarkSnapshot; batches: BenchmarkBatch[]; dataset?: BenchmarkDataset; locale: Locale; datasetIds?:string[];methodIds?:string[];
 }) {
   const source = snapshot.catalog.sources.find(item => item.id === dataset?.source_id);
+  const versions = [...new Map(batches.flatMap(batch=>batch.methods).filter(spec=>snapshot.methods.some(method=>method.id===spec.method_id)).map(spec=>[JSON.stringify(spec),spec])).values()];
   return <details className="benchmark-supporting benchmark-experiment-details" data-testid="experiment-details">
     <summary>{words(locale, "Experiment details", "实验详情")}</summary>
     <section><h3>{words(locale, "Dataset", "数据集")}</h3>
@@ -23,10 +24,15 @@ export function ExperimentDetails({snapshot, batches, dataset, locale}: {
         {dataset.preprocessing && <p>{words(locale, "Preparation: ", "数据处理：")}{words(locale, `${dataset.preprocessing.count} colons replaced with N`, `${dataset.preprocessing.count} 个冒号替换为 N`)}</p>}
       </>}
     </section>
-    <section><h3>{words(locale,"Run conditions","运行条件")}</h3>{batches.map(batch => <div key={batch.id}><h4>{batchLabel(batch,locale)}</h4><p><code>{batch.id}</code></p><BatchContext batch={batch} locale={locale}/></div>)}</section>
-    <section><h3>{words(locale,"Methods and parameters","方法版本与参数")}</h3>
-      {batches.map(batch => <div key={batch.id}><h4>{batchLabel(batch,locale)}</h4><div className="benchmark-table-scroll" tabIndex={0} role="region" aria-label={batchLabel(batch,locale)}><table className="benchmark-table"><thead><tr><th>{words(locale,"Method","方法")}</th><th>{words(locale,"Version","版本")}</th><th>{words(locale,"Parameters","参数")}</th></tr></thead><tbody>{batch.methods.map(spec => <tr key={spec.method_id}><th scope="row">{snapshot.methods.find(method => method.id === spec.method_id)?.name}</th><td>{spec.version}{spec.commit && <small className="benchmark-cell-note">{spec.commit}</small>}</td><td className="benchmark-parameters">{spec.parameters.join(" ")}</td></tr>)}</tbody></table></div></div>)}
-      {!batches.length && <div className="benchmark-table-scroll" role="region" aria-label={words(locale,"Method catalog","方法目录")} tabIndex={0}><table className="benchmark-table"><thead><tr><th>{words(locale,"Method","方法")}</th><th>{words(locale,"Version","版本")}</th></tr></thead><tbody>{snapshot.methods.map(method => <tr key={method.id}><th>{method.name}</th><td>{words(locale,"Pending confirmation","待确认")}</td></tr>)}</tbody></table></div>}
+    <section><h3>{words(locale,"Run conditions","运行条件")}</h3>
+      <ResourceLimits locale={locale} limits={snapshot.batches.flatMap(batch=>batch.conditions?[{cpu:batch.conditions.cpu_limit,memory:batch.conditions.memory_limit_gib,seconds:batch.conditions.alignment_timeout_seconds}]:[])}/>
+      <p>{batches.length>0&&batches.every(batch=>batch.repeats===1)&&words(locale,"Single measurement","单次测量")}</p>
+      <p>{[...new Set(batches.map(batch=>batch.environment.cpu+" · "+batch.environment.os))].join("; ")}</p>
+      <p>{[...new Set(batches.map(batch=>batch.scoring.label))].join("; ")}</p>
     </section>
+    <section><h3>{words(locale,"Methods and parameters","方法版本与参数")}</h3>
+      <div className="benchmark-table-scroll" tabIndex={0} role="region" aria-label={versions.length?words(locale,"Method versions","方法版本"):words(locale,"Method catalog","方法目录")}><table className="benchmark-table"><thead><tr><th>{words(locale,"Method","方法")}</th><th>{words(locale,"Version","版本")}</th><th>{words(locale,"Parameters","参数")}</th></tr></thead><tbody>{versions.map(spec=><tr key={JSON.stringify(spec)}><th scope="row">{snapshot.methods.find(method=>method.id===spec.method_id)?.name}</th><td>{spec.version}{spec.commit&&<small className="benchmark-cell-note">{spec.commit}</small>}</td><td className="benchmark-parameters">{spec.parameters.join(" ")}</td></tr>)}{!versions.length&&snapshot.methods.map(method=><tr key={method.id}><th>{method.name}</th><td>{words(locale,"Pending confirmation","待确认")}</td><td>—</td></tr>)}</tbody></table></div>
+    </section>
+    <section><DownloadButtons snapshot={snapshot} resultScope={{mode:"latest"}} datasetId={dataset?.id} datasetIds={datasetIds} methodIds={methodIds} locale={locale}/></section>
   </details>;
 }

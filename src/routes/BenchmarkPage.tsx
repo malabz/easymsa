@@ -1,3 +1,4 @@
+import {DatasetDownloads} from "../features/benchmark/DatasetDownloads";
 import { ExperimentDetails } from "../features/benchmark/ExperimentDetails";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams, Link, Navigate } from "react-router-dom";
@@ -12,7 +13,7 @@ import { BenchmarkMatrix } from "../features/benchmark/BenchmarkMatrix";
 import { BenchmarkNavigation } from "../features/benchmark/BenchmarkNavigation";
 import { MethodSummary } from "../features/benchmark/MethodSummary";
 import { Hint, metricHelp } from "../features/benchmark/MetricHint";
-import { DownloadButtons, LoadState, sourceLabel, words } from "../features/benchmark/presentation";
+import { LoadState, sourceLabel, words } from "../features/benchmark/presentation";
 import { currentResultScope } from "../features/benchmark/selection";
 import { displaySelection, MethodFilter, uniqueSources } from "../features/benchmark/view";
 import "../features/benchmark/benchmark.css";
@@ -79,7 +80,7 @@ export function BenchmarkPage() {
     <Link to="/about" className="benchmark-back"><ArrowLeft size={15} aria-hidden="true"/>{words(locale,"About EasyMSA","关于 EasyMSA")}</Link>
     <header className="benchmark-overview-header">
       <div><h1>Benchmark</h1><p className="benchmark-overview-deck">{datasets.length} {words(locale,"datasets","个数据集")} · {methods.length} {words(locale,"methods","种方法")}</p></div>
-      <div className="benchmark-overview-actions"><Link className="benchmark-start-link" to="/benchmark/submit">{words(locale,"Evaluate my program","评测我的程序")}</Link><DownloadButtons snapshot={data} resultScope={scope} datasetIds={datasets.map(d => d.id)} methodIds={methods.map(m => m.id)} locale={locale}/></div>
+      <div className="benchmark-overview-actions"><Link className="benchmark-start-link" to="/benchmark/submit">{words(locale,"Evaluate my program","评测我的程序")}</Link><DatasetDownloads version={data.catalog.version} datasets={datasets} locale={locale}/></div>
     </header>
     <p className="benchmark-overview-intro">{words(locale,"Choose a dataset to compare time, memory and alignment quality.","选择数据集，比较各方法的时间、内存和比对质量。")}</p>
     <div className="benchmark-run-summary" aria-label={words(locale,"Evaluation coverage","评测覆盖")}>
@@ -113,7 +114,7 @@ export function BenchmarkPage() {
       {methods.length ? <BenchmarkMatrix snapshot={filteredSnapshot} scope={scope} datasets={datasets} metricKey={metricKey} locale={locale} returnTo={returnTo}/> : <p role="status" className="benchmark-empty">{words(locale,"Select a method to compare its records.","选择方法以查看成绩。")}</p>}
     </section>
 
-    <ExperimentDetails snapshot={data} batches={allSources} locale={locale}/>
+    <ExperimentDetails snapshot={data} batches={allSources} locale={locale} datasetIds={datasets.map(item=>item.id)} methodIds={methods.map(item=>item.id)}/>
     </div>
   </PageContainer>;
 }

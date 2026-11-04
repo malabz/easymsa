@@ -177,3 +177,5 @@
   .benchmark-download-menu > summary { width: fit-content; }
   .benchmark-download-panel { left: 0; right: 0; width: 100%; max-width: 100%; }
 }
+
+.benchmark-downloads a { display:inline-flex;align-items:center;min-height:44px;color:var(--bench-accent);text-decoration:underline;text-underline-offset:3px; }

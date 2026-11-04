@@ -53,6 +53,10 @@ async function capturePageFromTop(page: Page, path: string) {
   await page.screenshot({path, fullPage:true});
 }
 async function expand(page: Page, selector: string) {
+  if(selector.includes("download-controls")){
+    const details=page.getByTestId("experiment-details");
+    if(await details.getAttribute("open")===null)await details.locator(":scope > summary").click();
+  }
   const d = page.locator(selector);
   if (await d.getAttribute("open") === null) await d.locator(":scope > summary").click();
 }
@@ -95,9 +99,9 @@ test("concise bilingual names, collapsed experiment details and original-ID sear
     await expect(page.getByTestId("precise-results")).toBeVisible();
     await expect(page.getByTestId("dataset-title")).toHaveText(readableName(rawSnapshot.catalog.datasets.find(d=>d.id==="dna_mt_10k")!,zh));
     expect(await page.getByTestId("precise-results").innerText()).not.toMatch(/1\/1 (valid|有效)/);
-    await details.locator("summary").click();
+    await details.locator(":scope > summary").click();
     await expect(details).toContainText("dna_mt_10k");
-    await details.locator("summary").click();
+    await details.locator(":scope > summary").click();
     await expect(page.getByTestId("tradeoff-chart")).toHaveCount(2);
     const numericRows=await page.locator('.benchmark-table td[data-metric]:not([data-raw-value=""]) div > span').evaluateAll(elements=>elements.filter(element=>element.getClientRects().length).map(element=>{const range=document.createRange();range.selectNodeContents(element);return {height:range.getBoundingClientRect().height,lineHeight:parseFloat(getComputedStyle(element).lineHeight),width:element.clientWidth,scrollWidth:element.scrollWidth};}));
     expect(numericRows.length).toBeGreaterThan(0);
@@ -106,7 +110,7 @@ test("concise bilingual names, collapsed experiment details and original-ID sear
     await capturePageFromTop(page,info.outputPath(`concise-detail-${zh?"zh":"en"}.png`));
     await openBenchmark(page,"/#/benchmark/datasets/dna_mt_sim_70");
     await expect(page.getByTestId("dataset-title")).toHaveText(zh?"线粒体模拟 · 相似度 70%":"Mitochondrial simulation · Similarity 70%");
-    await page.getByTestId("experiment-details").locator("summary").click();
+    await page.getByTestId("experiment-details").locator(":scope > summary").click();
     await expect(page.getByTestId("experiment-details")).toContainText(zh?"模拟相似度（来源参数）：70%":"Simulation similarity (source parameter): 70%");
     for(const search of ["线粒体", "Mitochondrial", "10,000", "dna_mt_10k"]) {
       await openBenchmark(page,`/#/benchmark?view=matrix&search=${encodeURIComponent(search)}`);

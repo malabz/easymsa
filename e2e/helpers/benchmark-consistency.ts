@@ -198,6 +198,8 @@ export function parseCsv(text: string): string[][] {
 /** Download through the actual UI and compare every CSV field and JSON value. */
 export async function assertDownloadConsistency(page: Page, snapshot: BenchmarkSnapshot, batchId: string, caseId?: string | string[], locale: Locale = "en", methodIds?: string[]) {
   const expected = expectedDownload(snapshot,batchId,typeof caseId === "string" ? [caseId] : caseId,methodIds);
+  const details=page.getByTestId("experiment-details");
+  if(await details.getAttribute("open")===null)await details.locator(":scope > summary").click();
   const menu = page.getByTestId("download-controls");
   if (await menu.getAttribute("open") === null) await menu.locator("summary").click();
   const jsonEvent = page.waitForEvent("download");
