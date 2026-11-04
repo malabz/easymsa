@@ -10,6 +10,8 @@ import { displayMetricKey, displayMetricKeys, metricSpecs } from "../features/be
 import { BenchmarkSidebar } from "../features/benchmark/BenchmarkSidebar";
 import { BenchmarkMatrix } from "../features/benchmark/BenchmarkMatrix";
 import { BenchmarkNavigation } from "../features/benchmark/BenchmarkNavigation";
+import { MethodSummary } from "../features/benchmark/MethodSummary";
+import { Hint, metricHelp } from "../features/benchmark/MetricHint";
 import { DownloadButtons, LoadState, sourceLabel, words } from "../features/benchmark/presentation";
 import { currentResultScope } from "../features/benchmark/selection";
 import { displaySelection, MethodFilter, uniqueSources } from "../features/benchmark/view";
@@ -18,6 +20,8 @@ import "../features/benchmark/matrix.css";
 import "../features/benchmark/reading.css";
 import "../features/benchmark/studio.css";
 import "../features/benchmark/private.css";
+import "../features/benchmark/surface.css";
+import "../features/benchmark/overview.css";
 
 const mainMetrics = displayMetricKeys;
 export function BenchmarkPage() {
@@ -49,7 +53,8 @@ export function BenchmarkPage() {
     [...Object.keys(emptyFilters), "methods"].forEach(key => next.delete(key)); commit(next);
   };
   if (!data) return <PageContainer className="benchmark-page benchmark-explorer"><LoadState failed={failed} retry={retry} locale={locale}/></PageContainer>;
-  if (query.get("view") !== "matrix") {
+  // The overview is the entry point; older links that name a dataset still open its report.
+  if (query.get("view") !== "matrix" && query.has("dataset")) {
     const candidates = displaySelection(data,currentResultScope,query).datasets;
     const selected = candidates.find(dataset=>dataset.id===query.get("dataset")) ?? candidates.find(dataset=>dataset.id==="rna_255") ?? candidates[0];
     if (selected) return <Navigate replace to={`/benchmark/datasets/${selected.id}?${query.toString()}`}/>;
@@ -67,7 +72,7 @@ export function BenchmarkPage() {
   const returnTo = "/benchmark?" + active.toString();
   const invalidRange = filters.min !== "" && filters.max !== "" && Number(filters.min) > Number(filters.max);
   const filteredSnapshot = {...data, methods};
-  return <PageContainer className="benchmark-page benchmark-explorer benchmark-reading-v3 benchmark-studio">
+  return <PageContainer className="benchmark-page benchmark-explorer benchmark-reading-v3 benchmark-studio benchmark-overview-calm">
     <BenchmarkNavigation/>
     <BenchmarkSidebar datasets={datasets} params={query} locale={locale} onSearch={value => field("search",value)} catalogCount={data.catalog.datasets.length} methodCount={methods.length}/>
     <div className="benchmark-studio-content">
@@ -78,16 +83,22 @@ export function BenchmarkPage() {
     </header>
     <p className="benchmark-overview-intro">{words(locale,"Choose a dataset to compare time, memory and alignment quality.","选择数据集，比较各方法的时间、内存和比对质量。")}</p>
     <div className="benchmark-run-summary" aria-label={words(locale,"Evaluation coverage","评测覆盖")}>
-      <p><span className="benchmark-run-complete">{words(locale,"Complete","完成")} <strong>{count("complete")}</strong> / {results.length}</span><span>{words(locale,"Timed out","超时")} <strong>{count("timeout")}</strong></span>{memoryFailures > 0 && <span>{words(locale,"Memory limit","内存超限")} <strong>{memoryFailures}</strong></span>}{count("failed") > memoryFailures && <span>{words(locale,"Other failures","其他失败")} <strong>{count("failed") - memoryFailures}</strong></span>}{count("partial") > 0 && <span>{words(locale,"Partial","部分完成")} <strong>{count("partial")}</strong></span>}{count("unsupported") + count("not_run") > 0 && <span>{words(locale,"Unsupported / not evaluated","不支持 / 待评测")} <strong>{count("unsupported") + count("not_run")}</strong></span>}</p>
+      <p><span className="benchmark-run-complete" data-state="complete">{words(locale,"Complete","完成")} <strong>{count("complete")}</strong> / {results.length}</span><span data-state="timeout">{words(locale,"Timed out","超时")} <strong>{count("timeout")}</strong></span>{memoryFailures > 0 && <span data-state="oom">{words(locale,"Memory limit","内存超限")} <strong>{memoryFailures}</strong></span>}{count("failed") > memoryFailures && <span data-state="failed">{words(locale,"Other failures","其他失败")} <strong>{count("failed") - memoryFailures}</strong></span>}{count("partial") > 0 && <span data-state="partial">{words(locale,"Partial","部分完成")} <strong>{count("partial")}</strong></span>}{count("unsupported") + count("not_run") > 0 && <span data-state="pending">{words(locale,"Unsupported / not evaluated","不支持 / 待评测")} <strong>{count("unsupported") + count("not_run")}</strong></span>}</p>
     </div>
+    {records.length > 0 && methods.length > 0 && <MethodSummary snapshot={filteredSnapshot} scope={scope} datasets={datasets} locale={locale} family={query.get("family")} onFamily={value => update("family",value)} metric={metricKey} onMetric={key => {
+      update("metric",key);
+      const reduce = typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      document.getElementById("benchmark-matrix-heading")?.parentElement?.scrollIntoView?.({behavior:reduce ? "auto" : "smooth", block:"start"});
+    }}/>}
     {!records.length && <p role="status" className="benchmark-pending">{words(locale,"No evaluation results have been published for this selection.","当前选择尚未发布评测结果。")}</p>}
     <section aria-labelledby="benchmark-matrix-heading" className="benchmark-explorer-main">
       <h2 id="benchmark-matrix-heading" className="sr-only">{words(locale,"Compare all datasets","比较所有数据集")}</h2>
       <div className="benchmark-metric-navigation" role="group" aria-label={words(locale,"Comparison metric","比较指标")}>
-        <div className="benchmark-main-metrics">{mainMetrics.map(key => <button type="button" key={key} data-testid={`metric-${key}`} aria-pressed={metricKey === key} className={metricKey === key ? "is-active" : ""} onClick={() => update("metric",key)}>{metricSpecs[key][locale]} <span aria-hidden="true">{metricSpecs[key].direction === "lower" ? "↓" : "↑"}</span></button>)}</div>
+        <div className="benchmark-main-metrics">{mainMetrics.map((key,index) => <Hint key={key} text={metricHelp(key,locale)} align={index === 0 ? "start" : index === mainMetrics.length - 1 ? "end" : "center"}><button type="button" data-testid={`metric-${key}`} aria-pressed={metricKey === key} className={metricKey === key ? "is-active" : ""} onClick={() => update("metric",key)}>{metricSpecs[key][locale]} <span aria-hidden="true">{metricSpecs[key].direction === "lower" ? "↓" : "↑"}</span></button></Hint>)}</div>
 
       </div>
       <div className="benchmark-compact-filters">
+        <label className="benchmark-field benchmark-search benchmark-overview-search">{words(locale,"Find a dataset","查找数据集")}<input type="search" value={filters.search} placeholder={words(locale,"Name or sequence count","名称或序列数")} onChange={e => field("search",e.target.value)}/></label>
         <label className="benchmark-field">{words(locale,"Sequence type","序列类型")}<select value={filters.type} onChange={e => field("type",e.target.value)}><option value="all">{words(locale,"All types","全部类型")}</option><option value="dna">DNA</option><option value="rna">RNA</option></select></label>
         <MethodFilter methods={availableMethods} selected={methods.map(m => m.id)} onChange={value => update("methods",value)} locale={locale} open={openFilter === "methods"} onOpenChange={open => setOpenFilter(open ? "methods" : null)}/>
         <details className="benchmark-extra-filters" open={openFilter === "filters"} onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); setOpenFilter(null); event.currentTarget.querySelector("summary")?.focus(); } }}><summary onClick={event => { event.preventDefault(); setOpenFilter(openFilter === "filters" ? null : "filters"); }}>{words(locale,"More filters","更多筛选")}</summary><div>

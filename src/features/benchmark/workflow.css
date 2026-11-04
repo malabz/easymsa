@@ -13,7 +13,7 @@
   --private-ink:var(--color-text); --private-muted:var(--color-muted); --private-rule:var(--color-border);
   --private-accent:var(--color-accent); max-width:var(--layout-form-width); padding:0 32px 48px;
 }
-#main-content>.benchmark-workflow { animation:none; }
+#main-content>.benchmark-workflow-frame { animation:none; }
 #main-content:has(.benchmark-workflow)>.work-return { display:none; }
 .benchmark-workflow .private-title { display:flex; justify-content:space-between; align-items:center; gap:24px; padding:26px 0 22px; }
 .benchmark-workflow .private-title h1 { font-size:var(--page-title-size); letter-spacing:-.025em; }

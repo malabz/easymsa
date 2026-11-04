@@ -40,9 +40,16 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 describe("Benchmark pages", () => {
-  it("opens the complete RNA255 report from the default Benchmark entry", async () => {
+  it("opens the overview from the default Benchmark entry", async () => {
     const snapshot = parseSnapshot(JSON.parse(readFileSync("public/benchmark/snapshot.json", "utf8")));
     mount(snapshot, "/benchmark", "en", false);
+    expect(await screen.findByTestId("method-summary")).toBeVisible();
+    expect(screen.getByTestId("benchmark-matrix")).toBeVisible();
+    expect(screen.queryByTestId("dataset-title")).not.toBeInTheDocument();
+  });
+  it("still opens a named dataset from older overview links", async () => {
+    const snapshot = parseSnapshot(JSON.parse(readFileSync("public/benchmark/snapshot.json", "utf8")));
+    mount(snapshot, "/benchmark?dataset=rna_255", "en", false);
     expect(await screen.findByTestId("dataset-title")).toHaveAttribute("data-dataset-id", "rna_255");
     expect(screen.getAllByTestId("tradeoff-chart").map(figure=>figure.dataset.xKey)).toEqual(["wall_seconds","max_rss_kib"]);
     expect(exactValues()).toBeVisible();

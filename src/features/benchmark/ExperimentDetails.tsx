@@ -28,11 +28,5 @@ export function ExperimentDetails({snapshot, batches, dataset, locale}: {
       {batches.map(batch => <div key={batch.id}><h4>{batchLabel(batch,locale)}</h4><div className="benchmark-table-scroll" tabIndex={0} role="region" aria-label={batchLabel(batch,locale)}><table className="benchmark-table"><thead><tr><th>{words(locale,"Method","方法")}</th><th>{words(locale,"Version","版本")}</th><th>{words(locale,"Parameters","参数")}</th></tr></thead><tbody>{batch.methods.map(spec => <tr key={spec.method_id}><th scope="row">{snapshot.methods.find(method => method.id === spec.method_id)?.name}</th><td>{spec.version}{spec.commit && <small className="benchmark-cell-note">{spec.commit}</small>}</td><td className="benchmark-parameters">{spec.parameters.join(" ")}</td></tr>)}</tbody></table></div></div>)}
       {!batches.length && <div className="benchmark-table-scroll" role="region" aria-label={words(locale,"Method catalog","方法目录")} tabIndex={0}><table className="benchmark-table"><thead><tr><th>{words(locale,"Method","方法")}</th><th>{words(locale,"Version","版本")}</th></tr></thead><tbody>{snapshot.methods.map(method => <tr key={method.id}><th>{method.name}</th><td>{words(locale,"Pending confirmation","待确认")}</td></tr>)}</tbody></table></div>}
     </section>
-    <section><h3>{words(locale,"Metrics","指标释义")}</h3><dl className="benchmark-metadata">
-      <div><dt>{words(locale,"Time","时间")}</dt><dd>{words(locale,"Alignment wall time (s)","比对耗时（秒）")}</dd></div>
-      <div><dt>{words(locale,"Memory","内存")}</dt><dd>{words(locale,"Peak RSS (MiB); downloads use KiB","峰值 RSS（MiB）；下载单位为 KiB")}</dd></div>
-      <div><dt>{words(locale,"Normalized SP","归一化 SP")}</dt><dd>{words(locale,"Average SP per sequence pair per alignment column","每对序列、每个比对列的平均 SP 得分")}</dd></div>
-      <div><dt>Q / TC</dt><dd>{words(locale,"Reference pair / column agreement (0–1)","与参考比对的配对／整列一致率（0–1）")}</dd></div>
-    </dl></section>
   </details>;
 }

@@ -1,6 +1,6 @@
 import {isBenchmarkFailure,isMetricFailure} from "./metrics";
 import { datasetName, datasetFamily } from "./names";
-import { Fragment, useEffect, useRef, useState, type CSSProperties } from "react";
+import { Fragment, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { ArrowUpRight, CircleAlert, Clock3, Minus } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -37,12 +37,21 @@ export function BenchmarkMatrix({ snapshot, batch, datasets, metricKey, locale, 
   snapshot: BenchmarkSnapshot; batch?: BenchmarkBatch; datasets: BenchmarkDataset[]; metricKey: MetricKey; locale: Locale; returnTo: string; scope?: ResultScope;
 }) {
   const [tooltip, setTooltip] = useState<Tooltip | null>(null);
+  const [fits,setFits] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout>>();
   const region = useRef<HTMLDivElement>(null);
   const tooltipAnchor = useRef<HTMLAnchorElement | null>(null);
   const scrollFrame = useRef<number>();
   const spec = metricSpecs[metricKey];
   const ordered = orderedDatasets(datasets);
+  useLayoutEffect(() => {
+    const container = region.current, table = container?.querySelector("table");
+    if (!container || !table) return;
+    const measure = () => setFits(table.getBoundingClientRect().width <= container.clientWidth+1);
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
+    observer?.observe(container);observer?.observe(table);window.addEventListener("resize",measure);measure();
+    return () => { observer?.disconnect();window.removeEventListener("resize",measure); };
+  }, []);
   const keepTooltip = () => { if (closeTimer.current) clearTimeout(closeTimer.current); };
   const dismissTooltip = () => { keepTooltip(); closeTimer.current = setTimeout(() => setTooltip(null), 120); };
   useEffect(() => {
@@ -50,8 +59,10 @@ export function BenchmarkMatrix({ snapshot, batch, datasets, metricKey, locale, 
     const scroll = () => {
       if (scrollFrame.current) cancelAnimationFrame(scrollFrame.current);
       scrollFrame.current = requestAnimationFrame(() => {
-        const rect = tooltipAnchor.current?.getBoundingClientRect();
-        if (!rect || rect.bottom < 0 || rect.top > window.innerHeight || rect.right < 0 || rect.left > window.innerWidth) { setTooltip(null); return; }
+        const anchor = tooltipAnchor.current, rect = anchor?.getBoundingClientRect();
+        if (!rect) { setTooltip(null); return; }
+        // A focused cell may still be scrolling into view; keep its tooltip and let it follow.
+        if (anchor !== document.activeElement && (rect.bottom < 0 || rect.top > window.innerHeight || rect.right < 0 || rect.left > window.innerWidth)) { setTooltip(null); return; }
         const width = Math.min(340, window.innerWidth - 24);
         setTooltip(current => current ? {...current,
           x: Math.max(12, Math.min(rect.left + rect.width / 2 - width / 2, window.innerWidth - width - 12)),
@@ -91,7 +102,7 @@ export function BenchmarkMatrix({ snapshot, batch, datasets, metricKey, locale, 
   };
   return <>
     <ComparisonLegend locale={locale} id="benchmark-matrix-guide" className="benchmark-matrix-key"/>
-    <div className="benchmark-matrix-scroll" ref={region} role="region" tabIndex={0} aria-label={words(locale, "Scrollable results matrix", "可滚动的成绩矩阵")} aria-describedby="benchmark-matrix-guide">
+    <div className="benchmark-matrix-scroll" data-fits={fits} ref={region} role="region" tabIndex={0} aria-label={words(locale, "Scrollable results matrix", "可滚动的成绩矩阵")} aria-describedby="benchmark-matrix-guide">
       <table className="benchmark-matrix" style={{minWidth:`calc(12.25rem + ${snapshot.methods.length} * var(--benchmark-method-width, 8rem))`}} data-testid="benchmark-matrix" data-metric={metricKey}>
         <caption className="sr-only">{words(locale, "Dataset by method results: ", "数据集与方法成绩：")}{spec[locale]}{spec.unit ? ` (${spec.unit})` : ""}</caption>
         <thead><tr><th scope="col" className="benchmark-matrix-dataset">{words(locale, "Dataset", "数据集")}<span>{spec[locale]}{spec.unit ? ` (${spec.unit})` : ""} {spec.direction === "lower" ? "↓" : "↑"}</span></th>{snapshot.methods.map(method => <th scope="col" key={method.id}><span>{method.name}</span></th>)}</tr></thead>

@@ -1,0 +1,80 @@
+/* One frame for every Benchmark page: a full-width tab bar that never moves, a soft page surface,
+   white cards and the same title scale. Presentation only. */
+.benchmark-shell:has(.benchmark-workflow-frame, .benchmark-studio) { background:#f7f9f8; }
+.benchmark-studio > .benchmark-navigation,
+.benchmark-workflow-frame > .benchmark-navigation { padding:0 28px; background:transparent; }
+
+/* The active tab's underline slides in, so switching tabs reads as one motion. */
+.benchmark-navigation a { position:relative; }
+.benchmark-navigation a[aria-current=page] { border-bottom-color:transparent; }
+.benchmark-navigation a[aria-current=page]::after {
+  content:""; position:absolute; left:0; right:0; bottom:0; height:2px; border-radius:2px 2px 0 0; background:var(--color-accent);
+}
+
+/* Workflow pages (submit, recent, runs, example) read like the overview. */
+.benchmark-workflow-frame {
+  --bench-card-border:#e3e8ef;
+  --bench-card-shadow:0 1px 2px rgb(15 23 42 / .04), 0 14px 32px -26px rgb(15 23 42 / .28);
+}
+.private-benchmark.benchmark-workflow { max-width:1320px; padding:0 32px 56px; }
+.benchmark-workflow .private-title { padding:28px 0 20px; }
+.benchmark-workflow .private-title h1 { font-size:34px; font-weight:650; letter-spacing:-.04em; }
+.benchmark-workflow .private-title p { margin-top:6px; font-size:14px; line-height:1.6; color:#64748b; }
+.benchmark-workflow:has(.comparison-workspace) .private-title h1 { font-size:30px; }
+
+.benchmark-workflow :is(.benchmark-journey,.benchmark-submit-main,.benchmark-submit-help,.benchmark-empty-evaluations,.benchmark-task-progress,.private-run-list,.private-restore,.private-events,.comparison-workspace) {
+  border:1px solid var(--bench-card-border); border-radius:14px; background:#fff; box-shadow:var(--bench-card-shadow);
+}
+.benchmark-workflow .benchmark-submit-help { padding:22px 24px; }
+.benchmark-workflow .benchmark-journey { padding:14px 20px; }
+.benchmark-workflow .private-run-list { padding:0 20px; border-top:1px solid var(--bench-card-border); }
+.benchmark-workflow .private-recent-row:last-child { border-bottom:0; }
+.benchmark-workflow .private-restore { margin-top:16px; padding:2px 20px 4px; }
+.benchmark-workflow .private-restore[open] { padding-bottom:20px; }
+.benchmark-workflow .private-events { margin-top:16px; padding:0 20px; }
+.benchmark-workflow .comparison-workspace { padding:20px 24px 24px; }
+
+/* Buttons and fields share the overview's radius, focus ring and press. */
+.benchmark-workflow .private-button { border-radius:10px; transition:background-color .18s ease, border-color .18s ease, transform .18s ease, box-shadow .18s ease; }
+.benchmark-workflow .private-button:not(.is-outline) { box-shadow:0 6px 16px -10px rgb(15 118 110 / .7); }
+.benchmark-workflow .private-button:not(:disabled):active { transform:translateY(1px); }
+.benchmark-workflow .private-button.is-outline { border-color:#cfe0da; background:#fff; color:var(--color-accent); }
+.benchmark-workflow .private-button.is-outline:hover { border-color:#9fcbbf; background:#f0f8f5; }
+.benchmark-workflow :is(.private-form input:not([type=checkbox]),.private-recent-search input,.private-copy-fallback input) {
+  border-color:#d8e1ea; border-radius:10px; transition:border-color .18s ease, box-shadow .18s ease;
+}
+.benchmark-workflow :is(.private-form input:not([type=checkbox]),.private-recent-search input):hover { border-color:#9fbfb5; }
+.benchmark-workflow :is(.private-form input:not([type=checkbox]),.private-recent-search input):focus-visible { outline:none; border-color:var(--color-accent); box-shadow:0 0 0 3px rgb(15 118 110 / .15); }
+.benchmark-workflow .benchmark-entry-tabs a { transition:color .18s ease, border-color .18s ease; }
+.benchmark-workflow .benchmark-entry-tabs a:hover { color:var(--color-accent); }
+.benchmark-workflow :is(.private-more-settings,.private-restore,.private-events) > summary { list-style:none; display:flex; align-items:center; gap:10px; }
+.benchmark-workflow :is(.private-more-settings,.private-restore,.private-events) > summary::-webkit-details-marker { display:none; }
+.benchmark-workflow :is(.private-more-settings,.private-restore,.private-events) > summary::before {
+  content:""; width:7px; height:7px; margin:0 2px; border-right:2px solid currentColor; border-bottom:2px solid currentColor;
+  transform:rotate(-45deg); transition:transform .2s ease;
+}
+.benchmark-workflow :is(.private-more-settings,.private-restore,.private-events)[open] > summary::before { transform:rotate(45deg) translate(-2px,-2px); }
+
+/* Entry: the tab bar stays still; the page below rises in once when a tab opens. Switching
+   datasets inside a report keeps the page still. */
+@media (prefers-reduced-motion:no-preference) {
+  .benchmark-navigation a[aria-current=page]::after { animation:bench-tab-in .34s cubic-bezier(.2,.7,.2,1); }
+  .benchmark-workflow > * { animation:bench-page-rise .45s cubic-bezier(.2,.7,.2,1) backwards; }
+  .benchmark-workflow > :nth-child(2) { animation-delay:.04s; }
+  .benchmark-workflow > :nth-child(3) { animation-delay:.08s; }
+  .benchmark-workflow > :nth-child(n+4) { animation-delay:.12s; }
+  .benchmark-explorer .benchmark-studio-content > :is(.benchmark-back,.benchmark-overview-header,.benchmark-overview-intro) { animation:bench-page-rise .45s cubic-bezier(.2,.7,.2,1) backwards; }
+}
+@keyframes bench-tab-in { from { opacity:0; transform:scaleX(.4); } }
+@keyframes bench-page-rise { from { opacity:0; transform:translateY(10px); } }
+
+@media (max-width:767px) {
+  .benchmark-studio > .benchmark-navigation,
+  .benchmark-workflow-frame > .benchmark-navigation { padding:12px 18px 0; }
+  .private-benchmark.benchmark-workflow { padding:0 18px 36px; }
+  .benchmark-workflow .private-title h1 { font-size:26px; }
+  .benchmark-studio.benchmark-explorer .benchmark-overview-header { align-items:stretch; }
+  .benchmark-studio.benchmark-explorer .benchmark-overview-header h1 { font-size:26px; }
+  .benchmark-workflow :is(.benchmark-submit-main,.benchmark-submit-help,.comparison-workspace) { padding:18px 16px; border-radius:12px; }
+  .benchmark-workflow .private-run-list { padding:0 14px; }
+}

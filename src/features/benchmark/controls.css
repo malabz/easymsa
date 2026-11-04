@@ -1,0 +1,57 @@
+/* Shared Benchmark controls: hint bubbles, dropdown lists and pop-over panels. Presentation only. */
+
+/* Hints use a body-level portal to stay outside table scroll containers. */
+.bench-tip { position:relative; display:inline-flex; vertical-align:middle; }
+.bench-tip-label { cursor:help; border-radius:4px; text-decoration:underline dotted #9fb7af; text-decoration-thickness:1px; text-underline-offset:4px; }
+.bench-tip-bubble {
+  position:fixed; z-index:120; width:max-content; max-width:min(17rem, calc(100vw - 24px));
+  padding:8px 11px; border-radius:9px; background:#16312e; color:#f2f8f6;
+  font-size:12.5px; font-weight:400; line-height:1.55; letter-spacing:0; text-align:left; text-transform:none; white-space:normal;
+  box-shadow:0 14px 30px -14px rgb(15 23 42 / .5); pointer-events:auto;
+}
+
+/* Dropdowns: keep the native select (keyboard, forms, screen readers) but draw our own button and list. */
+@supports (appearance: base-select) {
+  #main-content :is(.benchmark-page,.private-benchmark) select { appearance:base-select; display:inline-flex; align-items:center; gap:10px; background-image:none; cursor:pointer; }
+  #main-content :is(.benchmark-page,.private-benchmark) select:open { border-color:var(--bench-accent,#0f766e); box-shadow:0 0 0 3px rgb(15 118 110 / .14); }
+  #main-content :is(.benchmark-page,.private-benchmark) select::picker-icon {
+    content:""; flex-shrink:0; width:7px; height:7px; margin:-3px 2px 0 auto;
+    border-right:1.6px solid currentColor; border-bottom:1.6px solid currentColor; opacity:.6;
+    transform:rotate(45deg); transition:transform .22s cubic-bezier(.2,.7,.2,1), margin .22s cubic-bezier(.2,.7,.2,1);
+  }
+  #main-content :is(.benchmark-page,.private-benchmark) select:open::picker-icon { margin-top:3px; transform:rotate(225deg); }
+  #main-content :is(.benchmark-page,.private-benchmark) ::picker(select) {
+    appearance:base-select; min-width:anchor-size(width); margin-top:6px; padding:5px;
+    border:1px solid #dbe5e1; border-radius:12px; background:#fff;
+    box-shadow:0 2px 6px rgb(15 23 42 / .06), 0 20px 40px -18px rgb(15 23 42 / .35);
+    opacity:0; transform:translateY(-6px) scale(.98); transform-origin:top center;
+    transition:opacity .16s ease, transform .2s cubic-bezier(.2,.7,.2,1), overlay .2s allow-discrete, display .2s allow-discrete;
+  }
+  #main-content :is(.benchmark-page,.private-benchmark) select:open::picker(select) { opacity:1; transform:none; }
+  @starting-style { #main-content :is(.benchmark-page,.private-benchmark) select:open::picker(select) { opacity:0; transform:translateY(-6px) scale(.98); } }
+  #main-content :is(.benchmark-page,.private-benchmark) select option {
+    display:flex; align-items:center; gap:10px; min-height:34px; padding:0 10px; border-radius:8px;
+    color:#334155; font-size:14px; font-weight:400; cursor:pointer; transition:background-color .12s ease, color .12s ease;
+  }
+  #main-content :is(.benchmark-page,.private-benchmark) select option:is(:hover,:focus-visible) { outline:none; background:#eef6f3; color:#0f3d39; }
+  #main-content :is(.benchmark-page,.private-benchmark) select option:checked { color:var(--bench-accent-strong,#0b5f58); font-weight:600; }
+  #main-content :is(.benchmark-page,.private-benchmark) select option::checkmark { order:1; margin-left:auto; content:"✓"; color:var(--bench-accent,#0f766e); }
+  #main-content :is(.benchmark-page,.private-benchmark) select option:disabled { color:#94a3b8; cursor:default; }
+}
+
+/* Pop-over panels built on <details> (methods, more filters, downloads) open with the same motion. */
+@media (prefers-reduced-motion:no-preference) {
+  :is(.benchmark-page,.private-benchmark) :is(.benchmark-method-filter,.benchmark-extra-filters,.benchmark-download-menu,.comparison-download)[open] > :not(summary) {
+    animation:bench-pop .2s cubic-bezier(.2,.7,.2,1);
+  }
+  :is(.benchmark-page,.private-benchmark) :is(.benchmark-experiment-details,.private-more-settings,.private-restore,.private-events)[open] > :not(summary) {
+    animation:bench-reveal .26s cubic-bezier(.2,.7,.2,1);
+  }
+}
+@keyframes bench-pop { from { opacity:0; transform:translateY(-6px) scale(.98); } }
+@keyframes bench-reveal { from { opacity:0; transform:translateY(-4px); } }
+@media (prefers-reduced-motion:reduce) {
+  .bench-tip-bubble, .bench-tip:is(:hover,:focus-within) .bench-tip-bubble { transition:none; }
+  #main-content :is(.benchmark-page,.private-benchmark) select::picker-icon,
+  #main-content :is(.benchmark-page,.private-benchmark) ::picker(select) { transition:none; }
+}
