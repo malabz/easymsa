@@ -31,8 +31,11 @@ async function publicTableMatches(page:Page,datasetId:string){
   }
 }
 
-test('the default report shows time, memory and every quality metric together',async({page},info)=>{
+test('the overview opens a report with time, memory and every quality metric together',async({page},info)=>{
   await page.goto('/#/benchmark');
+  await expect(page.getByTestId('method-summary')).toBeVisible();
+  await expect(page.getByTestId('benchmark-matrix')).toBeVisible();
+  await page.locator('.benchmark-matrix tr[data-dataset-id="rna_255"] .benchmark-matrix-dataset a').click();
   await expect(page.getByTestId('dataset-title')).toHaveAttribute('data-dataset-id','rna_255');
   await expect(page.getByTestId('tradeoff-chart')).toHaveCount(2);await publicTableMatches(page,'rna_255');
   for(const datasetId of ['rna_255','dna_mt_10k']){

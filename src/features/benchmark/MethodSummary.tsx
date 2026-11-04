@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import type { BenchmarkDataset, BenchmarkSnapshot, MetricKey } from "./model";
 import { datasetGroup } from "./BenchmarkMatrix";
-import { displayMetricKeys, metricEmphasis, metricSpecs, selectMetricRows } from "./metrics";
+import { displayMetricKeys, metricSpecs, selectMetricRows } from "./metrics";
 import { words, type Locale } from "./presentation";
 import { Hint, metricHelp } from "./MetricHint";
 import type { ResultScope } from "./selection";
@@ -31,9 +31,9 @@ export function familyDatasets(datasets: BenchmarkDataset[], family: string | nu
 }
 
 /**
- * Counts facts only: within each dataset the best value is found exactly as the matrix
- * marks it (ties all count), then datasets are counted per method. No metrics are combined
- * and no raw values are compared across datasets.
+ * Count raw best values within each dataset, including every tie. Colour emphasis
+ * deliberately stays neutral for identical values or a single observation, so its
+ * best flag is not a ranking rule. No raw values are compared across datasets.
  */
 export function tallyMethods(snapshot: BenchmarkSnapshot, scope: ResultScope, datasets: BenchmarkDataset[]) {
   const rows: MethodTally[] = snapshot.methods.map(method => ({
@@ -44,8 +44,12 @@ export function tallyMethods(snapshot: BenchmarkSnapshot, scope: ResultScope, da
   for (const dataset of datasets) {
     for (const key of displayMetricKeys) {
       const metricRows = selectMetricRows(snapshot, undefined, dataset.id, key, scope);
-      if (metricRows.some(row => row.raw !== null)) eligible[key]++;
-      metricEmphasis(key, metricRows.map(row => row.metric)).forEach((emphasis, index) => { if (emphasis.best) rows[index].wins[key]++; });
+      const values = metricRows.flatMap(row => row.raw === null ? [] : [row.raw]);
+      if (values.length) {
+        eligible[key]++;
+        const best = metricSpecs[key].direction === "lower" ? Math.min(...values) : Math.max(...values);
+        metricRows.forEach((row,index) => { if (row.raw === best) rows[index].wins[key]++; });
+      }
       if (key !== "wall_seconds") continue;
       metricRows.forEach((row, index) => {
         const tally = rows[index], status = row.result?.status;

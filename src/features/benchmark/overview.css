@@ -108,11 +108,11 @@
 .benchmark-overview-calm .benchmark-emphasis[data-best="true"] { color:var(--bench-accent-strong); font-weight:700; }
 .benchmark-overview-calm .benchmark-emphasis[data-best="true"]::before { content:""; flex-shrink:0; width:6px; height:6px; margin-right:2px; border-radius:50%; background:var(--bench-accent); }
 .benchmark-overview-calm .benchmark-matrix-cell.is-unavailable { background:transparent; color:#64748b; font-size:.75rem; }
-/* With the sidebar hidden the matrix fits on desktop, so it needs no horizontal scroller there;
-   without one, the method header can stick below the site header while the page scrolls. */
+/* Let the header stick to the document only while the measured table fits.
+   Text enlargement and narrow content retain local horizontal scrolling. */
 @media (min-width:1024px) {
-  .benchmark-studio.benchmark-overview-calm .benchmark-matrix-scroll { overflow:visible; }
-  .benchmark-overview-calm .benchmark-matrix thead th { top:65px; }
+  .benchmark-studio.benchmark-overview-calm .benchmark-matrix-scroll[data-fits="true"] { overflow:visible; }
+  .benchmark-overview-calm .benchmark-matrix-scroll[data-fits="true"] .benchmark-matrix thead th { top:65px; }
   .benchmark-overview-calm .benchmark-matrix thead th:first-child { border-top-left-radius:11px; }
   .benchmark-overview-calm .benchmark-matrix thead th:last-child { border-top-right-radius:11px; }
 }

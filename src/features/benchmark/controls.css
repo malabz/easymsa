@@ -1,28 +1,14 @@
 /* Shared Benchmark controls: hint bubbles, dropdown lists and pop-over panels. Presentation only. */
 
-/* Hints: a dark bubble below the label, shown after a short hover or on keyboard focus. */
+/* Hints use a body-level portal to stay outside table scroll containers. */
 .bench-tip { position:relative; display:inline-flex; vertical-align:middle; }
 .bench-tip-label { cursor:help; border-radius:4px; text-decoration:underline dotted #9fb7af; text-decoration-thickness:1px; text-underline-offset:4px; }
 .bench-tip-bubble {
-  position:absolute; z-index:40; top:calc(100% + 8px); left:50%; width:max-content; max-width:min(17rem, 80vw);
+  position:fixed; z-index:120; width:max-content; max-width:min(17rem, calc(100vw - 24px));
   padding:8px 11px; border-radius:9px; background:#16312e; color:#f2f8f6;
   font-size:12.5px; font-weight:400; line-height:1.55; letter-spacing:0; text-align:left; text-transform:none; white-space:normal;
-  box-shadow:0 14px 30px -14px rgb(15 23 42 / .5); pointer-events:none;
-  display:none; opacity:0; transform:translate(-50%, -4px);
-  transition:opacity .14s ease, transform .14s ease, display .14s allow-discrete;
+  box-shadow:0 14px 30px -14px rgb(15 23 42 / .5); pointer-events:auto;
 }
-.bench-tip[data-align="start"] .bench-tip-bubble { left:0; transform:translateY(-4px); }
-.bench-tip[data-align="end"] .bench-tip-bubble { left:auto; right:0; transform:translateY(-4px); }
-.bench-tip:is(:hover,:focus-within) .bench-tip-bubble {
-  display:block; opacity:1; transform:translate(-50%, 0);
-  transition:opacity .16s ease .22s, transform .2s cubic-bezier(.2,.7,.2,1) .22s, display 0s;
-}
-.bench-tip:is([data-align="start"],[data-align="end"]):is(:hover,:focus-within) .bench-tip-bubble { transform:none; }
-@starting-style {
-  .bench-tip:is(:hover,:focus-within) .bench-tip-bubble { opacity:0; transform:translate(-50%, -4px); }
-  .bench-tip:is([data-align="start"],[data-align="end"]):is(:hover,:focus-within) .bench-tip-bubble { transform:translateY(-4px); }
-}
-.bench-tip:focus-within .bench-tip-bubble { transition-delay:.05s; }
 
 /* Dropdowns: keep the native select (keyboard, forms, screen readers) but draw our own button and list. */
 @supports (appearance: base-select) {

@@ -77,4 +77,7 @@
   .benchmark-detail-v2 .benchmark-report-toolbar { padding:4px 12px; }
   .benchmark-detail-v2 .benchmark-report-plots > .tradeoff,
   .benchmark-detail-v2 .benchmark-report-values { padding:14px 12px; border-radius:12px; }
+  /* Keep headings inset, but let the result table use the full card width. */
+  .benchmark-detail-v2 .benchmark-report-values { padding-inline:0; }
+  .benchmark-detail-v2 .benchmark-report-values > :is(h3,.benchmark-comparison-key) { padding-inline:12px; }
 }

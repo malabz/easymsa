@@ -1,4 +1,5 @@
-import { cloneElement, isValidElement, useId, type ReactElement, type ReactNode } from "react";
+import { cloneElement, isValidElement, useEffect, useId, useLayoutEffect, useRef, useState, type ReactElement, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { displayMetricKeys } from "./metrics";
 import { words, type Locale } from "./presentation";
 
@@ -15,8 +16,38 @@ export function metricHelp(key: DisplayKey, locale: Locale) { return words(local
 /** A short explanation shown on hover or keyboard focus, and read as the control's description. */
 export function Hint({text, align = "center", children}: {text: string; align?: "start" | "center" | "end"; children: ReactNode}) {
   const id = useId();
+  const anchor = useRef<HTMLSpanElement>(null), bubble = useRef<HTMLSpanElement>(null);
+  const timer = useRef<ReturnType<typeof setTimeout>>();
+  const [open,setOpen] = useState(false), [position,setPosition] = useState({left:12,top:12});
+  const keep = () => { clearTimeout(timer.current); };
+  const show = () => { keep(); setOpen(true); };
+  const leave = () => {
+    keep();
+    if (!anchor.current?.contains(document.activeElement)) timer.current = setTimeout(() => setOpen(false),120);
+  };
+  useEffect(() => () => clearTimeout(timer.current), []);
+  useLayoutEffect(() => {
+    if (!open) return;
+    const place = () => {
+      const target = anchor.current?.getBoundingClientRect(), tip = bubble.current?.getBoundingClientRect();
+      if (!target || !tip) return;
+      const edge = 12, viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+      const left = align === "start" ? target.left : align === "end" ? target.right-tip.width : target.left+(target.width-tip.width)/2;
+      const top = target.bottom+8+tip.height <= window.innerHeight-edge ? target.bottom+8 : target.top-tip.height-8;
+      setPosition({left:Math.max(edge,Math.min(left,viewportWidth-tip.width-edge)),top:Math.max(edge,Math.min(top,window.innerHeight-tip.height-edge))});
+    };
+    const dismiss = (event: KeyboardEvent) => { if (event.key === "Escape") { clearTimeout(timer.current); setOpen(false); } };
+    place();
+    window.addEventListener("resize",place);window.addEventListener("scroll",place,true);document.addEventListener("keydown",dismiss);
+    return () => { window.removeEventListener("resize",place);window.removeEventListener("scroll",place,true);document.removeEventListener("keydown",dismiss); };
+  }, [open,text,align]);
+  const description = open ? id : undefined;
   const trigger = isValidElement(children)
-    ? cloneElement(children as ReactElement<{"aria-describedby"?: string}>, {"aria-describedby": id})
-    : <span className="bench-tip-label" tabIndex={0} aria-describedby={id}>{children}</span>;
-  return <span className="bench-tip" data-align={align}>{trigger}<span id={id} className="bench-tip-bubble">{text}</span></span>;
+    ? cloneElement(children as ReactElement<{"aria-describedby"?: string}>, {"aria-describedby": [children.props["aria-describedby"],description].filter(Boolean).join(" ") || undefined})
+    : <span className="bench-tip-label" tabIndex={0} aria-describedby={description}>{children}</span>;
+  // A body-level portal never contributes overflow to the table containing its trigger.
+  return <span className="bench-tip" ref={anchor} onMouseEnter={show} onMouseLeave={leave} onFocus={show} onBlur={() => { keep();setOpen(false); }}>
+    {trigger}
+    {open && createPortal(<span id={id} role="tooltip" className="bench-tip-bubble" ref={bubble} style={position} onMouseEnter={keep} onMouseLeave={leave}>{text}</span>,document.body)}
+  </span>;
 }
