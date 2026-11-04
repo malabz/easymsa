@@ -289,14 +289,22 @@ describe("Benchmark pages", () => {
   it("updates both charts from one quality and zoom control while the full table stays unchanged", async () => {
     mount(publishedSnapshot(), "/benchmark/datasets/case_ref"); await screen.findByTestId("dataset-title");
     const values = [...exactValues().querySelectorAll("td[data-metric]")].map(cell=>cell.getAttribute("data-raw-value"));
-    expect(screen.getAllByTestId("tradeoff-chart").every(figure=>figure.dataset.yMin==="0"&&figure.dataset.yMax==="1")).toBe(true);
-    fireEvent.click(screen.getByRole("checkbox", {name:"Zoom Q / TC differences"}));
+    expect(screen.getByRole("checkbox", {name:"Zoom Q / TC differences"})).toBeChecked();
     expect(screen.getAllByTestId("tradeoff-chart").every(figure=>Number(figure.dataset.yMin)>0)).toBe(true);
+    fireEvent.click(screen.getByRole("checkbox", {name:"Zoom Q / TC differences"}));
+    expect(screen.getAllByTestId("tradeoff-chart").every(figure=>figure.dataset.yMin==="0"&&figure.dataset.yMax==="1")).toBe(true);
     fireEvent.change(screen.getByLabelText("Vertical axis"),{target:{value:"scaled_sp"}});
     expect(screen.getAllByTestId("tradeoff-chart").every(figure=>figure.dataset.yKey==="scaled_sp")).toBe(true);
     expect([...exactValues().querySelectorAll("td[data-metric]")].map(cell=>cell.getAttribute("data-raw-value"))).toEqual(values);
     expect(scoreCell("clustalo", "q")).toHaveAttribute("data-raw-value", "0.8");
     expect(scoreCell("clustalo", "scaled_sp")).toHaveAttribute("data-raw-value", "20");
+  });
+
+  it.each(["q", "tc"])("restores an explicitly disabled zoom for %s", async quality => {
+    mount(publishedSnapshot(), `/benchmark/datasets/case_ref?y=${quality}&zoom=0`);
+    await screen.findByTestId("dataset-title");
+    expect(screen.getByRole("checkbox", {name:"Zoom Q / TC differences"})).not.toBeChecked();
+    expect(screen.getAllByTestId("tradeoff-chart").every(chart=>chart.dataset.yMin==="0"&&chart.dataset.yMax==="1")).toBe(true);
   });
 
   it("shows an accessible not-found state", async () => {

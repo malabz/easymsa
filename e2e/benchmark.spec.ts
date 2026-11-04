@@ -259,7 +259,7 @@ test("responsive charts, tooltips, zoom and keyboard access in both languages",a
   await expect(point).toHaveAttribute("aria-label",/1\.01/);
   await page.getByRole("combobox",{name:"Horizontal scale",exact:true}).selectOption("linear");
   for(const chart of await page.getByTestId("tradeoff-chart").all())await expect(chart).toHaveAttribute("data-x-scale","linear");
-  await page.getByRole("checkbox",{name:"Zoom Q / TC differences",exact:true}).click();
+  await page.getByRole("checkbox",{name:"Zoom Q / TC differences",exact:true}).check();
   await expect(page.getByRole("checkbox",{name:"Zoom Q / TC differences",exact:true})).toBeChecked();
   for(const chart of await page.getByTestId("tradeoff-chart").all())expect(Number(await chart.getAttribute("data-y-min"))).toBeGreaterThan(.9);
   await page.getByRole("button",{name:"Switch language",exact:true}).click();
@@ -339,7 +339,7 @@ test("small screens and 200 percent text keep controls, plots and tables usable"
     }
     await capturePageFromTop(page,info.outputPath(`text-200-scatter-${viewport.width}.png`));
     const zoom=page.getByRole("checkbox",{name:"Zoom Q / TC differences",exact:true});
-    await zoom.click();await expect(zoom).toBeChecked();
+    await zoom.check();await expect(zoom).toBeChecked();
     expect(Number(await page.getByTestId("tradeoff-chart").first().getAttribute("data-y-min"))).toBeGreaterThan(0);
     const yTicks=await page.getByTestId("tradeoff-chart").first().locator(".tradeoff-y-tick").evaluateAll(elements=>elements.map(element=>{
       const box=element.getBoundingClientRect(),plane=element.closest(".tradeoff-plane")!,area=element.closest(".tradeoff-plot-area")!;
@@ -559,7 +559,7 @@ test("scatter keeps zero, overlapping, single and failed methods readable",async
     await expect(item.locator("..")).toHaveClass(/is-active/);
     await expect(item).toHaveAttribute("aria-label",new RegExp(snapshot.methods.find(m=>m.id===method)!.name));
   }
-  await page.getByRole("checkbox",{name:"Zoom Q / TC differences",exact:true}).click();
+  await page.getByRole("checkbox",{name:"Zoom Q / TC differences",exact:true}).check();
   await expect(page.getByRole("checkbox",{name:"Zoom Q / TC differences",exact:true})).toBeChecked();
   await expect(page.getByTestId("tradeoff-chart").first().getByText(/^Zoomed range [0-9.]+–[0-9.]+$/)).toBeVisible();
   await assertScatterConsistency(page,snapshot,"latest","rna_255");
@@ -753,7 +753,7 @@ test("green emphasis agrees across filtered tables and scatter directions",async
       await page.getByRole("combobox",{name:"Horizontal scale",exact:true}).selectOption("linear");
       for(const chart of await page.getByTestId("tradeoff-chart").all())await expect(chart).toHaveAttribute("data-x-scale","linear");
       const zoom=page.getByRole("checkbox",{name:"Zoom Q / TC differences",exact:true});
-      await zoom.click();await expect(zoom).toBeChecked();
+      await zoom.check();await expect(zoom).toBeChecked();
       const quality=page.getByTestId("precise-results").locator('td[data-method="mafft"][data-metric="q"]');
       const before=await quality.evaluate(element=>getComputedStyle(element).backgroundColor);
       const selected=page.getByTestId("tradeoff-chart").first().locator('[data-testid="tradeoff-point"][data-method="mafft"]');

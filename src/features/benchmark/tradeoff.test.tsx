@@ -90,13 +90,13 @@ describe("tradeoff chart", () => {
     const chart = screen.getByTestId("tradeoff-chart");
     expect(chart).toHaveAttribute("data-x-key", "wall_seconds");
     expect(chart).toHaveAttribute("data-y-key", "q");
-    expect(chart).toHaveAttribute("data-y-min", "0");
-    expect(chart).toHaveAttribute("data-y-max", "1");
+    expect(Number(chart.dataset.yMin)).toBeGreaterThan(0);
+    expect(Number(chart.dataset.yMax)).toBeLessThan(1);
     const points = screen.getAllByTestId("tradeoff-point");
     expect(points).toHaveLength(2);
     expect(points[0]).toHaveAttribute("data-x-raw", "20");
     expect(points[0]).toHaveAttribute("data-batch-id", "newer");
-    expect(points[0]).toHaveAttribute("data-y-percent", "80");
+    expect(Number(points[0].dataset.yPercent)).toBeCloseTo(50);
     const expected = (Math.log10(20) - 1) / (2 - 1) * 100;
     expect(Number(points[0].dataset.xPercent)).toBeCloseTo(expected, 10);
     expect(screen.getAllByTestId("tradeoff-method")).toHaveLength(9);
@@ -295,7 +295,7 @@ describe("tradeoff chart", () => {
     expect(screen.getAllByTestId("tradeoff-point")).toHaveLength(1);
     expect(screen.getByTestId("tradeoff-x-range")).toBeInTheDocument();
     expect(screen.getByTestId("tradeoff-y-range")).toBeInTheDocument();
-    fireEvent.click(screen.getByLabelText("Zoom Q / TC differences"));
+    expect(screen.getByLabelText("Zoom Q / TC differences")).toBeChecked();
     expect(Number(screen.getByTestId("tradeoff-chart").dataset.yMin)).toBeLessThan(.7);
     expect(Number(screen.getByTestId("tradeoff-chart").dataset.yMin)).toBeGreaterThan(0);
   });

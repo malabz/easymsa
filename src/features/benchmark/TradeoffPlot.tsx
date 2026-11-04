@@ -104,7 +104,7 @@ export function TradeoffPlot({ snapshot, batch, scope, dataset, locale, params, 
   const yEmphasis = metricEmphasis(yKey,rows.map(row => row.yMetric));
   const valid = rows.filter(row => row.x !== null && row.y !== null);
   const xAxis = makeMetricAxis(xKey, valid.map(row => row.metric), {linear:params.get("scale") === "linear"});
-  const yAxis = makeMetricAxis(yKey, valid.map(row => row.yMetric), {zoom:isQuality && params.get("zoom") === "1"});
+  const yAxis = makeMetricAxis(yKey, valid.map(row => row.yMetric), {zoom:isQuality && params.get("zoom") !== "0"});
   const [width, setWidth] = useState(560);
   const [labelFontSize, setLabelFontSize] = useState(12);
   const plotHeight = embedded ? Math.max(250,Math.ceil(valid.length * (labelFontSize * 1.5 + 12) + 24)) : tradeoffPlotHeight(valid.length,labelFontSize);
@@ -144,13 +144,13 @@ export function TradeoffPlot({ snapshot, batch, scope, dataset, locale, params, 
   const choose = (id:string) => { setActive(id); setShowDetails(true); };
   const status = (row:typeof rows[number]) => row.outsideBatch ? stateLabel("outside_batch", locale) : row.result?.reason_code ? reasonLabel(row.result.reason_code, locale) : row.x === null || row.y === null ? [row.metric, row.yMetric].flatMap(metric => metric?.reason_codes ?? []).map(reason => reasonLabel(reason, locale)).join(" · ") || stateLabel("unavailable", locale) : stateLabel(row.result?.status ?? "not_run", locale);
   const axes = `${metricSpecs[xKey][locale]} (${metricSpecs[xKey].unit}) / ${metricSpecs[yKey][locale]}`;
-  const rangeLabel = isQuality ? params.get("zoom") === "1" ? `${words(locale,"Zoomed range","局部范围")} ${formatAxisTicks([yAxis.min,yAxis.max],yKey,locale).join("–")}` : "0–1" : words(locale,"Dataset range · linear","本数据集范围 · 线性");
+  const rangeLabel = isQuality ? params.get("zoom") !== "0" ? `${words(locale,"Zoomed range","局部范围")} ${formatAxisTicks([yAxis.min,yAxis.max],yKey,locale).join("–")}` : "0–1" : words(locale,"Dataset range · linear","本数据集范围 · 线性");
   return <section className="tradeoff" aria-label={embedded ? `${metricSpecs[xKey][locale]} / ${metricSpecs[yKey][locale]}` : words(locale, "Resource and quality comparison", "资源与质量比较")}>
     <div className="tradeoff-responsive">
     <div className="tradeoff-layout">
       <div className="tradeoff-chart-column">{embedded && <h3>{metricSpecs[xKey][locale]} · {metricSpecs[yKey][locale]}</h3>}
       <figure className="tradeoff-figure" data-testid="tradeoff-chart" data-x-key={xKey} data-y-key={yKey} data-x-min={xAxis.min} data-x-max={xAxis.max} data-x-scale={xAxis.scale} data-y-min={yAxis.min} data-y-max={yAxis.max} data-y-scale={yAxis.scale} data-y-divisor={yPresentation.divisor} aria-label={axes}>
-        <figcaption><span className="tradeoff-axis-summary">{metricSpecs[yKey][locale]}{yPresentation.unit && <span className="benchmark-score-unit"> ({yPresentation.unit})</span>} ↑ <span>{rangeLabel}</span></span>{!embedded && isQuality && <label className="tradeoff-zoom"><input type="checkbox" aria-label={words(locale,"Zoom Q / TC differences","放大 Q / TC 差异")} checked={params.get("zoom") === "1"} onChange={e => onParamsChange({zoom:e.target.checked ? "1" : ""})} /><span>{words(locale,"Zoom differences","放大差异")}</span></label>}</figcaption>
+        <figcaption><span className="tradeoff-axis-summary">{metricSpecs[yKey][locale]}{yPresentation.unit && <span className="benchmark-score-unit"> ({yPresentation.unit})</span>} ↑ <span>{rangeLabel}</span></span>{!embedded && isQuality && <label className="tradeoff-zoom"><input type="checkbox" aria-label={words(locale,"Zoom Q / TC differences","放大 Q / TC 差异")} checked={params.get("zoom") !== "0"} onChange={e => onParamsChange({zoom:e.target.checked ? "1" : "0"})} /><span>{words(locale,"Zoom differences","放大差异")}</span></label>}</figcaption>
         {valid.length > 0 && <p className="tradeoff-direction" data-testid="tradeoff-direction"><ArrowUpLeft size={20} aria-hidden="true"/><strong>{words(locale,"Upper left is better","左上更优")}</strong><span>· {words(locale,xKey === "max_rss_kib" ? "Less memory" : "Faster",xKey === "max_rss_kib" ? "更省内存" : "更快")} · {words(locale,`Higher ${metricSpecs[yKey].en}`,`${metricSpecs[yKey].zh} 更高`)}</span></p>}
         <div className="tradeoff-plot-area" style={{paddingLeft:yGutter}}>
           <div ref={plane} className="tradeoff-plane" style={{height:plotHeight}}>

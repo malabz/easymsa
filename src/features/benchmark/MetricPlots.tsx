@@ -22,9 +22,9 @@ function unavailable(metric: BenchmarkMetric | undefined, locale: Locale, result
 export function MetricPlots({ snapshot, batch, dataset, locale, selectedMetric, selectedMethod, scope, params, onParamsChange }: Props) {
   const [mobileMetric, setMobileMetric] = useState<MetricKey>(displayMetricKey(selectedMetric));
   const [localLinear, setLinear] = useState({ wall_seconds: false, max_rss_kib: false });
-  const [localZoom, setZoom] = useState(false);
+  const [localZoom, setZoom] = useState(true);
   const linear = params ? {wall_seconds:params.get("timeScale") === "linear", max_rss_kib:params.get("memoryScale") === "linear"} : localLinear;
-  const zoom = params ? params.get("plotZoom") === "1" : localZoom;
+  const zoom = params ? params.get("plotZoom") !== "0" : localZoom;
   const [activeMethod, setActiveMethod] = useState(selectedMethod ?? "");
   const [tip, setTip] = useState<Point | null>(null);
   // A stationary pointer can enter a different row during focus-driven scrolling.
@@ -48,7 +48,7 @@ export function MetricPlots({ snapshot, batch, dataset, locale, selectedMetric, 
 
   return <div className="benchmark-dot-comparison" data-mobile-metric={mobileMetric}>
     <div className="benchmark-plot-options">
-      <label className="benchmark-zoom-option"><input type="checkbox" checked={zoom} onChange={event => { setZoom(event.target.checked); onParamsChange?.({plotZoom:event.target.checked ? "1" : ""}); }} />{words(locale, "Zoom Q / TC differences", "放大 Q / TC 差异")}</label>
+      <label className="benchmark-zoom-option"><input type="checkbox" checked={zoom} onChange={event => { setZoom(event.target.checked); onParamsChange?.({plotZoom:event.target.checked ? "1" : "0"}); }} />{words(locale, "Zoom Q / TC differences", "放大 Q / TC 差异")}</label>
       {methodRows.some(row => Object.values(row.result?.metrics ?? {}).some(metric => metric.display === "mean_sd" || metric.display === "mean_range")) && <span className="benchmark-plot-note">{words(locale, "Point = reported value; whiskers = reported SD or range, when available.", "点表示报告数值；有统计量时，须线表示报告中的标准差或范围。")}</span>}
     </div>
     <div className="benchmark-mobile-metrics" role="group" aria-label={words(locale, "Chart metric", "图表指标")}>{primaryKeys.map(key => <button type="button" key={key} aria-pressed={mobileMetric === key} onClick={() => { setMobileMetric(key); setTip(null); onParamsChange?.({metric:key}); }}>{metricSpecs[key][locale]} {metricSpecs[key].direction === "higher" ? "↑" : "↓"}</button>)}</div>

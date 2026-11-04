@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const port = process.env.EASYMSA_E2E_PORT ?? "5210";
-const publicBenchmarkTests = /benchmark(?:-reading|-review-fixes)?\.spec\.ts/;
+const publicBenchmarkTests = /benchmark(?:-reading|-review-fixes|-default-zoom)?\.spec\.ts/;
 export default defineConfig({
   testDir: "./e2e", fullyParallel: true, workers: 1, timeout: 60_000, retries: 0,
   expect: { timeout: 12_000 },
