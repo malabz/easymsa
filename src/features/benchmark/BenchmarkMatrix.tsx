@@ -50,8 +50,10 @@ export function BenchmarkMatrix({ snapshot, batch, datasets, metricKey, locale, 
     const scroll = () => {
       if (scrollFrame.current) cancelAnimationFrame(scrollFrame.current);
       scrollFrame.current = requestAnimationFrame(() => {
-        const rect = tooltipAnchor.current?.getBoundingClientRect();
-        if (!rect || rect.bottom < 0 || rect.top > window.innerHeight || rect.right < 0 || rect.left > window.innerWidth) { setTooltip(null); return; }
+        const anchor = tooltipAnchor.current, rect = anchor?.getBoundingClientRect();
+        if (!rect) { setTooltip(null); return; }
+        // A focused cell may still be scrolling into view; keep its tooltip and let it follow.
+        if (anchor !== document.activeElement && (rect.bottom < 0 || rect.top > window.innerHeight || rect.right < 0 || rect.left > window.innerWidth)) { setTooltip(null); return; }
         const width = Math.min(340, window.innerWidth - 24);
         setTooltip(current => current ? {...current,
           x: Math.max(12, Math.min(rect.left + rect.width / 2 - width / 2, window.innerWidth - width - 12)),

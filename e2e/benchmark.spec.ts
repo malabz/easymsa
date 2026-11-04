@@ -33,7 +33,7 @@ async function openBenchmark(page: Page, url: string) {
   // Settle finite site-level motion before contrast/geometry checks. The
   // Benchmark report itself stays visible during dataset and control changes.
   await page.locator(".benchmark-page").evaluate(async element => {
-    await Promise.race([new Promise(resolve => setTimeout(resolve, 2000)), Promise.all(element.getAnimations()
+    await Promise.race([new Promise(resolve => setTimeout(resolve, 2000)), Promise.all(element.getAnimations({subtree:true})
       .filter(animation => animation.effect?.getComputedTiming().iterations !== Infinity)
       .map(animation => animation.finished.catch(() => undefined)))]);
   });
@@ -58,7 +58,8 @@ async function expand(page: Page, selector: string) {
 }
 async function assertSidebarScope(page: Page, datasetIds: string[], selectedId?: string) {
   const sidebar=page.getByTestId("dataset-sidebar");
-  await expect(sidebar).toBeVisible();
+  // The overview reads from the matrix and keeps the dataset list out of view; detail pages show it.
+  if(selectedId) await expect(sidebar).toBeVisible(); else await expect(sidebar).toBeAttached();
   const links=await sidebar.getByTestId("dataset-nav-link").evaluateAll(elements=>elements.map(element=>({
     id:element.getAttribute("data-dataset-id"),href:element.getAttribute("href"),current:element.getAttribute("aria-current"),
   })));
@@ -155,8 +156,7 @@ test("filters, selected-cell deep links and download scope stay together", async
   await expand(page,".benchmark-extra-filters");
   await page.getByRole("combobox", {name:"Data origin",exact:true}).selectOption("simulated");
   await expect(page.getByTestId("dataset-nav-link")).toHaveCount(20);
-  await expand(page,".benchmark-studio-sidebar-menu");
-  await page.getByLabel("Search datasets", {exact:true}).fill("sim_70");
+  await page.getByLabel("Find a dataset", {exact:true}).fill("sim_70");
   await expect(page.getByTestId("matrix-cell")).toHaveCount(6);
   await expand(page, '[data-testid="download-controls"]');
   const e=page.waitForEvent("download"); await page.getByRole("button",{name:"Download JSON",exact:true}).click();
@@ -175,7 +175,7 @@ test("filters, selected-cell deep links and download scope stay together", async
   await expect(page).toHaveURL(/datasets\/dna_mt_sim_70.*method=mafft/);
   await expect(page.getByTestId("precise-results").locator('td[data-method="mafft"][data-metric="wall_seconds"]')).toBeVisible();
   await page.locator(".benchmark-detail-topline .benchmark-back").click();
-  await expect(page.getByLabel("Search datasets",{exact:true})).toHaveValue("sim_70");
+  await expect(page.getByLabel("Find a dataset",{exact:true})).toHaveValue("sim_70");
   await page.getByRole("button",{name:"Clear filters",exact:true}).click();
   await page.getByRole("combobox",{name:"Sequence type",exact:true}).selectOption("rna");
   await expand(page,".benchmark-extra-filters");
@@ -702,7 +702,8 @@ test("quality defaults to available Q, resets on dataset changes and falls back 
 test("green emphasis agrees across filtered tables and scatter directions",async({page},info)=>{
   test.setTimeout(120_000);
   const methods=["mafft","halign4","minipoa"];
-  const palette=["rgb(240, 246, 243)","rgb(220, 236, 231)","rgb(183, 217, 206)","rgb(50, 123, 109)","rgb(15, 118, 110)"];
+  // The overview matrix uses quiet tints so a full grid stays readable; tone order is unchanged.
+  const palette=["rgba(0, 0, 0, 0)","rgb(244, 250, 247)","rgb(232, 244, 239)","rgb(216, 237, 229)","rgb(198, 229, 218)"];
   const records=expectedRecords(rawSnapshot,"latest").filter(record=>record.result.dataset_id==="rna_255");
   const compare=(nodes:{method:string|null;heat:string|null;tone:string|null;best:string|null}[],key:MetricKey)=>{
     const emphasis=expectedEmphasis(methods.map(id=>{

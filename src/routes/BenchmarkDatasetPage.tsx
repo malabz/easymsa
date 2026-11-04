@@ -20,6 +20,7 @@ import "../features/benchmark/benchmark.css";
 import "../features/benchmark/plots.css";
 import "../features/benchmark/reading.css";
 import "../features/benchmark/studio.css";
+import "../features/benchmark/surface.css";
 import "../features/benchmark/detail.css";
 
 export function BenchmarkDatasetPage() {

@@ -1,0 +1,137 @@
+/* Benchmark overview: header, coverage chips, and one card holding the metric switch, filters and matrix.
+   Presentation only: values, ordering, filters and links are unchanged. */
+.benchmark-studio.benchmark-explorer .benchmark-studio-content { padding-top:24px; }
+.benchmark-studio.benchmark-explorer .benchmark-back { display:inline-flex; gap:4px; min-height:32px; padding:0 10px; margin-left:-10px; border-radius:999px; transition:background-color .18s ease, color .18s ease; }
+.benchmark-studio.benchmark-explorer .benchmark-back:hover { background:#e6f1ed; color:var(--bench-accent-strong); }
+.benchmark-studio.benchmark-explorer .benchmark-overview-header { padding:8px 0 6px; }
+.benchmark-studio.benchmark-explorer .benchmark-overview-header h1 { margin:0 0 4px; font-size:34px; letter-spacing:-.04em; }
+.benchmark-studio.benchmark-explorer .benchmark-overview-intro { margin:0 0 14px; font-size:14px; line-height:1.6; color:var(--bench-muted); }
+
+/* One primary action; downloading is secondary. */
+.benchmark-studio.benchmark-explorer .benchmark-start-link { min-height:42px; padding:0 18px; border-radius:10px; box-shadow:0 6px 16px -10px rgb(15 118 110 / .7); transition:background-color .18s ease, transform .18s ease; }
+.benchmark-studio.benchmark-explorer .benchmark-start-link:hover { background:var(--bench-accent-strong); }
+.benchmark-studio.benchmark-explorer .benchmark-start-link:active { transform:translateY(1px); }
+.benchmark-studio.benchmark-explorer .benchmark-download-menu > summary { min-height:42px; border-color:#cfe0da; background:#fff; color:var(--bench-accent-strong); }
+.benchmark-studio.benchmark-explorer .benchmark-download-menu > summary:hover { border-color:#9fcbbf; background:#f0f8f5; }
+
+/* Coverage: one chip per state, each with its own colour dot. Text stays as it was. */
+.benchmark-studio.benchmark-explorer .benchmark-run-summary { margin:0 0 16px; padding:0; border:0; }
+.benchmark-studio.benchmark-explorer .benchmark-run-summary > p:first-child { gap:8px; }
+.benchmark-studio.benchmark-explorer .benchmark-run-summary [data-state] {
+  display:inline-flex; align-items:center; gap:6px; min-height:32px; padding:0 12px 0 10px;
+  border:1px solid var(--bench-card-border); border-radius:999px; background:#fff; color:#475569; font-size:13px;
+}
+.benchmark-studio.benchmark-explorer .benchmark-run-summary [data-state]::before { content:""; width:8px; height:8px; margin-right:2px; border-radius:50%; background:var(--state-dot,#94a3b8); }
+.benchmark-studio.benchmark-explorer .benchmark-run-summary [data-state="complete"] { --state-dot:var(--bench-accent); border-color:#cfe5de; background:#f3faf7; color:var(--bench-accent-strong); }
+.benchmark-studio.benchmark-explorer .benchmark-run-summary [data-state="timeout"] { --state-dot:#d97706; }
+.benchmark-studio.benchmark-explorer .benchmark-run-summary [data-state="oom"] { --state-dot:#dc2626; }
+.benchmark-studio.benchmark-explorer .benchmark-run-summary [data-state="failed"] { --state-dot:#9f1239; }
+.benchmark-studio.benchmark-explorer .benchmark-run-summary [data-state="partial"] { --state-dot:#ca8a04; }
+.benchmark-studio.benchmark-explorer .benchmark-run-summary strong { font-size:14px; }
+
+/* The comparison card. */
+.benchmark-studio.benchmark-explorer .benchmark-explorer-main {
+  margin-top:0; padding:4px 20px 20px;
+  border:1px solid var(--bench-card-border); border-radius:14px; background:#fff; box-shadow:var(--bench-card-shadow);
+}
+
+/* Metric switch as a segmented control. */
+.benchmark-studio.benchmark-explorer .benchmark-metric-navigation { margin:14px 0 14px; border-bottom:0; }
+.benchmark-studio.benchmark-explorer .benchmark-main-metrics { gap:4px; padding:4px; border-radius:12px; background:#f1f5f4; }
+.benchmark-studio.benchmark-explorer .benchmark-main-metrics button {
+  min-height:38px; padding:0 14px; border:0; border-radius:9px; font-size:14px; color:#475569;
+  transition:background-color .18s ease, color .18s ease, box-shadow .18s ease;
+}
+.benchmark-studio.benchmark-explorer .benchmark-main-metrics button:not(.is-active):hover { background:rgb(255 255 255 / .65); color:var(--bench-ink); }
+.benchmark-studio.benchmark-explorer .benchmark-main-metrics button.is-active {
+  background:#fff; color:var(--bench-accent-strong); font-weight:600;
+  box-shadow:0 1px 2px rgb(15 23 42 / .08), 0 4px 10px -6px rgb(15 23 42 / .25);
+}
+
+/* Filters share one control height and radius. */
+.benchmark-studio.benchmark-explorer .benchmark-compact-filters { gap:10px; }
+.benchmark-studio.benchmark-explorer .benchmark-field :is(input,select) { min-height:40px; border-color:#d8e1ea; border-radius:8px; transition:border-color .18s ease, box-shadow .18s ease; }
+.benchmark-studio.benchmark-explorer .benchmark-field :is(input,select):hover { border-color:#9fbfb5; }
+.benchmark-studio.benchmark-explorer .benchmark-field :is(input,select):focus-visible { box-shadow:0 0 0 3px rgb(15 118 110 / .15); }
+.benchmark-studio.benchmark-explorer :is(.benchmark-method-filter,.benchmark-extra-filters) > summary {
+  min-height:40px; border-color:#d8e1ea; border-radius:8px; list-style:none; transition:border-color .18s ease, background-color .18s ease;
+}
+.benchmark-studio.benchmark-explorer :is(.benchmark-method-filter,.benchmark-extra-filters) > summary::-webkit-details-marker { display:none; }
+.benchmark-studio.benchmark-explorer :is(.benchmark-method-filter,.benchmark-extra-filters) > summary:hover { border-color:#9fbfb5; }
+.benchmark-studio.benchmark-explorer :is(.benchmark-method-filter,.benchmark-extra-filters)[open] > summary { border-color:#9fcbbf; background:#f0f8f5; }
+.benchmark-studio.benchmark-explorer :is(.benchmark-method-filter,.benchmark-extra-filters) > summary::after {
+  content:""; flex-shrink:0; width:7px; height:7px; margin:0 2px 3px auto;
+  border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor; transform:rotate(45deg); transition:transform .2s ease;
+}
+.benchmark-studio.benchmark-explorer :is(.benchmark-method-filter,.benchmark-extra-filters)[open] > summary::after { content:""; margin-bottom:-3px; transform:rotate(-135deg); }
+.benchmark-studio.benchmark-explorer :is(.benchmark-method-filter,.benchmark-extra-filters) > div { border-color:var(--bench-card-border); border-radius:12px; box-shadow:0 14px 32px -14px rgb(15 23 42 / .3); }
+/* The filters sit at the card's left edge; open panels rightwards so they never cover the sidebar. */
+@media (min-width:768px) {
+  .benchmark-studio.benchmark-explorer .benchmark-compact-filters :is(.benchmark-method-filter,.benchmark-extra-filters) > div { left:0; right:auto; }
+}
+.benchmark-studio.benchmark-explorer .benchmark-clear { min-height:40px; padding:0 12px; border-radius:8px; text-decoration:none; color:var(--bench-muted); transition:background-color .18s ease, color .18s ease; }
+.benchmark-studio.benchmark-explorer .benchmark-clear:hover { background:#f1f5f4; color:var(--bench-ink); }
+
+/* Matrix frame and tooltip. */
+.benchmark-studio.benchmark-explorer .benchmark-matrix-key { padding:14px 0 10px; }
+.benchmark-studio.benchmark-explorer .benchmark-matrix-scroll { border-radius:12px; }
+.benchmark-studio.benchmark-explorer .benchmark-matrix-tooltip { border-radius:10px; box-shadow:0 14px 32px -14px rgb(15 23 42 / .35); }
+
+/* Calm reading: the matrix reads like a plain results table. Light tints keep "darker is better",
+   only each row's best value is coloured, numbers align on the right, and rows are compact
+   enough to see most datasets at once. Tones and best flags come from the same data attributes. */
+.benchmark-overview-calm.benchmark-studio .benchmark-studio-sidebar { display:none; }
+.page-container.benchmark-page.benchmark-studio.benchmark-overview-calm { grid-template-columns:minmax(0,1fr); }
+.benchmark-overview-calm .benchmark-studio-content { width:100%; max-width:1320px; margin:0 auto; }
+.benchmark-overview-calm .benchmark-compact-filters > .benchmark-overview-search { flex:1 1 14rem; max-width:20rem; }
+.benchmark-overview-calm .benchmark-matrix { min-width:52rem; }
+.benchmark-overview-calm .benchmark-matrix thead th { height:46px; padding:.4rem .9rem; text-align:right; font-size:.8125rem; color:#334155; }
+.benchmark-overview-calm .benchmark-matrix thead .benchmark-matrix-dataset { text-align:left; }
+.benchmark-overview-calm .benchmark-matrix .benchmark-matrix-dataset { width:168px; }
+.benchmark-overview-calm .benchmark-matrix :is(th,td) { border-bottom-color:#edf1ef; }
+.benchmark-overview-calm .benchmark-matrix td { padding:0; background:transparent; }
+.benchmark-overview-calm .benchmark-matrix tbody .benchmark-matrix-dataset a { min-height:40px; padding:.3rem .9rem; }
+.benchmark-overview-calm .benchmark-matrix-row-name { font-size:.8125rem; font-weight:500; }
+.benchmark-overview-calm .benchmark-matrix-row-name svg { opacity:0; transition:opacity .15s ease; }
+.benchmark-overview-calm .benchmark-matrix tbody tr:hover .benchmark-matrix-row-name svg { opacity:1; }
+.benchmark-overview-calm .benchmark-matrix-group th { height:30px; background:#f6f8f7; color:#5b7069; letter-spacing:.06em; }
+.benchmark-overview-calm .benchmark-matrix-cell {
+  min-height:40px; justify-content:flex-end; padding:0 .9rem; border-radius:0; font-size:.875rem; color:#1e293b;
+  transition:background-color .12s ease, box-shadow .12s ease;
+}
+.benchmark-overview-calm .benchmark-matrix-cell:hover { box-shadow:inset 0 0 0 1.5px var(--bench-accent); }
+.benchmark-overview-calm .benchmark-emphasis:is([data-tone="neutral"],[data-tone="0"]) { background:transparent; color:#1e293b; }
+.benchmark-overview-calm .benchmark-emphasis[data-tone="1"] { background:#f4faf7; color:#1e293b; }
+.benchmark-overview-calm .benchmark-emphasis[data-tone="2"] { background:#e8f4ef; color:#1e293b; }
+.benchmark-overview-calm .benchmark-emphasis[data-tone="3"] { background:#d8ede5; color:#1e293b; }
+.benchmark-overview-calm .benchmark-emphasis[data-tone="4"] { background:#c6e5da; color:#0f3d39; }
+.benchmark-overview-calm .benchmark-emphasis[data-best="true"] { color:var(--bench-accent-strong); font-weight:700; }
+.benchmark-overview-calm .benchmark-emphasis[data-best="true"]::before { content:""; flex-shrink:0; width:6px; height:6px; margin-right:2px; border-radius:50%; background:var(--bench-accent); }
+.benchmark-overview-calm .benchmark-matrix-cell.is-unavailable { background:transparent; color:#64748b; font-size:.75rem; }
+/* With the sidebar hidden the matrix fits on desktop, so it needs no horizontal scroller there;
+   without one, the method header can stick below the site header while the page scrolls. */
+@media (min-width:1024px) {
+  .benchmark-studio.benchmark-overview-calm .benchmark-matrix-scroll { overflow:visible; }
+  .benchmark-overview-calm .benchmark-matrix thead th { top:65px; }
+  .benchmark-overview-calm .benchmark-matrix thead th:first-child { border-top-left-radius:11px; }
+  .benchmark-overview-calm .benchmark-matrix thead th:last-child { border-top-right-radius:11px; }
+}
+#main-content .benchmark-overview-calm .benchmark-matrix-cell[data-failure="true"] { background:transparent; color:#b91c1c; font-weight:500; }
+.benchmark-overview-calm .benchmark-matrix tbody tr:hover > * { background-color:#f7fbf9; }
+.benchmark-overview-calm .benchmark-matrix tbody tr:hover .benchmark-matrix-dataset a { color:var(--bench-accent-strong); }
+
+@media (prefers-reduced-motion:no-preference) {
+  .benchmark-studio.benchmark-explorer .benchmark-run-summary [data-state] { animation:bench-surface-rise .4s cubic-bezier(.2,.7,.2,1) backwards; }
+  .benchmark-studio.benchmark-explorer .benchmark-run-summary [data-state]:nth-child(2) { animation-delay:.04s; }
+  .benchmark-studio.benchmark-explorer .benchmark-run-summary [data-state]:nth-child(3) { animation-delay:.08s; }
+  .benchmark-studio.benchmark-explorer .benchmark-run-summary [data-state]:nth-child(n+4) { animation-delay:.12s; }
+  .benchmark-studio.benchmark-explorer .benchmark-explorer-main { animation:bench-surface-rise .5s .1s cubic-bezier(.2,.7,.2,1) backwards; }
+}
+
+@media (max-width:767px) {
+  .benchmark-studio.benchmark-explorer .benchmark-studio-content { padding-top:14px; }
+  .benchmark-studio.benchmark-explorer .benchmark-overview-header h1 { font-size:28px; }
+  .benchmark-studio.benchmark-explorer .benchmark-explorer-main { padding:4px 12px 14px; border-radius:12px; }
+  .benchmark-studio.benchmark-explorer .benchmark-main-metrics { width:100%; }
+  .benchmark-studio.benchmark-explorer .benchmark-main-metrics button { flex:1 1 auto; padding:0 8px; font-size:13px; }
+}

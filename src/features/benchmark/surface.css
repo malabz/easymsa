@@ -1,0 +1,35 @@
+/* Shared Benchmark reading surface: a soft page with white cards, matching the rest of the site.
+   Presentation only; used by the overview and the dataset report. */
+.page-container.benchmark-page.benchmark-studio:is(.benchmark-detail-v2,.benchmark-explorer) {
+  --bench-card-border:#e3e8ef;
+  --bench-card-shadow:0 1px 2px rgb(15 23 42 / .04), 0 14px 32px -26px rgb(15 23 42 / .28);
+  background:#f7f9f8;
+}
+body:has(.benchmark-studio:is(.benchmark-detail-v2,.benchmark-explorer)) { background:#f7f9f8; }
+
+/* Primary action: a raised button that presses in. */
+:is(.benchmark-detail-v2,.benchmark-explorer) .benchmark-download-menu > summary { border-radius:10px; transition:background-color .18s ease, border-color .18s ease, transform .18s ease; }
+:is(.benchmark-detail-v2,.benchmark-explorer) .benchmark-download-menu > summary:active { transform:translateY(1px); }
+.benchmark-detail-v2 .benchmark-download-menu > summary { box-shadow:0 6px 16px -10px rgb(15 118 110 / .7); }
+
+/* Experiment details: a closed card with a rotating chevron instead of +/−. */
+:is(.benchmark-detail-v2,.benchmark-explorer) .benchmark-experiment-details { margin-top:16px; padding:0 20px; border:1px solid var(--bench-card-border); border-radius:14px; background:#fff; box-shadow:var(--bench-card-shadow); }
+:is(.benchmark-detail-v2,.benchmark-explorer) .benchmark-experiment-details > summary { min-height:54px; list-style:none; font-size:14px; font-weight:600; color:var(--bench-ink); }
+:is(.benchmark-detail-v2,.benchmark-explorer) .benchmark-experiment-details > summary::-webkit-details-marker { display:none; }
+:is(.benchmark-detail-v2,.benchmark-explorer) .benchmark-experiment-details > summary::before {
+  content:""; width:8px; height:8px; margin:0 4px 0 2px; border-right:2px solid var(--bench-accent); border-bottom:2px solid var(--bench-accent);
+  transform:rotate(-45deg); transition:transform .2s ease;
+}
+:is(.benchmark-detail-v2,.benchmark-explorer) .benchmark-experiment-details[open] > summary::before { content:""; transform:rotate(45deg) translate(-2px,-2px); }
+:is(.benchmark-detail-v2,.benchmark-explorer) .benchmark-experiment-details > section { border-top:1px solid var(--bench-rule); }
+
+@media (prefers-reduced-motion:no-preference) {
+  :is(.benchmark-detail-v2,.benchmark-explorer) .benchmark-experiment-details { animation:bench-surface-rise .5s .2s cubic-bezier(.2,.7,.2,1) backwards; }
+}
+@media (prefers-reduced-motion:reduce) {
+  :is(.benchmark-detail-v2,.benchmark-explorer) :is(*,*::before,*::after) { transition-duration:0s !important; }
+}
+@keyframes bench-surface-rise { from { opacity:0; transform:translateY(12px); } }
+@media (max-width:767px) {
+  :is(.benchmark-detail-v2,.benchmark-explorer) .benchmark-experiment-details { padding:0 14px; }
+}
