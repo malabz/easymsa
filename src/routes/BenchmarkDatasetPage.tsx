@@ -8,7 +8,7 @@ import { PageContainer } from "../components/layout/PageContainer";
 import { useLanguage } from "../lib/i18n/useLanguage";
 import { metricKeys, type MetricKey } from "../features/benchmark/model";
 import { useBenchmark } from "../features/benchmark/useBenchmark";
-import { displayMetricKey, displayMetricKeys, metricSpecs, metricValue,isBenchmarkFailure,isMetricFailure, metricEmphasis, selectMetricRows } from "../features/benchmark/metrics";
+import { displayMetricKey, displayMetricKeys, formatMetricValue, metricSpecs, metricValue,isBenchmarkFailure,isMetricFailure, metricEmphasis, selectMetricRows } from "../features/benchmark/metrics";
 import { BenchmarkReadingControls } from "../features/benchmark/BenchmarkReading";
 import { BenchmarkSidebar } from "../features/benchmark/BenchmarkSidebar";
 import { BenchmarkNavigation } from "../features/benchmark/BenchmarkNavigation";
@@ -20,6 +20,7 @@ import "../features/benchmark/benchmark.css";
 import "../features/benchmark/plots.css";
 import "../features/benchmark/reading.css";
 import "../features/benchmark/studio.css";
+import "../features/benchmark/detail.css";
 
 export function BenchmarkDatasetPage() {
   const { locale } = useLanguage();
@@ -59,6 +60,9 @@ export function BenchmarkDatasetPage() {
   const requestedY = displayMetricKey(params.get("y") as MetricKey);
   const hasQ = rows.some(row=>metricValue(row.result?.metrics.q)!==null);
   const quality:MetricKey = ["q","tc","scaled_sp"].includes(requestedY)&&(dataset.reference||requestedY==="scaled_sp")?requestedY:dataset.reference&&hasQ?"q":"scaled_sp";
+  const qualityValues = rows.map(row => metricValue(row.result?.metrics[quality])).filter((value): value is number => value !== null);
+  const low = Math.min(...qualityValues), high = Math.max(...qualityValues);
+  const crowded: [string,string] | null = (quality === "q" || quality === "tc") && qualityValues.length > 1 && high - low < .1 ? [formatMetricValue(low,quality,locale,true),formatMetricValue(high,quality,locale,true)] : null;
   const metricKey = metricKeys.includes(params.get("metric") as MetricKey) ? displayMetricKey(params.get("metric") as MetricKey) : "wall_seconds";
   return <PageContainer className="benchmark-page benchmark-detail-v2 benchmark-reading-v3 benchmark-studio">
     <BenchmarkNavigation/>
@@ -73,11 +77,11 @@ export function BenchmarkDatasetPage() {
     <section aria-labelledby="dataset-comparison-heading">
       <h2 id="dataset-comparison-heading" className="sr-only">{words(locale,"Method comparison","方法对比")}</h2>
       {!selection.methods.length && <p role="status" className="benchmark-empty">{words(locale,"Choose a method to view results.","选择方法以查看成绩。")}</p>}
-      <div className="benchmark-report-toolbar"><BenchmarkReadingControls locale={locale} quality={quality} reference={Boolean(dataset.reference)} params={params} patch={patch}/><MethodFilter methods={selection.availableMethods} selected={selection.methods.map(m => m.id)} onChange={value => patch({methods:value})} locale={locale}/></div>
+      <div className="benchmark-report-toolbar"><BenchmarkReadingControls locale={locale} quality={quality} reference={Boolean(dataset.reference)} params={params} patch={patch} crowded={crowded}/><MethodFilter methods={selection.availableMethods} selected={selection.methods.map(m => m.id)} onChange={value => patch({methods:value})} locale={locale}/></div>
       <div className="benchmark-report-plots" data-testid="benchmark-report-plots"><TradeoffPlot snapshot={filteredSnapshot} scope={scope} dataset={dataset} locale={locale} params={params} onParamsChange={patch} fixedX="wall_seconds" embedded/><TradeoffPlot snapshot={filteredSnapshot} scope={scope} dataset={dataset} locale={locale} params={params} onParamsChange={patch} fixedX="max_rss_kib" embedded/></div>
-      <h3 className="benchmark-report-values-heading">{words(locale,"All metrics","完整指标")}</h3>
+      <div className="benchmark-report-values"><h3 className="benchmark-report-values-heading">{words(locale,"All metrics","完整指标")}</h3>
       <ComparisonLegend locale={locale}/>
-      <div className="benchmark-detail-precise benchmark-report-table" data-testid="precise-results"><div tabIndex={0} role="region" aria-label={words(locale,"Scrollable method comparison","可横向滚动的方法对比")} className="benchmark-table-scroll"><table className="benchmark-table" data-single-observation={rows.every(row=>(row.result?.planned_repeats??1)===1)}><caption className="sr-only">{words(locale,"Method results for ","方法成绩：")}{datasetName(dataset,locale)}</caption><thead><tr><th scope="col">{words(locale,"Method","方法")}</th><th scope="col">{words(locale,"State","状态")}</th><th scope="col">{words(locale,"Valid repeats","有效重复")}</th>{displayMetricKeys.map(key => <th key={key} scope="col">{metricSpecs[key][locale]}{metricSpecs[key].unit ? ` (${metricSpecs[key].unit})` : ""}</th>)}</tr></thead><tbody>{rows.map((row,index) => <tr key={row.method.id} data-method={row.method.id}><th scope="row">{row.method.name}</th><td data-failure={!row.outsideBatch && isBenchmarkFailure(row.result?.status,row.result?.reason_code?[row.result.reason_code]:[])}>{row.outsideBatch ? stateLabel("outside_batch",locale) : row.result?.reason_code ? reasonLabel(row.result.reason_code,locale) : stateLabel(row.result?.status ?? "not_run",locale)}</td><td>{row.result ? `${row.result.valid_repeats}/${row.result.planned_repeats}` : "—"}</td>{displayMetricKeys.map(key => <td key={key} className="benchmark-emphasis" data-tone={emphasis.get(key)![index].tone} data-best={emphasis.get(key)![index].best} data-heat={emphasis.get(key)![index].strength ?? ""} data-method={row.method.id} data-metric={key} data-failure={!row.outsideBatch && isMetricFailure(row.result?.metrics[key],row.result?.status,row.result?.reason_code)} data-batch-id={row.batch?.id ?? ""} data-raw-value={metricValue(row.result?.metrics[key]) ?? ""}>{row.outsideBatch ? stateLabel("outside_batch",locale) : <MetricCell metric={row.result?.metrics[key]} metricKey={key} locale={locale} noReference={!dataset.reference && ["q","tc"].includes(key)}/>}</td>)}</tr>)}</tbody></table></div></div>
+      <div className="benchmark-detail-precise benchmark-report-table" data-testid="precise-results"><div tabIndex={0} role="region" aria-label={words(locale,"Scrollable method comparison","可横向滚动的方法对比")} className="benchmark-table-scroll"><table className="benchmark-table" data-single-observation={rows.every(row=>(row.result?.planned_repeats??1)===1)}><caption className="sr-only">{words(locale,"Method results for ","方法成绩：")}{datasetName(dataset,locale)}</caption><thead><tr><th scope="col">{words(locale,"Method","方法")}</th><th scope="col">{words(locale,"State","状态")}</th><th scope="col">{words(locale,"Valid repeats","有效重复")}</th>{displayMetricKeys.map(key => <th key={key} scope="col">{metricSpecs[key][locale]}{metricSpecs[key].unit ? ` (${metricSpecs[key].unit})` : ""}</th>)}</tr></thead><tbody>{rows.map((row,index) => <tr key={row.method.id} data-method={row.method.id}><th scope="row">{row.method.name}</th><td data-failure={!row.outsideBatch && isBenchmarkFailure(row.result?.status,row.result?.reason_code?[row.result.reason_code]:[])}>{row.outsideBatch ? stateLabel("outside_batch",locale) : row.result?.reason_code ? reasonLabel(row.result.reason_code,locale) : stateLabel(row.result?.status ?? "not_run",locale)}</td><td>{row.result ? `${row.result.valid_repeats}/${row.result.planned_repeats}` : "—"}</td>{displayMetricKeys.map(key => <td key={key} className="benchmark-emphasis" data-tone={emphasis.get(key)![index].tone} data-best={emphasis.get(key)![index].best} data-heat={emphasis.get(key)![index].strength ?? ""} data-method={row.method.id} data-metric={key} data-failure={!row.outsideBatch && isMetricFailure(row.result?.metrics[key],row.result?.status,row.result?.reason_code)} data-batch-id={row.batch?.id ?? ""} data-raw-value={metricValue(row.result?.metrics[key]) ?? ""}>{row.outsideBatch ? stateLabel("outside_batch",locale) : <MetricCell metric={row.result?.metrics[key]} metricKey={key} locale={locale} noReference={!dataset.reference && ["q","tc"].includes(key)}/>}</td>)}</tr>)}</tbody></table></div></div></div>
     </section>
 
     <ExperimentDetails snapshot={data} batches={sources} dataset={dataset} locale={locale}/>

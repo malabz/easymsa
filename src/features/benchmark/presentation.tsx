@@ -40,8 +40,24 @@ export function formatMetric(metric: BenchmarkMetric | undefined, key: MetricKey
   if (value === null) return metric.reason_codes.length ? [...new Set(metric.reason_codes.map(code => reasonLabel(code,locale)))].join(" · ") : stateLabel(metric.status, locale);
   return formatMetricSummary(metric, key, locale);
 }
+/** Split a plain decimal after its fifth significant digit; integer digits are never split. */
+export function splitPrecision(text: string, keep = 5): [string, string] | null {
+  if (!/^-?[\d,]+\.\d+$/.test(text)) return null;
+  const point = text.indexOf(".");
+  let significant = 0;
+  for (let index = 0; index < text.length; index++) {
+    const char = text[index];
+    if (char < "0" || char > "9") continue;
+    if (significant || char !== "0") significant++;
+    if (significant >= keep && index > point) return index + 1 < text.length ? [text.slice(0, index + 1), text.slice(index + 1)] : null;
+  }
+  return null;
+}
 export function MetricCell({ metric, metricKey, locale, noReference = false }: { metric?: BenchmarkMetric; metricKey: MetricKey; locale: Locale; noReference?: boolean }) {
-  return <div className="min-w-[6rem] tabular-nums"><span>{formatMetric(metric, metricKey, locale, noReference)}</span></div>;
+  const text = formatMetric(metric, metricKey, locale, noReference);
+  // The exact value stays in the text; only its trailing digits recede visually.
+  const parts = splitPrecision(text);
+  return <div className="min-w-[6rem] tabular-nums"><span>{parts ? <>{parts[0]}<span className="benchmark-digits-tail">{parts[1]}</span></> : text}</span></div>;
 }
 export function StatusPill({ status, locale }: { status: string; locale: Locale }) {
   return <span className={"benchmark-status " + status}>{stateLabel(status, locale)}</span>;
