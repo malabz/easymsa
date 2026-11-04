@@ -133,5 +133,6 @@
   .benchmark-studio.benchmark-explorer .benchmark-overview-header h1 { font-size:28px; }
   .benchmark-studio.benchmark-explorer .benchmark-explorer-main { padding:4px 12px 14px; border-radius:12px; }
   .benchmark-studio.benchmark-explorer .benchmark-main-metrics { width:100%; }
-  .benchmark-studio.benchmark-explorer .benchmark-main-metrics button { flex:1 1 auto; padding:0 8px; font-size:13px; }
+  .benchmark-studio.benchmark-explorer .benchmark-main-metrics > .bench-tip { flex:1 1 auto; }
+  .benchmark-studio.benchmark-explorer .benchmark-main-metrics button { flex:1 1 auto; width:100%; justify-content:center; padding:0 8px; font-size:13px; }
 }

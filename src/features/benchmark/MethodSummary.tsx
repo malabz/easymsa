@@ -3,6 +3,7 @@ import type { BenchmarkDataset, BenchmarkSnapshot, MetricKey } from "./model";
 import { datasetGroup } from "./BenchmarkMatrix";
 import { displayMetricKeys, metricEmphasis, metricSpecs, selectMetricRows } from "./metrics";
 import { words, type Locale } from "./presentation";
+import { Hint, metricHelp } from "./MetricHint";
 import type { ResultScope } from "./selection";
 import "./summary.css";
 
@@ -77,7 +78,7 @@ export function MethodSummary({snapshot, scope, datasets, locale, family, onFami
     <div className="benchmark-summary-head">
       <div>
         <h2 id="benchmark-summary-heading">{words(locale,"Methods at a glance","方法一览")}</h2>
-        <p>{words(locale,`${included.length} datasets · how often each method is best within a dataset`,`${included.length} 个数据集 · 在每个数据集内比较，统计各方法拿第一的次数`)}</p>
+        <p>{words(locale,`How many of ${included.length} datasets each method wins`,`${included.length} 个数据集里，各方法拿第一的次数`)}</p>
       </div>
       <div className="benchmark-summary-families" role="group" aria-label={words(locale,"Dataset family","数据族")}>
         {summaryFamilies.map(item => <button key={item.id} type="button" aria-pressed={activeFamily === item.id} onClick={() => onFamily(item.id)}>{words(locale,item.en,item.zh)}</button>)}
@@ -88,8 +89,8 @@ export function MethodSummary({snapshot, scope, datasets, locale, family, onFami
         <caption className="sr-only">{words(locale,"Completed runs and best-in-dataset counts per method","各方法的完成数与各指标第一次数")}</caption>
         <thead><tr>
           <th scope="col">{words(locale,"Method","方法")}</th>
-          <th scope="col">{words(locale,"Completed","完成")}</th>
-          {displayMetricKeys.map(key => <th scope="col" key={key}><button type="button" aria-pressed={metric === key} title={words(locale,`Show ${metricSpecs[key].en} for every dataset`,`在下方矩阵查看各数据集的${metricSpecs[key].zh}`)} onClick={() => onMetric(key)}>{words(locale,...winLabels[key])}</button></th>)}
+          <th scope="col"><Hint text={words(locale,"Datasets the method finished within the run limits.","在资源上限内正常跑完的数据集个数。")} align="end">{words(locale,"Completed","完成")}</Hint></th>
+          {displayMetricKeys.map((key,index) => <th scope="col" key={key}><Hint align={index >= displayMetricKeys.length - 2 ? "end" : "center"} text={words(locale,"Datasets where it ranks first (ties count for each); click to see them below. ","排第一的数据集个数（并列都算），点击在下方矩阵查看。") + metricHelp(key,locale)}><button type="button" aria-pressed={metric === key} onClick={() => onMetric(key)}>{words(locale,...winLabels[key])}</button></Hint></th>)}
         </tr></thead>
         <tbody>{rows.map(row => {
           const failures = [
@@ -112,8 +113,5 @@ export function MethodSummary({snapshot, scope, datasets, locale, family, onFami
         })}</tbody>
       </table>
     </div>
-    <p className="benchmark-summary-note">{words(locale,
-      "Ties all count, so a column can add up to more than the datasets. Q and TC count only datasets with a reference alignment. These are counts only: no metrics are combined and no raw values are compared across datasets. Timeouts and memory limits follow each batch's limits; see Experiment details below.",
-      "并列都计入，所以一列加起来可能超过数据集个数。Q、TC 只统计有参考比对的数据集。这里只计数，不合成总分，也不跨数据集比较原始数值。超时和内存超限按各批次的资源上限计，见下方「实验详情」。")}</p>
   </section>;
 }

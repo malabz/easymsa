@@ -11,6 +11,7 @@ import { BenchmarkSidebar } from "../features/benchmark/BenchmarkSidebar";
 import { BenchmarkMatrix } from "../features/benchmark/BenchmarkMatrix";
 import { BenchmarkNavigation } from "../features/benchmark/BenchmarkNavigation";
 import { MethodSummary } from "../features/benchmark/MethodSummary";
+import { Hint, metricHelp } from "../features/benchmark/MetricHint";
 import { DownloadButtons, LoadState, sourceLabel, words } from "../features/benchmark/presentation";
 import { currentResultScope } from "../features/benchmark/selection";
 import { displaySelection, MethodFilter, uniqueSources } from "../features/benchmark/view";
@@ -52,7 +53,8 @@ export function BenchmarkPage() {
     [...Object.keys(emptyFilters), "methods"].forEach(key => next.delete(key)); commit(next);
   };
   if (!data) return <PageContainer className="benchmark-page benchmark-explorer"><LoadState failed={failed} retry={retry} locale={locale}/></PageContainer>;
-  if (query.get("view") !== "matrix") {
+  // The overview is the entry point; older links that name a dataset still open its report.
+  if (query.get("view") !== "matrix" && query.has("dataset")) {
     const candidates = displaySelection(data,currentResultScope,query).datasets;
     const selected = candidates.find(dataset=>dataset.id===query.get("dataset")) ?? candidates.find(dataset=>dataset.id==="rna_255") ?? candidates[0];
     if (selected) return <Navigate replace to={`/benchmark/datasets/${selected.id}?${query.toString()}`}/>;
@@ -92,7 +94,7 @@ export function BenchmarkPage() {
     <section aria-labelledby="benchmark-matrix-heading" className="benchmark-explorer-main">
       <h2 id="benchmark-matrix-heading" className="sr-only">{words(locale,"Compare all datasets","比较所有数据集")}</h2>
       <div className="benchmark-metric-navigation" role="group" aria-label={words(locale,"Comparison metric","比较指标")}>
-        <div className="benchmark-main-metrics">{mainMetrics.map(key => <button type="button" key={key} data-testid={`metric-${key}`} aria-pressed={metricKey === key} className={metricKey === key ? "is-active" : ""} onClick={() => update("metric",key)}>{metricSpecs[key][locale]} <span aria-hidden="true">{metricSpecs[key].direction === "lower" ? "↓" : "↑"}</span></button>)}</div>
+        <div className="benchmark-main-metrics">{mainMetrics.map((key,index) => <Hint key={key} text={metricHelp(key,locale)} align={index === 0 ? "start" : index === mainMetrics.length - 1 ? "end" : "center"}><button type="button" data-testid={`metric-${key}`} aria-pressed={metricKey === key} className={metricKey === key ? "is-active" : ""} onClick={() => update("metric",key)}>{metricSpecs[key][locale]} <span aria-hidden="true">{metricSpecs[key].direction === "lower" ? "↓" : "↑"}</span></button></Hint>)}</div>
 
       </div>
       <div className="benchmark-compact-filters">

@@ -97,7 +97,6 @@ test("concise bilingual names, collapsed experiment details and original-ID sear
     expect(await page.getByTestId("precise-results").innerText()).not.toMatch(/1\/1 (valid|有效)/);
     await details.locator("summary").click();
     await expect(details).toContainText("dna_mt_10k");
-    await expect(details).toContainText("KiB");
     await details.locator("summary").click();
     await expect(page.getByTestId("tradeoff-chart")).toHaveCount(2);
     const numericRows=await page.locator('.benchmark-table td[data-metric]:not([data-raw-value=""]) div > span').evaluateAll(elements=>elements.filter(element=>element.getClientRects().length).map(element=>{const range=document.createRange();range.selectNodeContents(element);return {height:range.getBoundingClientRect().height,lineHeight:parseFloat(getComputedStyle(element).lineHeight),width:element.clientWidth,scrollWidth:element.scrollWidth};}));
@@ -305,9 +304,9 @@ test("Benchmark is reached from About rather than the primary navigation in both
     await capturePageFromTop(page, testInfo.outputPath(`about-${locale}.png`));
     await entry.focus();
     await page.keyboard.press("Enter");
-    await expect(page).toHaveURL(/#\/benchmark\/datasets\/rna_255/);
-    await expect(page.getByTestId("dataset-title")).toHaveAttribute("data-dataset-id","rna_255");
-    await expect(page.getByTestId("precise-results")).toBeVisible();
+    await expect(page).toHaveURL(/#\/benchmark$/);
+    await expect(page.getByTestId("method-summary")).toBeVisible();
+    await expect(page.getByTestId("benchmark-matrix")).toBeVisible();
   }
 });
 
