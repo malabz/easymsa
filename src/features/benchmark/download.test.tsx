@@ -28,7 +28,7 @@ function parseCsv(input: string) {
 function compareCsvToJson(csv: string, json: BenchmarkSnapshot) {
   const [headers, ...rows] = parseCsv(csv);
   const col = (name: string) => headers.indexOf(name);
-  expect(headers).toHaveLength(24);
+  expect(headers).toHaveLength(32);
   expect(rows).toHaveLength(json.batches.reduce((count, batch) => count + batch.results.length * 7, 0));
   for (const batch of json.batches) for (const result of batch.results) for (const key of metricKeys) {
     const name = json.methods.find(method => method.id === result.method_id)!.name;
@@ -40,6 +40,11 @@ function compareCsvToJson(csv: string, json: BenchmarkSnapshot) {
       expect(row[col(field)]).toBe(batch.conditions?.[field] === undefined ? "" : String(batch.conditions[field]));
     }
     expect(row[col("unit")]).toBe(key === "wall_seconds" ? "s" : key === "max_rss_kib" ? "KiB" : "");
+    expect(row[col("result_reason")]).toBe(result.reason_code??"");
+    expect(row[col("commit")]).toBe(batch.methods.find(spec=>spec.method_id===result.method_id)?.commit??"");
+    expect(row[col("scoring_id")]).toBe(batch.scoring.id);
+    expect(row[col("environment_cpu")]).toBe(batch.environment.cpu);
+    expect(row[col("scorer_timeout_seconds")]).toBe(batch.conditions?.scorer_timeout_seconds===undefined?"":String(batch.conditions.scorer_timeout_seconds));
     const metric = result.metrics[key];
     for (const field of ["value", "mean", "sd", "min", "max"] as const) expect(row[col(field)]).toBe(metric[field] === null ? "" : String(metric[field]));
     expect(row[col("metric_status")]).toBe(metric.status); expect(row[col("reason_codes")]).toBe(metric.reason_codes.join(";"));
@@ -57,6 +62,18 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.runOnlyPendingTimers(); vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 describe("download controls", () => {
+  it("downloads every public historical observation when archive is selected",async()=>{
+    const snapshot=repairSnapshot();
+    render(<DownloadButtons snapshot={snapshot} resultScope={{mode:"latest"}} datasetIds={["mt100"]} methodIds={["mafft"]} locale="en"/>);
+    fireEvent.click(screen.getByText("Export results"));
+    fireEvent.change(screen.getByLabelText("Download scope"),{target:{value:"archive"}});
+    fireEvent.click(screen.getByRole("button",{name:"Download JSON"}));
+    const archive=parseSnapshot(JSON.parse(await text(blobs[0])));
+    expect(archive).toEqual(snapshot);
+    expect(archive.batches.flatMap(batch=>batch.results).length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole("button",{name:"Download CSV"}));
+    compareCsvToJson(await text(blobs[1]),archive);
+  });
   it("exports latest filtered records with original batch provenance, then explicitly downloads all latest records", async () => {
     const snapshot = repairSnapshot();
     const unchanged = JSON.stringify(snapshot);
@@ -85,7 +102,7 @@ describe("download controls", () => {
 
   it("keeps a latest detail download limited to the current dataset and method filter", async () => {
     render(<DownloadButtons snapshot={repairSnapshot()} resultScope={{mode:"latest"}} datasetId="mt100" methodIds={["minipoa"]} locale="en" />);
-    fireEvent.click(screen.getByText("Export results"));
+    fireEvent.click(screen.getByText("Download dataset results"));
     expect(screen.queryByLabelText("Download scope")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", {name:"Download JSON"}));
     const json = parseSnapshot(JSON.parse(await text(blobs[0])));
@@ -126,7 +143,7 @@ describe("download controls", () => {
   });
   it("limits detail downloads to the selected dataset and keeps localized controls usable", async () => {
     render(<DownloadButtons snapshot={publishedSnapshot()} batchId="newer" datasetId="case_ref" locale="zh" />);
-    fireEvent.click(screen.getByText("导出成绩"));
+    fireEvent.click(screen.getByText("下载本数据集成绩"));
     expect(screen.queryByLabelText("下载范围")).not.toBeInTheDocument();
     expect(screen.getByText("1 个数据集 · 9 项结果")).toBeVisible();
     fireEvent.click(screen.getByRole("button", {name:"下载 JSON"}));

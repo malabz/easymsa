@@ -4,6 +4,7 @@
 .benchmark-studio.benchmark-explorer .benchmark-back { display:inline-flex; gap:4px; min-height:32px; padding:0 10px; margin-left:-10px; border-radius:999px; transition:background-color .18s ease, color .18s ease; }
 .benchmark-studio.benchmark-explorer .benchmark-back:hover { background:#e6f1ed; color:var(--bench-accent-strong); }
 .benchmark-studio.benchmark-explorer .benchmark-overview-header { padding:8px 0 6px; }
+.benchmark-studio.benchmark-explorer .benchmark-overview-actions { flex-wrap:wrap; }
 .benchmark-studio.benchmark-explorer .benchmark-overview-header h1 { margin:0 0 4px; font-size:34px; letter-spacing:-.04em; }
 .benchmark-studio.benchmark-explorer .benchmark-overview-intro { margin:0 0 14px; font-size:14px; line-height:1.6; color:var(--bench-muted); }
 

@@ -1,7 +1,8 @@
 import { CheckCircle2, Info } from "lucide-react";
 import { useMemo } from "react";
 import { useLanguage } from "../../lib/i18n/useLanguage";
-import { MAX_FASTA_CHARACTERS, validateFasta } from "../../lib/utils/fasta";
+import { MAX_FASTA_CHARACTERS } from "../../lib/utils/fasta";
+import { validateNucleotideSubmission, nucleotideMessage } from "../../lib/submit/nucleotideInput";
 import { Button } from "../common/Button";
 
 export function PasteSequenceInput({
@@ -13,10 +14,10 @@ export function PasteSequenceInput({
   onChange: (value: string) => void;
   onLoadExample?: () => void;
 }) {
-  const { dictionary: d } = useLanguage();
-  const validation = useMemo(() => validateFasta(value), [value]);
+  const { dictionary: d, locale } = useLanguage();
+  const validation = useMemo(() => validateNucleotideSubmission(value), [value]);
   const hasContent = value.trim().length > 0;
-  const invalidMessage = validation.characterCount > MAX_FASTA_CHARACTERS
+  const invalidMessage = validation.invalid ? nucleotideMessage(validation.invalid, locale) : validation.characterCount > MAX_FASTA_CHARACTERS
     ? d.submit.pasteTooLong : d.submit.pasteInvalid;
 
   const statsText = d.submit.pasteStats
@@ -48,6 +49,7 @@ export function PasteSequenceInput({
         spellCheck={false}
         value={value}
       />
+      <p className="text-sm text-slate-600">{locale === "zh" ? "仅支持 DNA / RNA：A C G T U R Y S W K M B D H V N；可含缺口（-、.），大小写均可。" : "DNA / RNA only: A C G T U R Y S W K M B D H V N; gaps (-, .) and lowercase are accepted."}</p>
       <div
         aria-live="polite"
         className="rounded-md border border-slate-200 bg-white/55 px-3 py-2 text-sm leading-6 text-slate-600"

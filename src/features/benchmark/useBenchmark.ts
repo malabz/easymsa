@@ -1,3 +1,4 @@
+import { boundedRequest } from "../../lib/api/boundedRequest";
 import { useQuery } from "@tanstack/react-query";
 import { queryClient } from "../../lib/query/queryClient";
 import { parseSnapshot } from "./model";
@@ -10,9 +11,7 @@ export function useBenchmark() {
   const query = useQuery({
     queryKey: ["benchmark", "public-snapshot", url],
     queryFn: async ({ signal }) => {
-      const response = await fetch(url, { signal });
-      if (!response.ok) throw new Error("Benchmark data unavailable");
-      return websiteSnapshot(parseSnapshot(await response.json()));
+      return boundedRequest(url, { signal }, async response => websiteSnapshot(parseSnapshot(await response.json())), 60_000);
     },
     staleTime: Infinity,
     gcTime: Infinity,

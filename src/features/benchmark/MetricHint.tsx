@@ -1,5 +1,7 @@
 import { cloneElement, isValidElement, useEffect, useId, useLayoutEffect, useRef, useState, type ReactElement, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { Link, useInRouterContext } from "react-router-dom";
+import "./controls.css";
 import { displayMetricKeys } from "./metrics";
 import { words, type Locale } from "./presentation";
 
@@ -14,7 +16,8 @@ const help: Record<DisplayKey, [string, string]> = {
 export function metricHelp(key: DisplayKey, locale: Locale) { return words(locale, ...help[key]); }
 
 /** A short explanation shown on hover or keyboard focus, and read as the control's description. */
-export function Hint({text, align = "center", children}: {text: string; align?: "start" | "center" | "end"; children: ReactNode}) {
+export function Hint({text, align = "center", children,guide}: {text: string; align?: "start" | "center" | "end"; children: ReactNode;guide?:Locale}) {
+  const routed=useInRouterContext();
   const id = useId();
   const anchor = useRef<HTMLSpanElement>(null), bubble = useRef<HTMLSpanElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>();
@@ -48,6 +51,7 @@ export function Hint({text, align = "center", children}: {text: string; align?: 
   // A body-level portal never contributes overflow to the table containing its trigger.
   return <span className="bench-tip" ref={anchor} onMouseEnter={show} onMouseLeave={leave} onFocus={show} onBlur={() => { keep();setOpen(false); }}>
     {trigger}
+    {guide&&(routed?<Link className="benchmark-metric-help-link" to="/docs?section=metrics&article=benchmark-metrics" aria-label={guide==="zh"?"查看计算说明":"View calculation guide"} title={guide==="zh"?"查看计算说明":"View calculation guide"}>?</Link>:<a className="benchmark-metric-help-link" href="#/docs?section=metrics&article=benchmark-metrics" aria-label={guide==="zh"?"查看计算说明":"View calculation guide"}>?</a>)}
     {open && createPortal(<span id={id} role="tooltip" className="bench-tip-bubble" ref={bubble} style={position} onMouseEnter={keep} onMouseLeave={leave}>{text}</span>,document.body)}
   </span>;
 }

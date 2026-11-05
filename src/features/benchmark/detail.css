@@ -1,6 +1,9 @@
 /* Dataset report surfaces. Presentation only: values, coordinates and selection are unchanged.
    Page background, card tokens and experiment details live in surface.css. */
 .benchmark-detail-v2 .benchmark-studio-content { padding-top:24px; }
+.benchmark-detail-v2.benchmark-studio .benchmark-detail-toolbar { flex-wrap:wrap; min-width:0; }
+.benchmark-detail-v2 .benchmark-detail-toolbar .benchmark-download-menu { max-width:100%; }
+.benchmark-detail-v2 .benchmark-detail-toolbar .benchmark-download-menu > summary { white-space:normal; }
 
 /* Header: title and facts on the page, actions aligned to the title. */
 #main-content .benchmark-detail-v2 .benchmark-detail-header { padding-bottom:18px; }

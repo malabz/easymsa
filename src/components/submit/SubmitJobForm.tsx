@@ -28,7 +28,9 @@ import type {
   InputMethod,
   PreprocessMode
 } from "../../lib/types/job";
-import { MAX_FASTA_CHARACTERS, validateFasta } from "../../lib/utils/fasta";
+import { MAX_FASTA_CHARACTERS } from "../../lib/utils/fasta";
+import { validateNucleotideSubmission, canCheckInputFile, nucleotideMessage } from "../../lib/submit/nucleotideInput";
+import { EasyMsaApiError } from "../../lib/api/client";
 import { validateInputFile } from "../../lib/utils/fileValidation";
 import { Button } from "../common/Button";
 import { AlgorithmParameterFields } from "./AlgorithmParameterFields";
@@ -78,6 +80,18 @@ export function SubmitJobForm() {
   } | null>(null);
   const [pastedSequence, setPastedSequence] = useDraftState("submit:paste", "");
   const [file, setFile] = useDraftState<File | null>("submit:file", null);
+  const [fileCheck, setFileCheck] = useState<{file:File; pending:boolean; message:string|null}|null>(null);
+  useEffect(() => {
+    let disposed = false;
+    if (!file || !canCheckInputFile(file)) { setFileCheck(null); return; }
+    setFileCheck({file,pending:true,message:null});
+    readInputText(file).then(text => {
+      if (disposed) return;
+      const checked = validateNucleotideSubmission(text, Infinity);
+      setFileCheck({file,pending:false,message:checked.invalid ? nucleotideMessage(checked.invalid,locale) : checked.valid ? null : d.submit.pasteInvalid});
+    }).catch(() => { if (!disposed) setFileCheck({file,pending:false,message:locale === "zh" ? "无法读取文件，请重新选择。" : "Could not read the file. Select it again."}); });
+    return () => { disposed = true; };
+  }, [file,locale,d.submit.pasteInvalid]);
   useRememberWork("submit", Boolean(pastedSequence.trim() || file), { clearWhenDisabled: true });
   const [formError, setFormError] = useState<"pasteTooLong" | "paste" | "upload" | "algorithmParams" | null>(null);
   const [requestError, setRequestError] = useState<unknown>(null);
@@ -187,7 +201,7 @@ export function SubmitJobForm() {
     if (submissionInFlight.current || submissionBlocked || examplePending) return;
     setFormError(null);setRequestError(null);
 
-    const fastaValidation = validateFasta(pastedSequence);
+    const fastaValidation = validateNucleotideSubmission(pastedSequence);
     const fileValidation = file ? validateInputFile(file, "alignment", locale) : null;
 
     if (inputMethod === "paste" && !fastaValidation.valid) {
@@ -197,6 +211,10 @@ export function SubmitJobForm() {
 
     if (inputMethod === "upload" && (!file || !fileValidation?.valid)) {
       setFormError("upload");
+      return;
+    }
+    if (inputMethod === "upload" && file && canCheckInputFile(file) && (fileCheck?.file !== file || fileCheck.pending || fileCheck.message)) {
+      if (fileCheck?.message) setRequestError(new EasyMsaApiError({code:"INPUT_VALIDATION",message:fileCheck.message}));
       return;
     }
 
@@ -244,9 +262,9 @@ export function SubmitJobForm() {
     }
   }
 
-  const pasteValidation = useMemo(() => validateFasta(pastedSequence), [pastedSequence]);
+  const pasteValidation = useMemo(() => validateNucleotideSubmission(pastedSequence), [pastedSequence]);
   const sequenceCount = pasteValidation.sequenceCount;
-  const validInput = inputMethod === "paste" ? pasteValidation.valid : Boolean(file && validateInputFile(file, "alignment", locale).valid);
+  const validInput = inputMethod === "paste" ? pasteValidation.valid : Boolean(file && validateInputFile(file, "alignment", locale).valid && (!canCheckInputFile(file) || fileCheck?.file === file && !fileCheck.pending && !fileCheck.message));
   const name = watch("jobName");
   const email = watch("email");
   const hasDraft = Boolean(file || pastedSequence.trim() || name.trim() || email.trim() || algorithm !== "auto" || realignEnabled || preprocessMode !== "audit" || Object.keys(algorithmParameterDraft).some(key => algorithmParameterDraft[key as keyof AlgorithmParameterDraft] !== DEFAULT_ALGORITHM_PARAMETER_DRAFT[key as keyof AlgorithmParameterDraft]));
@@ -283,8 +301,10 @@ export function SubmitJobForm() {
           <div aria-labelledby="input-tab-upload" hidden={inputMethod !== "upload"} id="input-panel-upload" role="tabpanel">
             <FileUploadCard compact file={file} disabled={submitting || examplePending}
               onChange={value => { setFile(value); setExampleLoaded(false); setExampleSnapshot(null); setExampleUndone(false); setFormError(null);setRequestError(null); }} />
+            {file && canCheckInputFile(file) && <p className={fileCheck?.message ? "work-error" : "work-hint"} role="status">{fileCheck?.file !== file || fileCheck.pending ? (locale === "zh" ? "正在检查核酸字符…" : "Checking nucleotides…") : fileCheck.message ?? (locale === "zh" ? "核酸字符检查通过；服务器仍会验证完整输入。" : "Nucleotide check passed; the server will validate the complete input.")}</p>}
+            {file && !canCheckInputFile(file) && <p className="work-hint">{locale === "zh" ? "压缩文件和较大文件会在服务器受限解压后检查核酸字符；非法输入不会进入比对队列。" : "Compressed and larger files are validated on the server after bounded extraction; invalid input will not enter the alignment queue."}</p>}
           </div>
-          {exampleLoaded && validInput && <div className="work-feedback submission-example-feedback" role="status">
+          {exampleLoaded && (inputMethod === "paste" ? pasteValidation.valid : !!file) && <div className="work-feedback submission-example-feedback" role="status">
             <CheckCircle2 size={16} aria-hidden="true" />
             <div><strong>{t.exampleLoaded}</strong><p>{t.exampleSettingsApplied}</p>
               <div className="submission-example-actions"><Link to="/examples/alignment-small">{t.exampleResult}</Link>
@@ -345,6 +365,7 @@ export function SubmitJobForm() {
             <div><dt className="sr-only">{t.summaryParameters}</dt><dd>{parameterSummary}</dd></div>
           </dl>
         </div>
+        <span className="work-hint">{locale === "zh" ? "仅支持 DNA / RNA" : "DNA / RNA only"}</span>
         <Button disabled={submitting || submissionBlocked || !validInput || examplePending} type="submit">
           {(submitting || examplePending) && <Loader2 className="h-4 w-4 animate-spin" />}
           {examplePending ? t.exampleLoading : submitting ? d.submit.submitting : d.common.submit}

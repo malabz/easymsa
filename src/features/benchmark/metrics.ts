@@ -265,3 +265,10 @@ export function selectSnapshot(snapshot: BenchmarkSnapshot, batchId?: string, da
     })),
   };
 }
+
+/** All published batches retain their original observations, including history. */
+export function selectArchiveSnapshot(snapshot:BenchmarkSnapshot,datasetIds?:string[]):BenchmarkSnapshot {
+  if(datasetIds===undefined)return snapshot;
+  const selected=new Set(datasetIds);
+  return {...selectSnapshot(snapshot,undefined,datasetIds),batches:snapshot.batches.map(batch=>({...batch,results:batch.results.filter(result=>selected.has(result.dataset_id))}))};
+}

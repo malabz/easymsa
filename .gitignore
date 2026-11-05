@@ -14,3 +14,6 @@ AI_PROJECT_SUMMARY.md
 
 # Python helper bytecode
 __pycache__/
+
+# Frozen FASTA assets are provisioned separately and checked against the manifest.
+/public/benchmark/datasets/

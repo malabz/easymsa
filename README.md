@@ -1,10 +1,17 @@
 # easymsa
 
-The Benchmark preview adds a reviewed DNA/RNA dataset catalog and batch-specific
-public result views. Start with `npm run build:benchmark` and
-`npm run preview:benchmark`, then open `http://127.0.0.1:5208/#/about` and follow the Benchmark entry.
-The initial catalog has **26 datasets, nine methods, and no published scores**.
+Benchmark shows **26 frozen DNA/RNA datasets and six selected public methods**,
+while retaining archived measurements and their source metadata. Start with
+`npm run build:benchmark` and `npm run preview:benchmark`, then open
+`http://127.0.0.1:5208/#/about` and follow the Benchmark entry.
 See [Benchmark data and publication guide](docs/BENCHMARK.md) for result imports and tests.
+
+Frozen FASTA downloads are provisioned separately at
+`public/benchmark/datasets/frozen-colon-n-20261027/`. Verify the 26 files and
+`all-inputs.zip` against `public/benchmark/datasets-manifest.json` before testing
+downloads or publishing. The data directory is intentionally outside Git; the
+manifest and published results remain versioned. A local build without those
+assets is sufficient for UI work but cannot pass dataset-download acceptance.
 
 easymsa is the static frontend for a friendly multiple sequence alignment web
 server. It submits real jobs to the EasyMSA backend, restores jobs with access

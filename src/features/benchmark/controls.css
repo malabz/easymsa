@@ -2,6 +2,17 @@
 
 /* Hints use a body-level portal to stay outside table scroll containers. */
 .bench-tip { position:relative; display:inline-flex; vertical-align:middle; }
+.benchmark-metric-help-link { display:inline-flex; flex:none; align-items:center; justify-content:center; min-width:32px; min-height:36px; color:var(--bench-accent,#0f766e); font-size:13px; text-decoration:underline; text-underline-offset:3px; }
+.benchmark-metric-guide { color:var(--bench-accent,#0f766e); font-size:13px; margin:8px 0; }
+.benchmark-first-use { margin:16px 0 20px; font-size:14px; border-block:1px solid #d8e5e0; }
+.benchmark-first-use>summary { min-height:44px; padding:10px 0; cursor:pointer; color:#0f766e; font-weight:500; }
+.benchmark-first-use>div { padding:4px 0 16px; }
+.benchmark-first-use h2 { font-size:16px; margin:14px 0 8px; }
+.benchmark-first-use p { max-width:80ch; line-height:1.7; margin-bottom:10px; }
+.benchmark-first-use a { color:#0f766e; text-decoration:underline; text-underline-offset:3px; }
+.benchmark-method-guide { margin:10px 0 18px; display:grid; gap:8px; }
+.benchmark-method-guide li { overflow-wrap:anywhere; }
+@media(max-width:768px) { .benchmark-metric-help-link { min-width:44px; min-height:44px; } .benchmark-overview-actions,.benchmark-detail-toolbar { flex-wrap:wrap; } .benchmark-first-use table { min-width:580px; } }
 .bench-tip-label { cursor:help; border-radius:4px; text-decoration:underline dotted #9fb7af; text-decoration-thickness:1px; text-underline-offset:4px; }
 .bench-tip-bubble {
   position:fixed; z-index:120; width:max-content; max-width:min(17rem, calc(100vw - 24px));

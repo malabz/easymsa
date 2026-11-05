@@ -1,4 +1,6 @@
 import {DatasetDownloads} from "../features/benchmark/DatasetDownloads";
+import { BenchmarkIntroduction } from "../features/benchmark/BenchmarkIntroduction";
+import { DownloadButtons } from "../features/benchmark/presentation";
 import { ExperimentDetails } from "../features/benchmark/ExperimentDetails";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams, Link, Navigate } from "react-router-dom";
@@ -80,9 +82,10 @@ export function BenchmarkPage() {
     <Link to="/about" className="benchmark-back"><ArrowLeft size={15} aria-hidden="true"/>{words(locale,"About EasyMSA","关于 EasyMSA")}</Link>
     <header className="benchmark-overview-header">
       <div><h1>Benchmark</h1><p className="benchmark-overview-deck">{datasets.length} {words(locale,"datasets","个数据集")} · {methods.length} {words(locale,"methods","种方法")}</p></div>
-      <div className="benchmark-overview-actions"><Link className="benchmark-start-link" to="/benchmark/submit">{words(locale,"Evaluate my program","评测我的程序")}</Link><DatasetDownloads version={data.catalog.version} datasets={datasets} locale={locale}/></div>
+      <div className="benchmark-overview-actions"><Link className="benchmark-start-link" to="/benchmark/submit">{words(locale,"Evaluate my program","评测我的程序")}</Link><DownloadButtons snapshot={data} locale={locale} resultScope={scope} datasetIds={datasets.map(dataset=>dataset.id)} methodIds={methods.map(method=>method.id)}/><DatasetDownloads version={data.catalog.version} datasets={datasets} locale={locale}/></div>
     </header>
     <p className="benchmark-overview-intro">{words(locale,"Choose a dataset to compare time, memory and alignment quality.","选择数据集，比较各方法的时间、内存和比对质量。")}</p>
+    <BenchmarkIntroduction snapshot={data} locale={locale}/>
     <div className="benchmark-run-summary" aria-label={words(locale,"Evaluation coverage","评测覆盖")}>
       <p><span className="benchmark-run-complete" data-state="complete">{words(locale,"Complete","完成")} <strong>{count("complete")}</strong> / {results.length}</span><span data-state="timeout">{words(locale,"Timed out","超时")} <strong>{count("timeout")}</strong></span>{memoryFailures > 0 && <span data-state="oom">{words(locale,"Memory limit","内存超限")} <strong>{memoryFailures}</strong></span>}{count("failed") > memoryFailures && <span data-state="failed">{words(locale,"Other failures","其他失败")} <strong>{count("failed") - memoryFailures}</strong></span>}{count("partial") > 0 && <span data-state="partial">{words(locale,"Partial","部分完成")} <strong>{count("partial")}</strong></span>}{count("unsupported") + count("not_run") > 0 && <span data-state="pending">{words(locale,"Unsupported / not evaluated","不支持 / 待评测")} <strong>{count("unsupported") + count("not_run")}</strong></span>}</p>
     </div>
@@ -94,8 +97,9 @@ export function BenchmarkPage() {
     {!records.length && <p role="status" className="benchmark-pending">{words(locale,"No evaluation results have been published for this selection.","当前选择尚未发布评测结果。")}</p>}
     <section aria-labelledby="benchmark-matrix-heading" className="benchmark-explorer-main">
       <h2 id="benchmark-matrix-heading" className="sr-only">{words(locale,"Compare all datasets","比较所有数据集")}</h2>
+      <p className="benchmark-metric-guide"><Link to="/docs?section=metrics&article=benchmark-metrics">{words(locale,"Calculation guide: SP / Q / TC","查看计算说明：SP / Q / TC")}</Link></p>
       <div className="benchmark-metric-navigation" role="group" aria-label={words(locale,"Comparison metric","比较指标")}>
-        <div className="benchmark-main-metrics">{mainMetrics.map((key,index) => <Hint key={key} text={metricHelp(key,locale)} align={index === 0 ? "start" : index === mainMetrics.length - 1 ? "end" : "center"}><button type="button" data-testid={`metric-${key}`} aria-pressed={metricKey === key} className={metricKey === key ? "is-active" : ""} onClick={() => update("metric",key)}>{metricSpecs[key][locale]} <span aria-hidden="true">{metricSpecs[key].direction === "lower" ? "↓" : "↑"}</span></button></Hint>)}</div>
+        <div className="benchmark-main-metrics">{mainMetrics.map((key,index) => <Hint key={key} guide={locale} text={metricHelp(key,locale)} align={index === 0 ? "start" : index === mainMetrics.length - 1 ? "end" : "center"}><button type="button" data-testid={`metric-${key}`} aria-pressed={metricKey === key} className={metricKey === key ? "is-active" : ""} onClick={() => update("metric",key)}>{metricSpecs[key][locale]} <span aria-hidden="true">{metricSpecs[key].direction === "lower" ? "↓" : "↑"}</span></button></Hint>)}</div>
 
       </div>
       <div className="benchmark-compact-filters">

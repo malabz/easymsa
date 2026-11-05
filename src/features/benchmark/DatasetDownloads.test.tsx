@@ -35,7 +35,7 @@ describe('dataset and result downloads',()=>{
   fireEvent.click(screen.getByText(locale==='zh'?'实验详情':'Experiment details'));
   const details=screen.getByTestId('experiment-details');expect(within(details).getByTestId('resource-ceiling')).toHaveTextContent('32 GiB');
   expect(details.textContent).not.toMatch(/16\s*(GiB|GB)|内存重测|适配修复|Memory retry|Adapter repair/);
-  expect(within(details).getByText(locale==='zh'?'导出成绩':'Export results')).toBeVisible();
+  expect(within(details).queryByTestId("download-controls")).not.toBeInTheDocument();
   expect(JSON.stringify(snapshot)).toBe(original);
  });
 });

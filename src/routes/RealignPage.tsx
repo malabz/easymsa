@@ -145,6 +145,7 @@ export function RealignPage() {
                 onLoad={async next => { if (inputMethod === "paste") setPastedFasta(await readInputText(next)); else setFile(next); setPattern(1); setError(null); setExampleLoaded(true); setValue("jobName", "Synthetic DNA refinement"); }} />
             </div>
             <InputMethodTabs value={inputMethod} onChange={method => { setInputMethod(method); setExampleLoaded(false); setError(null); }} />
+            <p className="work-hint">{locale === "zh" ? "仅支持 DNA / RNA：A、C、G、T 或 U、缺口（-）。序列须等长，同一文件不能混用 T 和 U。" : "DNA / RNA only: A, C, G, T or U, and gaps (-). Sequences must have equal lengths; do not mix T and U in one file."}</p>
             <div id="input-panel-paste" role="tabpanel" aria-labelledby="input-tab-paste" hidden={inputMethod !== "paste"}>
               <div className="work-paste"><div>
                 <div className="flex items-center justify-between gap-3 mb-3">

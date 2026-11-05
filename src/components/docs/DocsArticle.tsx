@@ -77,7 +77,7 @@ function DocsBlockView({ block }: { block: DocsBlock }) {
     return (
       <div className="flex flex-wrap gap-4">
         {block.items.map((item) => (
-          <Link className="text-sm font-medium text-teal-800 underline" key={item.to} to={item.to}>
+          item.to.endsWith(".pyz") ? <a key={item.to} className="text-sm font-medium text-teal-800 underline" href={`${import.meta.env.BASE_URL}${item.to.replace(/^\//,"")}`} download>{item.label}</a> : <Link className="text-sm font-medium text-teal-800 underline" key={item.to} to={item.to}>
             {item.label}
           </Link>
         ))}

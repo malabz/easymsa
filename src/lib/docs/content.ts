@@ -1,4 +1,5 @@
 import type { Locale } from "../i18n/dictionary";
+import { benchmarkArticles } from "./benchmarkContent";
 
 export const DOCS_SECTION_IDS = [
   "quick-start",
@@ -1430,6 +1431,11 @@ const en: DocsSection[] = [
   }
 ];
 
+for (const [language,sections] of [["zh",zh],["en",en]] as const) {
+  const articles=benchmarkArticles(language==="zh");
+  sections.find(section=>section.id==="metrics")!.articles.unshift(articles.metrics);
+  sections.find(section=>section.id==="quick-start")!.articles.push(articles.integration);
+}
 export const docsContent: Record<Locale, DocsSection[]> = { zh, en };
 
 function blockText(block: DocsBlock): string {

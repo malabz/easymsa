@@ -8,6 +8,9 @@ const messages: Record<string, [string, string]> = {
   JOB_NOT_FOUND: ["未找到该任务，请检查任务 ID。", "This task was not found. Check the task ID."],
   JOB_EXPIRED: ["任务结果已到期或被删除。", "These task results have expired or were deleted."],
   JOB_NOT_COMPLETED: ["任务尚未完成，请返回任务进度。", "This task is not complete yet. Return to task progress."],
+  LOAD_TIMEOUT: ["加载超时，请重试。", "Loading timed out. Retry the request."],
+  NETWORK_FAILURE: ["网络连接失败，请检查网络后重试。", "Network connection failed. Check your connection and retry."],
+  INCOMPATIBLE_RESULT: ["结果格式无法读取，请重试或下载完整结果。", "This result format could not be read. Retry or download the complete result."],
   INPUT_REQUIRED: ["请粘贴 FASTA 序列或上传文件。", "Paste FASTA sequences or upload a file."],
   INPUT_EMPTY: ["输入为空，请添加序列。", "The input is empty. Add your sequences."],
   UNSUPPORTED_FILE_TYPE: ["不支持此文件格式，请检查上传文件。", "This file format is not supported. Check the uploaded file."],
@@ -43,7 +46,13 @@ const messages: Record<string, [string, string]> = {
 
 /** User-facing wording is generated at render time so a language switch also updates errors. */
 export function apiErrorMessage(error: unknown, locale: Locale, fallback?: string): string {
-  const value = error && typeof error === "object" ? error as { code?: string; status?: number; message?: string } : undefined;
+  const value = error && typeof error === "object" ? error as { code?: string; status?: number; message?: string; details?: {record?:number;position?:number;characters?:string[]} } : undefined;
+  if (value?.code === "UNSUPPORTED_NUCLEOTIDE" && value.details?.record && value.details.position && Array.isArray(value.details.characters)) {
+    const {record,position,characters} = value.details;
+    return locale === "zh" ? `第 ${record} 条序列在位置 ${position} 包含不支持的字符 ${characters.map(char=>JSON.stringify(char)).join("、")}；仅支持 DNA / RNA，输入未被替换。` : `Sequence ${record}, position ${position}: unsupported characters ${characters.map(char=>JSON.stringify(char)).join(", ")}. DNA / RNA only; input was not changed.`;
+  }
+  if (value?.code === "INPUT_VALIDATION" && value.message) return value.message;
+  if (["UNSUPPORTED_NUCLEOTIDE","INVALID_FASTA","INVALID_FASTA_ENCODING","EMPTY_FASTA_RECORD","TOO_FEW_SEQUENCES"].includes(value?.code ?? "")) return locale === "zh" ? "请检查 FASTA 标题和序列内容。至少两条 DNA / RNA 序列，使用核酸 IUPAC 字母。" : "Check FASTA headers and sequences. Provide at least two DNA / RNA sequences using nucleotide IUPAC letters.";
   const translated = value?.code && messages[value.code]?.[locale === "zh" ? 0 : 1];
   if (translated) {
     const record = value.message?.match(/(?:at record|at line)\s+(\d+)/i)?.[1];

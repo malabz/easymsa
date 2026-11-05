@@ -1,6 +1,7 @@
 import { resultFilename } from "../utils/downloadName";
 import type { ResultStage } from "../types/job";
-import { apiUrl, parseApiError } from "./client";
+import { boundedRequest } from "./boundedRequest";
+import { apiUrl } from "./client";
 import { z } from "zod";
 import {
   buildAlignmentDescriptor,
@@ -173,18 +174,9 @@ export async function getResultSummary(
   signal?: AbortSignal,
   stage: ResultStage = "final"
 ): Promise<ResultSummary> {
-  const response = await fetch(
-    apiUrl(
+  return boundedRequest(apiUrl(
       `/jobs/${jobPathSegment(jobId)}/results/summary?token=${encodeURIComponent(token)}${stage === "final" ? "" : `&stage=${stage}`}`
-    ),
-    { signal }
-  );
-
-  if (!response.ok) {
-    throw await parseApiError(response, "Failed to load result summary");
-  }
-
-  return adaptServerSummary(await response.json());
+    ), { signal }, async response => adaptServerSummary(await response.json()), 60_000);
 }
 
 export async function getAlignmentResult(
@@ -193,18 +185,9 @@ export async function getAlignmentResult(
   signal?: AbortSignal,
   stage: ResultStage = "final"
 ): Promise<MSAResult> {
-  const response = await fetch(
-    apiUrl(
+  return boundedRequest(apiUrl(
       `/jobs/${jobPathSegment(jobId)}/results/alignment?token=${encodeURIComponent(token)}${stage === "final" ? "" : `&stage=${stage}`}`
-    ),
-    { signal }
-  );
-
-  if (!response.ok) {
-    throw await parseApiError(response, "Failed to load alignment result");
-  }
-
-  return adaptServerAlignment(await response.json());
+    ), { signal }, async response => adaptServerAlignment(await response.json()), 60_000);
 }
 
 export function getDownloadFiles(jobId: string, token: string, stage: ResultStage = "final"): ResultFile[] {

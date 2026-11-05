@@ -1,3 +1,4 @@
+import { boundedRequest } from "./boundedRequest";
 import type { Locale } from "../i18n/dictionary";
 import { apiUrl, parseApiError } from "./client";
 import { createJobAccess, saveJobAccess } from "./tokens";
@@ -81,16 +82,7 @@ export async function getJobStatus(
   token: string,
   signal?: AbortSignal
 ): Promise<JobDetail> {
-  const response = await fetch(
-    apiUrl(`/jobs/${jobPathSegment(jobId)}?token=${encodeURIComponent(token)}`),
-    { signal }
-  );
-
-  if (!response.ok) {
-    throw await parseApiError(response, "Failed to load job status");
-  }
-
-  return response.json();
+  return boundedRequest(apiUrl(`/jobs/${jobPathSegment(jobId)}?token=${encodeURIComponent(token)}`), { signal }, response => response.json(), 20_000);
 }
 
 export async function createRealignmentJob(file: File, jobName: string, pattern: number, language: Locale, email: string) {

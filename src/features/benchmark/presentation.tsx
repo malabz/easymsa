@@ -1,7 +1,7 @@
 import { Download } from "lucide-react";
 import "./emphasis.css";
-import { useState } from "react";
-import { metricValue, metricSpecs, formatMetricSummary, selectSnapshot } from "./metrics";
+import { useEffect, useState } from "react";
+import { metricValue, metricSpecs, formatMetricSummary, selectSnapshot,selectArchiveSnapshot } from "./metrics";
 export { metricValue } from "./metrics";
 import { Button } from "../../components/common/Button";
 import { metricKeys, type BenchmarkBatch, type BenchmarkDataset, type BenchmarkMetric, type BenchmarkSnapshot, type MetricKey } from "./model";
@@ -63,7 +63,9 @@ export function StatusPill({ status, locale }: { status: string; locale: Locale 
   return <span className={"benchmark-status " + status}>{stateLabel(status, locale)}</span>;
 }
 export function LoadState({ failed, retry, locale }: { failed: boolean; retry: () => void; locale: Locale }) {
-  return <div className="benchmark-state" role={failed ? "alert" : "status"}><h1 className="text-xl font-semibold">{words(locale, "Benchmark", "Benchmark 评测")}</h1><p className="my-3 text-sm text-slate-600">{failed ? words(locale, "Could not load results. Try again.", "加载失败，请重试。") : words(locale, "Loading benchmark data…", "正在加载评测数据…")}</p>{failed && <Button variant="outline" onClick={retry}>{words(locale, "Try again", "重试")}</Button>}</div>;
+  const [slow,setSlow]=useState(false);
+  useEffect(()=>{setSlow(false);if(failed)return;const timer=setTimeout(()=>setSlow(true),8000);return()=>clearTimeout(timer);},[failed]);
+  return <div className="benchmark-state" role={failed ? "alert" : "status"}><h1 className="text-xl font-semibold">{words(locale, "Benchmark", "Benchmark 评测")}</h1><p className="my-3 text-sm text-slate-600">{failed ? words(locale, "Could not load results. Try again.", "加载失败，请重试。") : slow?words(locale,"Reading public dataset measurements and method versions…","正在读取公开数据集成绩和方法版本…"):words(locale, "Loading benchmark data…", "正在加载评测数据…")}</p>{failed && <Button variant="outline" onClick={retry}>{words(locale, "Try again", "重试")}</Button>}</div>;
 }
 export function BatchSelector({ batches, value, onChange, locale, includeLatest = false }: { batches: BenchmarkBatch[]; value: string; onChange: (value: string) => void; locale: Locale; includeLatest?: boolean }) {
   return <label className="benchmark-batch-selector">{words(locale, "Evaluation batch", "评测批次")}<select value={value} onChange={event => onChange(event.target.value)} disabled={!batches.length}>
@@ -82,10 +84,10 @@ export function selectDownload(snapshot: BenchmarkSnapshot, batchId?: string, da
 }
 export function snapshotCsv(snapshot: BenchmarkSnapshot) {
   const cells = (values: unknown[]) => values.map(value => { let s = value === null || value === undefined ? "" : String(value); if (typeof value === "string" && /^[=+@\-\t\r]/.test(s)) s = `'${s}`; return `"${s.replace(/"/g, '""')}"`; }).join(",");
-  const rows = [cells(["batch", "data_version", "dataset", "method", "version", "result_status", "valid_repeats", "planned_repeats", "metric", "unit", "metric_status", "valid_count", "planned_count", "value", "mean", "sd", "min", "max", "reason_codes", "threads", "batch_repeats", "cpu_limit", "memory_limit_gib", "alignment_timeout_seconds"])];
+  const rows = [cells(["batch", "data_version", "dataset", "method", "version", "result_status", "valid_repeats", "planned_repeats", "metric", "unit", "metric_status", "valid_count", "planned_count", "value", "mean", "sd", "min", "max", "reason_codes", "threads", "batch_repeats", "cpu_limit", "memory_limit_gib", "alignment_timeout_seconds", "result_reason", "commit", "scorer_timeout_seconds", "scoring_id", "environment_id", "environment_cpu", "environment_os", "environment_memory_gib"])];
   for (const b of snapshot.batches) for (const r of b.results) for (const key of metricKeys) {
     const m = r.metrics[key];
-    rows.push(cells([b.id, b.dataset_version, r.dataset_id, snapshot.methods.find(x => x.id === r.method_id)?.name ?? r.method_id, b.methods.find(x => x.method_id === r.method_id)?.version, r.status, r.valid_repeats, r.planned_repeats, key, metricLabels[key].unit, m.status, m.valid_count, m.planned_count, m.value, m.mean, m.sd, m.min, m.max, m.reason_codes.join(";"), b.threads, b.repeats, b.conditions?.cpu_limit, b.conditions?.memory_limit_gib, b.conditions?.alignment_timeout_seconds]));
+    rows.push(cells([b.id, b.dataset_version, r.dataset_id, snapshot.methods.find(x => x.id === r.method_id)?.name ?? r.method_id, b.methods.find(x => x.method_id === r.method_id)?.version, r.status, r.valid_repeats, r.planned_repeats, key, metricLabels[key].unit, m.status, m.valid_count, m.planned_count, m.value, m.mean, m.sd, m.min, m.max, m.reason_codes.join(";"), b.threads, b.repeats, b.conditions?.cpu_limit, b.conditions?.memory_limit_gib, b.conditions?.alignment_timeout_seconds, r.reason_code, b.methods.find(x=>x.method_id===r.method_id)?.commit, b.conditions?.scorer_timeout_seconds, b.scoring.id, b.environment.id, b.environment.cpu, b.environment.os, b.environment.memory_gib]));
   }
   return `\uFEFF${rows.join("\r\n")}\r\n`;
 }
@@ -96,20 +98,20 @@ function download(content: string, name: string, type: string) {
 export function DownloadButtons({ snapshot, locale, batchId, datasetId, datasetIds, resultScope, methodIds }: { snapshot: BenchmarkSnapshot; locale: Locale; batchId?: string; datasetId?: string; datasetIds?: string[]; resultScope?: ResultScope; methodIds?: string[] }) {
   const [scope, setScope] = useState("filtered");
   const ids = datasetId ? [datasetId] : scope === "filtered" ? datasetIds : undefined;
-  const subset = resultScope ? selectViewSnapshot(snapshot, resultScope, {datasetIds:ids, methodIds:datasetId || scope === "filtered" ? methodIds : undefined}) : selectSnapshot(snapshot, batchId, ids);
+  const subset = scope === "archive" ? selectArchiveSnapshot(snapshot, datasetId?[datasetId]:undefined) : resultScope ? selectViewSnapshot(snapshot, resultScope, {datasetIds:ids, methodIds:datasetId || scope === "filtered" ? methodIds : undefined}) : selectSnapshot(snapshot, batchId, ids);
   const latest = resultScope?.mode === "latest";
-  const filename = `benchmark-${datasetId ?? (ids ? "filtered" : snapshot.catalog.id)}-${latest ? "latest" : batchId ?? "catalog"}`;
+  const filename = `benchmark-${datasetId ?? (ids ? "filtered" : snapshot.catalog.id)}-${scope==="archive"?"archive":latest ? "latest" : batchId ?? "catalog"}`;
   return <details className="benchmark-download-menu" data-testid="download-controls">
-    <summary><Download size={14} aria-hidden="true" />{words(locale, "Export results", "导出成绩")}</summary>
+    <summary><Download size={14} aria-hidden="true" />{datasetId?words(locale,"Download dataset results","下载本数据集成绩"):words(locale, "Export results", "下载评测成绩")}</summary>
     <div className="benchmark-download-panel">
       {!datasetId && <label>{words(locale, "Download scope", "下载范围")}<select value={scope} onChange={event => setScope(event.target.value)}>
-        <option value="filtered">{words(locale, "Current filters", "当前筛选结果")}</option>
+        <option value="filtered">{words(locale, "Current filters", "当前筛选成绩")}</option><option value="archive">{words(locale,"All public results (including history)","全部公开成绩（含历史批次）")}</option>
         <option value="batch">{latest ? words(locale, "All results", "全部结果") : words(locale, "Full batch", "完整批次")}</option>
       </select></label>}
       <p>{words(locale, `${subset.catalog.datasets.length} datasets · ${subset.batches.reduce((n,b) => n+b.results.length,0)} results`, `${subset.catalog.datasets.length} 个数据集 · ${subset.batches.reduce((n,b) => n+b.results.length,0)} 项结果`)}</p>
       <div className="benchmark-downloads">
-        <button type="button" onClick={() => download(JSON.stringify(subset, null, 2) + "\n", filename + ".json", "application/json")}><Download size={14} aria-hidden="true" />{words(locale, "Download JSON", "下载 JSON")}</button>
         <button type="button" onClick={() => download(snapshotCsv(subset), filename + ".csv", "text/csv;charset=utf-8")}><Download size={14} aria-hidden="true" />{words(locale, "Download CSV", "下载 CSV")}</button>
+        <button type="button" onClick={() => download(JSON.stringify(subset, null, 2) + "\n", filename + ".json", "application/json")}><Download size={14} aria-hidden="true" />{words(locale, "Download JSON", "下载 JSON")}</button>
       </div>
     </div>
   </details>;

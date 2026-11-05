@@ -1,4 +1,5 @@
-import { apiUrl, parseApiError } from "./client";
+import { boundedRequest } from "./boundedRequest";
+import { apiUrl } from "./client";
 
 export type CoreHealthResponse = {
   status?: string;
@@ -45,11 +46,7 @@ export type ServiceHealth = {
 };
 
 async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
-  const response = await fetch(apiUrl(path), { signal });
-  if (!response.ok) {
-    throw await parseApiError(response, `Failed to check ${path}`);
-  }
-  return response.json() as Promise<T>;
+  return boundedRequest(apiUrl(path), { signal }, response => response.json() as Promise<T>, 20_000);
 }
 
 export function deriveServiceHealth(

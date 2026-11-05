@@ -9,7 +9,7 @@ export const githubRepository = z.string().url().refine(value => {
 const commit = z.string().regex(/^[a-f0-9]{40}$/);
 const sequenceTypes = z.array(z.enum(["dna", "rna"])).min(1).max(2).refine(values => new Set(values).size === values.length);
 const timestamp = z.string().datetime({offset:true});
-export const privateFeatureSchema=z.object({enabled:z.boolean(),accepting:z.boolean(),reason:z.string().nullable(),profile_id:z.string(),email_available:z.boolean()}).strict();
+export const privateFeatureSchema=z.object({enabled:z.boolean(),accepting:z.boolean(),reason:z.string().nullable(),profile_id:z.string(),email_available:z.boolean(),quick_available:z.boolean().optional()}).strict();
 export type BenchmarkFeature = z.infer<typeof privateFeatureSchema>;
 export const resolvedRepositorySchema = z.object({repository_id:z.union([z.string().regex(/^\d+$/),z.number().int().positive()]),repository_url:githubRepository,commit_sha:commit,ref:text}).strict();
 export type ResolvedRepository = z.infer<typeof resolvedRepositorySchema>;
@@ -18,8 +18,10 @@ export const privateRunSchema = z.object({
   status:z.enum(["queued","running","completed","failed","cancelled"]),stage:z.string().max(40),
   completed_units:z.number().int().nonnegative(),total_units:z.number().int().positive(),successful_units:z.number().int().nonnegative(),
   created_at:timestamp,started_at:timestamp.nullable(),completed_at:timestamp.nullable(),
-  error:z.object({code:text,message:z.string().max(2000)}).strict().nullable(),cancel_requested:z.boolean(),profile_id:text,has_results:z.boolean(),
+  error:z.object({code:text,message:z.string().max(2000),stage:z.string().max(40).nullable().optional(),retryable:z.boolean().nullable().optional(),error_id:id.nullable().optional()}).strict().nullable(),cancel_requested:z.boolean(),profile_id:text,has_results:z.boolean(),
   expires_at:timestamp.nullable(),email_status:z.enum(["skipped","pending","sent","failed"])
+  ,mode:z.enum(["quick","full"]).optional(),queue_position:z.number().int().positive().nullable().optional(),
+  stage_started_at:timestamp.nullable().optional(),last_progress_at:timestamp.nullable().optional(),heartbeat_at:timestamp.nullable().optional(),active_dataset:id.nullable().optional()
 }).strict().refine(run => run.successful_units <= run.completed_units && run.completed_units <= run.total_units, "Invalid progress counts");
 export type PrivateRun = z.infer<typeof privateRunSchema>;
 export const privateRunsSchema = z.object({items:z.array(privateRunSchema),next_cursor:z.string().nullable()}).strict();

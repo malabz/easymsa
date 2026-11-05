@@ -1,10 +1,10 @@
 import type { BenchmarkBatch, BenchmarkDataset, BenchmarkSnapshot } from "./model";
-import { DownloadButtons, sourceLabel, words, type Locale } from "./presentation";
+import { sourceLabel, words, type Locale } from "./presentation";
 import { datasetName } from "./names";
 import { ResourceLimits } from "./ResourceLimits";
 import { isCipresRna, rnaEvidence } from "./provenance";
 
-export function ExperimentDetails({snapshot, batches, dataset, locale, datasetIds, methodIds}: {
+export function ExperimentDetails({snapshot, batches, dataset, locale}: {
   snapshot: BenchmarkSnapshot; batches: BenchmarkBatch[]; dataset?: BenchmarkDataset; locale: Locale; datasetIds?:string[];methodIds?:string[];
 }) {
   const source = snapshot.catalog.sources.find(item => item.id === dataset?.source_id);
@@ -33,6 +33,5 @@ export function ExperimentDetails({snapshot, batches, dataset, locale, datasetId
     <section><h3>{words(locale,"Methods and parameters","方法版本与参数")}</h3>
       <div className="benchmark-table-scroll" tabIndex={0} role="region" aria-label={versions.length?words(locale,"Method versions","方法版本"):words(locale,"Method catalog","方法目录")}><table className="benchmark-table"><thead><tr><th>{words(locale,"Method","方法")}</th><th>{words(locale,"Version","版本")}</th><th>{words(locale,"Parameters","参数")}</th></tr></thead><tbody>{versions.map(spec=><tr key={JSON.stringify(spec)}><th scope="row">{snapshot.methods.find(method=>method.id===spec.method_id)?.name}</th><td>{spec.version}{spec.commit&&<small className="benchmark-cell-note">{spec.commit}</small>}</td><td className="benchmark-parameters">{spec.parameters.join(" ")}</td></tr>)}{!versions.length&&snapshot.methods.map(method=><tr key={method.id}><th>{method.name}</th><td>{words(locale,"Pending confirmation","待确认")}</td><td>—</td></tr>)}</tbody></table></div>
     </section>
-    <section><DownloadButtons snapshot={snapshot} resultScope={{mode:"latest"}} datasetId={dataset?.id} datasetIds={datasetIds} methodIds={methodIds} locale={locale}/></section>
   </details>;
 }

@@ -51,7 +51,7 @@ export function ResultPanels({
     matrix={<div className="msa-load-message">{message ? <>
       <p role="alert">{message}</p>
       {onRetry && <button type="button" className="text-teal-800 underline" onClick={onRetry}>{d.common.retry}</button>}
-    </> : <LoadingState label={d.results.loading.alignment}/>}</div>}/>;
+    </> : <LoadingState label={d.results.loading.alignment} detail={locale==="zh"?"正在读取比对序列并准备查看器…":"Reading aligned sequences and preparing the viewer…"}/>}</div>}/>;
   return (
     <>
       <section
@@ -61,7 +61,7 @@ export function ResultPanels({
         role="tabpanel"
       >
         {activeTab === "overview" && summaryPending && !error ? (
-          <LoadingState label={d.results.loading.overview} />
+          <LoadingState label={d.results.loading.overview} detail={locale==="zh"?"正在读取结果摘要和序列统计…":"Reading the result summary and sequence statistics…"} />
         ) : null}
         {activeTab === "overview" && summary ? (
           <ResultOverview
