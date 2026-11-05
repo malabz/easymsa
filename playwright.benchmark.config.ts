@@ -10,9 +10,11 @@ export default defineConfig({
   use: {baseURL: `http://127.0.0.1:${port}/`, locale: "en-US", colorScheme: "light", trace: "retain-on-failure", screenshot: "only-on-failure"},
   projects: [
     {name: "benchmark-chromium", testMatch: publicBenchmarkTests, use: {...devices["Desktop Chrome"], viewport:{width:1280,height:900}}},
+    {name: "benchmark-firefox", testMatch: publicBenchmarkTests, grepInvert:/selected datasets stay visible/, use: {...devices["Desktop Firefox"], viewport:{width:1280,height:900}}},
     // Playwright's isolation=0 adds a history entry on reload (upstream #22640).
-    // Use Firefox's normal isolation; these flows contain no out-of-process frames.
-    {name: "benchmark-firefox", testMatch: publicBenchmarkTests, use: {...devices["Desktop Firefox"], viewport:{width:1280,height:900},launchOptions:{firefoxUserPrefs:{"fission.webContentIsolationStrategy":1}}}},
+    // Only the explicit history test needs normal Firefox isolation. Keep the
+    // standard automation settings for other flows, including blob downloads.
+    {name: "benchmark-firefox-history", testMatch:/benchmark\.spec\.ts/,grep:/selected datasets stay visible/,use:{...devices["Desktop Firefox"],viewport:{width:1280,height:900},launchOptions:{firefoxUserPrefs:{"fission.webContentIsolationStrategy":1}}}},
     {name: "benchmark-webkit", testMatch: publicBenchmarkTests, use: {...devices["Desktop Safari"], viewport:{width:1280,height:900}}},
     {name: "benchmark-mobile", testMatch: publicBenchmarkTests, use: {...devices["Pixel 5"], viewport:{width:390,height:844}}},
     {name: "existing-route-regression", testMatch: /(routes\.smoke|nar-readiness)\.spec\.ts/, use: {...devices["Desktop Chrome"], viewport:{width:1280,height:900}}},
