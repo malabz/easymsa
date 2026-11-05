@@ -5,7 +5,14 @@ import type { BenchmarkBatch, BenchmarkMetric, BenchmarkSnapshot, MetricKey } fr
 
 const keys: MetricKey[] = ["wall_seconds", "max_rss_kib", "sp_score", "avg_sp", "scaled_sp", "q", "tc"];
 const chartKeys: MetricKey[] = ["wall_seconds", "max_rss_kib", "scaled_sp", "q", "tc"];
-export function expectedEmphasis(values:(number|null)[],key:MetricKey) {
+type Emphasis={heat:string;tone:string;best:string};
+const emphasisCache=new WeakMap<Page,Map<string,Promise<Emphasis[]>>>();
+/** Keep exact equality without assuming Node/V8 and browser log10 have the same final bit.
+ * The independent formula runs in the browser; raw measurement assertions remain exact. */
+export function expectedEmphasis(page:Page,values:(number|null)[],key:MetricKey) {
+  let cache=emphasisCache.get(page);if(!cache){cache=new Map();emphasisCache.set(page,cache);}
+  const identity=JSON.stringify([values,key]);let expected=cache.get(identity);
+  if(!expected){expected=page.evaluate(({values,key})=>{
   const valid=values.filter((value):value is number=>value!==null);
   const lower=["wall_seconds","max_rss_kib"].includes(key);
   const logarithmic=lower && valid.every(value=>value>0);
@@ -17,6 +24,8 @@ export function expectedEmphasis(values:(number|null)[],key:MetricKey) {
     const strength=lower ? 1-(transform(value)-min)/(max-min) : (transform(value)-min)/(max-min);
     return {heat:String(strength),tone:String(Math.min(4,Math.floor(strength*4))),best:String(value===best)};
   });
+  },{values,key});cache.set(identity,expected);}
+  return expected;
 }
 const states: Record<string, string> = {complete:"Complete", partial:"Partial", failed:"Failed", timeout:"Timed out", unsupported:"Unsupported", not_run:"Not evaluated", unavailable:"Unavailable", not_applicable:"Not applicable"};
 const reasons: Record<string, string> = {no_reference:"No reference alignment", reference_invalid:"Reference requires review", invalid_output:"Invalid output", timeout:"Timed out", oom:"Memory limit", unsupported:"Unsupported", not_run:"Not evaluated", execution_failed:"Failed", scoring_failed:"Scoring failed", cancelled:"Cancelled", incomplete:"Incomplete repetitions", platform_error:"Evaluation unavailable"};
@@ -108,10 +117,10 @@ export async function assertDatasetConsistency(page: Page, snapshot: BenchmarkSn
     const metric = record?.result.metrics[key];
     const cell = observed.find(c => c.method === method.id && c.key === key)!;
     const context = `${batchId}/${caseId}/${method.id}/${key}`;
-    const emphasis=expectedEmphasis(snapshot.methods.map(method=>{
+    const emphasis=(await expectedEmphasis(page,snapshot.methods.map(method=>{
       const metric=records.find(row=>row.result.dataset_id===caseId&&row.result.method_id===method.id)?.result.metrics[key];
       return metric ? numeric(metric) : null;
-    }),key)[snapshot.methods.indexOf(method)];
+    }),key))[snapshot.methods.indexOf(method)];
     expect({heat:cell.heat,tone:cell.tone,best:cell.best},context).toEqual(emphasis);
     if (!metric) {
       expect(cell.raw, context).toBe("");
@@ -198,8 +207,6 @@ export function parseCsv(text: string): string[][] {
 /** Download through the actual UI and compare every CSV field and JSON value. */
 export async function assertDownloadConsistency(page: Page, snapshot: BenchmarkSnapshot, batchId: string, caseId?: string | string[], locale: Locale = "en", methodIds?: string[]) {
   const expected = expectedDownload(snapshot,batchId,typeof caseId === "string" ? [caseId] : caseId,methodIds);
-  const details=page.getByTestId("experiment-details");
-  if(await details.getAttribute("open")===null)await details.locator(":scope > summary").click();
   const menu = page.getByTestId("download-controls");
   if (await menu.getAttribute("open") === null) await menu.locator("summary").click();
   const jsonEvent = page.waitForEvent("download");
@@ -209,7 +216,7 @@ export async function assertDownloadConsistency(page: Page, snapshot: BenchmarkS
   const csvEvent = page.waitForEvent("download");
   await page.getByRole("button", {name:locale === "en" ? "Download CSV" : "下载 CSV", exact:true}).click();
   const csv = parseCsv(readFileSync((await (await csvEvent).path())!, "utf8"));
-  const columns = ["batch", "data_version", "dataset", "method", "version", "result_status", "valid_repeats", "planned_repeats", "metric", "unit", "metric_status", "valid_count", "planned_count", "value", "mean", "sd", "min", "max", "reason_codes", "threads", "batch_repeats", "cpu_limit", "memory_limit_gib", "alignment_timeout_seconds"];
+  const columns = ["batch", "data_version", "dataset", "method", "version", "result_status", "valid_repeats", "planned_repeats", "metric", "unit", "metric_status", "valid_count", "planned_count", "value", "mean", "sd", "min", "max", "reason_codes", "threads", "batch_repeats", "cpu_limit", "memory_limit_gib", "alignment_timeout_seconds", "result_reason", "commit", "scorer_timeout_seconds", "scoring_id", "environment_id", "environment_cpu", "environment_os", "environment_memory_gib"];
   expect(csv[0]).toEqual(columns);
   expect(csv).toHaveLength(1 + expected.batches.reduce((n,b) => n+b.results.length,0) * 7);
   let index = 1;
@@ -221,7 +228,9 @@ export async function assertDownloadConsistency(page: Page, snapshot: BenchmarkS
       b.methods.find(m => m.method_id === result.method_id)!.version, result.status, result.valid_repeats, result.planned_repeats,
       key, key === "wall_seconds" ? "s" : key === "max_rss_kib" ? "KiB" : "", metric.status, metric.valid_count, metric.planned_count,
       metric.value, metric.mean, metric.sd, metric.min, metric.max, metric.reason_codes.join(";"),
-      b.threads, b.repeats, b.conditions?.cpu_limit, b.conditions?.memory_limit_gib, b.conditions?.alignment_timeout_seconds].map(cell);
+      b.threads, b.repeats, b.conditions?.cpu_limit, b.conditions?.memory_limit_gib, b.conditions?.alignment_timeout_seconds,
+      result.reason_code,b.methods.find(method=>method.method_id===result.method_id)!.commit,b.conditions?.scorer_timeout_seconds,
+      b.scoring.id,b.environment.id,b.environment.cpu,b.environment.os,b.environment.memory_gib].map(cell);
     expect(csv[index++], `${b.id}/${result.dataset_id}/${result.method_id}/${key}`).toEqual(expectedRow);
   }
 }

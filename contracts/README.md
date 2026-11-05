@@ -28,3 +28,11 @@ The script checks that both copies match, then runs both test suites. It does no
 silently update either fixture. Review intentional API changes against the
 backend's capture, update its canonical baseline, then copy that same file here.
 See the backend `contracts/README.md` for capture and normalization details.
+
+`benchmark-feedback-v2.json` is also mirrored from the backend. Its real-route
+capture covers static repository precheck, quick queue counts, extended failure
+information and the `X-EasyMSA-Benchmark-Version: 2` negotiation header. The
+capture preserves the strict legacy status/error shape when that header is
+absent. Only random task IDs and validated non-null timestamps are normalized.
+`feedbackContract.test.ts` reads the same payloads through the frontend schemas
+and private API client; no application code imports these test fixtures.

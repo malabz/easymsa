@@ -55,7 +55,7 @@ export async function assertTable(page:Page,report:Comparison,dataset:string){
  const methods=await table.locator("tbody tr").evaluateAll(nodes=>nodes.map(n=>n.getAttribute("data-method")));
  assert.equal(methods[0],report.candidate.id);assert.equal(new Set(methods).size,7);
  for(const key of displayedMetrics){
-  const expected=expectedEmphasis(methods.map(method=>metricNumber(report.results.find(row=>row.dataset_id===dataset&&row.method_id===method)?.metrics?.[key])),key);
+  const expected=await expectedEmphasis(page,methods.map(method=>metricNumber(report.results.find(row=>row.dataset_id===dataset&&row.method_id===method)?.metrics?.[key])),key);
   methods.forEach((method,index)=>{const cell=cells.find(cell=>cell.method===method&&cell.metric===key)!;assert.equal(cell.tone,expected[index].tone,dataset+'/'+method+'/'+key+'/tone');assert.equal(cell.best,expected[index].best,dataset+'/'+method+'/'+key+'/best');});
  }
  return cells.length;

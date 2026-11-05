@@ -1,0 +1,126 @@
+{
+  "version": 2,
+  "negotiation_header": {
+    "X-EasyMSA-Benchmark-Version": "2"
+  },
+  "cases": {
+    "status_v1": {
+      "enabled": true,
+      "accepting": true,
+      "reason": null,
+      "profile_id": "dna-rna-26-v1",
+      "email_available": false
+    },
+    "status_v2": {
+      "enabled": true,
+      "accepting": true,
+      "reason": null,
+      "profile_id": "dna-rna-26-v1",
+      "email_available": false,
+      "quick_available": true
+    },
+    "precheck": {
+      "repository_id": "456",
+      "repository_url": "https://github.com/lab/align",
+      "commit_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "ref": "main",
+      "requirements": {
+        "build_script": true,
+        "run_script": true
+      }
+    },
+    "queued_v2": {
+      "id": "ffffffffffffffffffffffffffffffff",
+      "method_name": "align",
+      "repository_url": "https://github.com/lab/align",
+      "commit_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "supported_types": [
+        "dna",
+        "rna"
+      ],
+      "status": "queued",
+      "stage": "queued",
+      "completed_units": 0,
+      "total_units": 2,
+      "successful_units": 0,
+      "created_at": "2000-01-01T00:00:00Z",
+      "started_at": null,
+      "completed_at": null,
+      "error": null,
+      "cancel_requested": false,
+      "profile_id": "dna-rna-quick-v1",
+      "has_results": false,
+      "expires_at": "2000-01-01T00:00:00Z",
+      "email_status": "skipped",
+      "mode": "quick",
+      "queue_position": 1,
+      "stage_started_at": "2000-01-01T00:00:00Z",
+      "last_progress_at": "2000-01-01T00:00:00Z",
+      "heartbeat_at": null,
+      "active_dataset": null
+    },
+    "failed_v1": {
+      "id": "ffffffffffffffffffffffffffffffff",
+      "method_name": "align",
+      "repository_url": "https://github.com/lab/align",
+      "commit_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "supported_types": [
+        "dna",
+        "rna"
+      ],
+      "status": "failed",
+      "stage": "failed",
+      "completed_units": 0,
+      "total_units": 2,
+      "successful_units": 0,
+      "created_at": "2000-01-01T00:00:00Z",
+      "started_at": "2000-01-01T00:00:00Z",
+      "completed_at": "2000-01-01T00:00:00Z",
+      "error": {
+        "code": "BENCHMARK_BUILD_FAILED",
+        "message": "Build failed."
+      },
+      "cancel_requested": false,
+      "profile_id": "dna-rna-quick-v1",
+      "has_results": false,
+      "expires_at": "2000-01-01T00:00:00Z",
+      "email_status": "skipped"
+    },
+    "failed_v2": {
+      "id": "ffffffffffffffffffffffffffffffff",
+      "method_name": "align",
+      "repository_url": "https://github.com/lab/align",
+      "commit_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "supported_types": [
+        "dna",
+        "rna"
+      ],
+      "status": "failed",
+      "stage": "failed",
+      "completed_units": 0,
+      "total_units": 2,
+      "successful_units": 0,
+      "created_at": "2000-01-01T00:00:00Z",
+      "started_at": "2000-01-01T00:00:00Z",
+      "completed_at": "2000-01-01T00:00:00Z",
+      "error": {
+        "code": "BENCHMARK_BUILD_FAILED",
+        "message": "Build failed.",
+        "stage": "building",
+        "retryable": false,
+        "error_id": "ffffffffffffffffffffffffffffffff"
+      },
+      "cancel_requested": false,
+      "profile_id": "dna-rna-quick-v1",
+      "has_results": false,
+      "expires_at": "2000-01-01T00:00:00Z",
+      "email_status": "skipped",
+      "mode": "quick",
+      "queue_position": null,
+      "stage_started_at": "2000-01-01T00:00:00Z",
+      "last_progress_at": "2000-01-01T00:00:00Z",
+      "heartbeat_at": "2000-01-01T00:00:00Z",
+      "active_dataset": null
+    }
+  }
+}

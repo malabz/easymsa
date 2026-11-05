@@ -53,10 +53,6 @@ async function capturePageFromTop(page: Page, path: string) {
   await page.screenshot({path, fullPage:true});
 }
 async function expand(page: Page, selector: string) {
-  if(selector.includes("download-controls")){
-    const details=page.getByTestId("experiment-details");
-    if(await details.getAttribute("open")===null)await details.locator(":scope > summary").click();
-  }
   const d = page.locator(selector);
   if (await d.getAttribute("open") === null) await d.locator(":scope > summary").click();
 }
@@ -103,7 +99,7 @@ test("concise bilingual names, collapsed experiment details and original-ID sear
     await expect(details).toContainText("dna_mt_10k");
     await details.locator(":scope > summary").click();
     await expect(page.getByTestId("tradeoff-chart")).toHaveCount(2);
-    const numericRows=await page.locator('.benchmark-table td[data-metric]:not([data-raw-value=""]) div > span').evaluateAll(elements=>elements.filter(element=>element.getClientRects().length).map(element=>{const range=document.createRange();range.selectNodeContents(element);return {height:range.getBoundingClientRect().height,lineHeight:parseFloat(getComputedStyle(element).lineHeight),width:element.clientWidth,scrollWidth:element.scrollWidth};}));
+    const numericRows=await page.locator('.benchmark-table td[data-metric]:not([data-raw-value=""]) div > span').evaluateAll(elements=>elements.filter(element=>element.getClientRects().length).map(element=>{const range=document.createRange();range.selectNodeContents(element);return {height:range.getBoundingClientRect().height,lineHeight:parseFloat(getComputedStyle(element).lineHeight),width:element.getBoundingClientRect().width,scrollWidth:range.getBoundingClientRect().width};}));
     expect(numericRows.length).toBeGreaterThan(0);
     for(const value of numericRows) { expect(value.height).toBeLessThanOrEqual(value.lineHeight+1); expect(value.scrollWidth).toBeLessThanOrEqual(value.width+1); }
     await page.keyboard.press("Escape");
@@ -145,7 +141,7 @@ test("real matrix preserves every result and all five displayed metrics", async 
         expect(c.key).toBe(key);
         expect(c.raw).toBe(values[i] === null ? "" : String(values[i]));
         expect(c.shown).toBe(values[i] === null ? "" : String(key === "max_rss_kib" ? values[i]! / 1024 : values[i]));
-        expect(c.heat).toBe(expectedEmphasis(values,key)[i].heat);
+        expect(c.heat).toBe((await expectedEmphasis(page,values,key))[i].heat);
         expect(c.text?.trim().length).toBeGreaterThan(0);
       }
     }
@@ -423,7 +419,7 @@ test("latest whole records match 780 displayed and 1092 exported metrics", async
         const metric=records.find(row=>row.result.dataset_id===cell.dataset&&row.result.method_id===method.id)!.result.metrics[key];
         return ["complete","partial"].includes(metric.status)?metric.value??metric.mean:null;
       });
-      expect(cell.heat,context).toBe(expectedEmphasis(comparable,key)[rawSnapshot.methods.findIndex(method=>method.id===cell.method)].heat);
+      expect(cell.heat,context).toBe((await expectedEmphasis(page,comparable,key))[rawSnapshot.methods.findIndex(method=>method.id===cell.method)].heat);
       expect(cell.text?.trim().length,context).toBeGreaterThan(0);
     }
   }
@@ -643,7 +639,9 @@ test("selected datasets stay visible after navigation, reload and mobile reopeni
     await expect(page.getByTestId("dataset-title")).toHaveAttribute("data-dataset-id",id);
     await check(id);
   }
+  const historyLength=await page.evaluate(()=>history.length);
   await page.reload(); await expect(page.getByTestId("dataset-title")).toHaveAttribute("data-dataset-id","dna_mt_sim_99");
+  expect(await page.evaluate(()=>history.length)).toBe(historyLength);
   await check("dna_mt_sim_99");
   await page.goBack();await expect(page.getByTestId("dataset-title")).toHaveAttribute("data-dataset-id","dna_mt_sim_98");
   await check("dna_mt_sim_98");
@@ -708,8 +706,8 @@ test("green emphasis agrees across filtered tables and scatter directions",async
   // The overview matrix uses quiet tints so a full grid stays readable; tone order is unchanged.
   const palette=["rgba(0, 0, 0, 0)","rgb(244, 250, 247)","rgb(232, 244, 239)","rgb(216, 237, 229)","rgb(198, 229, 218)"];
   const records=expectedRecords(rawSnapshot,"latest").filter(record=>record.result.dataset_id==="rna_255");
-  const compare=(nodes:{method:string|null;heat:string|null;tone:string|null;best:string|null}[],key:MetricKey)=>{
-    const emphasis=expectedEmphasis(methods.map(id=>{
+  const compare=async(nodes:{method:string|null;heat:string|null;tone:string|null;best:string|null}[],key:MetricKey)=>{
+    const emphasis=await expectedEmphasis(page,methods.map(id=>{
       const metric=records.find(record=>record.result.method_id===id)!.result.metrics[key];
       return ["complete","partial"].includes(metric.status)?metric.value??metric.mean:null;
     }),key);
@@ -723,10 +721,10 @@ test("green emphasis agrees across filtered tables and scatter directions",async
   const mafft=page.locator('[data-testid="matrix-cell"][data-method-id="mafft"]');
   expect(await mafft.getAttribute("data-best")).toBe("false");
   await openBenchmark(page,`/#/benchmark/datasets/rna_255?methods=${methods.join(",")}&chart=table`);
-  for(const key of keys) compare(await read(`td[data-metric="${key}"]`),key);
+  for(const key of keys) await compare(await read(`td[data-metric="${key}"]`),key);
   for(const key of keys){
     await openBenchmark(page,`/#/benchmark?view=matrix&search=rna_255&methods=${methods.join(",")}&metric=${key}`);
-    compare(await read('[data-testid="matrix-cell"]'),key);
+    await compare(await read('[data-testid="matrix-cell"]'),key);
     for(const cell of await page.getByTestId("matrix-cell").all()){
       const tone=await cell.getAttribute("data-tone");
       if(tone!=="neutral") await expect(cell).toHaveCSS("background-color",palette[Number(tone)]);
@@ -742,7 +740,7 @@ test("green emphasis agrees across filtered tables and scatter directions",async
   await page.keyboard.press("Escape");
   for(const y of ["q","tc","scaled_sp"] as const){
     await openBenchmark(page,`/#/benchmark/datasets/rna_255?methods=${methods.join(",")}&y=${y}`);
-    for(const key of keys) compare(await read(`td[data-metric="${key}"]`),key);
+    for(const key of keys) await compare(await read(`td[data-metric="${key}"]`),key);
     for(const chart of await page.getByTestId("tradeoff-chart").all()){
       const x=await chart.getAttribute("data-x-key");
       const hint=chart.getByTestId("tradeoff-direction");

@@ -27,7 +27,7 @@ async function openExample(page:Page,dataset?:string,chart="tradeoff"){
  await expect(page.getByTestId("comparison-root")).toBeVisible();
  await expect(page.getByTestId("comparison-root")).toHaveAttribute("data-dataset-id",dataset??"rna_255");
 }
-async function settle(page:Page){await page.evaluate(async()=>{await document.fonts.ready;await Promise.all(document.getAnimations().filter(x=>x.effect?.getComputedTiming().iterations!==Infinity).map(x=>x.finished.catch(()=>{})));});}
+async function settle(page:Page){await page.evaluate(async()=>{await document.fonts.ready;await Promise.race([new Promise(resolve=>setTimeout(resolve,2000)),Promise.all(document.getAnimations().filter(x=>x.playState==="running"&&x.effect?.getComputedTiming().iterations!==Infinity).map(x=>x.finished.catch(()=>{})))]);});}
 async function assertFit(page:Page){expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);}
 function mockCsv(report:Comparison){
  const columns=["snapshot_id","dataset","method_id","method","role","repository_url","result_status","metric","unit","status","valid_count","planned_count","value","mean","sd","min","max","reason_codes","source_id","source_kind","source_label","method_version","commit_sha","profile_id","dataset_version","runtime","threads","memory_gib","alignment_timeout_seconds","scorer_timeout_seconds","scoring_id","scoring_label","parameters"];
@@ -83,14 +83,15 @@ test("typing MSA-Kit in the normal form still sends a real submission request",a
  const original={schema_version:3,run_id:run.id,method:raw.candidate,profile:{id:run.profile_id,dataset_version:report.catalog.version,threads:4,repeats:1,limits:{cpu:4,memory_gib:32,alignment_timeout_seconds:1800,scorer_timeout_seconds:1800},runtime:"test-only-runtime",measurement:"test-only"},catalog:report.catalog,results:raw.results};
  await prepare(page,async(route,path)=>{
   if(path.endsWith("/client")){await json(route,{csrf_token:"test-csrf"});return true;}
+  if(path.endsWith("/precheck")){await json(route,{repository_id:"456",repository_url:run.repository_url,commit_sha:run.commit_sha,ref:"main",requirements:{build_script:true,run_script:true}});return true;}
   if(path.endsWith("/submissions")){submitted.push(route.request().postDataJSON());await json(route,{run,access_key:key},202);return true;}
   if(path.endsWith("/comparison")){await json(route,report);return true;}
   if(path.endsWith("/results")){await json(route,original);return true;}
   if(path.endsWith(run.id)){await json(route,run);return true;}
   return false;
  });
- await page.goto("/#/benchmark/submit");await page.getByLabel("GitHub repository",{exact:true}).fill("https://github.com/malabz/MSA-Kit");await page.getByRole("button",{name:"Start evaluation",exact:true}).click();
- await expect(page.getByTestId("comparison-root")).toBeVisible();expect(submitted).toEqual([{repository_url:"https://github.com/malabz/MSA-Kit",language:"en"}]);await expect(page).toHaveURL(/\/benchmark\/runs\//);
+ await page.goto("/#/benchmark/submit");await page.getByLabel("GitHub repository",{exact:true}).fill("https://github.com/malabz/MSA-Kit");await page.getByRole("radio",{name:/Full evaluation/}).check();await page.getByRole("button",{name:"Check repository",exact:true}).click();await expect(page.getByText("Repository check passed",{exact:true})).toBeVisible();expect(submitted).toEqual([]);await page.getByRole("button",{name:"Start evaluation",exact:true}).click();
+ await expect(page.getByTestId("comparison-root")).toBeVisible();expect(submitted).toEqual([{repository_url:"https://github.com/malabz/MSA-Kit",revision:run.commit_sha,mode:"full",language:"en"}]);await expect(page).toHaveURL(/\/benchmark\/runs\//);
 });
 
 test("private comparison downloads keep the opened snapshot after baselines change",async({page})=>{

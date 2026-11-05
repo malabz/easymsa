@@ -40,6 +40,6 @@ test('public and example details show one resource ceiling and separate dataset 
   await expect(details).not.toContainText(/16\s*(GiB|GB)|Memory retry|Adapter repair/);
   await expect(page.getByTestId('dataset-download-controls').locator(':scope > summary')).toHaveText('Download data');
   const results=page.getByTestId(example?'comparison-downloads':'download-controls');
-  await expect(results.locator(':scope > summary')).toContainText('Export results');
+  await expect(results.locator(':scope > summary')).toContainText(example?'Export results':'Download dataset results');
  }
 });
