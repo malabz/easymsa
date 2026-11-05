@@ -6,16 +6,18 @@ import { methods as existingMethods } from "../../lib/methods";
 
 const roles: Record<string, [string,string]> = {
   clustalo:["General-purpose progressive alignment","通用渐进多序列比对"],
+  tcoffee:["Consistency-based multiple alignment","基于一致性的多序列比对"],
+  kalign3:["Fast progressive multiple alignment","快速渐进多序列比对"],
   muscle5:["General-purpose alignment and refinement","通用比对与精化"],
   mafft:["General-purpose progressive and iterative alignment","通用渐进与迭代比对"],
-  halign3:["Clustering-based alignment for similar sequences","面向相似序列的聚类比对"],
+  halign3:["Center-star alignment for similar nucleotide sequences","面向相似核酸序列的中心星比对"],
   halign4:["Large-scale nucleotide alignment","大规模核酸比对"],
   halign5:["Large-scale nucleotide alignment","大规模核酸比对"],
   minipoa:["Partial-order alignment","部分序列图比对"],
   fmalign2:["Anchoring for long nucleotide sequences","面向长核酸序列的锚定比对"],
   wmsa2:["DNA / RNA alignment","DNA / RNA 比对"]
 };
-const sources:Record<string,string>={clustalo:"https://www.ebi.ac.uk/jdispatcher/docs/faqs/clustal/",mafft:"https://mafft.cbrc.jp/alignment/software/",muscle5:"https://pub.drive5.com/muscle5/",halign4:"https://github.com/pinglu-zhang/HAlign-4",minipoa:existingMethods.find(method=>method.name==="MiniPOA")!.source,fmalign2:existingMethods.find(method=>method.name==="FMAlign2 + MAFFT")!.source};
+const sources:Record<string,string>={clustalo:"https://www.ebi.ac.uk/jdispatcher/docs/faqs/clustal/",tcoffee:"https://github.com/cbcrg/tcoffee",kalign3:"https://github.com/TimoLassmann/kalign",halign3:"https://github.com/malabz/HAlign-3",mafft:"https://mafft.cbrc.jp/alignment/software/",muscle5:"https://pub.drive5.com/muscle5/",halign4:"https://github.com/pinglu-zhang/HAlign-4",minipoa:existingMethods.find(method=>method.name==="MiniPOA")!.source,fmalign2:existingMethods.find(method=>method.name==="FMAlign2 + MAFFT")!.source};
 export function BenchmarkIntroduction({snapshot,locale}:{snapshot:BenchmarkSnapshot;locale:Locale}) {
   const w=(en:string,zh:string)=>words(locale,en,zh);
   const titles=[["16S","16S"],["Mitochondrial","线粒体"],["Simulated DNA","模拟 DNA"],["Simulated RNA","模拟 RNA"]];

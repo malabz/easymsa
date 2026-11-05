@@ -82,11 +82,16 @@ test("repository precheck pins the quick run and full follow-up to the same comm
 test("public results expose CSV, scenario guidance and keyboard-accessible metric documentation",async({page},info)=>{
   await prepare(page);await page.goto("/#/benchmark?view=matrix");await expect(page.getByTestId("matrix-cell").first()).toBeVisible();
   const introduction=page.locator(".benchmark-first-use");await introduction.locator("summary").click();await expect(introduction).toContainText("26 specific test sets");await expect(introduction.locator("tbody tr")).toHaveCount(4);
+  const visibleMethods=await page.getByTestId("benchmark-matrix").locator("thead th:not(:first-child) span").allTextContents();
+  expect(visibleMethods).toHaveLength(6);
+  await expect(introduction.locator(".benchmark-method-guide strong")).toHaveText(visibleMethods);
+  await expect(introduction.getByRole("link",{name:"Source",exact:true})).toHaveCount(visibleMethods.length);
   const menu=page.getByTestId("download-controls");await expect(menu).toBeVisible();await menu.locator("summary").click();
   await expect(menu.getByRole("button").first()).toHaveText("Download CSV");
   const downloadEvent=page.waitForEvent("download");await menu.getByRole("button",{name:"Download CSV",exact:true}).click();
   const download=await downloadEvent;const csv=readFileSync((await download.path())!,"utf8");expect(csv).toContain('"unit"');expect(csv).toContain('"KiB"');expect(csv).toContain('"result_reason"');expect(csv).toContain('"scoring_id"');expect(csv).toContain('"timeout"');
   await menu.locator("summary").click();await page.getByRole("button",{name:"Switch language",exact:true}).click();await settle(page);await noOverflow(page);
+  await expect(introduction.getByRole("link",{name:"来源",exact:true})).toHaveCount(visibleMethods.length);
   await page.screenshot({path:info.outputPath("benchmark-guidance-zh.png"),fullPage:true});
   const guide=page.locator('a.benchmark-metric-help-link').first();await guide.focus();await expect(guide).toBeFocused();await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/article=benchmark-metrics/);await expect(page.getByRole("heading",{name:"Benchmark 指标：SP、Q 与 TC",exact:true})).toBeVisible();await expect(page.locator("#main-content")).toContainText("不是对当前方法做最大最小缩放");await expect(page.getByRole("link",{name:"实验室评价指标说明",exact:true})).toHaveAttribute("href","https://lab.malab.cn/MSA/basics/metrics.html");
