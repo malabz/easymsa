@@ -24,7 +24,7 @@
 .benchmark-workflow .private-button.is-outline { border-color:#cbd5e1; color:#334155; }
 .benchmark-workflow button:disabled { cursor:not-allowed; opacity:.6; }
 .benchmark-workflow .private-quiet { font-size:14px; }
-.benchmark-workflow .private-form input:not([type=checkbox]),.benchmark-workflow .private-copy-fallback input,.benchmark-workflow .private-recent-search input {
+.benchmark-workflow .private-form input:not([type=checkbox]):not([type=radio]),.benchmark-workflow .private-copy-fallback input,.benchmark-workflow .private-recent-search input {
   border-color:#cbd5e1; border-radius:var(--control-radius); min-height:46px; font-size:15px;
 }
 .benchmark-workflow input[hidden] { display:none!important; }

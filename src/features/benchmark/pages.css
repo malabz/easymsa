@@ -40,11 +40,11 @@
 .benchmark-workflow .private-button:not(:disabled):active { transform:translateY(1px); }
 .benchmark-workflow .private-button.is-outline { border-color:#cfe0da; background:#fff; color:var(--color-accent); }
 .benchmark-workflow .private-button.is-outline:hover { border-color:#9fcbbf; background:#f0f8f5; }
-.benchmark-workflow :is(.private-form input:not([type=checkbox]),.private-recent-search input,.private-copy-fallback input) {
+.benchmark-workflow :is(.private-form input:not([type=checkbox]):not([type=radio]),.private-recent-search input,.private-copy-fallback input) {
   border-color:#d8e1ea; border-radius:10px; transition:border-color .18s ease, box-shadow .18s ease;
 }
-.benchmark-workflow :is(.private-form input:not([type=checkbox]),.private-recent-search input):hover { border-color:#9fbfb5; }
-.benchmark-workflow :is(.private-form input:not([type=checkbox]),.private-recent-search input):focus-visible { outline:none; border-color:var(--color-accent); box-shadow:0 0 0 3px rgb(15 118 110 / .15); }
+.benchmark-workflow :is(.private-form input:not([type=checkbox]):not([type=radio]),.private-recent-search input):hover { border-color:#9fbfb5; }
+.benchmark-workflow :is(.private-form input:not([type=checkbox]):not([type=radio]),.private-recent-search input):focus-visible { outline:none; border-color:var(--color-accent); box-shadow:0 0 0 3px rgb(15 118 110 / .15); }
 .benchmark-workflow .benchmark-entry-tabs a { transition:color .18s ease, border-color .18s ease; }
 .benchmark-workflow .benchmark-entry-tabs a:hover { color:var(--color-accent); }
 .benchmark-workflow :is(.private-more-settings,.private-restore,.private-events) > summary { list-style:none; display:flex; align-items:center; gap:10px; }
