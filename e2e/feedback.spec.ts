@@ -7,10 +7,12 @@ import type {PrivateRun} from "../src/features/benchmark/privateModel";
 const key="feedback-test-key-"+"a".repeat(40),sha="a".repeat(40);
 const catalog=JSON.parse(readFileSync("public/benchmark/snapshot.json","utf8")).catalog;
 function quickReport(){
-  const report=privateReport(),ids=["dna_mt_sim_90","rna_255"];
+  const report=privateReport(),ids=["dna_16s_100","rna_255"];
   report.catalog={...catalog,id:catalog.id+"-quick",datasets:catalog.datasets.filter((dataset:{id:string})=>ids.includes(dataset.id))};
   report.profile={...report.profile,id:"feedback-quick-v1",dataset_version:catalog.version,limits:{...report.profile.limits,alignment_timeout_seconds:60,scorer_timeout_seconds:60}};
   report.results=report.catalog.datasets.map(dataset=>({...structuredClone(privateReport().results[0]),dataset_id:dataset.id}));
+  const dna=report.results.find(row=>row.dataset_id==="dna_16s_100")!;
+  for(const key of ["q","tc"] as const) dna.metrics[key]={...dna.metrics[key],status:"not_applicable",valid_count:0,value:null,mean:null,sd:null,min:null,max:null,display:null,reason_codes:["no_reference"]};
   return report;
 }
 const report=quickReport(),finished=privateRun({mode:"quick",profile_id:"feedback-quick-v1",total_units:2,completed_units:2,successful_units:2});
@@ -68,6 +70,10 @@ test("repository precheck pins the quick run and full follow-up to the same comm
   await expect(page.getByText("Repository check passed",{exact:true})).toBeVisible();expect(submitted).toHaveLength(0);await expect(page.locator(".benchmark-precheck-result code")).toHaveText(sha);
   await page.getByRole("button",{name:"Start evaluation",exact:true}).click();
   await expect(page.getByTestId("private-results-table")).toBeVisible();expect(submitted).toEqual([{repository_url:finished.repository_url,revision:sha,mode:"quick",language:"en"}]);
+  const results=page.getByTestId("private-results-table");
+  await expect(results.locator("tbody tr")).toHaveCount(2);
+  await expect(results.locator('tr[data-dataset-id="dna_16s_100"] td[data-metric="q"]')).toHaveText("No reference");
+  await expect(results.locator('tr[data-dataset-id="rna_255"]')).toHaveCount(1);
   await expect(page.locator(".private-progress")).toContainText("2 / 2");expect(comparisons).toHaveLength(0);
   await page.getByRole("button",{name:"Switch language",exact:true}).click();await settle(page);await noOverflow(page);
   await page.screenshot({path:info.outputPath("quick-result-zh.png"),fullPage:true});
