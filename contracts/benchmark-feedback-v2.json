@@ -48,7 +48,7 @@
       "completed_at": null,
       "error": null,
       "cancel_requested": false,
-      "profile_id": "dna-rna-quick-v1",
+      "profile_id": "dna-rna-quick-v2",
       "has_results": false,
       "expires_at": "2000-01-01T00:00:00Z",
       "email_status": "skipped",
@@ -81,7 +81,7 @@
         "message": "Build failed."
       },
       "cancel_requested": false,
-      "profile_id": "dna-rna-quick-v1",
+      "profile_id": "dna-rna-quick-v2",
       "has_results": false,
       "expires_at": "2000-01-01T00:00:00Z",
       "email_status": "skipped"
@@ -111,7 +111,7 @@
         "error_id": "ffffffffffffffffffffffffffffffff"
       },
       "cancel_requested": false,
-      "profile_id": "dna-rna-quick-v1",
+      "profile_id": "dna-rna-quick-v2",
       "has_results": false,
       "expires_at": "2000-01-01T00:00:00Z",
       "email_status": "skipped",
