@@ -1,5 +1,6 @@
 import type { Locale } from "../i18n/dictionary";
 import { benchmarkArticles } from "./benchmarkContent";
+import { docsLink } from "./links";
 
 export const DOCS_SECTION_IDS = [
   "quick-start",
@@ -250,8 +251,12 @@ const zh: DocsSection[] = [
             "items": [
               "点击空白任务名称框可生成名称，也可自行填写，最多 64 个字符。",
               "邮箱可选，用于接收完成通知和结果链接。",
-              "默认使用 Auto；适用范围外按服务器默认策略处理。也可手动选择 MiniPOA、MAFFT、HAlign-5 或 FMAlign2 + MAFFT。结果页显示实际执行的方法。"
+              "提交时默认使用 Auto，由网站选择比对方法。想自己指定时，可以在“比对方法”中手动选择。"
             ]
+          },
+          {
+            "type": "links",
+            "items": [{ "label": "了解 Auto 如何选择比对方法", "to": docsLink("submit-preprocess", "auto-alignment") }]
           },
           {
             "type": "table",
@@ -281,6 +286,35 @@ const zh: DocsSection[] = [
           {
             "type": "paragraph",
             "text": "“恢复默认”会重置高级设置。开启“比对完成后进行重比对”会增加运行时间，比对质量可能提高。"
+          }
+        ]
+      },
+      {
+        "id": "auto-alignment",
+        "title": "Auto 如何选择比对方法",
+        "summary": "",
+        "keywords": ["自动选择", "决策树", "回退", "MiniPOA", "MAFFT Auto", "HAlign-5", "FMAlign2 + MAFFT", "实际执行"],
+        "blocks": [
+          {
+            "type": "steps",
+            "items": [
+              {
+                "title": "Auto 会选哪些方法",
+                "body": "网站会看预处理后保留了多少条序列、序列有多长、彼此有多相似，然后选一种方法执行。四种方法是 MiniPOA、MAFFT（自动模式）、FMAlign2 + MAFFT 和 HAlign-5。MAFFT（自动模式）指的是由 MAFFT 自己决定运行策略。"
+              },
+              {
+                "title": "什么时候会改用 MiniPOA",
+                "body": "新版决策树适用于预处理后剩下 20 到 10,000 条序列，且序列长度的中位数在 127 到 10,073 个碱基之间的输入。中位数是按长度排序后居中的序列长度，条数为偶数时取中间两条长度的平均值。超出任一范围、网站无法完成选择，或选中的工具暂时不可用时，Auto 会用 MiniPOA。比如预处理后只剩 19 条序列，就会用 MiniPOA。"
+              },
+              {
+                "title": "在哪里看实际执行的方法",
+                "body": "任务完成后，点击“查看结果”，在“任务信息”里的“比对方法”一栏查看。手机上先展开“任务信息”。例如，看到“Auto · 实际执行：MAFFT（自动模式）”就表示这次实际用了 MAFFT 的自动模式。显示 MiniPOA 时，也有可能是决策树一开始就选了它。"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "如果选中的是另外三种方法之一，并在 60 秒内报错，网站会用 MiniPOA 再试一次。运行超时、比对结果未通过校验，或运行超过 60 秒后才报错时，任务会报告失败。"
           }
         ]
       },
@@ -940,8 +974,12 @@ const en: DocsSection[] = [
             "items": [
               "Click an empty job name field to generate a name, or enter your own, up to 64 characters.",
               "Email is optional and receives completion notices and a results link.",
-              "Auto is the default; server defaults apply outside its supported range. You can also choose MiniPOA, MAFFT, HAlign-5 or FMAlign2 + MAFFT. Results show the method actually used."
+              "Auto is selected by default and lets the site choose the aligner. To pick one yourself, use the alignment method menu."
             ]
+          },
+          {
+            "type": "links",
+            "items": [{ "label": "How Auto chooses an aligner", "to": docsLink("submit-preprocess", "auto-alignment") }]
           },
           {
             "type": "table",
@@ -971,6 +1009,35 @@ const en: DocsSection[] = [
           {
             "type": "paragraph",
             "text": "Restore defaults resets advanced settings. Refinement increases running time and may improve alignment quality."
+          }
+        ]
+      },
+      {
+        "id": "auto-alignment",
+        "title": "How Auto chooses an aligner",
+        "summary": "",
+        "keywords": ["automatic selection", "decision tree", "fallback", "MiniPOA", "MAFFT Auto", "HAlign-5", "FMAlign2 + MAFFT", "actual method"],
+        "blocks": [
+          {
+            "type": "steps",
+            "items": [
+              {
+                "title": "Which methods can Auto choose?",
+                "body": "After preprocessing, the site looks at how many sequences remain, how long they are, and how similar they are. It runs one of four methods: MiniPOA, MAFFT (auto), FMAlign2 + MAFFT, or HAlign-5. In MAFFT (auto), MAFFT chooses its own alignment strategy."
+              },
+              {
+                "title": "When does Auto switch to MiniPOA?",
+                "body": "The decision tree covers inputs with 20 to 10,000 sequences remaining after preprocessing and a median length of 127 to 10,073 bases. Sort the sequences from shortest to longest to find the median. Use the middle length, or average the two middle lengths if the count is even. Auto uses MiniPOA when either value is out of range, the site cannot choose a method, or the chosen tool is unavailable. For example, if only 19 sequences remain after preprocessing, Auto uses MiniPOA."
+              },
+              {
+                "title": "Where can I see which method ran?",
+                "body": "Once the job finishes, click “View Results” and look for “Alignment method” under “Task information”. On a phone, expand “Task information” first. For example, “Auto · actual method: MAFFT (auto)” means the job used MAFFT's automatic mode. If you see MiniPOA, the decision tree may have picked it from the start."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "If one of the other three tools reports an error within 60 seconds, the site retries once with MiniPOA. The job reports a failure if the tool times out, the alignment fails validation, or the tool reports an error after more than 60 seconds."
           }
         ]
       },
