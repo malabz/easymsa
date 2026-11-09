@@ -53,7 +53,7 @@ describe("AlgorithmPicker", () => {
     expect(screen.getByText("Recommended")).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: /^MiniPOA/ })).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: /^HAlign-5/ })).toBeInTheDocument();
-    expect(screen.getByRole("radio", { name: /^FMAlign2 \+ MAFFT/ })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /^FMAlign2 Accelerated alignment for large datasets/ })).toBeInTheDocument();
     expect(screen.queryByRole("radio", { name: /FMAlign2 \+ HAlign/ })).not.toBeInTheDocument();
   });
 
@@ -108,7 +108,7 @@ describe("AlgorithmPicker", () => {
 
     expect(screen.getByRole("option", { name: "MiniPOA" })).toHaveValue("minipoa");
     expect(screen.getByRole("option", { name: "HAlign-5" })).toBeDisabled();
-    expect(screen.getByRole("option", { name: "FMAlign2 + MAFFT" })).toHaveValue("fmalign2_mafft");
+    expect(screen.getByRole("option", { name: "FMAlign2" })).toHaveValue("fmalign2_mafft");
     fireEvent.change(screen.getByRole("combobox"), { target: { value: "fmalign2_mafft" } });
     expect(onChange).toHaveBeenCalledWith("fmalign2_mafft");
   });

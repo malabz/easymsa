@@ -8,7 +8,7 @@ const labels: Record<string, string> = {
   mafft: "MAFFT",
   mafft_fast: "MAFFT (fast)",
   halign3: "HAlign-5",
-  fmalign2_mafft: "FMAlign2 + MAFFT",
+  fmalign2_mafft: "FMAlign2",
   fmalign2_halign3: "FMAlign2 + HAlign"
 };
 const template = "Auto · actual method: {value}";
@@ -57,8 +57,10 @@ describe("displayAlgorithmLabel", () => {
   it.each([
     ["zh", "mafft_auto", "Auto · 实际执行：MAFFT（自动模式）"],
     ["zh", "halign5", "Auto · 实际执行：HAlign-5"],
+    ["zh", "fmalign2_mafft", "Auto · 实际执行：FMAlign2"],
     ["en", "mafft_auto", "Auto · actual method: MAFFT (auto)"],
-    ["en", "halign5", "Auto · actual method: HAlign-5"]
+    ["en", "halign5", "Auto · actual method: HAlign-5"],
+    ["en", "fmalign2_mafft", "Auto · actual method: FMAlign2"]
   ] as const)("labels the new selector result in %s for %s", (locale, plan, expected) => {
     const common = dictionary[locale].common;
     expect(displayAlgorithmLabel("auto", plan, common.algorithmNames, common.algorithmAutoResolved)).toBe(expected);

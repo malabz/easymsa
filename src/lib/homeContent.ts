@@ -15,11 +15,11 @@ export const homeContent = {
       { title: "查看与下载", text: "浏览比对、检查感兴趣的区域，下载结果或恢复已有任务。", link: "恢复已有任务" },
     ],
     methodsTitle: "合适的方法，连贯的体验。",
-    methodsIntro: "根据序列特征自动选择比对方法，提供 MiniPOA、HAlign-5、MAFFT 与 FMAlign2 + MAFFT。",
+    methodsIntro: "根据序列特征自动选择比对方法，提供 MiniPOA、HAlign-5、MAFFT 与 FMAlign2。",
     methods: [
       { name: "MiniPOA", text: "部分有序比对" },
       { name: "HAlign-5", text: "大规模核酸比对" },
-      { name: "FMAlign2 + MAFFT", text: "长序列加速比对" },
+      { name: "FMAlign2", text: "长序列加速比对" },
     ],
     methodLink: "方法介绍与原始论文", refineLink: "可选：使用 ReAlign-N 优化已有比对",
     demo: {
@@ -44,11 +44,11 @@ export const homeContent = {
       { title: "Explore and download", text: "Browse the alignment, inspect regions, download results, or recover an earlier job.", link: "Recover a job" },
     ],
     methodsTitle: "The right methods. A connected workflow.",
-    methodsIntro: "Sequence features guide automatic method selection, with MiniPOA, HAlign-5, MAFFT and FMAlign2 + MAFFT available.",
+    methodsIntro: "Sequence features guide automatic method selection, with MiniPOA, HAlign-5, MAFFT and FMAlign2 available.",
     methods: [
       { name: "MiniPOA", text: "Partial-order alignment" },
       { name: "HAlign-5", text: "Large-scale nucleotide alignment" },
-      { name: "FMAlign2 + MAFFT", text: "Accelerated long-sequence alignment" },
+      { name: "FMAlign2", text: "Accelerated long-sequence alignment" },
     ],
     methodLink: "Methods and original papers", refineLink: "Optional: refine an alignment with ReAlign-N",
     demo: {

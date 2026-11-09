@@ -17,7 +17,7 @@ const roles: Record<string, [string,string]> = {
   fmalign2:["Anchoring for long nucleotide sequences","面向长核酸序列的锚定比对"],
   wmsa2:["DNA / RNA alignment","DNA / RNA 比对"]
 };
-const sources:Record<string,string>={clustalo:"https://www.ebi.ac.uk/jdispatcher/docs/faqs/clustal/",tcoffee:"https://github.com/cbcrg/tcoffee",kalign3:"https://github.com/TimoLassmann/kalign",halign3:"https://github.com/malabz/HAlign-3",mafft:"https://mafft.cbrc.jp/alignment/software/",muscle5:"https://pub.drive5.com/muscle5/",halign4:"https://github.com/pinglu-zhang/HAlign-4",minipoa:existingMethods.find(method=>method.name==="MiniPOA")!.source,fmalign2:existingMethods.find(method=>method.name==="FMAlign2 + MAFFT")!.source};
+const sources:Record<string,string>={clustalo:"https://www.ebi.ac.uk/jdispatcher/docs/faqs/clustal/",tcoffee:"https://github.com/cbcrg/tcoffee",kalign3:"https://github.com/TimoLassmann/kalign",halign3:"https://github.com/malabz/HAlign-3",mafft:"https://mafft.cbrc.jp/alignment/software/",muscle5:"https://pub.drive5.com/muscle5/",halign4:"https://github.com/pinglu-zhang/HAlign-4",minipoa:existingMethods.find(method=>method.name==="MiniPOA")!.source,fmalign2:existingMethods.find(method=>method.name==="FMAlign2")!.source};
 export function BenchmarkIntroduction({snapshot,locale}:{snapshot:BenchmarkSnapshot;locale:Locale}) {
   const w=(en:string,zh:string)=>words(locale,en,zh);
   const titles=[["16S","16S"],["Mitochondrial","线粒体"],["Simulated DNA","模拟 DNA"],["Simulated RNA","模拟 RNA"]];

@@ -293,14 +293,14 @@ const zh: DocsSection[] = [
         "id": "auto-alignment",
         "title": "Auto 如何选择比对方法",
         "summary": "",
-        "keywords": ["自动选择", "决策树", "回退", "MiniPOA", "MAFFT Auto", "HAlign-5", "FMAlign2 + MAFFT", "实际执行"],
+        "keywords": ["自动选择", "决策树", "回退", "MiniPOA", "MAFFT Auto", "HAlign-5", "FMAlign2", "实际执行"],
         "blocks": [
           {
             "type": "steps",
             "items": [
               {
                 "title": "Auto 会选哪些方法",
-                "body": "网站会看预处理后保留了多少条序列、序列有多长、彼此有多相似，然后选一种方法执行。四种方法是 MiniPOA、MAFFT（自动模式）、FMAlign2 + MAFFT 和 HAlign-5。MAFFT（自动模式）指的是由 MAFFT 自己决定运行策略。"
+                "body": "网站会看预处理后保留了多少条序列、序列有多长、彼此有多相似，然后选一种方法执行。四种方法是 MiniPOA、MAFFT（自动模式）、FMAlign2 和 HAlign-5。MAFFT（自动模式）指的是由 MAFFT 自己决定运行策略。"
               },
               {
                 "title": "什么时候会改用 MiniPOA",
@@ -1016,14 +1016,14 @@ const en: DocsSection[] = [
         "id": "auto-alignment",
         "title": "How Auto chooses an aligner",
         "summary": "",
-        "keywords": ["automatic selection", "decision tree", "fallback", "MiniPOA", "MAFFT Auto", "HAlign-5", "FMAlign2 + MAFFT", "actual method"],
+        "keywords": ["automatic selection", "decision tree", "fallback", "MiniPOA", "MAFFT Auto", "HAlign-5", "FMAlign2", "actual method"],
         "blocks": [
           {
             "type": "steps",
             "items": [
               {
                 "title": "Which methods can Auto choose?",
-                "body": "After preprocessing, the site looks at how many sequences remain, how long they are, and how similar they are. It runs one of four methods: MiniPOA, MAFFT (auto), FMAlign2 + MAFFT, or HAlign-5. In MAFFT (auto), MAFFT chooses its own alignment strategy."
+                "body": "After preprocessing, the site looks at how many sequences remain, how long they are, and how similar they are. It runs one of four methods: MiniPOA, MAFFT (auto), FMAlign2, or HAlign-5. In MAFFT (auto), MAFFT chooses its own alignment strategy."
               },
               {
                 "title": "When does Auto switch to MiniPOA?",

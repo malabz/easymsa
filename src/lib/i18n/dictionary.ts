@@ -53,7 +53,7 @@ const zh = { viewerWorkflow: viewerWorkflowZh,
       mafft_auto: "MAFFT（自动模式）",
       halign3: "HAlign-5",
       halign5: "HAlign-5",
-      fmalign2_mafft: "FMAlign2 + MAFFT",
+      fmalign2_mafft: "FMAlign2",
       realign_n: "重比对",
       fmalign2_halign3: "FMAlign2 + HAlign"
     },
@@ -126,7 +126,7 @@ const zh = { viewerWorkflow: viewerWorkflowZh,
       minipoa: "MiniPOA",
       mafft: "MAFFT",
       halign3: "HAlign-5",
-      fmalign2_mafft: "FMAlign2 + MAFFT",
+      fmalign2_mafft: "FMAlign2",
       realign_n: "Realignment",
       fmalign2_halign3: "FMAlign2 + HAlign"
     },
@@ -972,7 +972,7 @@ const zh = { viewerWorkflow: viewerWorkflowZh,
     subtitle: "一个面向 DNA/RNA 多序列比对的 Web 工具。",
     project:
       "提供核酸比对与重比对、任务恢复和交互式结果查看。",
-    version: "当前版本：Auto、MiniPOA、MAFFT、HAlign-5、FMAlign2 + MAFFT、可选 ReAlign-N 与交互结果。",
+    version: "当前版本：Auto、MiniPOA、MAFFT、HAlign-5、FMAlign2、可选 ReAlign-N 与交互结果。",
     citation: "引用：发表研究时，建议引用实际使用的方法及软件。",
     contact: "联系：问题与建议请通过 GitHub Issues 提交。",
     repository: "GitHub repository：https://github.com/malabz/easymsa"
@@ -1032,7 +1032,7 @@ const en: typeof zh = {
       mafft_auto: "MAFFT (auto)",
       halign3: "HAlign-5",
       halign5: "HAlign-5",
-      fmalign2_mafft: "FMAlign2 + MAFFT",
+      fmalign2_mafft: "FMAlign2",
       realign_n: "Realignment",
       fmalign2_halign3: "FMAlign2 + HAlign"
     },
@@ -1105,7 +1105,7 @@ const en: typeof zh = {
       minipoa: "MiniPOA",
       mafft: "MAFFT",
       halign3: "HAlign-5",
-      fmalign2_mafft: "FMAlign2 + MAFFT",
+      fmalign2_mafft: "FMAlign2",
       realign_n: "Realignment",
       fmalign2_halign3: "FMAlign2 + HAlign"
     },
@@ -1952,7 +1952,7 @@ const en: typeof zh = {
     subtitle: "A web tool for DNA/RNA multiple sequence alignment.",
     project:
       "This project offers server alignment and refinement, task recovery and interactive results.",
-    version: "Current version: Auto, MiniPOA, MAFFT, HAlign-5, FMAlign2 + MAFFT, optional ReAlign-N and interactive results.",
+    version: "Current version: Auto, MiniPOA, MAFFT, HAlign-5, FMAlign2, optional ReAlign-N and interactive results.",
     citation: "Citation: when publishing research, please cite the methods and software used.",
     contact: "Contact: submit questions and suggestions through GitHub Issues.",
     repository: "GitHub repository: https://github.com/malabz/easymsa"

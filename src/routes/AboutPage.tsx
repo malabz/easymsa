@@ -55,8 +55,8 @@ export function AboutPage() {
         <p className="about-eyebrow">{zh ? "多序列比对 · 在线工作台" : "Multiple sequence alignment · Online workspace"}</p>
         <h1>{zh ? "关于 EasyMSA" : "About EasyMSA"}</h1>
         <p className="about-intro">{zh
-          ? "EasyMSA 提供 MiniPOA、HAlign-5、MAFFT 和 FMAlign2 + MAFFT，支持 Auto 自动选择方法、ReAlign-N 重比对及结果浏览。"
-          : "EasyMSA offers MiniPOA, HAlign-5, MAFFT and FMAlign2 + MAFFT, with Auto method selection, ReAlign-N realignment and interactive results."}</p>
+          ? "EasyMSA 提供 MiniPOA、HAlign-5、MAFFT 和 FMAlign2，支持 Auto 自动选择方法、ReAlign-N 重比对及结果浏览。"
+          : "EasyMSA offers MiniPOA, HAlign-5, MAFFT and FMAlign2, with Auto method selection, ReAlign-N realignment and interactive results."}</p>
       </div>
       <div className="about-hero-note">
         <p className="about-molecule">DNA <span aria-hidden="true">/</span> RNA</p>

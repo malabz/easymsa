@@ -43,7 +43,7 @@ export const methods = [
       "HAlign 4: a new strategy for rapidly aligning millions of sequences",
   },
   {
-    name: "FMAlign2 + MAFFT",
+    name: "FMAlign2",
     version: "2.0.0",
     origin: "lab",
     role: {
