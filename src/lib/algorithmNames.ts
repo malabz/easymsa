@@ -4,7 +4,9 @@ export type DisplayAlgorithmName =
   | "minipoa"
   | "mafft"
   | "mafft_fast"
+  | "mafft_auto"
   | "halign3"
+  | "halign5"
   | "fmalign2_mafft"
   | "fmalign2_halign3";
 

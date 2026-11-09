@@ -53,4 +53,14 @@ describe("displayAlgorithmLabel", () => {
     const common = dictionary[locale].common;
     expect(displayAlgorithmLabel("auto", "minipoa", common.algorithmNames, common.algorithmAutoResolved)).toBe(expected);
   });
+
+  it.each([
+    ["zh", "mafft_auto", "Auto · 实际执行：MAFFT（自动模式）"],
+    ["zh", "halign5", "Auto · 实际执行：HAlign-5"],
+    ["en", "mafft_auto", "Auto · actual method: MAFFT (auto)"],
+    ["en", "halign5", "Auto · actual method: HAlign-5"]
+  ] as const)("labels the new selector result in %s for %s", (locale, plan, expected) => {
+    const common = dictionary[locale].common;
+    expect(displayAlgorithmLabel("auto", plan, common.algorithmNames, common.algorithmAutoResolved)).toBe(expected);
+  });
 });
