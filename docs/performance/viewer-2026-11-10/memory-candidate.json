@@ -1,0 +1,1495 @@
+{
+  "dist": "D:\\code\\easymsa-viewer-perf-20261110\\frontend\\dist-performance",
+  "cpu": "AMD Ryzen 9 7940HX with Radeon Graphics        ",
+  "memory": 33517604864,
+  "cpuThrottle": 1,
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "browser": "149.0.7827.55",
+  "results": [
+    {
+      "rows": 5000,
+      "columns": 10000,
+      "entry": "file",
+      "run": 0,
+      "warmup": true,
+      "fixturePreparationMs": 0.1944000000000301,
+      "fixtureGenerated": false,
+      "automationMs": 67.84500000000003,
+      "interactive": 1891.800000011921,
+      "scroll": {
+        "p50": 16.19999998807907,
+        "p95": 28.600000023841858,
+        "max": 43.09999996423721
+      },
+      "settledScroll": {
+        "p50": 15.899999976158142,
+        "p95": 28.899999976158142,
+        "max": 50.09999996423721
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 144.30000001192093
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 153.4000000357628
+        },
+        {
+          "name": "easymsa:input-parsing",
+          "time": 187.9000000357628
+        },
+        {
+          "name": "easymsa:input-preparing",
+          "time": 958.9000000357628
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 1589
+        },
+        {
+          "name": "easymsa:overview-worker-start",
+          "time": 1624.300000011921
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 1625.1000000238419
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 1625.300000011921
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 1674.800000011921
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 2385.800000011921
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 3484.300000011921
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 3502
+        },
+        {
+          "name": "easymsa:overview-worker-done",
+          "time": 6111.5
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 5173.400000035763,
+          "duration": 63
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": [],
+      "memory": [
+        {
+          "at": 1794300929183,
+          "main": {
+            "usedSize": 3295452,
+            "totalSize": 6029312,
+            "embedderHeapUsedSize": 1919696,
+            "backingStorageSize": 461865
+          },
+          "workers": []
+        },
+        {
+          "at": 1794300929402,
+          "main": {
+            "usedSize": 5347432,
+            "totalSize": 8966144,
+            "embedderHeapUsedSize": 2390232,
+            "backingStorageSize": 957013
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 11203636,
+                "totalSize": 14200832,
+                "embedderHeapUsedSize": 577248,
+                "backingStorageSize": 13668194
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300929665,
+          "main": {
+            "usedSize": 5542220,
+            "totalSize": 9228288,
+            "embedderHeapUsedSize": 2640008,
+            "backingStorageSize": 957013
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 33685580,
+                "totalSize": 36335616,
+                "embedderHeapUsedSize": 477504,
+                "backingStorageSize": 28220847
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300929927,
+          "main": {
+            "usedSize": 5757140,
+            "totalSize": 9228288,
+            "embedderHeapUsedSize": 2640008,
+            "backingStorageSize": 957013
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 54420368,
+                "totalSize": 58998784,
+                "embedderHeapUsedSize": 538104,
+                "backingStorageSize": 37997871
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300930176,
+          "main": {
+            "usedSize": 5940712,
+            "totalSize": 9228288,
+            "embedderHeapUsedSize": 2640008,
+            "backingStorageSize": 957039
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 61675816,
+                "totalSize": 77643776,
+                "embedderHeapUsedSize": 755000,
+                "backingStorageSize": 62352591
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300930427,
+          "main": {
+            "usedSize": 5940712,
+            "totalSize": 9228288,
+            "embedderHeapUsedSize": 2640008,
+            "backingStorageSize": 957039
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 61800556,
+                "totalSize": 77643776,
+                "embedderHeapUsedSize": 755000,
+                "backingStorageSize": 62352591
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300930686,
+          "main": {
+            "usedSize": 55597904,
+            "totalSize": 60870656,
+            "embedderHeapUsedSize": 1388768,
+            "backingStorageSize": 955814
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 63584016,
+                "totalSize": 79740928,
+                "embedderHeapUsedSize": 755000,
+                "backingStorageSize": 62352591
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300930927,
+          "main": {
+            "usedSize": 67878372,
+            "totalSize": 70807552,
+            "embedderHeapUsedSize": 8283432,
+            "backingStorageSize": 1205389
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 59209604,
+                "totalSize": 88915968,
+                "embedderHeapUsedSize": 446384,
+                "backingStorageSize": 4323873
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300931179,
+          "main": {
+            "usedSize": 71499060,
+            "totalSize": 73986048,
+            "embedderHeapUsedSize": 9520096,
+            "backingStorageSize": 1206109
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 63722228,
+                "totalSize": 88915968,
+                "embedderHeapUsedSize": 446384,
+                "backingStorageSize": 4323873
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300931445,
+          "main": {
+            "usedSize": 82782720,
+            "totalSize": 84996096,
+            "embedderHeapUsedSize": 16426704,
+            "backingStorageSize": 1211737
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 72909340,
+                "totalSize": 94945280,
+                "embedderHeapUsedSize": 446384,
+                "backingStorageSize": 4323873
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300931709,
+          "main": {
+            "usedSize": 72108512,
+            "totalSize": 103124992,
+            "embedderHeapUsedSize": 22087424,
+            "backingStorageSize": 1711631
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 67731772,
+                "totalSize": 107528192,
+                "embedderHeapUsedSize": 446384,
+                "backingStorageSize": 4323873
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300931978,
+          "main": {
+            "usedSize": 86903464,
+            "totalSize": 103124992,
+            "embedderHeapUsedSize": 33718720,
+            "backingStorageSize": 1717373
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 73663268,
+                "totalSize": 110936064,
+                "embedderHeapUsedSize": 446384,
+                "backingStorageSize": 4323873
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300932252,
+          "main": {
+            "usedSize": 76324216,
+            "totalSize": 113086464,
+            "embedderHeapUsedSize": 46334112,
+            "backingStorageSize": 1721117
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 54608964,
+                "totalSize": 118276096,
+                "embedderHeapUsedSize": 446384,
+                "backingStorageSize": 4323873
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300932501,
+          "main": {
+            "usedSize": 89232396,
+            "totalSize": 125931520,
+            "embedderHeapUsedSize": 56635496,
+            "backingStorageSize": 1725780
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 59120700,
+                "totalSize": 118276096,
+                "embedderHeapUsedSize": 446384,
+                "backingStorageSize": 4323873
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300932760,
+          "main": {
+            "usedSize": 81408816,
+            "totalSize": 135368704,
+            "embedderHeapUsedSize": 66330200,
+            "backingStorageSize": 2219974
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 79906164,
+                "totalSize": 119586816,
+                "embedderHeapUsedSize": 677472,
+                "backingStorageSize": 4323873
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300933013,
+          "main": {
+            "usedSize": 94459384,
+            "totalSize": 135368704,
+            "embedderHeapUsedSize": 77373416,
+            "backingStorageSize": 2224960
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 60820112,
+                "totalSize": 119586816,
+                "embedderHeapUsedSize": 677472,
+                "backingStorageSize": 4323873
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300933313,
+          "main": {
+            "usedSize": 88923780,
+            "totalSize": 140349440,
+            "embedderHeapUsedSize": 90428680,
+            "backingStorageSize": 2230813
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 61810420,
+                "totalSize": 119586816,
+                "embedderHeapUsedSize": 677472,
+                "backingStorageSize": 4323873
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300933548,
+          "main": {
+            "usedSize": 76188676,
+            "totalSize": 142708736,
+            "embedderHeapUsedSize": 101065144,
+            "backingStorageSize": 2235654
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 64778808,
+                "totalSize": 119586816,
+                "embedderHeapUsedSize": 684376,
+                "backingStorageSize": 4323873
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300933793,
+          "main": {
+            "usedSize": 88837284,
+            "totalSize": 142708736,
+            "embedderHeapUsedSize": 113045312,
+            "backingStorageSize": 2240337
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 71295136,
+                "totalSize": 119586816,
+                "embedderHeapUsedSize": 687216,
+                "backingStorageSize": 4323873
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300934053,
+          "main": {
+            "usedSize": 78239252,
+            "totalSize": 144281600,
+            "embedderHeapUsedSize": 124121104,
+            "backingStorageSize": 2244955
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 77819724,
+                "totalSize": 119586816,
+                "embedderHeapUsedSize": 820112,
+                "backingStorageSize": 4323873
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300934335,
+          "main": {
+            "usedSize": 91018764,
+            "totalSize": 144281600,
+            "embedderHeapUsedSize": 141543272,
+            "backingStorageSize": 2251008
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 70553244,
+                "totalSize": 119586816,
+                "embedderHeapUsedSize": 820112,
+                "backingStorageSize": 4323873
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300934571,
+          "main": {
+            "usedSize": 102750544,
+            "totalSize": 144281600,
+            "embedderHeapUsedSize": 151579104,
+            "backingStorageSize": 2251825
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 73899248,
+                "totalSize": 119586816,
+                "embedderHeapUsedSize": 820112,
+                "backingStorageSize": 4323873
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300934832,
+          "main": {
+            "usedSize": 92210956,
+            "totalSize": 145592320,
+            "embedderHeapUsedSize": 162622344,
+            "backingStorageSize": 2252592
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 62730744,
+                "totalSize": 119586816,
+                "embedderHeapUsedSize": 820112,
+                "backingStorageSize": 4323873
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300935096,
+          "main": {
+            "usedSize": 105636160,
+            "totalSize": 145592320,
+            "embedderHeapUsedSize": 174704664,
+            "backingStorageSize": 2253786
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 74608284,
+                "totalSize": 119586816,
+                "embedderHeapUsedSize": 820112,
+                "backingStorageSize": 4323873
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300935364,
+          "main": {
+            "usedSize": 93290288,
+            "totalSize": 148213760,
+            "embedderHeapUsedSize": 186436568,
+            "backingStorageSize": 2877276
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 56672712,
+                "totalSize": 119586816,
+                "embedderHeapUsedSize": 820112,
+                "backingStorageSize": 4323873
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300935630,
+          "main": {
+            "usedSize": 106758036,
+            "totalSize": 148213760,
+            "embedderHeapUsedSize": 199013960,
+            "backingStorageSize": 2878675
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 56672712,
+                "totalSize": 119586816,
+                "embedderHeapUsedSize": 820112,
+                "backingStorageSize": 4323873
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300935885,
+          "main": {
+            "usedSize": 94596244,
+            "totalSize": 149786624,
+            "embedderHeapUsedSize": 209524712,
+            "backingStorageSize": 2879456
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 56672712,
+                "totalSize": 119586816,
+                "embedderHeapUsedSize": 820112,
+                "backingStorageSize": 4323873
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300936155,
+          "main": {
+            "usedSize": 108562700,
+            "totalSize": 149786624,
+            "embedderHeapUsedSize": 222062528,
+            "backingStorageSize": 2880582
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 56672712,
+                "totalSize": 119586816,
+                "embedderHeapUsedSize": 820112,
+                "backingStorageSize": 4323873
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300936414,
+          "main": {
+            "usedSize": 76286308,
+            "totalSize": 147951616,
+            "embedderHeapUsedSize": 42601608,
+            "backingStorageSize": 2866179
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 56672712,
+                "totalSize": 119586816,
+                "embedderHeapUsedSize": 820112,
+                "backingStorageSize": 4323873
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300936672,
+          "main": {
+            "usedSize": 89470032,
+            "totalSize": 147951616,
+            "embedderHeapUsedSize": 55720912,
+            "backingStorageSize": 2868183
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 56672712,
+                "totalSize": 119586816,
+                "embedderHeapUsedSize": 820112,
+                "backingStorageSize": 4323873
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300936944,
+          "main": {
+            "usedSize": 77414344,
+            "totalSize": 147951616,
+            "embedderHeapUsedSize": 66426568,
+            "backingStorageSize": 2557802
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 56672712,
+                "totalSize": 119586816,
+                "embedderHeapUsedSize": 820112,
+                "backingStorageSize": 4323873
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300937196,
+          "main": {
+            "usedSize": 89394032,
+            "totalSize": 147951616,
+            "embedderHeapUsedSize": 76559696,
+            "backingStorageSize": 2558567
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 56672712,
+                "totalSize": 119586816,
+                "embedderHeapUsedSize": 820112,
+                "backingStorageSize": 4323873
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300937362,
+          "main": {
+            "usedSize": 74309912,
+            "totalSize": 147951616,
+            "embedderHeapUsedSize": 84743728,
+            "backingStorageSize": 2559620
+          },
+          "workers": [
+            {
+              "target": "2AFFA65B62B020044D519E52FF205C4F",
+              "heap": {
+                "usedSize": 56672712,
+                "totalSize": 119586816,
+                "embedderHeapUsedSize": 820112,
+                "backingStorageSize": 4323873
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rows": 5000,
+      "columns": 10000,
+      "entry": "result",
+      "run": 0,
+      "warmup": true,
+      "fixturePreparationMs": 0.1944000000000301,
+      "fixtureGenerated": false,
+      "automationMs": 950.2466999999997,
+      "interactive": 2263.5,
+      "scroll": {
+        "p50": 16,
+        "p95": 27.19999998807907,
+        "max": 52.80000001192093
+      },
+      "settledScroll": {
+        "p50": 15.899999976158142,
+        "p95": 27,
+        "max": 47
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 104.19999998807907
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 1038.199999988079
+        },
+        {
+          "name": "easymsa:input-parsing",
+          "time": 1065
+        },
+        {
+          "name": "easymsa:input-preparing",
+          "time": 1563.699999988079
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2180.699999988079
+        },
+        {
+          "name": "easymsa:overview-worker-start",
+          "time": 2238.199999988079
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 2239
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 2239.199999988079
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 2289.099999964237
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 3009.599999964237
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 4355.199999988079
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 4365.399999976158
+        },
+        {
+          "name": "easymsa:overview-worker-done",
+          "time": 7000.599999964237
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 5477.899999976158,
+          "duration": 61
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": [],
+      "memory": [
+        {
+          "at": 1794300937511,
+          "main": {
+            "usedSize": 3323924,
+            "totalSize": 6291456,
+            "embedderHeapUsedSize": 2044896,
+            "backingStorageSize": 462139
+          },
+          "workers": []
+        },
+        {
+          "at": 1794300937734,
+          "main": {
+            "usedSize": 5176696,
+            "totalSize": 8966144,
+            "embedderHeapUsedSize": 2888664,
+            "backingStorageSize": 547064
+          },
+          "workers": []
+        },
+        {
+          "at": 1794300937996,
+          "main": {
+            "usedSize": 5209344,
+            "totalSize": 8966144,
+            "embedderHeapUsedSize": 2888664,
+            "backingStorageSize": 547064
+          },
+          "workers": []
+        },
+        {
+          "at": 1794300938260,
+          "main": {
+            "usedSize": 5210532,
+            "totalSize": 8966144,
+            "embedderHeapUsedSize": 2888664,
+            "backingStorageSize": 547064
+          },
+          "workers": []
+        },
+        {
+          "at": 1794300938514,
+          "main": {
+            "usedSize": 5893944,
+            "totalSize": 9752576,
+            "embedderHeapUsedSize": 3348928,
+            "backingStorageSize": 548115
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 2653304,
+                "totalSize": 5902336,
+                "embedderHeapUsedSize": 773712,
+                "backingStorageSize": 4049942
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300938762,
+          "main": {
+            "usedSize": 6274212,
+            "totalSize": 10014720,
+            "embedderHeapUsedSize": 3562584,
+            "backingStorageSize": 548115
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 30906840,
+                "totalSize": 41799680,
+                "embedderHeapUsedSize": 394624,
+                "backingStorageSize": 22222253
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300939020,
+          "main": {
+            "usedSize": 5337276,
+            "totalSize": 10539008,
+            "embedderHeapUsedSize": 3562584,
+            "backingStorageSize": 548132
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 59828152,
+                "totalSize": 73723904,
+                "embedderHeapUsedSize": 543728,
+                "backingStorageSize": 35343821
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300939271,
+          "main": {
+            "usedSize": 5358628,
+            "totalSize": 10539008,
+            "embedderHeapUsedSize": 3663952,
+            "backingStorageSize": 548132
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 65124200,
+                "totalSize": 73986048,
+                "embedderHeapUsedSize": 543728,
+                "backingStorageSize": 35343821
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300939521,
+          "main": {
+            "usedSize": 5358984,
+            "totalSize": 10539008,
+            "embedderHeapUsedSize": 3663952,
+            "backingStorageSize": 548132
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 65338692,
+                "totalSize": 73986048,
+                "embedderHeapUsedSize": 543728,
+                "backingStorageSize": 35343821
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300939774,
+          "main": {
+            "usedSize": 61505372,
+            "totalSize": 72663040,
+            "embedderHeapUsedSize": 6826168,
+            "backingStorageSize": 1246000
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 73050676,
+                "totalSize": 80015360,
+                "embedderHeapUsedSize": 670256,
+                "backingStorageSize": 37874189
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300940043,
+          "main": {
+            "usedSize": 67470744,
+            "totalSize": 77873152,
+            "embedderHeapUsedSize": 13079736,
+            "backingStorageSize": 1250338
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 57386820,
+                "totalSize": 84996096,
+                "embedderHeapUsedSize": 471376,
+                "backingStorageSize": 26059011
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300940299,
+          "main": {
+            "usedSize": 66206112,
+            "totalSize": 81018880,
+            "embedderHeapUsedSize": 19430072,
+            "backingStorageSize": 1255883
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 62859676,
+                "totalSize": 84996096,
+                "embedderHeapUsedSize": 471376,
+                "backingStorageSize": 26059011
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300940555,
+          "main": {
+            "usedSize": 67182124,
+            "totalSize": 82067456,
+            "embedderHeapUsedSize": 32517784,
+            "backingStorageSize": 1753664
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 57333744,
+                "totalSize": 92073984,
+                "embedderHeapUsedSize": 471376,
+                "backingStorageSize": 3537471
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300940809,
+          "main": {
+            "usedSize": 76185488,
+            "totalSize": 86523904,
+            "embedderHeapUsedSize": 44966072,
+            "backingStorageSize": 1760012
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 61225488,
+                "totalSize": 96006144,
+                "embedderHeapUsedSize": 471376,
+                "backingStorageSize": 3537471
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300941068,
+          "main": {
+            "usedSize": 78790096,
+            "totalSize": 95698944,
+            "embedderHeapUsedSize": 55934032,
+            "backingStorageSize": 1764851
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 68608188,
+                "totalSize": 103084032,
+                "embedderHeapUsedSize": 471376,
+                "backingStorageSize": 3537471
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300941335,
+          "main": {
+            "usedSize": 81965524,
+            "totalSize": 98582528,
+            "embedderHeapUsedSize": 66872216,
+            "backingStorageSize": 1769839
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 74744664,
+                "totalSize": 109375488,
+                "embedderHeapUsedSize": 471376,
+                "backingStorageSize": 3537471
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300941607,
+          "main": {
+            "usedSize": 75552044,
+            "totalSize": 100417536,
+            "embedderHeapUsedSize": 79939680,
+            "backingStorageSize": 1775162
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 78633576,
+                "totalSize": 113045504,
+                "embedderHeapUsedSize": 471376,
+                "backingStorageSize": 3537471
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300941868,
+          "main": {
+            "usedSize": 83829880,
+            "totalSize": 105299968,
+            "embedderHeapUsedSize": 90504608,
+            "backingStorageSize": 2269714
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 74321480,
+                "totalSize": 118288384,
+                "embedderHeapUsedSize": 668320,
+                "backingStorageSize": 3537471
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300942131,
+          "main": {
+            "usedSize": 86163708,
+            "totalSize": 110641152,
+            "embedderHeapUsedSize": 102568528,
+            "backingStorageSize": 2275058
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 58265088,
+                "totalSize": 119861248,
+                "embedderHeapUsedSize": 668320,
+                "backingStorageSize": 3537471
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300942388,
+          "main": {
+            "usedSize": 100972468,
+            "totalSize": 120078336,
+            "embedderHeapUsedSize": 113947200,
+            "backingStorageSize": 2279925
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 64883088,
+                "totalSize": 119861248,
+                "embedderHeapUsedSize": 668320,
+                "backingStorageSize": 3537471
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300942662,
+          "main": {
+            "usedSize": 92623952,
+            "totalSize": 123224064,
+            "embedderHeapUsedSize": 126453464,
+            "backingStorageSize": 2285202
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 59987752,
+                "totalSize": 119861248,
+                "embedderHeapUsedSize": 677696,
+                "backingStorageSize": 3537471
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300942903,
+          "main": {
+            "usedSize": 106582124,
+            "totalSize": 136069120,
+            "embedderHeapUsedSize": 137280976,
+            "backingStorageSize": 2289873
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 67827912,
+                "totalSize": 119861248,
+                "embedderHeapUsedSize": 682584,
+                "backingStorageSize": 3537471
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300943166,
+          "main": {
+            "usedSize": 92336048,
+            "totalSize": 138690560,
+            "embedderHeapUsedSize": 153533472,
+            "backingStorageSize": 2292322
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 56598280,
+                "totalSize": 119861248,
+                "embedderHeapUsedSize": 814328,
+                "backingStorageSize": 3537471
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300943453,
+          "main": {
+            "usedSize": 75682636,
+            "totalSize": 135106560,
+            "embedderHeapUsedSize": 39182280,
+            "backingStorageSize": 2284887
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 74248164,
+                "totalSize": 119861248,
+                "embedderHeapUsedSize": 814328,
+                "backingStorageSize": 3537471
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300943693,
+          "main": {
+            "usedSize": 89124176,
+            "totalSize": 135106560,
+            "embedderHeapUsedSize": 49791264,
+            "backingStorageSize": 2285813
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 71435704,
+                "totalSize": 119861248,
+                "embedderHeapUsedSize": 814328,
+                "backingStorageSize": 3537471
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300943944,
+          "main": {
+            "usedSize": 75789552,
+            "totalSize": 135106560,
+            "embedderHeapUsedSize": 60466024,
+            "backingStorageSize": 2285306
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 76034476,
+                "totalSize": 119861248,
+                "embedderHeapUsedSize": 814328,
+                "backingStorageSize": 3537471
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300944211,
+          "main": {
+            "usedSize": 89858964,
+            "totalSize": 135106560,
+            "embedderHeapUsedSize": 72773152,
+            "backingStorageSize": 2286570
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 61935888,
+                "totalSize": 120123392,
+                "embedderHeapUsedSize": 814328,
+                "backingStorageSize": 3537471
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300944480,
+          "main": {
+            "usedSize": 77963928,
+            "totalSize": 137465856,
+            "embedderHeapUsedSize": 84320600,
+            "backingStorageSize": 2909915
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 55830856,
+                "totalSize": 120647680,
+                "embedderHeapUsedSize": 814328,
+                "backingStorageSize": 3537471
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300944743,
+          "main": {
+            "usedSize": 92037472,
+            "totalSize": 137465856,
+            "embedderHeapUsedSize": 96791648,
+            "backingStorageSize": 2910969
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 55830856,
+                "totalSize": 120647680,
+                "embedderHeapUsedSize": 814328,
+                "backingStorageSize": 3537471
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300944986,
+          "main": {
+            "usedSize": 78298392,
+            "totalSize": 138252288,
+            "embedderHeapUsedSize": 107190488,
+            "backingStorageSize": 2911687
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 55830856,
+                "totalSize": 120647680,
+                "embedderHeapUsedSize": 814328,
+                "backingStorageSize": 3537471
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300945257,
+          "main": {
+            "usedSize": 92895548,
+            "totalSize": 138776576,
+            "embedderHeapUsedSize": 120417960,
+            "backingStorageSize": 2912958
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 55830856,
+                "totalSize": 120647680,
+                "embedderHeapUsedSize": 814328,
+                "backingStorageSize": 3537471
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300945515,
+          "main": {
+            "usedSize": 81857528,
+            "totalSize": 138776576,
+            "embedderHeapUsedSize": 131469040,
+            "backingStorageSize": 2913488
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 55830856,
+                "totalSize": 120647680,
+                "embedderHeapUsedSize": 814328,
+                "backingStorageSize": 3537471
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300945787,
+          "main": {
+            "usedSize": 96268584,
+            "totalSize": 138776576,
+            "embedderHeapUsedSize": 144290088,
+            "backingStorageSize": 2914514
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 55830856,
+                "totalSize": 120647680,
+                "embedderHeapUsedSize": 814328,
+                "backingStorageSize": 3537471
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300946029,
+          "main": {
+            "usedSize": 85394284,
+            "totalSize": 138776576,
+            "embedderHeapUsedSize": 155037224,
+            "backingStorageSize": 2915130
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 55830856,
+                "totalSize": 120647680,
+                "embedderHeapUsedSize": 814328,
+                "backingStorageSize": 3537471
+              }
+            }
+          ]
+        },
+        {
+          "at": 1794300946053,
+          "main": {
+            "usedSize": 85461348,
+            "totalSize": 138776576,
+            "embedderHeapUsedSize": 155037224,
+            "backingStorageSize": 2915446
+          },
+          "workers": [
+            {
+              "target": "11FF3F65E88135270440944E6BF18011",
+              "heap": {
+                "usedSize": 55830856,
+                "totalSize": 120647680,
+                "embedderHeapUsedSize": 814328,
+                "backingStorageSize": 3537471
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

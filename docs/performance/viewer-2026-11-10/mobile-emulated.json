@@ -1,0 +1,1577 @@
+{
+  "dist": "D:\\code\\easymsa-viewer-perf-20261110\\frontend\\dist-performance",
+  "cpu": "AMD Ryzen 9 7940HX with Radeon Graphics        ",
+  "memory": 33517604864,
+  "cpuThrottle": 4,
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "browser": "149.0.7827.55",
+  "results": [
+    {
+      "rows": 5000,
+      "columns": 10000,
+      "entry": "file",
+      "run": 0,
+      "warmup": true,
+      "fixturePreparationMs": 0.20580000000001064,
+      "fixtureGenerated": false,
+      "automationMs": 482.6009,
+      "interactive": 2056,
+      "scroll": {
+        "p50": 31.69999998807907,
+        "p95": 71.59999996423721,
+        "max": 138
+      },
+      "settledScroll": {
+        "p50": 27.30000001192093,
+        "p95": 55.80000001192093,
+        "max": 71.39999997615814
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 561.6000000238419
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 578.7000000476837
+        },
+        {
+          "name": "easymsa:input-parsing",
+          "time": 622.7000000476837
+        },
+        {
+          "name": "easymsa:input-preparing",
+          "time": 1382.4000000357628
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2111.7000000476837
+        },
+        {
+          "name": "easymsa:overview-worker-start",
+          "time": 2292.100000023842
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 2296.100000023842
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 2298
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 2446.900000035763
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 3098.300000011921
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 4475.800000011921
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 4551.600000023842
+        },
+        {
+          "name": "easymsa:overview-worker-done",
+          "time": 7222.200000047684
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 106.5,
+          "duration": 198
+        },
+        {
+          "start": 2009.6000000238419,
+          "duration": 102
+        },
+        {
+          "start": 2112.5,
+          "duration": 218
+        },
+        {
+          "start": 2331.7000000476837,
+          "duration": 90
+        },
+        {
+          "start": 3148.2000000476837,
+          "duration": 73
+        },
+        {
+          "start": 3284.800000011921,
+          "duration": 72
+        },
+        {
+          "start": 3532.300000011921,
+          "duration": 65
+        },
+        {
+          "start": 3600.2000000476837,
+          "duration": 58
+        },
+        {
+          "start": 3778.900000035763,
+          "duration": 61
+        },
+        {
+          "start": 3981.5,
+          "duration": 61
+        },
+        {
+          "start": 4208.100000023842,
+          "duration": 83
+        },
+        {
+          "start": 4420.300000011921,
+          "duration": 56
+        },
+        {
+          "start": 4504.200000047684,
+          "duration": 72
+        },
+        {
+          "start": 4744.200000047684,
+          "duration": 67
+        },
+        {
+          "start": 4996,
+          "duration": 77
+        },
+        {
+          "start": 5217.700000047684,
+          "duration": 85
+        },
+        {
+          "start": 5452.900000035763,
+          "duration": 68
+        },
+        {
+          "start": 5691.600000023842,
+          "duration": 67
+        },
+        {
+          "start": 5902.200000047684,
+          "duration": 66
+        },
+        {
+          "start": 5970.900000035763,
+          "duration": 50
+        },
+        {
+          "start": 6134.600000023842,
+          "duration": 80
+        },
+        {
+          "start": 6218.400000035763,
+          "duration": 51
+        },
+        {
+          "start": 6386.100000023842,
+          "duration": 79
+        },
+        {
+          "start": 6675.100000023842,
+          "duration": 82
+        },
+        {
+          "start": 6760.5,
+          "duration": 55
+        },
+        {
+          "start": 6960.300000011921,
+          "duration": 83
+        },
+        {
+          "start": 7046.300000011921,
+          "duration": 66
+        },
+        {
+          "start": 7246.900000035763,
+          "duration": 62
+        },
+        {
+          "start": 7511.200000047684,
+          "duration": 54
+        },
+        {
+          "start": 7682.400000035763,
+          "duration": 55
+        },
+        {
+          "start": 7873.200000047684,
+          "duration": 54
+        },
+        {
+          "start": 8080.5,
+          "duration": 62
+        },
+        {
+          "start": 8263.900000035763,
+          "duration": 60
+        },
+        {
+          "start": 8469.900000035763,
+          "duration": 81
+        },
+        {
+          "start": 8709,
+          "duration": 57
+        },
+        {
+          "start": 8911.100000023842,
+          "duration": 63
+        },
+        {
+          "start": 9093.5,
+          "duration": 72
+        },
+        {
+          "start": 9250.300000011921,
+          "duration": 68
+        },
+        {
+          "start": 9323.100000023842,
+          "duration": 57
+        },
+        {
+          "start": 9512.200000047684,
+          "duration": 59
+        },
+        {
+          "start": 9705.700000047684,
+          "duration": 63
+        },
+        {
+          "start": 9906.900000035763,
+          "duration": 57
+        },
+        {
+          "start": 10121.200000047684,
+          "duration": 57
+        },
+        {
+          "start": 10308.5,
+          "duration": 63
+        },
+        {
+          "start": 10507.100000023842,
+          "duration": 64
+        },
+        {
+          "start": 10731.200000047684,
+          "duration": 60
+        },
+        {
+          "start": 10903.600000023842,
+          "duration": 59
+        },
+        {
+          "start": 11096.400000035763,
+          "duration": 58
+        },
+        {
+          "start": 11306.5,
+          "duration": 62
+        },
+        {
+          "start": 11483.800000011921,
+          "duration": 60
+        },
+        {
+          "start": 11678.100000023842,
+          "duration": 60
+        },
+        {
+          "start": 11889.400000035763,
+          "duration": 55
+        },
+        {
+          "start": 12063.700000047684,
+          "duration": 56
+        },
+        {
+          "start": 12251.900000035763,
+          "duration": 57
+        },
+        {
+          "start": 12441.800000011921,
+          "duration": 67
+        },
+        {
+          "start": 12663.100000023842,
+          "duration": 60
+        },
+        {
+          "start": 12863.800000011921,
+          "duration": 54
+        },
+        {
+          "start": 13047,
+          "duration": 56
+        },
+        {
+          "start": 13258.200000047684,
+          "duration": 53
+        },
+        {
+          "start": 13427,
+          "duration": 57
+        },
+        {
+          "start": 13608.100000023842,
+          "duration": 62
+        },
+        {
+          "start": 13813.5,
+          "duration": 59
+        },
+        {
+          "start": 13986.300000011921,
+          "duration": 63
+        },
+        {
+          "start": 14180.700000047684,
+          "duration": 58
+        },
+        {
+          "start": 14393.600000023842,
+          "duration": 53
+        },
+        {
+          "start": 14565.200000047684,
+          "duration": 57
+        },
+        {
+          "start": 14747.800000011921,
+          "duration": 60
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 5000,
+      "columns": 10000,
+      "entry": "file",
+      "run": 1,
+      "warmup": false,
+      "fixturePreparationMs": 0.20580000000001064,
+      "fixtureGenerated": false,
+      "automationMs": 469.1772000000001,
+      "interactive": 2056.800000011921,
+      "scroll": {
+        "p50": 30.599999964237213,
+        "p95": 65.89999997615814,
+        "max": 124.89999997615814
+      },
+      "settledScroll": {
+        "p50": 28.100000023841858,
+        "p95": 55.80000001192093,
+        "max": 72.80000001192093
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 526
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 542.8000000119209
+        },
+        {
+          "name": "easymsa:input-parsing",
+          "time": 585
+        },
+        {
+          "name": "easymsa:input-preparing",
+          "time": 1344.6000000238419
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2085.100000023842
+        },
+        {
+          "name": "easymsa:overview-worker-start",
+          "time": 2264.5
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 2269
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 2272.100000023842
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 2416.600000023842
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 3062.100000023842
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 4381.5
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 4423.399999976158
+        },
+        {
+          "name": "easymsa:overview-worker-done",
+          "time": 7000.300000011921
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 83.30000001192093,
+          "duration": 185
+        },
+        {
+          "start": 1973.6000000238419,
+          "duration": 111
+        },
+        {
+          "start": 2086.100000023842,
+          "duration": 218
+        },
+        {
+          "start": 2304.899999976158,
+          "duration": 87
+        },
+        {
+          "start": 3003.800000011921,
+          "duration": 50
+        },
+        {
+          "start": 3112.199999988079,
+          "duration": 64
+        },
+        {
+          "start": 3232.399999976158,
+          "duration": 67
+        },
+        {
+          "start": 3481.300000011921,
+          "duration": 62
+        },
+        {
+          "start": 3694.399999976158,
+          "duration": 72
+        },
+        {
+          "start": 3769.699999988079,
+          "duration": 50
+        },
+        {
+          "start": 3934,
+          "duration": 82
+        },
+        {
+          "start": 4020,
+          "duration": 62
+        },
+        {
+          "start": 4217.800000011921,
+          "duration": 64
+        },
+        {
+          "start": 4318.600000023842,
+          "duration": 64
+        },
+        {
+          "start": 4520.399999976158,
+          "duration": 66
+        },
+        {
+          "start": 4755.899999976158,
+          "duration": 82
+        },
+        {
+          "start": 5012.899999976158,
+          "duration": 68
+        },
+        {
+          "start": 5218.100000023842,
+          "duration": 74
+        },
+        {
+          "start": 5442.300000011921,
+          "duration": 67
+        },
+        {
+          "start": 5682.100000023842,
+          "duration": 66
+        },
+        {
+          "start": 5885.600000023842,
+          "duration": 71
+        },
+        {
+          "start": 6113.600000023842,
+          "duration": 64
+        },
+        {
+          "start": 6329.5,
+          "duration": 77
+        },
+        {
+          "start": 6584.100000023842,
+          "duration": 69
+        },
+        {
+          "start": 6806.899999976158,
+          "duration": 62
+        },
+        {
+          "start": 7023.699999988079,
+          "duration": 79
+        },
+        {
+          "start": 7106.899999976158,
+          "duration": 69
+        },
+        {
+          "start": 7323.199999988079,
+          "duration": 54
+        },
+        {
+          "start": 7524.100000023842,
+          "duration": 53
+        },
+        {
+          "start": 7706.800000011921,
+          "duration": 53
+        },
+        {
+          "start": 7922.5,
+          "duration": 58
+        },
+        {
+          "start": 8102.399999976158,
+          "duration": 74
+        },
+        {
+          "start": 8305.199999988079,
+          "duration": 54
+        },
+        {
+          "start": 8507.600000023842,
+          "duration": 54
+        },
+        {
+          "start": 8676.899999976158,
+          "duration": 59
+        },
+        {
+          "start": 8860.899999976158,
+          "duration": 61
+        },
+        {
+          "start": 8997.800000011921,
+          "duration": 69
+        },
+        {
+          "start": 9072,
+          "duration": 56
+        },
+        {
+          "start": 9240.699999988079,
+          "duration": 55
+        },
+        {
+          "start": 9430.600000023842,
+          "duration": 53
+        },
+        {
+          "start": 9616.399999976158,
+          "duration": 53
+        },
+        {
+          "start": 9821.899999976158,
+          "duration": 54
+        },
+        {
+          "start": 10003.199999988079,
+          "duration": 58
+        },
+        {
+          "start": 10203.199999988079,
+          "duration": 57
+        },
+        {
+          "start": 10412.100000023842,
+          "duration": 63
+        },
+        {
+          "start": 10597.899999976158,
+          "duration": 59
+        },
+        {
+          "start": 10788.5,
+          "duration": 57
+        },
+        {
+          "start": 10990,
+          "duration": 59
+        },
+        {
+          "start": 11172.100000023842,
+          "duration": 66
+        },
+        {
+          "start": 11369.600000023842,
+          "duration": 64
+        },
+        {
+          "start": 11585.899999976158,
+          "duration": 56
+        },
+        {
+          "start": 11757.899999976158,
+          "duration": 57
+        },
+        {
+          "start": 11936.800000011921,
+          "duration": 54
+        },
+        {
+          "start": 12113.600000023842,
+          "duration": 64
+        },
+        {
+          "start": 12329,
+          "duration": 58
+        },
+        {
+          "start": 12519.699999988079,
+          "duration": 58
+        },
+        {
+          "start": 12713.699999988079,
+          "duration": 60
+        },
+        {
+          "start": 12945.100000023842,
+          "duration": 55
+        },
+        {
+          "start": 13140.699999988079,
+          "duration": 74
+        },
+        {
+          "start": 13363.699999988079,
+          "duration": 64
+        },
+        {
+          "start": 13588.199999988079,
+          "duration": 61
+        },
+        {
+          "start": 13757.600000023842,
+          "duration": 61
+        },
+        {
+          "start": 13943,
+          "duration": 54
+        },
+        {
+          "start": 14157.199999988079,
+          "duration": 65
+        },
+        {
+          "start": 14349.199999988079,
+          "duration": 60
+        },
+        {
+          "start": 14550.300000011921,
+          "duration": 80
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 5000,
+      "columns": 10000,
+      "entry": "result",
+      "run": 0,
+      "warmup": true,
+      "fixturePreparationMs": 0.20580000000001064,
+      "fixtureGenerated": false,
+      "automationMs": 910.9297999999981,
+      "interactive": 2598.699999988079,
+      "scroll": {
+        "p50": 37.40000003576279,
+        "p95": 69.30000001192093,
+        "max": 108.60000002384186
+      },
+      "settledScroll": {
+        "p50": 34.10000002384186,
+        "p95": 60.69999998807907,
+        "max": 80.5
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 509.80000001192093
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 1050.300000011921
+        },
+        {
+          "name": "easymsa:input-parsing",
+          "time": 1092.4000000357628
+        },
+        {
+          "name": "easymsa:input-preparing",
+          "time": 1603.800000011921
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2371
+        },
+        {
+          "name": "easymsa:overview-worker-start",
+          "time": 2599.900000035763
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 2604.900000035763
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 2606.5
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 2766.800000011921
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 3551.2000000476837
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 4902.900000035763
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 4930.700000047684
+        },
+        {
+          "name": "easymsa:overview-worker-done",
+          "time": 7589.700000047684
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 86.20000004768372,
+          "duration": 90
+        },
+        {
+          "start": 178.70000004768372,
+          "duration": 105
+        },
+        {
+          "start": 527.1000000238419,
+          "duration": 61
+        },
+        {
+          "start": 2250.300000011921,
+          "duration": 121
+        },
+        {
+          "start": 2437.600000023842,
+          "duration": 56
+        },
+        {
+          "start": 2551.400000035763,
+          "duration": 120
+        },
+        {
+          "start": 2672.300000011921,
+          "duration": 67
+        },
+        {
+          "start": 3583.800000011921,
+          "duration": 81
+        },
+        {
+          "start": 3693.300000011921,
+          "duration": 85
+        },
+        {
+          "start": 3781.5,
+          "duration": 59
+        },
+        {
+          "start": 3961.2000000476837,
+          "duration": 76
+        },
+        {
+          "start": 4265.400000035763,
+          "duration": 68
+        },
+        {
+          "start": 4336.300000011921,
+          "duration": 51
+        },
+        {
+          "start": 4513,
+          "duration": 74
+        },
+        {
+          "start": 4591,
+          "duration": 58
+        },
+        {
+          "start": 4770.800000011921,
+          "duration": 77
+        },
+        {
+          "start": 4850.900000035763,
+          "duration": 53
+        },
+        {
+          "start": 4904.900000035763,
+          "duration": 53
+        },
+        {
+          "start": 5142.200000047684,
+          "duration": 74
+        },
+        {
+          "start": 5385.5,
+          "duration": 71
+        },
+        {
+          "start": 5460.400000035763,
+          "duration": 52
+        },
+        {
+          "start": 5645.800000011921,
+          "duration": 73
+        },
+        {
+          "start": 5722.900000035763,
+          "duration": 52
+        },
+        {
+          "start": 5942.900000035763,
+          "duration": 73
+        },
+        {
+          "start": 6175.400000035763,
+          "duration": 72
+        },
+        {
+          "start": 6250.600000023842,
+          "duration": 52
+        },
+        {
+          "start": 6424.5,
+          "duration": 73
+        },
+        {
+          "start": 6712.700000047684,
+          "duration": 86
+        },
+        {
+          "start": 6970.800000011921,
+          "duration": 75
+        },
+        {
+          "start": 7048.600000023842,
+          "duration": 55
+        },
+        {
+          "start": 7223.700000047684,
+          "duration": 81
+        },
+        {
+          "start": 7308.400000035763,
+          "duration": 53
+        },
+        {
+          "start": 7478,
+          "duration": 67
+        },
+        {
+          "start": 7750.400000035763,
+          "duration": 69
+        },
+        {
+          "start": 7822.400000035763,
+          "duration": 57
+        },
+        {
+          "start": 7986.600000023842,
+          "duration": 62
+        },
+        {
+          "start": 8052.400000035763,
+          "duration": 50
+        },
+        {
+          "start": 8205,
+          "duration": 68
+        },
+        {
+          "start": 8462,
+          "duration": 63
+        },
+        {
+          "start": 8678.100000023842,
+          "duration": 68
+        },
+        {
+          "start": 8750.300000011921,
+          "duration": 51
+        },
+        {
+          "start": 8940.900000035763,
+          "duration": 68
+        },
+        {
+          "start": 9012.900000035763,
+          "duration": 54
+        },
+        {
+          "start": 9198.900000035763,
+          "duration": 77
+        },
+        {
+          "start": 9435,
+          "duration": 71
+        },
+        {
+          "start": 9509.100000023842,
+          "duration": 53
+        },
+        {
+          "start": 9672.100000023842,
+          "duration": 63
+        },
+        {
+          "start": 9925.900000035763,
+          "duration": 61
+        },
+        {
+          "start": 10147,
+          "duration": 63
+        },
+        {
+          "start": 10213.300000011921,
+          "duration": 57
+        },
+        {
+          "start": 10401.700000047684,
+          "duration": 73
+        },
+        {
+          "start": 10478.200000047684,
+          "duration": 50
+        },
+        {
+          "start": 10577.600000023842,
+          "duration": 76
+        },
+        {
+          "start": 10659.400000035763,
+          "duration": 66
+        },
+        {
+          "start": 10878.100000023842,
+          "duration": 70
+        },
+        {
+          "start": 10951.700000047684,
+          "duration": 51
+        },
+        {
+          "start": 11118.900000035763,
+          "duration": 62
+        },
+        {
+          "start": 11184,
+          "duration": 51
+        },
+        {
+          "start": 11339.600000023842,
+          "duration": 68
+        },
+        {
+          "start": 11591.700000047684,
+          "duration": 60
+        },
+        {
+          "start": 11804,
+          "duration": 63
+        },
+        {
+          "start": 12020.800000011921,
+          "duration": 66
+        },
+        {
+          "start": 12264.300000011921,
+          "duration": 65
+        },
+        {
+          "start": 12475.700000047684,
+          "duration": 59
+        },
+        {
+          "start": 12691.700000047684,
+          "duration": 62
+        },
+        {
+          "start": 12930.900000035763,
+          "duration": 69
+        },
+        {
+          "start": 13140.200000047684,
+          "duration": 66
+        },
+        {
+          "start": 13362.700000047684,
+          "duration": 67
+        },
+        {
+          "start": 13612.5,
+          "duration": 62
+        },
+        {
+          "start": 13816.300000011921,
+          "duration": 64
+        },
+        {
+          "start": 14039.600000023842,
+          "duration": 63
+        },
+        {
+          "start": 14105.900000035763,
+          "duration": 51
+        },
+        {
+          "start": 14255.800000011921,
+          "duration": 66
+        },
+        {
+          "start": 14514.900000035763,
+          "duration": 62
+        },
+        {
+          "start": 14580.300000011921,
+          "duration": 53
+        },
+        {
+          "start": 14742.900000035763,
+          "duration": 62
+        },
+        {
+          "start": 14955.800000011921,
+          "duration": 72
+        },
+        {
+          "start": 15200.800000011921,
+          "duration": 85
+        },
+        {
+          "start": 15288.700000047684,
+          "duration": 83
+        },
+        {
+          "start": 15500.900000035763,
+          "duration": 61
+        },
+        {
+          "start": 15758.200000047684,
+          "duration": 60
+        },
+        {
+          "start": 15828,
+          "duration": 54
+        },
+        {
+          "start": 16049.700000047684,
+          "duration": 61
+        },
+        {
+          "start": 16275,
+          "duration": 61
+        },
+        {
+          "start": 16496,
+          "duration": 63
+        },
+        {
+          "start": 16736.100000023842,
+          "duration": 60
+        },
+        {
+          "start": 16936.30000001192,
+          "duration": 61
+        },
+        {
+          "start": 17001,
+          "duration": 52
+        },
+        {
+          "start": 17157.5,
+          "duration": 64
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 5000,
+      "columns": 10000,
+      "entry": "result",
+      "run": 1,
+      "warmup": false,
+      "fixturePreparationMs": 0.20580000000001064,
+      "fixtureGenerated": false,
+      "automationMs": 963.0633999999991,
+      "interactive": 2584,
+      "scroll": {
+        "p50": 36.59999996423721,
+        "p95": 70.30000001192093,
+        "max": 112.10000002384186
+      },
+      "settledScroll": {
+        "p50": 34.39999997615814,
+        "p95": 61.09999996423721,
+        "max": 79
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 575.3999999761581
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 1099.6000000238419
+        },
+        {
+          "name": "easymsa:input-parsing",
+          "time": 1132.6000000238419
+        },
+        {
+          "name": "easymsa:input-preparing",
+          "time": 1634.1000000238419
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2408.600000023842
+        },
+        {
+          "name": "easymsa:overview-worker-start",
+          "time": 2639.5
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 2644.100000023842
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 2647
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 2810.699999988079
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 3622.100000023842
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 4976.5
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 5006.899999976158
+        },
+        {
+          "name": "easymsa:overview-worker-done",
+          "time": 7769.699999988079
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 83.19999998807907,
+          "duration": 90
+        },
+        {
+          "start": 175.69999998807907,
+          "duration": 103
+        },
+        {
+          "start": 510.69999998807907,
+          "duration": 60
+        },
+        {
+          "start": 2284.800000011921,
+          "duration": 124
+        },
+        {
+          "start": 2466.699999988079,
+          "duration": 58
+        },
+        {
+          "start": 2590.399999976158,
+          "duration": 121
+        },
+        {
+          "start": 2712.199999988079,
+          "duration": 71
+        },
+        {
+          "start": 3245.300000011921,
+          "duration": 57
+        },
+        {
+          "start": 3481.5,
+          "duration": 59
+        },
+        {
+          "start": 3544.699999988079,
+          "duration": 59
+        },
+        {
+          "start": 3672.899999976158,
+          "duration": 68
+        },
+        {
+          "start": 3816.100000023842,
+          "duration": 73
+        },
+        {
+          "start": 3892.600000023842,
+          "duration": 58
+        },
+        {
+          "start": 4062.399999976158,
+          "duration": 80
+        },
+        {
+          "start": 4347.300000011921,
+          "duration": 67
+        },
+        {
+          "start": 4588.600000023842,
+          "duration": 71
+        },
+        {
+          "start": 4663.600000023842,
+          "duration": 54
+        },
+        {
+          "start": 4841.5,
+          "duration": 76
+        },
+        {
+          "start": 4921.199999988079,
+          "duration": 56
+        },
+        {
+          "start": 4978,
+          "duration": 57
+        },
+        {
+          "start": 5225.399999976158,
+          "duration": 78
+        },
+        {
+          "start": 5474.899999976158,
+          "duration": 73
+        },
+        {
+          "start": 5551,
+          "duration": 56
+        },
+        {
+          "start": 5740,
+          "duration": 77
+        },
+        {
+          "start": 5820.600000023842,
+          "duration": 61
+        },
+        {
+          "start": 6046.199999988079,
+          "duration": 77
+        },
+        {
+          "start": 6291,
+          "duration": 80
+        },
+        {
+          "start": 6546.800000011921,
+          "duration": 75
+        },
+        {
+          "start": 6625.199999988079,
+          "duration": 54
+        },
+        {
+          "start": 6835.899999976158,
+          "duration": 78
+        },
+        {
+          "start": 6916.899999976158,
+          "duration": 59
+        },
+        {
+          "start": 7104.899999976158,
+          "duration": 70
+        },
+        {
+          "start": 7178,
+          "duration": 55
+        },
+        {
+          "start": 7356.899999976158,
+          "duration": 76
+        },
+        {
+          "start": 7609,
+          "duration": 80
+        },
+        {
+          "start": 7891.199999988079,
+          "duration": 68
+        },
+        {
+          "start": 7962.399999976158,
+          "duration": 51
+        },
+        {
+          "start": 8115.899999976158,
+          "duration": 62
+        },
+        {
+          "start": 8180.899999976158,
+          "duration": 50
+        },
+        {
+          "start": 8339,
+          "duration": 68
+        },
+        {
+          "start": 8592.5,
+          "duration": 62
+        },
+        {
+          "start": 8803.600000023842,
+          "duration": 61
+        },
+        {
+          "start": 9028.5,
+          "duration": 61
+        },
+        {
+          "start": 9266.399999976158,
+          "duration": 64
+        },
+        {
+          "start": 9475.600000023842,
+          "duration": 67
+        },
+        {
+          "start": 9697.5,
+          "duration": 63
+        },
+        {
+          "start": 9943.600000023842,
+          "duration": 66
+        },
+        {
+          "start": 10155.399999976158,
+          "duration": 64
+        },
+        {
+          "start": 10369.800000011921,
+          "duration": 70
+        },
+        {
+          "start": 10531,
+          "duration": 86
+        },
+        {
+          "start": 10621.300000011921,
+          "duration": 61
+        },
+        {
+          "start": 10826.5,
+          "duration": 63
+        },
+        {
+          "start": 10891.899999976158,
+          "duration": 50
+        },
+        {
+          "start": 11052.100000023842,
+          "duration": 66
+        },
+        {
+          "start": 11121,
+          "duration": 53
+        },
+        {
+          "start": 11277.100000023842,
+          "duration": 61
+        },
+        {
+          "start": 11522.100000023842,
+          "duration": 65
+        },
+        {
+          "start": 11742.600000023842,
+          "duration": 63
+        },
+        {
+          "start": 11955.5,
+          "duration": 73
+        },
+        {
+          "start": 12031.399999976158,
+          "duration": 50
+        },
+        {
+          "start": 12240.199999988079,
+          "duration": 66
+        },
+        {
+          "start": 12465.300000011921,
+          "duration": 66
+        },
+        {
+          "start": 12535.300000011921,
+          "duration": 51
+        },
+        {
+          "start": 12695.699999988079,
+          "duration": 66
+        },
+        {
+          "start": 12941.300000011921,
+          "duration": 65
+        },
+        {
+          "start": 13168.5,
+          "duration": 74
+        },
+        {
+          "start": 13399.600000023842,
+          "duration": 74
+        },
+        {
+          "start": 13684.600000023842,
+          "duration": 79
+        },
+        {
+          "start": 13917.100000023842,
+          "duration": 66
+        },
+        {
+          "start": 13985.800000011921,
+          "duration": 53
+        },
+        {
+          "start": 14147,
+          "duration": 64
+        },
+        {
+          "start": 14214,
+          "duration": 50
+        },
+        {
+          "start": 14362.399999976158,
+          "duration": 62
+        },
+        {
+          "start": 14599.699999988079,
+          "duration": 63
+        },
+        {
+          "start": 14665.699999988079,
+          "duration": 50
+        },
+        {
+          "start": 14831.100000023842,
+          "duration": 62
+        },
+        {
+          "start": 14895.5,
+          "duration": 51
+        },
+        {
+          "start": 15049.300000011921,
+          "duration": 71
+        },
+        {
+          "start": 15298.699999988079,
+          "duration": 62
+        },
+        {
+          "start": 15503.399999976158,
+          "duration": 61
+        },
+        {
+          "start": 15723.100000023842,
+          "duration": 62
+        },
+        {
+          "start": 15788.5,
+          "duration": 51
+        },
+        {
+          "start": 15964.399999976158,
+          "duration": 62
+        },
+        {
+          "start": 16169.399999976158,
+          "duration": 65
+        },
+        {
+          "start": 16392.80000001192,
+          "duration": 62
+        },
+        {
+          "start": 16634.69999998808,
+          "duration": 61
+        },
+        {
+          "start": 16833.30000001192,
+          "duration": 67
+        },
+        {
+          "start": 17052.69999998808,
+          "duration": 65
+        },
+        {
+          "start": 17120.19999998808,
+          "duration": 50
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    }
+  ]
+}

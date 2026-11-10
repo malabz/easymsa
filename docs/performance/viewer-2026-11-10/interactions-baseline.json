@@ -1,0 +1,40 @@
+[
+  {
+    "rows": 50000,
+    "columns": 1000,
+    "initialAnalysis": "calculating",
+    "operations": [
+      {
+        "name": "name search during initial analysis",
+        "milliseconds": 76.12789999999995
+      },
+      {
+        "name": "filter names",
+        "milliseconds": 133.70409999999993
+      },
+      {
+        "name": "jump to row 50000",
+        "milliseconds": 64.15130000000136
+      },
+      {
+        "name": "sort 50000 rows by name",
+        "milliseconds": 260.08950000000004
+      }
+    ]
+  },
+  {
+    "rows": 500,
+    "columns": 100000,
+    "initialAnalysis": "calculating",
+    "operations": [
+      {
+        "name": "jump to column 99999 during initial analysis",
+        "milliseconds": 81.95060000000012
+      },
+      {
+        "name": "export final two columns of all 500 rows",
+        "milliseconds": 990.2285999999986
+      }
+    ]
+  }
+]

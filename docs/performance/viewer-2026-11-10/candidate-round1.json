@@ -1,0 +1,2528 @@
+{
+  "dist": "D:\\code\\easymsa-viewer-perf-20261110\\frontend\\dist-performance",
+  "cpu": "AMD Ryzen 9 7940HX with Radeon Graphics        ",
+  "memory": 33517604864,
+  "browser": "149.0.7827.55",
+  "results": [
+    {
+      "rows": 500,
+      "columns": 10000,
+      "entry": "file",
+      "run": 0,
+      "warmup": true,
+      "interactive": 584.3999999761581,
+      "scroll": {
+        "p50": 16.5,
+        "p95": 30.19999998807907,
+        "max": 51.40000003576279
+      },
+      "settledScroll": {
+        "p50": 16.30000001192093,
+        "p95": 28.599999964237213,
+        "max": 61.80000001192093
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 252.60000002384186
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 263.80000001192093
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 559.6000000238419
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 604.3000000119209
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 604.7000000476837
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 686.5
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 766
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 918.7000000476837
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 924.5
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 60.10000002384186,
+          "duration": 57
+        },
+        {
+          "start": 559.7000000476837,
+          "duration": 56
+        },
+        {
+          "start": 3698.800000011921,
+          "duration": 50
+        },
+        {
+          "start": 4142.5,
+          "duration": 65
+        },
+        {
+          "start": 6309.800000011921,
+          "duration": 62
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 500,
+      "columns": 10000,
+      "entry": "file",
+      "run": 1,
+      "warmup": false,
+      "interactive": 432.19999998807907,
+      "scroll": {
+        "p50": 16.600000023841858,
+        "p95": 29,
+        "max": 33.89999997615814
+      },
+      "settledScroll": {
+        "p50": 16.100000023841858,
+        "p95": 30.69999998807907,
+        "max": 52.89999997615814
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 170.69999998807907
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 182.60000002384186
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 423.30000001192093
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 464.89999997615814
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 465.30000001192093
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 539.1000000238419
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 620.8999999761581
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 804.8999999761581
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 820.3000000119209
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 45.5,
+          "duration": 53
+        },
+        {
+          "start": 423.39999997615814,
+          "duration": 56
+        },
+        {
+          "start": 3864.899999976158,
+          "duration": 79
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 500,
+      "columns": 10000,
+      "entry": "file",
+      "run": 2,
+      "warmup": false,
+      "interactive": 401.19999998807907,
+      "scroll": {
+        "p50": 16.30000001192093,
+        "p95": 28.399999976158142,
+        "max": 39
+      },
+      "settledScroll": {
+        "p50": 15.699999988079071,
+        "p95": 28,
+        "max": 43.89999997615814
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 200.0999999642372
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 209.89999997615814
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 434.39999997615814
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 470.7999999523163
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 471.0999999642372
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 538.3999999761581
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 619.6999999880791
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 774.6999999880791
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 785.3999999761581
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 434.5,
+          "duration": 50
+        },
+        {
+          "start": 3728.199999988079,
+          "duration": 61
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 500,
+      "columns": 10000,
+      "entry": "file",
+      "run": 3,
+      "warmup": false,
+      "interactive": 409.4000000357628,
+      "scroll": {
+        "p50": 16.19999998807907,
+        "p95": 29.19999998807907,
+        "max": 58.30000001192093
+      },
+      "settledScroll": {
+        "p50": 17,
+        "p95": 30.899999976158142,
+        "max": 58.19999998807907
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 157.80000001192093
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 166.20000004768372
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 394.9000000357628
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 442.10000002384186
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 442.60000002384186
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 508
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 599.5
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 752.7000000476837
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 763.6000000238419
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 395,
+          "duration": 61
+        },
+        {
+          "start": 3785.400000035763,
+          "duration": 73
+        },
+        {
+          "start": 5234.900000035763,
+          "duration": 61
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 500,
+      "columns": 10000,
+      "entry": "result",
+      "run": 0,
+      "warmup": true,
+      "interactive": 1328.3999999761581,
+      "scroll": {
+        "p50": 17.099999964237213,
+        "p95": 30.599999964237213,
+        "max": 54.60000002384186
+      },
+      "settledScroll": {
+        "p50": 19.400000035762787,
+        "p95": 30.30000001192093,
+        "max": 46.89999997615814
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 175.89999997615814
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 1145.7999999523163
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 1335.199999988079
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 1389.199999988079
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 1389.5
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 1451.7999999523163
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 1525.5
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 1678.8999999761581
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 1692
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 4930.5,
+          "duration": 62
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 500,
+      "columns": 10000,
+      "entry": "result",
+      "run": 1,
+      "warmup": false,
+      "interactive": 1321.199999988079,
+      "scroll": {
+        "p50": 21.69999998807907,
+        "p95": 33.90000003576279,
+        "max": 58.19999998807907
+      },
+      "settledScroll": {
+        "p50": 18.599999964237213,
+        "p95": 31.19999998807907,
+        "max": 50.59999996423721
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 193.5999999642372
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 1130.3999999761581
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 1334
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 1390.5999999642372
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 1391.0999999642372
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 1462.0999999642372
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 1538.199999988079
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 1713.199999988079
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 1728.5
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 1371.7999999523163,
+          "duration": 50
+        },
+        {
+          "start": 5565.5,
+          "duration": 66
+        },
+        {
+          "start": 7216.799999952316,
+          "duration": 52
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 500,
+      "columns": 10000,
+      "entry": "result",
+      "run": 2,
+      "warmup": false,
+      "interactive": 1286.699999988079,
+      "scroll": {
+        "p50": 19.400000035762787,
+        "p95": 31.399999976158142,
+        "max": 51.19999998807907
+      },
+      "settledScroll": {
+        "p50": 20.399999976158142,
+        "p95": 34.69999998807907,
+        "max": 79.69999998807907
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 174.69999998807907
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 1094.199999988079
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 1272.199999988079
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 1332.8999999761581
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 1333.3999999761581
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 1411.3999999761581
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 1480.5
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 1634.800000011921
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 1657.3999999761581
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 1312.6000000238419,
+          "duration": 58
+        },
+        {
+          "start": 4497.899999976158,
+          "duration": 53
+        },
+        {
+          "start": 5229.899999976158,
+          "duration": 82
+        },
+        {
+          "start": 7680.399999976158,
+          "duration": 80
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 500,
+      "columns": 10000,
+      "entry": "result",
+      "run": 3,
+      "warmup": false,
+      "interactive": 1292,
+      "scroll": {
+        "p50": 19.100000023841858,
+        "p95": 32.59999996423721,
+        "max": 54.30000001192093
+      },
+      "settledScroll": {
+        "p50": 21.5,
+        "p95": 34.5,
+        "max": 78.09999996423721
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 179.80000001192093
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 1106.9000000357628
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 1295.9000000357628
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 1351.9000000357628
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 1352.300000011921
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 1420.5
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 1495.7000000476837
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 1655.9000000357628
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 1671.6000000238419
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 5175.200000047684,
+          "duration": 68
+        },
+        {
+          "start": 8459.100000023842,
+          "duration": 78
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 5000,
+      "columns": 10000,
+      "entry": "file",
+      "run": 0,
+      "warmup": true,
+      "interactive": 2466.5,
+      "scroll": {
+        "p50": 19.100000023841858,
+        "p95": 34.09999996423721,
+        "max": 65.30000001192093
+      },
+      "settledScroll": {
+        "p50": 18.5,
+        "p95": 32,
+        "max": 77.80000001192093
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 197.0999999642372
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 205.29999995231628
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2459.099999964237
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 2517.899999976158
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 2518.5
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 2593.399999976158
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 3828.899999976158
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 5535.799999952316
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 5543.099999964237
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 63.39999997615814,
+          "duration": 56
+        },
+        {
+          "start": 2459.199999988079,
+          "duration": 77
+        },
+        {
+          "start": 3850.099999964237,
+          "duration": 56
+        },
+        {
+          "start": 6382.5,
+          "duration": 93
+        },
+        {
+          "start": 7890.299999952316,
+          "duration": 86
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 5000,
+      "columns": 10000,
+      "entry": "file",
+      "run": 1,
+      "warmup": false,
+      "interactive": 2416.5,
+      "scroll": {
+        "p50": 18.400000035762787,
+        "p95": 32.799999952316284,
+        "max": 59.299999952316284
+      },
+      "settledScroll": {
+        "p50": 17.600000023841858,
+        "p95": 33.09999996423721,
+        "max": 76.20000004768372
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 182.20000004768372
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 191.10000002384186
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2168.2000000476837
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 2216.100000023842
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 2216.5
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 2282.2000000476837
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 3310.400000035763
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 4918.600000023842
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 4926.800000011921
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 56.90000003576279,
+          "duration": 52
+        },
+        {
+          "start": 2168.400000035763,
+          "duration": 59
+        },
+        {
+          "start": 3342.100000023842,
+          "duration": 53
+        },
+        {
+          "start": 6272,
+          "duration": 101
+        },
+        {
+          "start": 8719.300000011921,
+          "duration": 77
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 5000,
+      "columns": 10000,
+      "entry": "file",
+      "run": 2,
+      "warmup": false,
+      "interactive": 2433.599999964237,
+      "scroll": {
+        "p50": 18.5,
+        "p95": 33.40000003576279,
+        "max": 82.5
+      },
+      "settledScroll": {
+        "p50": 18.80000001192093,
+        "p95": 33.39999997615814,
+        "max": 77.69999998807907
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 173.10000002384186
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 184.10000002384186
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2248.300000011921
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 2301.899999976158
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 2302.300000011921
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 2378.600000023842
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 3554.399999976158
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 5205.800000011921
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 5213.699999988079
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 43.80000001192093,
+          "duration": 51
+        },
+        {
+          "start": 2248.399999976158,
+          "duration": 67
+        },
+        {
+          "start": 2316,
+          "duration": 54
+        },
+        {
+          "start": 3590.300000011921,
+          "duration": 72
+        },
+        {
+          "start": 6250.199999988079,
+          "duration": 87
+        },
+        {
+          "start": 8278.5,
+          "duration": 70
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 5000,
+      "columns": 10000,
+      "entry": "file",
+      "run": 3,
+      "warmup": false,
+      "interactive": 2417,
+      "scroll": {
+        "p50": 17.600000023841858,
+        "p95": 31,
+        "max": 85.30000001192093
+      },
+      "settledScroll": {
+        "p50": 19.399999976158142,
+        "p95": 34.200000047683716,
+        "max": 93
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 172.29999995231628
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 182.79999995231628
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2263
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 2320.899999976158
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 2321.399999976158
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 2395
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 3463.199999988079
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 5021.899999976158
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 5029
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 53.5,
+          "duration": 54
+        },
+        {
+          "start": 2263.099999964237,
+          "duration": 75
+        },
+        {
+          "start": 3492.199999988079,
+          "duration": 68
+        },
+        {
+          "start": 6112.5,
+          "duration": 90
+        },
+        {
+          "start": 8480.099999964237,
+          "duration": 54
+        },
+        {
+          "start": 8536,
+          "duration": 89
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 5000,
+      "columns": 10000,
+      "entry": "result",
+      "run": 0,
+      "warmup": true,
+      "interactive": 2838.300000011921,
+      "scroll": {
+        "p50": 19.900000035762787,
+        "p95": 31.80000001192093,
+        "max": 73.30000001192093
+      },
+      "settledScroll": {
+        "p50": 20.899999976158142,
+        "p95": 35.40000003576279,
+        "max": 76.80000001192093
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 171.80000001192093
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 1141.4000000357628
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2749.600000023842
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 2824
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 2824.5
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 2890.800000011921
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 4145.100000023842
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 5780.400000035763
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 5788.600000023842
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 4165.199999988079,
+          "duration": 54
+        },
+        {
+          "start": 6801.699999988079,
+          "duration": 89
+        },
+        {
+          "start": 8509.800000011921,
+          "duration": 54
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 5000,
+      "columns": 10000,
+      "entry": "result",
+      "run": 1,
+      "warmup": false,
+      "interactive": 3302.2999999523163,
+      "scroll": {
+        "p50": 21.69999998807907,
+        "p95": 33.19999998807907,
+        "max": 78.79999995231628
+      },
+      "settledScroll": {
+        "p50": 19.900000035762787,
+        "p95": 30.200000047683716,
+        "max": 66.69999998807907
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 188.20000004768372
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 1119.5
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2893.600000023842
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 2976.7000000476837
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 2977.2000000476837
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 3075.7000000476837
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 4305.800000011921
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 6054.5
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 6079.100000023842
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 2953.5,
+          "duration": 67
+        },
+        {
+          "start": 4347.300000011921,
+          "duration": 62
+        },
+        {
+          "start": 7439.5,
+          "duration": 81
+        },
+        {
+          "start": 7636.200000047684,
+          "duration": 85
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 5000,
+      "columns": 10000,
+      "entry": "result",
+      "run": 2,
+      "warmup": false,
+      "interactive": 2311.800000011921,
+      "scroll": {
+        "p50": 21,
+        "p95": 32.80000001192093,
+        "max": 64.69999998807907
+      },
+      "settledScroll": {
+        "p50": 20.5,
+        "p95": 32.60000002384186,
+        "max": 99.40000003576279
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 290.2999999523163
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 719.1999999880791
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2381.399999976158
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 2451.699999988079
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 2452.099999964237
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 2532.399999976158
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 3775.7999999523163
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 5471.5
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 5490.199999988079
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 95.09999996423721,
+          "duration": 53
+        },
+        {
+          "start": 2431.2999999523163,
+          "duration": 54
+        },
+        {
+          "start": 3812,
+          "duration": 52
+        },
+        {
+          "start": 6564.699999988079,
+          "duration": 88
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 5000,
+      "columns": 10000,
+      "entry": "result",
+      "run": 3,
+      "warmup": false,
+      "interactive": 3336.2999999523163,
+      "scroll": {
+        "p50": 21.299999952316284,
+        "p95": 36.5,
+        "max": 76.69999998807907
+      },
+      "settledScroll": {
+        "p50": 20.600000023841858,
+        "p95": 32.69999998807907,
+        "max": 91.69999998807907
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 194.70000004768372
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 1165
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2938.7000000476837
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 3030
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 3030.5
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 3124.600000023842
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 4591.400000035763
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 6489.300000011921
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 6514.800000011921
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 3009.100000023842,
+          "duration": 59
+        },
+        {
+          "start": 4631.400000035763,
+          "duration": 63
+        },
+        {
+          "start": 7749,
+          "duration": 93
+        },
+        {
+          "start": 9465.800000011921,
+          "duration": 89
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 50000,
+      "columns": 1000,
+      "entry": "file",
+      "run": 0,
+      "warmup": true,
+      "interactive": 3194,
+      "scroll": {
+        "p50": 18.5,
+        "p95": 31.899999976158142,
+        "max": 197.10000002384186
+      },
+      "settledScroll": {
+        "p50": 17.5,
+        "p95": 31.099999964237213,
+        "max": 86.69999998807907
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 157
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 165.30000001192093
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2535.400000035763
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 2699
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 2699.400000035763
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 2780.300000011921
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 3836.5
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 6099.200000047684
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 6122.700000047684
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 2477.7000000476837,
+          "duration": 57
+        },
+        {
+          "start": 2536.100000023842,
+          "duration": 183
+        },
+        {
+          "start": 3876.300000011921,
+          "duration": 51
+        },
+        {
+          "start": 5936.600000023842,
+          "duration": 163
+        },
+        {
+          "start": 7241.600000023842,
+          "duration": 72
+        },
+        {
+          "start": 7508.900000035763,
+          "duration": 94
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 50000,
+      "columns": 1000,
+      "entry": "file",
+      "run": 1,
+      "warmup": false,
+      "interactive": 2590.600000023842,
+      "scroll": {
+        "p50": 18.400000035762787,
+        "p95": 32.69999998807907,
+        "max": 204.39999997615814
+      },
+      "settledScroll": {
+        "p50": 21.099999964237213,
+        "p95": 36,
+        "max": 74.69999998807907
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 174.89999997615814
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 189.39999997615814
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2446.399999976158
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 2587.899999976158
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 2588.300000011921
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 2670.699999988079
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 3818.300000011921
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 6046.600000023842
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 6072.300000011921
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 48.5,
+          "duration": 58
+        },
+        {
+          "start": 2388.5,
+          "duration": 57
+        },
+        {
+          "start": 2446.600000023842,
+          "duration": 160
+        },
+        {
+          "start": 3844.600000023842,
+          "duration": 50
+        },
+        {
+          "start": 5875.300000011921,
+          "duration": 172
+        },
+        {
+          "start": 6642.899999976158,
+          "duration": 106
+        },
+        {
+          "start": 8960,
+          "duration": 50
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 50000,
+      "columns": 1000,
+      "entry": "file",
+      "run": 2,
+      "warmup": false,
+      "interactive": 3102.699999988079,
+      "scroll": {
+        "p50": 18.80000001192093,
+        "p95": 35.30000001192093,
+        "max": 172.5
+      },
+      "settledScroll": {
+        "p50": 18.700000047683716,
+        "p95": 31.900000035762787,
+        "max": 59
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 248.5
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 260.19999998807907
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2921.300000011921
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 3117.300000011921
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 3117.800000011921
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 3236.199999988079
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 4496.100000023842
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 6805
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 6812.100000023842
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 50.69999998807907,
+          "duration": 59
+        },
+        {
+          "start": 2856.100000023842,
+          "duration": 65
+        },
+        {
+          "start": 2921.600000023842,
+          "duration": 227
+        },
+        {
+          "start": 3149.199999988079,
+          "duration": 59
+        },
+        {
+          "start": 4533.100000023842,
+          "duration": 51
+        },
+        {
+          "start": 6647.300000011921,
+          "duration": 158
+        },
+        {
+          "start": 7233.400000035763,
+          "duration": 87
+        },
+        {
+          "start": 7384.5,
+          "duration": 64
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 50000,
+      "columns": 1000,
+      "entry": "file",
+      "run": 3,
+      "warmup": false,
+      "interactive": 2584.699999988079,
+      "scroll": {
+        "p50": 17.69999998807907,
+        "p95": 34,
+        "max": 191.10000002384186
+      },
+      "settledScroll": {
+        "p50": 18,
+        "p95": 32.19999998807907,
+        "max": 101.10000002384186
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 145.80000001192093
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 154.89999997615814
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2414.699999988079
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 2577
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 2577.399999976158
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 2653.300000011921
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 3731.5
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 5888.099999964237
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 5895
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 2360.699999988079,
+          "duration": 54
+        },
+        {
+          "start": 2414.899999976158,
+          "duration": 178
+        },
+        {
+          "start": 5711.199999988079,
+          "duration": 177
+        },
+        {
+          "start": 6408.800000011921,
+          "duration": 126
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 50000,
+      "columns": 1000,
+      "entry": "result",
+      "run": 0,
+      "warmup": true,
+      "interactive": 3385.199999988079,
+      "scroll": {
+        "p50": 19.100000023841858,
+        "p95": 31.400000035762787,
+        "max": 197.80000001192093
+      },
+      "settledScroll": {
+        "p50": 18.5,
+        "p95": 29.899999976158142,
+        "max": 85.40000003576279
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 180.19999998807907
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 1113.699999988079
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2761.399999976158
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 2940.5
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 2940.800000011921
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 3031.099999964237
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 4183
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 6417.300000011921
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 6429.899999976158
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 2700.300000011921,
+          "duration": 61
+        },
+        {
+          "start": 2786.599999964237,
+          "duration": 112
+        },
+        {
+          "start": 2920.300000011921,
+          "duration": 56
+        },
+        {
+          "start": 4218.300000011921,
+          "duration": 61
+        },
+        {
+          "start": 6241.599999964237,
+          "duration": 176
+        },
+        {
+          "start": 7399.199999988079,
+          "duration": 71
+        },
+        {
+          "start": 8078.300000011921,
+          "duration": 85
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 50000,
+      "columns": 1000,
+      "entry": "result",
+      "run": 1,
+      "warmup": false,
+      "interactive": 3384.5,
+      "scroll": {
+        "p50": 19.400000035762787,
+        "p95": 31.399999976158142,
+        "max": 179.9000000357628
+      },
+      "settledScroll": {
+        "p50": 19.19999998807907,
+        "p95": 30.30000001192093,
+        "max": 78.80000001192093
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 174.5
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 1092.6000000238419
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2817.600000023842
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 3000.800000011921
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 3001.400000035763
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 3103.199999988079
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 4245.900000035763
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 6390.100000023842
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 6402.100000023842
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 2754.699999988079,
+          "duration": 63
+        },
+        {
+          "start": 2839.199999988079,
+          "duration": 109
+        },
+        {
+          "start": 2974.900000035763,
+          "duration": 70
+        },
+        {
+          "start": 4292,
+          "duration": 52
+        },
+        {
+          "start": 6234.100000023842,
+          "duration": 156
+        },
+        {
+          "start": 7527.900000035763,
+          "duration": 87
+        },
+        {
+          "start": 8412.199999988079,
+          "duration": 79
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 50000,
+      "columns": 1000,
+      "entry": "result",
+      "run": 2,
+      "warmup": false,
+      "interactive": 2842,
+      "scroll": {
+        "p50": 19.30000001192093,
+        "p95": 30.099999964237213,
+        "max": 171.79999995231628
+      },
+      "settledScroll": {
+        "p50": 18.400000035762787,
+        "p95": 30.099999964237213,
+        "max": 69.39999997615814
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 204.39999997615814
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 640.1999999880791
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2306.199999988079
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 2482.899999976158
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 2483.300000011921
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 2562
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 3599.599999964237
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 5758.899999976158
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 5770.300000011921
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 2247.199999988079,
+          "duration": 59
+        },
+        {
+          "start": 2328.300000011921,
+          "duration": 109
+        },
+        {
+          "start": 2456.399999976158,
+          "duration": 61
+        },
+        {
+          "start": 3630.899999976158,
+          "duration": 52
+        },
+        {
+          "start": 5614.300000011921,
+          "duration": 145
+        },
+        {
+          "start": 6908.899999976158,
+          "duration": 84
+        },
+        {
+          "start": 7472.399999976158,
+          "duration": 65
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 50000,
+      "columns": 1000,
+      "entry": "result",
+      "run": 3,
+      "warmup": false,
+      "interactive": 3425.699999988079,
+      "scroll": {
+        "p50": 19,
+        "p95": 31.400000035762787,
+        "max": 173.5999999642372
+      },
+      "settledScroll": {
+        "p50": 18.299999952316284,
+        "p95": 30.69999998807907,
+        "max": 85.39999997615814
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 186.5
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 1119
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2849.300000011921
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 3046.800000011921
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 3047.300000011921
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 3150.399999976158
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 4258
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 6498.300000011921
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 6509.199999988079
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 2791,
+          "duration": 58
+        },
+        {
+          "start": 2883.399999976158,
+          "duration": 114
+        },
+        {
+          "start": 3024.5,
+          "duration": 71
+        },
+        {
+          "start": 4294,
+          "duration": 60
+        },
+        {
+          "start": 6348.800000011921,
+          "duration": 150
+        },
+        {
+          "start": 7469.599999964237,
+          "duration": 75
+        },
+        {
+          "start": 8134.5,
+          "duration": 80
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 500,
+      "columns": 100000,
+      "entry": "file",
+      "run": 0,
+      "warmup": true,
+      "interactive": 2419.7999999523163,
+      "scroll": {
+        "p50": 17.19999998807907,
+        "p95": 30.30000001192093,
+        "max": 74.60000002384186
+      },
+      "settledScroll": {
+        "p50": 16.69999998807907,
+        "p95": 31.399999976158142,
+        "max": 70.60000002384186
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 178.9000000357628
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 191.69999998807907
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2364.300000011921
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 2405.699999988079
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 2406.100000023842
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 2466.100000023842
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 3786.699999988079
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 5371.5
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 5378.5
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 46.80000001192093,
+          "duration": 61
+        },
+        {
+          "start": 2364.400000035763,
+          "duration": 54
+        },
+        {
+          "start": 3821.199999988079,
+          "duration": 61
+        },
+        {
+          "start": 5996.400000035763,
+          "duration": 69
+        },
+        {
+          "start": 7031.100000023842,
+          "duration": 79
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 500,
+      "columns": 100000,
+      "entry": "file",
+      "run": 1,
+      "warmup": false,
+      "interactive": 2519.5,
+      "scroll": {
+        "p50": 18.5,
+        "p95": 32.39999997615814,
+        "max": 57.09999996423721
+      },
+      "settledScroll": {
+        "p50": 17.5,
+        "p95": 30,
+        "max": 54.09999996423721
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 152.30000001192093
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 159.89999997615814
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2009.8999999761581
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 2053.699999988079
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 2054
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 2122
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 3256.300000011921
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 4858.300000011921
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 4869.100000023842
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 2010.3999999761581,
+          "duration": 58
+        },
+        {
+          "start": 3286.199999988079,
+          "duration": 51
+        },
+        {
+          "start": 6305.5,
+          "duration": 87
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 500,
+      "columns": 100000,
+      "entry": "file",
+      "run": 2,
+      "warmup": false,
+      "interactive": 2419.199999988079,
+      "scroll": {
+        "p50": 17.399999976158142,
+        "p95": 30.69999998807907,
+        "max": 75.5
+      },
+      "settledScroll": {
+        "p50": 16.900000035762787,
+        "p95": 29.69999998807907,
+        "max": 61.299999952316284
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 166.69999998807907
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 176
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2052.899999976158
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 2095.099999964237
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 2095.5
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 2155.7999999523163
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 3358.2999999523163
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 4933.299999952316
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 4942.099999964237
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 50.69999998807907,
+          "duration": 54
+        },
+        {
+          "start": 2053,
+          "duration": 55
+        },
+        {
+          "start": 3377.099999964237,
+          "duration": 60
+        },
+        {
+          "start": 6052.799999952316,
+          "duration": 78
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 500,
+      "columns": 100000,
+      "entry": "file",
+      "run": 3,
+      "warmup": false,
+      "interactive": 2422.800000011921,
+      "scroll": {
+        "p50": 18.099999964237213,
+        "p95": 31.600000023841858,
+        "max": 59.299999952316284
+      },
+      "settledScroll": {
+        "p50": 16.399999976158142,
+        "p95": 30.30000001192093,
+        "max": 65.30000001192093
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 179.69999998807907
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 189.89999997615814
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2125.199999988079
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 2169.5
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 2169.899999976158
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 2233.699999988079
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 3426.399999976158
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 5049.399999976158
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 5058.199999988079
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 53.19999998807907,
+          "duration": 53
+        },
+        {
+          "start": 2125.399999976158,
+          "duration": 57
+        },
+        {
+          "start": 5117.699999988079,
+          "duration": 57
+        },
+        {
+          "start": 6233.5,
+          "duration": 77
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 500,
+      "columns": 100000,
+      "entry": "result",
+      "run": 0,
+      "warmup": true,
+      "interactive": 2797.099999964237,
+      "scroll": {
+        "p50": 18.80000001192093,
+        "p95": 32.30000001192093,
+        "max": 71.79999995231628
+      },
+      "settledScroll": {
+        "p50": 18.899999976158142,
+        "p95": 30.400000035762787,
+        "max": 58.19999998807907
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 179.30000001192093
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 1122.699999988079
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2560.699999988079
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 2618
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 2618.300000011921
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 2688.099999964237
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 4027.5
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 5557.399999976158
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 5579.300000011921
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 4060.800000011921,
+          "duration": 55
+        },
+        {
+          "start": 6742.399999976158,
+          "duration": 73
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 500,
+      "columns": 100000,
+      "entry": "result",
+      "run": 1,
+      "warmup": false,
+      "interactive": 2781.099999964237,
+      "scroll": {
+        "p50": 19.600000023841858,
+        "p95": 32.40000003576279,
+        "max": 75.19999998807907
+      },
+      "settledScroll": {
+        "p50": 20,
+        "p95": 31.299999952316284,
+        "max": 66
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 176.20000004768372
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 1101.4000000357628
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2513.400000035763
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 2577.400000035763
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 2577.800000011921
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 2648
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 3904.100000023842
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 5549.300000011921
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 5561.300000011921
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 2559.800000011921,
+          "duration": 52
+        },
+        {
+          "start": 3920.2000000476837,
+          "duration": 66
+        },
+        {
+          "start": 6810.100000023842,
+          "duration": 78
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 500,
+      "columns": 100000,
+      "entry": "result",
+      "run": 2,
+      "warmup": false,
+      "interactive": 2816.900000035763,
+      "scroll": {
+        "p50": 18.900000035762787,
+        "p95": 30.200000047683716,
+        "max": 67
+      },
+      "settledScroll": {
+        "p50": 20.100000023841858,
+        "p95": 34.5,
+        "max": 78.39999997615814
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 191.19999998807907
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 1152.5
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2631.600000023842
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 2692.899999976158
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 2693.300000011921
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 2768.399999976158
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 4111.399999976158
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 5708.899999976158
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 5723.600000023842
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 2673.399999976158,
+          "duration": 55
+        },
+        {
+          "start": 4145.5,
+          "duration": 54
+        },
+        {
+          "start": 6671.800000011921,
+          "duration": 84
+        },
+        {
+          "start": 7002.100000023842,
+          "duration": 77
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    },
+    {
+      "rows": 500,
+      "columns": 100000,
+      "entry": "result",
+      "run": 3,
+      "warmup": false,
+      "interactive": 2810.099999964237,
+      "scroll": {
+        "p50": 19.19999998807907,
+        "p95": 30,
+        "max": 59.89999997615814
+      },
+      "settledScroll": {
+        "p50": 19.899999976158142,
+        "p95": 33.80000001192093,
+        "max": 72.69999998807907
+      },
+      "marks": [
+        {
+          "name": "perf:start",
+          "time": 168.70000004768372
+        },
+        {
+          "name": "easymsa:input-start",
+          "time": 1116
+        },
+        {
+          "name": "easymsa:input-decoded",
+          "time": 2619.600000023842
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 2688.100000023842
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 2688.5
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 2762.300000011921
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 4106.5
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 5710.600000023842
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 5726.5
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 2668.300000011921,
+          "duration": 54
+        },
+        {
+          "start": 4135.5,
+          "duration": 53
+        },
+        {
+          "start": 6649,
+          "duration": 83
+        },
+        {
+          "start": 8207.900000035763,
+          "duration": 73
+        }
+      ],
+      "workers": 1,
+      "starts": 1,
+      "errors": []
+    }
+  ]
+}

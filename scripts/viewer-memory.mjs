@@ -37,7 +37,12 @@ export async function sampleViewerMemory(browser, context, page) {
   };
   const timer = setInterval(()=>void sample().catch(()=>{}),250);
   await sample();
-  return async () => {
+  const capture = async () => {
+    while(busy) await new Promise(resolve=>setTimeout(resolve,10));
+    await sample();
+    return samples.at(-1);
+  };
+  const stop = async () => {
     clearInterval(timer);
     while(busy) await new Promise(resolve=>setTimeout(resolve,10));
     await sample(); stopped=true;
@@ -45,4 +50,7 @@ export async function sampleViewerMemory(browser, context, page) {
     await main.detach(); await root.detach();
     return samples;
   };
+  // A lifecycle checkpoint must await an observation, rather than hoping a
+  // timer lands inside a short window while a terminated target detaches.
+  return Object.assign(stop, { capture });
 }

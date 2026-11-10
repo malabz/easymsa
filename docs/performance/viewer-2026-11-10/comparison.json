@@ -1,0 +1,210 @@
+[
+  {
+    "rows": 500,
+    "columns": 10000,
+    "entry": "file",
+    "before": {
+      "interactive": 424.30000001192093,
+      "analysis": 1121.800000011921,
+      "firstPaint": 320.30000001192093,
+      "firstScrollP95": 25,
+      "settledScrollP95": 26.80000001192093
+    },
+    "after": {
+      "interactive": 310,
+      "analysis": 222.80000001192093,
+      "firstPaint": 209.19999998807907,
+      "firstScrollP95": 25.400000035762787,
+      "settledScrollP95": 26
+    },
+    "interactiveReduction": 26.938486921685033,
+    "analysisReduction": 80.13906222057824,
+    "passed": {
+      "interactive": false,
+      "analysis": true,
+      "scroll": false
+    }
+  },
+  {
+    "rows": 500,
+    "columns": 10000,
+    "entry": "result",
+    "before": {
+      "interactive": 1375.5,
+      "analysis": 1120.300000011921,
+      "firstPaint": 1256.5,
+      "firstScrollP95": 25,
+      "settledScrollP95": 25.5
+    },
+    "after": {
+      "interactive": 1277,
+      "analysis": 211.0999999642372,
+      "firstPaint": 1113.300000011921,
+      "firstScrollP95": 24.600000023841858,
+      "settledScrollP95": 25.30000001192093
+    },
+    "interactiveReduction": 7.161032351872043,
+    "analysisReduction": 81.15683299455584,
+    "passed": {
+      "interactive": false,
+      "analysis": true,
+      "scroll": false
+    }
+  },
+  {
+    "rows": 5000,
+    "columns": 10000,
+    "entry": "file",
+    "before": {
+      "interactive": 2946.699999988079,
+      "analysis": 12050.600000023842,
+      "firstPaint": 2775.400000035763,
+      "firstScrollP95": 21,
+      "settledScrollP95": 28.899999976158142
+    },
+    "after": {
+      "interactive": 1899.5,
+      "analysis": 1902.199999988079,
+      "firstPaint": 1507.8999999761581,
+      "firstScrollP95": 28.80000001192093,
+      "settledScrollP95": 27.600000023841858
+    },
+    "interactiveReduction": 35.53805952395275,
+    "analysisReduction": 84.21489386433608,
+    "passed": {
+      "interactive": true,
+      "analysis": true,
+      "scroll": false
+    }
+  },
+  {
+    "rows": 5000,
+    "columns": 10000,
+    "entry": "result",
+    "before": {
+      "interactive": 4235.900000035763,
+      "analysis": 12214.300000011921,
+      "firstPaint": 3751.300000011921,
+      "firstScrollP95": 21.69999998807907,
+      "settledScrollP95": 30.30000001192093
+    },
+    "after": {
+      "interactive": 2247.300000011921,
+      "analysis": 2093.199999988079,
+      "firstPaint": 2120.199999988079,
+      "firstScrollP95": 26.80000001192093,
+      "settledScrollP95": 26.5
+    },
+    "interactiveReduction": 46.94633962102629,
+    "analysisReduction": 82.86271010220777,
+    "passed": {
+      "interactive": true,
+      "analysis": true,
+      "scroll": false
+    }
+  },
+  {
+    "rows": 50000,
+    "columns": 1000,
+    "entry": "file",
+    "before": {
+      "interactive": 2981,
+      "analysis": 12663.399999976158,
+      "firstPaint": 2756.300000011921,
+      "firstScrollP95": 21.100000023841858,
+      "settledScrollP95": 28.19999998807907
+    },
+    "after": {
+      "interactive": 1915.8999999761581,
+      "analysis": 2207.800000011921,
+      "firstPaint": 1705.699999988079,
+      "firstScrollP95": 28.399999976158142,
+      "settledScrollP95": 27.5
+    },
+    "interactiveReduction": 35.72962093337275,
+    "analysisReduction": 82.56550373504685,
+    "passed": {
+      "interactive": true,
+      "analysis": true,
+      "scroll": false
+    }
+  },
+  {
+    "rows": 50000,
+    "columns": 1000,
+    "entry": "result",
+    "before": {
+      "interactive": 4274.399999976158,
+      "analysis": 12838.599999964237,
+      "firstPaint": 3875.7999999523163,
+      "firstScrollP95": 21.30000001192093,
+      "settledScrollP95": 29.099999964237213
+    },
+    "after": {
+      "interactive": 2849.900000035763,
+      "analysis": 2430.599999964237,
+      "firstPaint": 2408.199999988079,
+      "firstScrollP95": 27,
+      "settledScrollP95": 26.5
+    },
+    "interactiveReduction": 33.326314803208426,
+    "analysisReduction": 81.06802922459609,
+    "passed": {
+      "interactive": true,
+      "analysis": true,
+      "scroll": false
+    }
+  },
+  {
+    "rows": 500,
+    "columns": 100000,
+    "entry": "file",
+    "before": {
+      "interactive": 2942.699999988079,
+      "analysis": 12222.799999952316,
+      "firstPaint": 2715.300000011921,
+      "firstScrollP95": 20.600000023841858,
+      "settledScrollP95": 28.19999998807907
+    },
+    "after": {
+      "interactive": 1893.1000000238419,
+      "analysis": 1884.8999999761581,
+      "firstPaint": 1471.8999999761581,
+      "firstScrollP95": 28,
+      "settledScrollP95": 27.100000023841858
+    },
+    "interactiveReduction": 35.667924014289234,
+    "analysisReduction": 84.57881991046641,
+    "passed": {
+      "interactive": true,
+      "analysis": true,
+      "scroll": false
+    }
+  },
+  {
+    "rows": 500,
+    "columns": 100000,
+    "entry": "result",
+    "before": {
+      "interactive": 4199.300000011921,
+      "analysis": 12549.5,
+      "firstPaint": 3704.300000011921,
+      "firstScrollP95": 21.69999998807907,
+      "settledScrollP95": 28.80000001192093
+    },
+    "after": {
+      "interactive": 2267.400000035763,
+      "analysis": 2119.800000011921,
+      "firstPaint": 2137.600000023842,
+      "firstScrollP95": 26.600000023841858,
+      "settledScrollP95": 26.30000001192093
+    },
+    "interactiveReduction": 46.00528659468659,
+    "analysisReduction": 83.10849037800772,
+    "passed": {
+      "interactive": true,
+      "analysis": true,
+      "scroll": false
+    }
+  }
+]
