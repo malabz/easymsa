@@ -1,5 +1,6 @@
 node_modules
 dist
+/dist-performance/
 .env
 .env.local
 .DS_Store
