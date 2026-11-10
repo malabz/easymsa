@@ -1,0 +1,37 @@
+[
+  {
+    "width": 390,
+    "name": "embedded",
+    "pixels": 270750,
+    "changed": 0,
+    "maxDelta": 0
+  },
+  {
+    "width": 390,
+    "name": "immersive",
+    "pixels": 351000,
+    "changed": 10,
+    "maxDelta": 33
+  },
+  {
+    "width": 390,
+    "name": "selection",
+    "pixels": 351000,
+    "changed": 10,
+    "maxDelta": 33
+  },
+  {
+    "width": 390,
+    "name": "overview",
+    "pixels": 351000,
+    "changed": 8,
+    "maxDelta": 33
+  },
+  {
+    "width": 390,
+    "name": "unequal",
+    "pixels": 270750,
+    "changed": 0,
+    "maxDelta": 0
+  }
+]

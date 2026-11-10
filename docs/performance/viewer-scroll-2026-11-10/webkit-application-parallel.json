@@ -1,0 +1,3203 @@
+[
+  {
+    "lane": 0,
+    "run": 0,
+    "elapsedMs": 9435.0054,
+    "failure": null,
+    "state": {
+      "events": [
+        {
+          "ms": 3785,
+          "type": "timer-delay",
+          "gap": 3395
+        },
+        {
+          "ms": 3805,
+          "type": "frame-delay",
+          "gap": 3347
+        },
+        {
+          "ms": 8859,
+          "type": "worker",
+          "url": "http://127.0.0.1:5290/assets/sharedData.worker-CgDYY6BJ.js"
+        },
+        {
+          "ms": 8900,
+          "type": "timer-delay",
+          "gap": 5115
+        },
+        {
+          "ms": 8914,
+          "type": "frame-delay",
+          "gap": 5095
+        },
+        {
+          "ms": 9192,
+          "type": "timer-delay",
+          "gap": 292
+        }
+      ],
+      "frames": 25,
+      "ticks": 7,
+      "marks": [
+        {
+          "name": "easymsa:overview-worker-start",
+          "time": 8859
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 8860
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 8861
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 8948
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 8949
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 8951
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 8952
+        },
+        {
+          "name": "easymsa:overview-worker-done",
+          "time": 8993
+        }
+      ]
+    },
+    "events": [
+      {
+        "ms": 53.293799999999464,
+        "url": "http://127.0.0.1:5290/",
+        "timing": {
+          "startTime": 1794313715068.0693,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.045,
+          "connectStart": 0.045,
+          "secureConnectionStart": -1,
+          "connectEnd": 1.745,
+          "requestStart": 1.745,
+          "responseStart": 3.598,
+          "responseEnd": 9.924
+        }
+      },
+      {
+        "ms": 70.03829999999925,
+        "url": "http://127.0.0.1:5290/assets/useQuery-C_0msdS-.js",
+        "timing": {
+          "startTime": 1794313715087.4668,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.026,
+          "connectStart": 0.026,
+          "secureConnectionStart": -1,
+          "connectEnd": 1.395,
+          "requestStart": 1.395,
+          "responseStart": 6.633,
+          "responseEnd": 10.327
+        }
+      },
+      {
+        "ms": 72.16709999999966,
+        "url": "http://127.0.0.1:5290/assets/cn-y1L-p5s6.js",
+        "timing": {
+          "startTime": 1794313715087.5715,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.022,
+          "connectStart": 0.022,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.654,
+          "requestStart": 0.654,
+          "responseStart": 5.634,
+          "responseEnd": 10.419
+        }
+      },
+      {
+        "ms": 72.25590000000011,
+        "url": "http://127.0.0.1:5290/assets/Button-DvQIoHqq.js",
+        "timing": {
+          "startTime": 1794313715087.613,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.024,
+          "connectStart": 0.024,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.471,
+          "requestStart": 0.471,
+          "responseStart": 5.038,
+          "responseEnd": 10.459
+        }
+      },
+      {
+        "ms": 72.33189999999922,
+        "url": "http://127.0.0.1:5290/assets/chunk-OB3PAWPO-BjHwaVko.js",
+        "timing": {
+          "startTime": 1794313715087.5225,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.03,
+          "connectStart": 0.03,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.931,
+          "requestStart": 0.931,
+          "responseStart": 7.416,
+          "responseEnd": 11.288
+        }
+      },
+      {
+        "ms": 72.41979999999967,
+        "url": "http://127.0.0.1:5290/assets/index-NObgE8go.js",
+        "timing": {
+          "startTime": 1794313715087.119,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 14.06,
+          "responseStart": 8.96,
+          "responseEnd": 14.06
+        }
+      },
+      {
+        "ms": 73.75919999999951,
+        "url": "http://127.0.0.1:5290/assets/createLucideIcon-CGkIq_xq.js",
+        "timing": {
+          "startTime": 1794313715087.6577,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 13.929,
+          "responseStart": 9.727,
+          "responseEnd": 13.929
+        }
+      },
+      {
+        "ms": 73.88639999999941,
+        "url": "http://127.0.0.1:5290/assets/activity-CUkzIt9q.js",
+        "timing": {
+          "startTime": 1794313715087.7034,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 13.952,
+          "responseStart": 10.013,
+          "responseEnd": 13.952
+        }
+      },
+      {
+        "ms": 73.99389999999948,
+        "url": "http://127.0.0.1:5290/assets/circle-alert-DM4znkcB.js",
+        "timing": {
+          "startTime": 1794313715087.7505,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 13.947,
+          "responseStart": 10.135,
+          "responseEnd": 13.947
+        }
+      },
+      {
+        "ms": 74.09019999999964,
+        "url": "http://127.0.0.1:5290/assets/loader-circle-CIdSdGDh.js",
+        "timing": {
+          "startTime": 1794313715087.788,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 13.977,
+          "responseStart": 10.339,
+          "responseEnd": 13.977
+        }
+      },
+      {
+        "ms": 74.83489999999983,
+        "url": "http://127.0.0.1:5290/assets/refresh-cw-Dhh0bC49.js",
+        "timing": {
+          "startTime": 1794313715087.8276,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 17.935,
+          "responseStart": 14.467,
+          "responseEnd": 17.935
+        }
+      },
+      {
+        "ms": 75.59269999999924,
+        "url": "http://127.0.0.1:5290/assets/boundedRequest-DDADZAKh.js",
+        "timing": {
+          "startTime": 1794313715087.8647,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 18.679,
+          "responseStart": 14.924,
+          "responseEnd": 18.679
+        }
+      },
+      {
+        "ms": 75.6877999999997,
+        "url": "http://127.0.0.1:5290/assets/alignmentModel-CETI3ppk.js",
+        "timing": {
+          "startTime": 1794313715087.9033,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 18.689,
+          "responseStart": 14.961,
+          "responseEnd": 18.689
+        }
+      },
+      {
+        "ms": 75.77929999999924,
+        "url": "http://127.0.0.1:5290/assets/performanceMarks-CAJ92gMK.js",
+        "timing": {
+          "startTime": 1794313715087.947,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 18.668,
+          "responseStart": 14.991,
+          "responseEnd": 18.668
+        }
+      },
+      {
+        "ms": 76.47779999999966,
+        "url": "http://127.0.0.1:5290/assets/useLanguage-Dyx1ynOD.js",
+        "timing": {
+          "startTime": 1794313715087.3135,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.02,
+          "connectStart": 0.02,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.714,
+          "requestStart": 0.714,
+          "responseStart": 9.083,
+          "responseEnd": 21.158
+        }
+      },
+      {
+        "ms": 77.1859999999997,
+        "url": "http://127.0.0.1:5290/assets/types-D_-rN_On.js",
+        "timing": {
+          "startTime": 1794313715087.9902,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 20.892,
+          "responseStart": 15.906,
+          "responseEnd": 20.892
+        }
+      },
+      {
+        "ms": 77.50879999999961,
+        "url": "http://127.0.0.1:5290/assets/workspace-Dy4QUcao.js",
+        "timing": {
+          "startTime": 1794313715088.1108,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 20.941,
+          "responseStart": 17.472,
+          "responseEnd": 20.941
+        }
+      },
+      {
+        "ms": 85.72139999999945,
+        "url": "http://127.0.0.1:5290/assets/index-DW365S2F.css",
+        "timing": {
+          "startTime": 1794313715088.1836,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 22.603,
+          "responseStart": 18.124,
+          "responseEnd": 22.603
+        }
+      },
+      {
+        "ms": 186.90279999999984,
+        "url": "http://127.0.0.1:5290/brand/easymsa-mark.svg",
+        "timing": {
+          "startTime": 1794313715186.4734,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 3.893,
+          "responseStart": 1.719,
+          "responseEnd": 3.893
+        }
+      },
+      {
+        "ms": 189.65099999999984,
+        "url": "http://127.0.0.1:5290/assets/chart-column-_3Dc47FX.js",
+        "timing": {
+          "startTime": 1794313715198.3364,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 7.382,
+          "responseStart": 5.831,
+          "responseEnd": 7.382
+        }
+      },
+      {
+        "ms": 190.71289999999954,
+        "url": "http://127.0.0.1:5290/assets/ExamplesPage-B9eGfcYk.js",
+        "timing": {
+          "startTime": 1794313715197.8894,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 8.111,
+          "responseStart": 6.491,
+          "responseEnd": 8.111
+        }
+      },
+      {
+        "ms": 190.78229999999985,
+        "url": "http://127.0.0.1:5290/assets/circle-check-n914rMXR.js",
+        "timing": {
+          "startTime": 1794313715198.4888,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 7.588,
+          "responseStart": 5.851,
+          "responseEnd": 7.588
+        }
+      },
+      {
+        "ms": 190.8246999999992,
+        "url": "http://127.0.0.1:5290/assets/upload-DTpHsZzx.js",
+        "timing": {
+          "startTime": 1794313715198.7412,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.02,
+          "connectStart": 0.02,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.571,
+          "requestStart": 0.571,
+          "responseStart": 5.264,
+          "responseEnd": 7.401
+        }
+      },
+      {
+        "ms": 190.86749999999938,
+        "url": "http://127.0.0.1:5290/assets/ResultStageControl-AL8gN65W.js",
+        "timing": {
+          "startTime": 1794313715198.1086,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 8.753,
+          "responseStart": 6.751,
+          "responseEnd": 8.753
+        }
+      },
+      {
+        "ms": 190.92609999999968,
+        "url": "http://127.0.0.1:5290/assets/useMsaAnalysis-B3kqz_wF.js",
+        "timing": {
+          "startTime": 1794313715198.6326,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.016,
+          "connectStart": 0.016,
+          "secureConnectionStart": -1,
+          "connectEnd": 1.041,
+          "requestStart": 1.041,
+          "responseStart": 6.963,
+          "responseEnd": 11.453
+        }
+      },
+      {
+        "ms": 190.96699999999964,
+        "url": "http://127.0.0.1:5290/assets/links-qQRjel8E.js",
+        "timing": {
+          "startTime": 1794313715198.9878,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 12.476,
+          "responseStart": 10.215,
+          "responseEnd": 12.476
+        }
+      },
+      {
+        "ms": 191.42239999999947,
+        "url": "http://127.0.0.1:5290/assets/file-archive-DSdV3_Tn.js",
+        "timing": {
+          "startTime": 1794313715199.4316,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 12.094,
+          "responseStart": 10.318,
+          "responseEnd": 12.094
+        }
+      },
+      {
+        "ms": 192.39719999999943,
+        "url": "http://127.0.0.1:5290/assets/OverlayDialog-BUKkifNa.js",
+        "timing": {
+          "startTime": 1794313715198.865,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 15.786,
+          "responseStart": 11.145,
+          "responseEnd": 15.786
+        }
+      },
+      {
+        "ms": 194.1223,
+        "url": "http://127.0.0.1:5290/assets/useMsaAnalysis-CMN-Vf0L.css",
+        "timing": {
+          "startTime": 1794313715199.1013,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 15.735,
+          "responseStart": 11.27,
+          "responseEnd": 15.735
+        }
+      },
+      {
+        "ms": 194.16529999999966,
+        "url": "http://127.0.0.1:5290/assets/file-text-B6hMlGI1.js",
+        "timing": {
+          "startTime": 1794313715199.5894,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 15.309,
+          "responseStart": 13.076,
+          "responseEnd": 15.309
+        }
+      },
+      {
+        "ms": 194.5738999999994,
+        "url": "http://127.0.0.1:5290/assets/sparkles-QmpI0t-E.js",
+        "timing": {
+          "startTime": 1794313715199.6897,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 15.285,
+          "responseStart": 13.545,
+          "responseEnd": 15.285
+        }
+      },
+      {
+        "ms": 194.60849999999937,
+        "url": "http://127.0.0.1:5290/assets/algorithmNames-DdPdW0Ud.js",
+        "timing": {
+          "startTime": 1794313715199.8284,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 15.197,
+          "responseStart": 13.511,
+          "responseEnd": 15.197
+        }
+      },
+      {
+        "ms": 194.6337999999996,
+        "url": "http://127.0.0.1:5290/assets/triangle-alert-BIiDrk3C.js",
+        "timing": {
+          "startTime": 1794313715199.9146,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 15.221,
+          "responseStart": 13.633,
+          "responseEnd": 15.221
+        }
+      },
+      {
+        "ms": 195.65249999999924,
+        "url": "http://127.0.0.1:5290/assets/algorithmNames-jXWRGLFL.css",
+        "timing": {
+          "startTime": 1794313715200.017,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 17.606,
+          "responseStart": 16.383,
+          "responseEnd": 17.606
+        }
+      },
+      {
+        "ms": 196.42769999999928,
+        "url": "http://127.0.0.1:5290/assets/realignment-tWUbmqnn.js",
+        "timing": {
+          "startTime": 1794313715200.11,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 17.947,
+          "responseStart": 16.735,
+          "responseEnd": 17.947
+        }
+      },
+      {
+        "ms": 319.3204999999998,
+        "url": "http://127.0.0.1:5290/examples/v1/manifest.json",
+        "timing": {
+          "startTime": 1794313715352.9707,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 3.386,
+          "responseStart": 2.017,
+          "responseEnd": 3.386
+        }
+      },
+      {
+        "ms": 393.7557999999999,
+        "url": "http://127.0.0.1:5290/examples/v1/realignment-small/initial.summary.json?sha256=4f843e74a8991f24b823d74b68d0065bf62d98f6ae7b257e1e18845ea037ebcd",
+        "timing": {
+          "startTime": 1794313715410.6282,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 3.915,
+          "responseStart": 2.648,
+          "responseEnd": 3.915
+        }
+      },
+      {
+        "ms": 394.3182999999999,
+        "url": "http://127.0.0.1:5290/examples/v1/realignment-small/initial.alignment.json?sha256=6348a397708453b361343248b6d893c726c5554800d5379ccf83018328ade997",
+        "timing": {
+          "startTime": 1794313715410.917,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 4.202,
+          "responseStart": 3.032,
+          "responseEnd": 4.202
+        }
+      },
+      {
+        "ms": 468.7476999999999,
+        "url": "http://127.0.0.1:5290/assets/index-NObgE8go.js",
+        "timing": {
+          "startTime": 1794313715491.205,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 3.554,
+          "responseStart": 2.207,
+          "responseEnd": 3.554
+        }
+      },
+      {
+        "ms": 469.60120000000006,
+        "url": "http://127.0.0.1:5290/assets/chevron-right-D0jGgFuY.js",
+        "timing": {
+          "startTime": 1794313715490.938,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 6.997,
+          "responseStart": 5.492,
+          "responseEnd": 6.997
+        }
+      },
+      {
+        "ms": 471.5545999999995,
+        "url": "http://127.0.0.1:5290/assets/eye-Bw9aFWHB.js",
+        "timing": {
+          "startTime": 1794313715491.3833,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 6.752,
+          "responseStart": 5.405,
+          "responseEnd": 6.752
+        }
+      },
+      {
+        "ms": 472.0596999999998,
+        "url": "http://127.0.0.1:5290/assets/rows-3-B-lNuEo8.js",
+        "timing": {
+          "startTime": 1794313715491.4946,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.015,
+          "connectStart": 0.015,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.508,
+          "requestStart": 0.508,
+          "responseStart": 5.599,
+          "responseEnd": 6.804
+        }
+      },
+      {
+        "ms": 472.1188999999995,
+        "url": "http://127.0.0.1:5290/assets/search-BLi6gdc3.js",
+        "timing": {
+          "startTime": 1794313715491.6687,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.017,
+          "connectStart": 0.017,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.33,
+          "requestStart": 0.33,
+          "responseStart": 5.033,
+          "responseEnd": 6.715
+        }
+      },
+      {
+        "ms": 472.15319999999974,
+        "url": "http://127.0.0.1:5290/assets/sliders-horizontal-Dh0b6jQl.js",
+        "timing": {
+          "startTime": 1794313715491.8723,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 6.607,
+          "responseStart": 4.782,
+          "responseEnd": 6.607
+        }
+      },
+      {
+        "ms": 474.15129999999954,
+        "url": "http://127.0.0.1:5290/assets/viewerContext-DNa78poj.js",
+        "timing": {
+          "startTime": 1794313715492.2854,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 9.334,
+          "responseStart": 7.626,
+          "responseEnd": 9.334
+        }
+      },
+      {
+        "ms": 474.21569999999974,
+        "url": "http://127.0.0.1:5290/assets/conservationDisplay-CO2qhRIa.js",
+        "timing": {
+          "startTime": 1794313715491.979,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 9.806,
+          "responseStart": 8.105,
+          "responseEnd": 9.806
+        }
+      },
+      {
+        "ms": 474.53279999999995,
+        "url": "http://127.0.0.1:5290/assets/browser-C8cc1i9H.js",
+        "timing": {
+          "startTime": 1794313715492.1348,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 10.173,
+          "responseStart": 8.155,
+          "responseEnd": 10.173
+        }
+      },
+      {
+        "ms": 475.72969999999987,
+        "url": "http://127.0.0.1:5290/assets/MSAViewer-BNzvctB9.js",
+        "timing": {
+          "startTime": 1794313715490.6677,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 14.478,
+          "responseStart": 7.162,
+          "responseEnd": 14.478
+        }
+      },
+      {
+        "ms": 8927.1756,
+        "url": "http://127.0.0.1:5290/assets/sharedData.worker-CgDYY6BJ.js",
+        "timing": {
+          "startTime": 1794313723927.2822,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.659,
+          "connectStart": 0.659,
+          "secureConnectionStart": -1,
+          "connectEnd": 1.058,
+          "requestStart": 1.058,
+          "responseStart": 3.561,
+          "responseEnd": 5.053
+        }
+      }
+    ]
+  },
+  {
+    "lane": 1,
+    "run": 0,
+    "elapsedMs": 11108.5831,
+    "failure": null,
+    "state": {
+      "events": [
+        {
+          "ms": 5465,
+          "type": "timer-delay",
+          "gap": 5090
+        },
+        {
+          "ms": 5477,
+          "type": "frame-delay",
+          "gap": 5034
+        },
+        {
+          "ms": 10529,
+          "type": "worker",
+          "url": "http://127.0.0.1:5290/assets/sharedData.worker-CgDYY6BJ.js"
+        },
+        {
+          "ms": 10575,
+          "type": "timer-delay",
+          "gap": 5110
+        },
+        {
+          "ms": 10589,
+          "type": "frame-delay",
+          "gap": 5099
+        },
+        {
+          "ms": 10868,
+          "type": "timer-delay",
+          "gap": 293
+        }
+      ],
+      "frames": 27,
+      "ticks": 7,
+      "marks": [
+        {
+          "name": "easymsa:overview-worker-start",
+          "time": 10529
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 10530
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 10531
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 10624
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 10625
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 10638
+        },
+        {
+          "name": "easymsa:overview-worker-done",
+          "time": 10667
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 10845
+        }
+      ]
+    },
+    "events": [
+      {
+        "ms": 49.40260000000035,
+        "url": "http://127.0.0.1:5290/",
+        "timing": {
+          "startTime": 1794313715557.5679,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.032,
+          "connectStart": 0.032,
+          "secureConnectionStart": -1,
+          "connectEnd": 1.436,
+          "requestStart": 1.436,
+          "responseStart": 3.062,
+          "responseEnd": 5.942
+        }
+      },
+      {
+        "ms": 68.6859000000004,
+        "url": "http://127.0.0.1:5290/assets/cn-y1L-p5s6.js",
+        "timing": {
+          "startTime": 1794313715572.3438,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.019,
+          "connectStart": 0.019,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.889,
+          "requestStart": 0.889,
+          "responseStart": 5.234,
+          "responseEnd": 9.582
+        }
+      },
+      {
+        "ms": 68.78660000000036,
+        "url": "http://127.0.0.1:5290/assets/useQuery-C_0msdS-.js",
+        "timing": {
+          "startTime": 1794313715572.2217,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.019,
+          "connectStart": 0.019,
+          "secureConnectionStart": -1,
+          "connectEnd": 1.419,
+          "requestStart": 1.419,
+          "responseStart": 6.027,
+          "responseEnd": 9.997
+        }
+      },
+      {
+        "ms": 68.83129999999983,
+        "url": "http://127.0.0.1:5290/assets/Button-DvQIoHqq.js",
+        "timing": {
+          "startTime": 1794313715572.3875,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.03,
+          "connectStart": 0.03,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.722,
+          "requestStart": 0.722,
+          "responseStart": 5.172,
+          "responseEnd": 9.995
+        }
+      },
+      {
+        "ms": 68.87049999999999,
+        "url": "http://127.0.0.1:5290/assets/chunk-OB3PAWPO-BjHwaVko.js",
+        "timing": {
+          "startTime": 1794313715572.2952,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.015,
+          "connectStart": 0.015,
+          "secureConnectionStart": -1,
+          "connectEnd": 1.111,
+          "requestStart": 1.111,
+          "responseStart": 7.185,
+          "responseEnd": 11.575
+        }
+      },
+      {
+        "ms": 69.99200000000019,
+        "url": "http://127.0.0.1:5290/assets/index-NObgE8go.js",
+        "timing": {
+          "startTime": 1794313715571.6887,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 13.034,
+          "responseStart": 8.547,
+          "responseEnd": 13.034
+        }
+      },
+      {
+        "ms": 70.0589,
+        "url": "http://127.0.0.1:5290/assets/createLucideIcon-CGkIq_xq.js",
+        "timing": {
+          "startTime": 1794313715572.4253,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 12.437,
+          "responseStart": 8.855,
+          "responseEnd": 12.437
+        }
+      },
+      {
+        "ms": 70.09869999999955,
+        "url": "http://127.0.0.1:5290/assets/activity-CUkzIt9q.js",
+        "timing": {
+          "startTime": 1794313715572.4695,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 12.578,
+          "responseStart": 8.889,
+          "responseEnd": 12.578
+        }
+      },
+      {
+        "ms": 70.13479999999981,
+        "url": "http://127.0.0.1:5290/assets/circle-alert-DM4znkcB.js",
+        "timing": {
+          "startTime": 1794313715572.5232,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 12.565,
+          "responseStart": 8.456,
+          "responseEnd": 12.565
+        }
+      },
+      {
+        "ms": 70.17090000000007,
+        "url": "http://127.0.0.1:5290/assets/loader-circle-CIdSdGDh.js",
+        "timing": {
+          "startTime": 1794313715572.585,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 16.042,
+          "responseStart": 13.194,
+          "responseEnd": 16.042
+        }
+      },
+      {
+        "ms": 70.20700000000033,
+        "url": "http://127.0.0.1:5290/assets/refresh-cw-Dhh0bC49.js",
+        "timing": {
+          "startTime": 1794313715572.6316,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 16.533,
+          "responseStart": 13.288,
+          "responseEnd": 16.533
+        }
+      },
+      {
+        "ms": 75.1922999999997,
+        "url": "http://127.0.0.1:5290/assets/boundedRequest-DDADZAKh.js",
+        "timing": {
+          "startTime": 1794313715572.673,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 18.929,
+          "responseStart": 14.704,
+          "responseEnd": 18.929
+        }
+      },
+      {
+        "ms": 76.8100000000004,
+        "url": "http://127.0.0.1:5290/assets/useLanguage-Dyx1ynOD.js",
+        "timing": {
+          "startTime": 1794313715572.0305,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.02,
+          "connectStart": 0.02,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.673,
+          "requestStart": 0.673,
+          "responseStart": 8.591,
+          "responseEnd": 19.96
+        }
+      },
+      {
+        "ms": 77.1275999999998,
+        "url": "http://127.0.0.1:5290/assets/alignmentModel-CETI3ppk.js",
+        "timing": {
+          "startTime": 1794313715572.7273,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 19.52,
+          "responseStart": 14.816,
+          "responseEnd": 19.52
+        }
+      },
+      {
+        "ms": 77.16169999999966,
+        "url": "http://127.0.0.1:5290/assets/performanceMarks-CAJ92gMK.js",
+        "timing": {
+          "startTime": 1794313715572.7915,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 19.513,
+          "responseStart": 14.957,
+          "responseEnd": 19.513
+        }
+      },
+      {
+        "ms": 78.8103000000001,
+        "url": "http://127.0.0.1:5290/assets/workspace-Dy4QUcao.js",
+        "timing": {
+          "startTime": 1794313715572.9463,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 20.328,
+          "responseStart": 17.679,
+          "responseEnd": 20.328
+        }
+      },
+      {
+        "ms": 79.46209999999974,
+        "url": "http://127.0.0.1:5290/assets/types-D_-rN_On.js",
+        "timing": {
+          "startTime": 1794313715572.876,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 21.007,
+          "responseStart": 17.57,
+          "responseEnd": 21.007
+        }
+      },
+      {
+        "ms": 86.2515000000003,
+        "url": "http://127.0.0.1:5290/assets/index-DW365S2F.css",
+        "timing": {
+          "startTime": 1794313715573.013,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 25.204,
+          "responseStart": 19.267,
+          "responseEnd": 25.204
+        }
+      },
+      {
+        "ms": 197.6193999999996,
+        "url": "http://127.0.0.1:5290/brand/easymsa-mark.svg",
+        "timing": {
+          "startTime": 1794313715681.2375,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 3.276,
+          "responseStart": 2.233,
+          "responseEnd": 3.276
+        }
+      },
+      {
+        "ms": 203.9946,
+        "url": "http://127.0.0.1:5290/assets/ExamplesPage-B9eGfcYk.js",
+        "timing": {
+          "startTime": 1794313715695.1975,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 9.416,
+          "responseStart": 7.438,
+          "responseEnd": 9.416
+        }
+      },
+      {
+        "ms": 204.0636999999997,
+        "url": "http://127.0.0.1:5290/assets/chart-column-_3Dc47FX.js",
+        "timing": {
+          "startTime": 1794313715695.6533,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 9.103,
+          "responseStart": 6.089,
+          "responseEnd": 9.103
+        }
+      },
+      {
+        "ms": 204.125,
+        "url": "http://127.0.0.1:5290/assets/circle-check-n914rMXR.js",
+        "timing": {
+          "startTime": 1794313715695.7454,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 9.1,
+          "responseStart": 6.364,
+          "responseEnd": 9.1
+        }
+      },
+      {
+        "ms": 204.1837999999998,
+        "url": "http://127.0.0.1:5290/assets/upload-DTpHsZzx.js",
+        "timing": {
+          "startTime": 1794313715695.9192,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.02,
+          "connectStart": 0.02,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.405,
+          "requestStart": 0.405,
+          "responseStart": 5.517,
+          "responseEnd": 9.003
+        }
+      },
+      {
+        "ms": 204.76170000000002,
+        "url": "http://127.0.0.1:5290/assets/ResultStageControl-AL8gN65W.js",
+        "timing": {
+          "startTime": 1794313715695.4236,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 9.583,
+          "responseStart": 6.844,
+          "responseEnd": 9.583
+        }
+      },
+      {
+        "ms": 204.82819999999992,
+        "url": "http://127.0.0.1:5290/assets/useMsaAnalysis-B3kqz_wF.js",
+        "timing": {
+          "startTime": 1794313715695.83,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.015,
+          "connectStart": 0.015,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.588,
+          "requestStart": 0.588,
+          "responseStart": 6.649,
+          "responseEnd": 9.254
+        }
+      },
+      {
+        "ms": 205.54449999999997,
+        "url": "http://127.0.0.1:5290/assets/links-qQRjel8E.js",
+        "timing": {
+          "startTime": 1794313715696.1355,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 13.684,
+          "responseStart": 11.009,
+          "responseEnd": 13.684
+        }
+      },
+      {
+        "ms": 206.1824999999999,
+        "url": "http://127.0.0.1:5290/assets/file-archive-DSdV3_Tn.js",
+        "timing": {
+          "startTime": 1794313715696.4417,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 13.747,
+          "responseStart": 10.59,
+          "responseEnd": 13.747
+        }
+      },
+      {
+        "ms": 206.48779999999988,
+        "url": "http://127.0.0.1:5290/assets/file-text-B6hMlGI1.js",
+        "timing": {
+          "startTime": 1794313715696.5713,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 13.669,
+          "responseStart": 10.288,
+          "responseEnd": 13.669
+        }
+      },
+      {
+        "ms": 207.02300000000014,
+        "url": "http://127.0.0.1:5290/assets/OverlayDialog-BUKkifNa.js",
+        "timing": {
+          "startTime": 1794313715696.0286,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 14.336,
+          "responseStart": 11.565,
+          "responseEnd": 14.336
+        }
+      },
+      {
+        "ms": 207.09119999999984,
+        "url": "http://127.0.0.1:5290/assets/sparkles-QmpI0t-E.js",
+        "timing": {
+          "startTime": 1794313715696.6824,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 13.743,
+          "responseStart": 10.74,
+          "responseEnd": 13.743
+        }
+      },
+      {
+        "ms": 208.47969999999987,
+        "url": "http://127.0.0.1:5290/assets/useMsaAnalysis-CMN-Vf0L.css",
+        "timing": {
+          "startTime": 1794313715696.2253,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 15.014,
+          "responseStart": 11.094,
+          "responseEnd": 15.014
+        }
+      },
+      {
+        "ms": 210.0553,
+        "url": "http://127.0.0.1:5290/assets/triangle-alert-BIiDrk3C.js",
+        "timing": {
+          "startTime": 1794313715696.8684,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 16.969,
+          "responseStart": 14.134,
+          "responseEnd": 16.969
+        }
+      },
+      {
+        "ms": 211.83780000000024,
+        "url": "http://127.0.0.1:5290/assets/algorithmNames-DdPdW0Ud.js",
+        "timing": {
+          "startTime": 1794313715696.7766,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 17.623,
+          "responseStart": 14.395,
+          "responseEnd": 17.623
+        }
+      },
+      {
+        "ms": 213.14789999999994,
+        "url": "http://127.0.0.1:5290/assets/algorithmNames-jXWRGLFL.css",
+        "timing": {
+          "startTime": 1794313715696.994,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 17.532,
+          "responseStart": 14.576,
+          "responseEnd": 17.532
+        }
+      },
+      {
+        "ms": 213.41160000000036,
+        "url": "http://127.0.0.1:5290/assets/realignment-tWUbmqnn.js",
+        "timing": {
+          "startTime": 1794313715697.1057,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 17.53,
+          "responseStart": 14.511,
+          "responseEnd": 17.53
+        }
+      },
+      {
+        "ms": 313.4521999999997,
+        "url": "http://127.0.0.1:5290/examples/v1/manifest.json",
+        "timing": {
+          "startTime": 1794313715829.5652,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 4.138,
+          "responseStart": 2.708,
+          "responseEnd": 4.138
+        }
+      },
+      {
+        "ms": 370.5644000000002,
+        "url": "http://127.0.0.1:5290/examples/v1/realignment-small/initial.summary.json?sha256=4f843e74a8991f24b823d74b68d0065bf62d98f6ae7b257e1e18845ea037ebcd",
+        "timing": {
+          "startTime": 1794313715883.6775,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 4.004,
+          "responseStart": 2.921,
+          "responseEnd": 4.004
+        }
+      },
+      {
+        "ms": 371.20610000000033,
+        "url": "http://127.0.0.1:5290/examples/v1/realignment-small/initial.alignment.json?sha256=6348a397708453b361343248b6d893c726c5554800d5379ccf83018328ade997",
+        "timing": {
+          "startTime": 1794313715883.8867,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 4.267,
+          "responseStart": 2.974,
+          "responseEnd": 4.267
+        }
+      },
+      {
+        "ms": 456.1246000000001,
+        "url": "http://127.0.0.1:5290/assets/index-NObgE8go.js",
+        "timing": {
+          "startTime": 1794313715966.3967,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 3.219,
+          "responseStart": 2.228,
+          "responseEnd": 3.219
+        }
+      },
+      {
+        "ms": 457.89879999999994,
+        "url": "http://127.0.0.1:5290/assets/chevron-right-D0jGgFuY.js",
+        "timing": {
+          "startTime": 1794313715966.07,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 8.476,
+          "responseStart": 7.097,
+          "responseEnd": 8.476
+        }
+      },
+      {
+        "ms": 458.47779999999966,
+        "url": "http://127.0.0.1:5290/assets/eye-Bw9aFWHB.js",
+        "timing": {
+          "startTime": 1794313715966.7432,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 8.041,
+          "responseStart": 6.366,
+          "responseEnd": 8.041
+        }
+      },
+      {
+        "ms": 459.1781000000001,
+        "url": "http://127.0.0.1:5290/assets/rows-3-B-lNuEo8.js",
+        "timing": {
+          "startTime": 1794313715967.0303,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.017,
+          "connectStart": 0.017,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.761,
+          "requestStart": 0.761,
+          "responseStart": 6.197,
+          "responseEnd": 7.811
+        }
+      },
+      {
+        "ms": 459.22829999999976,
+        "url": "http://127.0.0.1:5290/assets/search-BLi6gdc3.js",
+        "timing": {
+          "startTime": 1794313715967.1377,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.015,
+          "connectStart": 0.015,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.515,
+          "requestStart": 0.515,
+          "responseStart": 5.456,
+          "responseEnd": 7.736
+        }
+      },
+      {
+        "ms": 459.27469999999994,
+        "url": "http://127.0.0.1:5290/assets/sliders-horizontal-Dh0b6jQl.js",
+        "timing": {
+          "startTime": 1794313715967.235,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 7.667,
+          "responseStart": 4.796,
+          "responseEnd": 7.667
+        }
+      },
+      {
+        "ms": 460.6115,
+        "url": "http://127.0.0.1:5290/assets/viewerContext-DNa78poj.js",
+        "timing": {
+          "startTime": 1794313715967.6313,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 10.903,
+          "responseStart": 9.392,
+          "responseEnd": 10.903
+        }
+      },
+      {
+        "ms": 461.3706000000002,
+        "url": "http://127.0.0.1:5290/assets/conservationDisplay-CO2qhRIa.js",
+        "timing": {
+          "startTime": 1794313715967.3389,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 11.621,
+          "responseStart": 9.366,
+          "responseEnd": 11.621
+        }
+      },
+      {
+        "ms": 461.6336000000001,
+        "url": "http://127.0.0.1:5290/assets/browser-C8cc1i9H.js",
+        "timing": {
+          "startTime": 1794313715967.4385,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 11.604,
+          "responseStart": 9.468,
+          "responseEnd": 11.604
+        }
+      },
+      {
+        "ms": 462.9336999999996,
+        "url": "http://127.0.0.1:5290/assets/MSAViewer-BNzvctB9.js",
+        "timing": {
+          "startTime": 1794313715965.6494,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 15.981,
+          "responseStart": 8.287,
+          "responseEnd": 15.981
+        }
+      },
+      {
+        "ms": 10605.1134,
+        "url": "http://127.0.0.1:5290/assets/sharedData.worker-CgDYY6BJ.js",
+        "timing": {
+          "startTime": 1794313726086.846,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.782,
+          "connectStart": 0.782,
+          "secureConnectionStart": -1,
+          "connectEnd": 1.204,
+          "requestStart": 1.204,
+          "responseStart": 3.556,
+          "responseEnd": 4.569
+        }
+      }
+    ]
+  },
+  {
+    "lane": 1,
+    "run": 1,
+    "elapsedMs": 699.1291999999994,
+    "failure": null,
+    "state": {
+      "events": [
+        {
+          "ms": 535,
+          "type": "worker",
+          "url": "http://127.0.0.1:5290/assets/sharedData.worker-CgDYY6BJ.js"
+        }
+      ],
+      "frames": 16,
+      "ticks": 5,
+      "marks": [
+        {
+          "name": "easymsa:overview-worker-start",
+          "time": 535
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 536
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 538
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 651
+        }
+      ]
+    },
+    "events": [
+      {
+        "ms": 51.918799999999464,
+        "url": "http://127.0.0.1:5290/",
+        "timing": {
+          "startTime": 1794313737467.8008,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.032,
+          "connectStart": 0.032,
+          "secureConnectionStart": -1,
+          "connectEnd": 1.55,
+          "requestStart": 1.55,
+          "responseStart": 3.149,
+          "responseEnd": 6.073
+        }
+      },
+      {
+        "ms": 71.55739999999787,
+        "url": "http://127.0.0.1:5290/assets/index-NObgE8go.js",
+        "timing": {
+          "startTime": 1794313737481.612,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 9.472,
+          "responseStart": 6.576,
+          "responseEnd": 9.472
+        }
+      },
+      {
+        "ms": 71.6317999999992,
+        "url": "http://127.0.0.1:5290/assets/useQuery-C_0msdS-.js",
+        "timing": {
+          "startTime": 1794313737482.1228,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.015,
+          "connectStart": 0.015,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.796,
+          "requestStart": 0.796,
+          "responseStart": 5.068,
+          "responseEnd": 9.606
+        }
+      },
+      {
+        "ms": 71.68209999999817,
+        "url": "http://127.0.0.1:5290/assets/chunk-OB3PAWPO-BjHwaVko.js",
+        "timing": {
+          "startTime": 1794313737482.1782,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.024,
+          "connectStart": 0.024,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.602,
+          "requestStart": 0.602,
+          "responseStart": 5.304,
+          "responseEnd": 10.014
+        }
+      },
+      {
+        "ms": 71.71249999999782,
+        "url": "http://127.0.0.1:5290/assets/cn-y1L-p5s6.js",
+        "timing": {
+          "startTime": 1794313737482.231,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.02,
+          "connectStart": 0.02,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.427,
+          "requestStart": 0.427,
+          "responseStart": 5.12,
+          "responseEnd": 10.059
+        }
+      },
+      {
+        "ms": 71.73879999999917,
+        "url": "http://127.0.0.1:5290/assets/Button-DvQIoHqq.js",
+        "timing": {
+          "startTime": 1794313737482.269,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.016,
+          "connectStart": 0.016,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.381,
+          "requestStart": 0.381,
+          "responseStart": 4.669,
+          "responseEnd": 10.106
+        }
+      },
+      {
+        "ms": 71.78659999999945,
+        "url": "http://127.0.0.1:5290/assets/createLucideIcon-CGkIq_xq.js",
+        "timing": {
+          "startTime": 1794313737482.2998,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 10.86,
+          "responseStart": 7.142,
+          "responseEnd": 10.86
+        }
+      },
+      {
+        "ms": 72.14479999999821,
+        "url": "http://127.0.0.1:5290/assets/activity-CUkzIt9q.js",
+        "timing": {
+          "startTime": 1794313737482.3477,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 13.471,
+          "responseStart": 10.447,
+          "responseEnd": 13.471
+        }
+      },
+      {
+        "ms": 73.04459999999744,
+        "url": "http://127.0.0.1:5290/assets/circle-alert-DM4znkcB.js",
+        "timing": {
+          "startTime": 1794313737482.4023,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 13.933,
+          "responseStart": 10.529,
+          "responseEnd": 13.933
+        }
+      },
+      {
+        "ms": 73.07790000000023,
+        "url": "http://127.0.0.1:5290/assets/loader-circle-CIdSdGDh.js",
+        "timing": {
+          "startTime": 1794313737482.4521,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 13.935,
+          "responseStart": 10.564,
+          "responseEnd": 13.935
+        }
+      },
+      {
+        "ms": 73.2634999999973,
+        "url": "http://127.0.0.1:5290/assets/refresh-cw-Dhh0bC49.js",
+        "timing": {
+          "startTime": 1794313737482.4937,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 14.069,
+          "responseStart": 10.797,
+          "responseEnd": 14.069
+        }
+      },
+      {
+        "ms": 76.97029999999722,
+        "url": "http://127.0.0.1:5290/assets/useLanguage-Dyx1ynOD.js",
+        "timing": {
+          "startTime": 1794313737481.884,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.027,
+          "connectStart": 0.027,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.586,
+          "requestStart": 0.586,
+          "responseStart": 6.961,
+          "responseEnd": 19.176
+        }
+      },
+      {
+        "ms": 77.64779999999882,
+        "url": "http://127.0.0.1:5290/assets/boundedRequest-DDADZAKh.js",
+        "timing": {
+          "startTime": 1794313737482.5305,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 18.772,
+          "responseStart": 13.739,
+          "responseEnd": 18.772
+        }
+      },
+      {
+        "ms": 77.73270000000048,
+        "url": "http://127.0.0.1:5290/assets/alignmentModel-CETI3ppk.js",
+        "timing": {
+          "startTime": 1794313737482.5664,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 18.799,
+          "responseStart": 15.126,
+          "responseEnd": 18.799
+        }
+      },
+      {
+        "ms": 77.78089999999793,
+        "url": "http://127.0.0.1:5290/assets/performanceMarks-CAJ92gMK.js",
+        "timing": {
+          "startTime": 1794313737482.6033,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 18.806,
+          "responseStart": 15.234,
+          "responseEnd": 18.806
+        }
+      },
+      {
+        "ms": 78.1286,
+        "url": "http://127.0.0.1:5290/assets/workspace-Dy4QUcao.js",
+        "timing": {
+          "startTime": 1794313737482.6677,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 18.814,
+          "responseStart": 15.312,
+          "responseEnd": 18.814
+        }
+      },
+      {
+        "ms": 78.3153999999995,
+        "url": "http://127.0.0.1:5290/assets/types-D_-rN_On.js",
+        "timing": {
+          "startTime": 1794313737482.635,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 20.141,
+          "responseStart": 15.813,
+          "responseEnd": 20.141
+        }
+      },
+      {
+        "ms": 85.65559999999823,
+        "url": "http://127.0.0.1:5290/assets/index-DW365S2F.css",
+        "timing": {
+          "startTime": 1794313737482.7202,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 23.413,
+          "responseStart": 18.28,
+          "responseEnd": 23.413
+        }
+      },
+      {
+        "ms": 179.79739999999947,
+        "url": "http://127.0.0.1:5290/brand/easymsa-mark.svg",
+        "timing": {
+          "startTime": 1794313737582.0618,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 2.637,
+          "responseStart": 1.818,
+          "responseEnd": 2.637
+        }
+      },
+      {
+        "ms": 182.8774999999987,
+        "url": "http://127.0.0.1:5290/assets/circle-check-n914rMXR.js",
+        "timing": {
+          "startTime": 1794313737594.3452,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 7.862,
+          "responseStart": 5.381,
+          "responseEnd": 7.862
+        }
+      },
+      {
+        "ms": 183.36809999999969,
+        "url": "http://127.0.0.1:5290/assets/ExamplesPage-B9eGfcYk.js",
+        "timing": {
+          "startTime": 1794313737593.6848,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 8.955,
+          "responseStart": 6.562,
+          "responseEnd": 8.955
+        }
+      },
+      {
+        "ms": 183.93039999999746,
+        "url": "http://127.0.0.1:5290/assets/ResultStageControl-AL8gN65W.js",
+        "timing": {
+          "startTime": 1794313737593.9631,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 8.754,
+          "responseStart": 6.402,
+          "responseEnd": 8.754
+        }
+      },
+      {
+        "ms": 183.96929999999702,
+        "url": "http://127.0.0.1:5290/assets/chart-column-_3Dc47FX.js",
+        "timing": {
+          "startTime": 1794313737594.1328,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 8.623,
+          "responseStart": 6.298,
+          "responseEnd": 8.623
+        }
+      },
+      {
+        "ms": 183.9987000000001,
+        "url": "http://127.0.0.1:5290/assets/upload-DTpHsZzx.js",
+        "timing": {
+          "startTime": 1794313737594.567,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.015,
+          "connectStart": 0.015,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.364,
+          "requestStart": 0.364,
+          "responseStart": 5.201,
+          "responseEnd": 8.249
+        }
+      },
+      {
+        "ms": 184.32690000000002,
+        "url": "http://127.0.0.1:5290/assets/useMsaAnalysis-B3kqz_wF.js",
+        "timing": {
+          "startTime": 1794313737594.4597,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.019,
+          "connectStart": 0.019,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.561,
+          "requestStart": 0.561,
+          "responseStart": 6.035,
+          "responseEnd": 8.596
+        }
+      },
+      {
+        "ms": 185.26759999999922,
+        "url": "http://127.0.0.1:5290/assets/links-qQRjel8E.js",
+        "timing": {
+          "startTime": 1794313737594.7708,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 12.132,
+          "responseStart": 10.466,
+          "responseEnd": 12.132
+        }
+      },
+      {
+        "ms": 185.83539999999994,
+        "url": "http://127.0.0.1:5290/assets/file-archive-DSdV3_Tn.js",
+        "timing": {
+          "startTime": 1794313737595.0579,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 12.064,
+          "responseStart": 10.364,
+          "responseEnd": 12.064
+        }
+      },
+      {
+        "ms": 186.73500000000058,
+        "url": "http://127.0.0.1:5290/assets/file-text-B6hMlGI1.js",
+        "timing": {
+          "startTime": 1794313737595.1504,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 12.059,
+          "responseStart": 10.303,
+          "responseEnd": 12.059
+        }
+      },
+      {
+        "ms": 187.67549999999756,
+        "url": "http://127.0.0.1:5290/assets/sparkles-QmpI0t-E.js",
+        "timing": {
+          "startTime": 1794313737595.2368,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 12.248,
+          "responseStart": 10.656,
+          "responseEnd": 12.248
+        }
+      },
+      {
+        "ms": 187.90350000000035,
+        "url": "http://127.0.0.1:5290/assets/OverlayDialog-BUKkifNa.js",
+        "timing": {
+          "startTime": 1794313737594.6807,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 12.88,
+          "responseStart": 10.829,
+          "responseEnd": 12.88
+        }
+      },
+      {
+        "ms": 189.72469999999885,
+        "url": "http://127.0.0.1:5290/assets/useMsaAnalysis-CMN-Vf0L.css",
+        "timing": {
+          "startTime": 1794313737594.857,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 15.303,
+          "responseStart": 11.796,
+          "responseEnd": 15.303
+        }
+      },
+      {
+        "ms": 193.2059999999983,
+        "url": "http://127.0.0.1:5290/assets/triangle-alert-BIiDrk3C.js",
+        "timing": {
+          "startTime": 1794313737595.4282,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 15.601,
+          "responseStart": 14.313,
+          "responseEnd": 15.601
+        }
+      },
+      {
+        "ms": 193.47379999999976,
+        "url": "http://127.0.0.1:5290/assets/algorithmNames-DdPdW0Ud.js",
+        "timing": {
+          "startTime": 1794313737595.3354,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 15.769,
+          "responseStart": 14.431,
+          "responseEnd": 15.769
+        }
+      },
+      {
+        "ms": 222.17429999999877,
+        "url": "http://127.0.0.1:5290/assets/algorithmNames-jXWRGLFL.css",
+        "timing": {
+          "startTime": 1794313737595.532,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 16.542,
+          "responseStart": 14.694,
+          "responseEnd": 16.542
+        }
+      },
+      {
+        "ms": 222.20999999999913,
+        "url": "http://127.0.0.1:5290/assets/realignment-tWUbmqnn.js",
+        "timing": {
+          "startTime": 1794313737595.6262,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 16.58,
+          "responseStart": 14.853,
+          "responseEnd": 16.58
+        }
+      },
+      {
+        "ms": 319.5132999999987,
+        "url": "http://127.0.0.1:5290/examples/v1/manifest.json",
+        "timing": {
+          "startTime": 1794313737745.3032,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 2.978,
+          "responseStart": 2.065,
+          "responseEnd": 2.978
+        }
+      },
+      {
+        "ms": 374.99059999999736,
+        "url": "http://127.0.0.1:5290/examples/v1/realignment-small/initial.summary.json?sha256=4f843e74a8991f24b823d74b68d0065bf62d98f6ae7b257e1e18845ea037ebcd",
+        "timing": {
+          "startTime": 1794313737796.206,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 4.046,
+          "responseStart": 3.019,
+          "responseEnd": 4.046
+        }
+      },
+      {
+        "ms": 375.0195999999996,
+        "url": "http://127.0.0.1:5290/examples/v1/realignment-small/initial.alignment.json?sha256=6348a397708453b361343248b6d893c726c5554800d5379ccf83018328ade997",
+        "timing": {
+          "startTime": 1794313737796.4958,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 4.217,
+          "responseStart": 3.134,
+          "responseEnd": 4.217
+        }
+      },
+      {
+        "ms": 450.40120000000024,
+        "url": "http://127.0.0.1:5290/assets/index-NObgE8go.js",
+        "timing": {
+          "startTime": 1794313737869.506,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 3.654,
+          "responseStart": 2.613,
+          "responseEnd": 3.654
+        }
+      },
+      {
+        "ms": 451.21679999999833,
+        "url": "http://127.0.0.1:5290/assets/chevron-right-D0jGgFuY.js",
+        "timing": {
+          "startTime": 1794313737869.1536,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 7.715,
+          "responseStart": 6.511,
+          "responseEnd": 7.715
+        }
+      },
+      {
+        "ms": 453.5842999999986,
+        "url": "http://127.0.0.1:5290/assets/eye-Bw9aFWHB.js",
+        "timing": {
+          "startTime": 1794313737869.6929,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 7.564,
+          "responseStart": 6.304,
+          "responseEnd": 7.564
+        }
+      },
+      {
+        "ms": 454.1289999999972,
+        "url": "http://127.0.0.1:5290/assets/rows-3-B-lNuEo8.js",
+        "timing": {
+          "startTime": 1794313737869.765,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.015,
+          "connectStart": 0.015,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.693,
+          "requestStart": 0.693,
+          "responseStart": 6.581,
+          "responseEnd": 7.707
+        }
+      },
+      {
+        "ms": 454.16479999999865,
+        "url": "http://127.0.0.1:5290/assets/search-BLi6gdc3.js",
+        "timing": {
+          "startTime": 1794313737869.8313,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.014,
+          "connectStart": 0.014,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.416,
+          "requestStart": 0.416,
+          "responseStart": 5.914,
+          "responseEnd": 7.748
+        }
+      },
+      {
+        "ms": 454.1945999999989,
+        "url": "http://127.0.0.1:5290/assets/sliders-horizontal-Dh0b6jQl.js",
+        "timing": {
+          "startTime": 1794313737869.9111,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 7.742,
+          "responseStart": 5.6,
+          "responseEnd": 7.742
+        }
+      },
+      {
+        "ms": 456.7494000000006,
+        "url": "http://127.0.0.1:5290/assets/conservationDisplay-CO2qhRIa.js",
+        "timing": {
+          "startTime": 1794313737869.9749,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 10.979,
+          "responseStart": 8.131,
+          "responseEnd": 10.979
+        }
+      },
+      {
+        "ms": 457.1179999999986,
+        "url": "http://127.0.0.1:5290/assets/browser-C8cc1i9H.js",
+        "timing": {
+          "startTime": 1794313737870.031,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 10.981,
+          "responseStart": 8.239,
+          "responseEnd": 10.981
+        }
+      },
+      {
+        "ms": 457.2050999999992,
+        "url": "http://127.0.0.1:5290/assets/viewerContext-DNa78poj.js",
+        "timing": {
+          "startTime": 1794313737870.0989,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 10.944,
+          "responseStart": 8.2,
+          "responseEnd": 10.944
+        }
+      },
+      {
+        "ms": 459.04949999999735,
+        "url": "http://127.0.0.1:5290/assets/MSAViewer-BNzvctB9.js",
+        "timing": {
+          "startTime": 1794313737868.7976,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 14.437,
+          "responseStart": 8.4,
+          "responseEnd": 14.437
+        }
+      },
+      {
+        "ms": 626.8122000000003,
+        "url": "http://127.0.0.1:5290/assets/sharedData.worker-CgDYY6BJ.js",
+        "timing": {
+          "startTime": 1794313738003.1804,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 4.604,
+          "responseStart": 3.31,
+          "responseEnd": 4.604
+        }
+      }
+    ]
+  },
+  {
+    "lane": 0,
+    "run": 1,
+    "elapsedMs": 6111.359999999997,
+    "failure": null,
+    "state": {
+      "events": [
+        {
+          "ms": 5493,
+          "type": "message-delay",
+          "gap": 5017
+        },
+        {
+          "ms": 5523,
+          "type": "worker",
+          "url": "http://127.0.0.1:5290/assets/sharedData.worker-CgDYY6BJ.js"
+        },
+        {
+          "ms": 5570,
+          "type": "timer-delay",
+          "gap": 5094
+        },
+        {
+          "ms": 5583,
+          "type": "frame-delay",
+          "gap": 5100
+        }
+      ],
+      "frames": 25,
+      "ticks": 8,
+      "marks": [
+        {
+          "name": "easymsa:overview-worker-start",
+          "time": 5522
+        },
+        {
+          "name": "easymsa:matrix-mounted",
+          "time": 5525
+        },
+        {
+          "name": "easymsa:analysis-worker-start",
+          "time": 5525
+        },
+        {
+          "name": "easymsa:analysis-columns-ready",
+          "time": 5618
+        },
+        {
+          "name": "easymsa:analysis-worker-done",
+          "time": 5619
+        },
+        {
+          "name": "easymsa:viewer-interactive",
+          "time": 5621
+        },
+        {
+          "name": "easymsa:analysis-committed",
+          "time": 5622
+        },
+        {
+          "name": "easymsa:overview-worker-done",
+          "time": 5634
+        }
+      ]
+    },
+    "events": [
+      {
+        "ms": 52.52720000000045,
+        "url": "http://127.0.0.1:5290/",
+        "timing": {
+          "startTime": 1794313735166.4458,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.046,
+          "connectStart": 0.046,
+          "secureConnectionStart": -1,
+          "connectEnd": 1.802,
+          "requestStart": 1.802,
+          "responseStart": 3.623,
+          "responseEnd": 8.091
+        }
+      },
+      {
+        "ms": 62.392399999997,
+        "url": "http://127.0.0.1:5290/assets/cn-y1L-p5s6.js",
+        "timing": {
+          "startTime": 1794313735182.1165,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.015,
+          "connectStart": 0.015,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.699,
+          "requestStart": 0.699,
+          "responseStart": 4.323,
+          "responseEnd": 9.627
+        }
+      },
+      {
+        "ms": 71.19409999999698,
+        "url": "http://127.0.0.1:5290/assets/useQuery-C_0msdS-.js",
+        "timing": {
+          "startTime": 1794313735181.8582,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.014,
+          "connectStart": 0.014,
+          "secureConnectionStart": -1,
+          "connectEnd": 1.245,
+          "requestStart": 1.245,
+          "responseStart": 5.141,
+          "responseEnd": 10.964
+        }
+      },
+      {
+        "ms": 71.23949999999968,
+        "url": "http://127.0.0.1:5290/assets/index-NObgE8go.js",
+        "timing": {
+          "startTime": 1794313735181.407,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 13.006,
+          "responseStart": 7.599,
+          "responseEnd": 13.006
+        }
+      },
+      {
+        "ms": 71.29019999999946,
+        "url": "http://127.0.0.1:5290/assets/chunk-OB3PAWPO-BjHwaVko.js",
+        "timing": {
+          "startTime": 1794313735181.9912,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.02,
+          "connectStart": 0.02,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.983,
+          "requestStart": 0.983,
+          "responseStart": 5.938,
+          "responseEnd": 12.538
+        }
+      },
+      {
+        "ms": 72.29589999999735,
+        "url": "http://127.0.0.1:5290/assets/Button-DvQIoHqq.js",
+        "timing": {
+          "startTime": 1794313735182.1658,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.015,
+          "connectStart": 0.015,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.531,
+          "requestStart": 0.531,
+          "responseStart": 4.354,
+          "responseEnd": 12.421
+        }
+      },
+      {
+        "ms": 72.35639999999694,
+        "url": "http://127.0.0.1:5290/assets/createLucideIcon-CGkIq_xq.js",
+        "timing": {
+          "startTime": 1794313735182.2056,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 12.42,
+          "responseStart": 6.37,
+          "responseEnd": 12.42
+        }
+      },
+      {
+        "ms": 72.3856999999989,
+        "url": "http://127.0.0.1:5290/assets/activity-CUkzIt9q.js",
+        "timing": {
+          "startTime": 1794313735182.2417,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 12.757,
+          "responseStart": 9.351,
+          "responseEnd": 12.757
+        }
+      },
+      {
+        "ms": 72.77750000000015,
+        "url": "http://127.0.0.1:5290/assets/useLanguage-Dyx1ynOD.js",
+        "timing": {
+          "startTime": 1794313735181.5938,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.022,
+          "connectStart": 0.022,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.572,
+          "requestStart": 0.572,
+          "responseStart": 7.164,
+          "responseEnd": 17.95
+        }
+      },
+      {
+        "ms": 72.8173999999999,
+        "url": "http://127.0.0.1:5290/assets/circle-alert-DM4znkcB.js",
+        "timing": {
+          "startTime": 1794313735182.298,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 17.494,
+          "responseStart": 13.899,
+          "responseEnd": 17.494
+        }
+      },
+      {
+        "ms": 73.42589999999836,
+        "url": "http://127.0.0.1:5290/assets/loader-circle-CIdSdGDh.js",
+        "timing": {
+          "startTime": 1794313735182.3303,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 17.677,
+          "responseStart": 13.919,
+          "responseEnd": 17.677
+        }
+      },
+      {
+        "ms": 73.47369999999864,
+        "url": "http://127.0.0.1:5290/assets/refresh-cw-Dhh0bC49.js",
+        "timing": {
+          "startTime": 1794313735182.3687,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 17.717,
+          "responseStart": 14.167,
+          "responseEnd": 17.717
+        }
+      },
+      {
+        "ms": 73.70449999999983,
+        "url": "http://127.0.0.1:5290/assets/boundedRequest-DDADZAKh.js",
+        "timing": {
+          "startTime": 1794313735182.4033,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 17.742,
+          "responseStart": 14.497,
+          "responseEnd": 17.742
+        }
+      },
+      {
+        "ms": 75.74689999999828,
+        "url": "http://127.0.0.1:5290/assets/alignmentModel-CETI3ppk.js",
+        "timing": {
+          "startTime": 1794313735182.435,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 18.051,
+          "responseStart": 14.555,
+          "responseEnd": 18.051
+        }
+      },
+      {
+        "ms": 76.34989999999743,
+        "url": "http://127.0.0.1:5290/assets/performanceMarks-CAJ92gMK.js",
+        "timing": {
+          "startTime": 1794313735182.4683,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 20.999,
+          "responseStart": 18.042,
+          "responseEnd": 20.999
+        }
+      },
+      {
+        "ms": 79.83539999999994,
+        "url": "http://127.0.0.1:5290/assets/workspace-Dy4QUcao.js",
+        "timing": {
+          "startTime": 1794313735182.5388,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 21.55,
+          "responseStart": 18.217,
+          "responseEnd": 21.55
+        }
+      },
+      {
+        "ms": 79.86089999999967,
+        "url": "http://127.0.0.1:5290/assets/types-D_-rN_On.js",
+        "timing": {
+          "startTime": 1794313735182.5042,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 22.119,
+          "responseStart": 18.775,
+          "responseEnd": 22.119
+        }
+      },
+      {
+        "ms": 87.56659999999829,
+        "url": "http://127.0.0.1:5290/assets/index-DW365S2F.css",
+        "timing": {
+          "startTime": 1794313735182.592,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 23.637,
+          "responseStart": 19.084,
+          "responseEnd": 23.637
+        }
+      },
+      {
+        "ms": 178.66769999999815,
+        "url": "http://127.0.0.1:5290/brand/easymsa-mark.svg",
+        "timing": {
+          "startTime": 1794313735279.5322,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 3.181,
+          "responseStart": 1.678,
+          "responseEnd": 3.181
+        }
+      },
+      {
+        "ms": 179.39739999999802,
+        "url": "http://127.0.0.1:5290/assets/circle-check-n914rMXR.js",
+        "timing": {
+          "startTime": 1794313735291.4072,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 7.236,
+          "responseStart": 5.234,
+          "responseEnd": 7.236
+        }
+      },
+      {
+        "ms": 179.66430000000037,
+        "url": "http://127.0.0.1:5290/assets/chart-column-_3Dc47FX.js",
+        "timing": {
+          "startTime": 1794313735291.3196,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 7.491,
+          "responseStart": 5.539,
+          "responseEnd": 7.491
+        }
+      },
+      {
+        "ms": 181.27539999999863,
+        "url": "http://127.0.0.1:5290/assets/upload-DTpHsZzx.js",
+        "timing": {
+          "startTime": 1794313735291.6672,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.03,
+          "connectStart": 0.03,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.592,
+          "requestStart": 0.592,
+          "responseStart": 5.676,
+          "responseEnd": 7.96
+        }
+      },
+      {
+        "ms": 181.61949999999706,
+        "url": "http://127.0.0.1:5290/assets/ExamplesPage-B9eGfcYk.js",
+        "timing": {
+          "startTime": 1794313735291.0083,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 8.78,
+          "responseStart": 6.215,
+          "responseEnd": 8.78
+        }
+      },
+      {
+        "ms": 182.9435999999987,
+        "url": "http://127.0.0.1:5290/assets/ResultStageControl-AL8gN65W.js",
+        "timing": {
+          "startTime": 1794313735291.2012,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 11.09,
+          "responseStart": 6.877,
+          "responseEnd": 11.09
+        }
+      },
+      {
+        "ms": 182.97489999999743,
+        "url": "http://127.0.0.1:5290/assets/useMsaAnalysis-B3kqz_wF.js",
+        "timing": {
+          "startTime": 1794313735291.4985,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.015,
+          "connectStart": 0.015,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.683,
+          "requestStart": 0.683,
+          "responseStart": 6.795,
+          "responseEnd": 11.016
+        }
+      },
+      {
+        "ms": 185.26540000000023,
+        "url": "http://127.0.0.1:5290/assets/links-qQRjel8E.js",
+        "timing": {
+          "startTime": 1794313735291.8525,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 13.797,
+          "responseStart": 10.993,
+          "responseEnd": 13.797
+        }
+      },
+      {
+        "ms": 189.15610000000015,
+        "url": "http://127.0.0.1:5290/assets/OverlayDialog-BUKkifNa.js",
+        "timing": {
+          "startTime": 1794313735291.7725,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 14.239,
+          "responseStart": 11.148,
+          "responseEnd": 14.239
+        }
+      },
+      {
+        "ms": 189.18499999999767,
+        "url": "http://127.0.0.1:5290/assets/file-archive-DSdV3_Tn.js",
+        "timing": {
+          "startTime": 1794313735292.188,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 13.918,
+          "responseStart": 11.323,
+          "responseEnd": 13.918
+        }
+      },
+      {
+        "ms": 189.54579999999987,
+        "url": "http://127.0.0.1:5290/assets/file-text-B6hMlGI1.js",
+        "timing": {
+          "startTime": 1794313735292.2832,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 13.941,
+          "responseStart": 11.456,
+          "responseEnd": 13.941
+        }
+      },
+      {
+        "ms": 189.57949999999983,
+        "url": "http://127.0.0.1:5290/assets/sparkles-QmpI0t-E.js",
+        "timing": {
+          "startTime": 1794313735292.372,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 13.941,
+          "responseStart": 11.506,
+          "responseEnd": 13.941
+        }
+      },
+      {
+        "ms": 191.24589999999807,
+        "url": "http://127.0.0.1:5290/assets/useMsaAnalysis-CMN-Vf0L.css",
+        "timing": {
+          "startTime": 1794313735291.9355,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 15.084,
+          "responseStart": 11.636,
+          "responseEnd": 15.084
+        }
+      },
+      {
+        "ms": 193.70679999999993,
+        "url": "http://127.0.0.1:5290/assets/triangle-alert-BIiDrk3C.js",
+        "timing": {
+          "startTime": 1794313735292.6472,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 17.091,
+          "responseStart": 15.124,
+          "responseEnd": 17.091
+        }
+      },
+      {
+        "ms": 195.28809999999794,
+        "url": "http://127.0.0.1:5290/assets/algorithmNames-DdPdW0Ud.js",
+        "timing": {
+          "startTime": 1794313735292.5508,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 17.444,
+          "responseStart": 15.227,
+          "responseEnd": 17.444
+        }
+      },
+      {
+        "ms": 221.1346999999987,
+        "url": "http://127.0.0.1:5290/assets/algorithmNames-jXWRGLFL.css",
+        "timing": {
+          "startTime": 1794313735292.7556,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 17.598,
+          "responseStart": 15.358,
+          "responseEnd": 17.598
+        }
+      },
+      {
+        "ms": 222.59100000000035,
+        "url": "http://127.0.0.1:5290/assets/realignment-tWUbmqnn.js",
+        "timing": {
+          "startTime": 1794313735292.8438,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 17.849,
+          "responseStart": 15.641,
+          "responseEnd": 17.849
+        }
+      },
+      {
+        "ms": 328.61499999999796,
+        "url": "http://127.0.0.1:5290/examples/v1/manifest.json",
+        "timing": {
+          "startTime": 1794313735445.108,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 5.01,
+          "responseStart": 2.933,
+          "responseEnd": 5.01
+        }
+      },
+      {
+        "ms": 365.7502999999997,
+        "url": "http://127.0.0.1:5290/examples/v1/realignment-small/initial.summary.json?sha256=4f843e74a8991f24b823d74b68d0065bf62d98f6ae7b257e1e18845ea037ebcd",
+        "timing": {
+          "startTime": 1794313735492.1282,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 4.623,
+          "responseStart": 3.144,
+          "responseEnd": 4.623
+        }
+      },
+      {
+        "ms": 366.2779999999984,
+        "url": "http://127.0.0.1:5290/examples/v1/realignment-small/initial.alignment.json?sha256=6348a397708453b361343248b6d893c726c5554800d5379ccf83018328ade997",
+        "timing": {
+          "startTime": 1794313735492.2812,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 4.744,
+          "responseStart": 3.323,
+          "responseEnd": 4.744
+        }
+      },
+      {
+        "ms": 458.2585999999974,
+        "url": "http://127.0.0.1:5290/assets/index-NObgE8go.js",
+        "timing": {
+          "startTime": 1794313735570.1277,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 5.339,
+          "responseStart": 3.532,
+          "responseEnd": 5.339
+        }
+      },
+      {
+        "ms": 458.97649999999703,
+        "url": "http://127.0.0.1:5290/assets/rows-3-B-lNuEo8.js",
+        "timing": {
+          "startTime": 1794313735570.506,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.015,
+          "connectStart": 0.015,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.565,
+          "requestStart": 0.565,
+          "responseStart": 7.004,
+          "responseEnd": 8.668
+        }
+      },
+      {
+        "ms": 461.3393999999971,
+        "url": "http://127.0.0.1:5290/assets/eye-Bw9aFWHB.js",
+        "timing": {
+          "startTime": 1794313735570.3857,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 9.009,
+          "responseStart": 7.256,
+          "responseEnd": 9.009
+        }
+      },
+      {
+        "ms": 461.78789999999935,
+        "url": "http://127.0.0.1:5290/assets/chevron-right-D0jGgFuY.js",
+        "timing": {
+          "startTime": 1794313735569.9902,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 9.669,
+          "responseStart": 7.997,
+          "responseEnd": 9.669
+        }
+      },
+      {
+        "ms": 461.8137999999999,
+        "url": "http://127.0.0.1:5290/assets/search-BLi6gdc3.js",
+        "timing": {
+          "startTime": 1794313735570.643,
+          "domainLookupStart": -1,
+          "domainLookupEnd": 0.015,
+          "connectStart": 0.015,
+          "secureConnectionStart": -1,
+          "connectEnd": 0.308,
+          "requestStart": 0.308,
+          "responseStart": 6.911,
+          "responseEnd": 9.069
+        }
+      },
+      {
+        "ms": 462.04239999999845,
+        "url": "http://127.0.0.1:5290/assets/sliders-horizontal-Dh0b6jQl.js",
+        "timing": {
+          "startTime": 1794313735570.7432,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 9.006,
+          "responseStart": 6.696,
+          "responseEnd": 9.006
+        }
+      },
+      {
+        "ms": 465.4599999999991,
+        "url": "http://127.0.0.1:5290/assets/conservationDisplay-CO2qhRIa.js",
+        "timing": {
+          "startTime": 1794313735571.0425,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 13.22,
+          "responseStart": 10.963,
+          "responseEnd": 13.22
+        }
+      },
+      {
+        "ms": 465.79629999999815,
+        "url": "http://127.0.0.1:5290/assets/viewerContext-DNa78poj.js",
+        "timing": {
+          "startTime": 1794313735571.465,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 12.864,
+          "responseStart": 10.916,
+          "responseEnd": 12.864
+        }
+      },
+      {
+        "ms": 465.8297999999995,
+        "url": "http://127.0.0.1:5290/assets/browser-C8cc1i9H.js",
+        "timing": {
+          "startTime": 1794313735571.2827,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 13.084,
+          "responseStart": 11.419,
+          "responseEnd": 13.084
+        }
+      },
+      {
+        "ms": 466.05089999999836,
+        "url": "http://127.0.0.1:5290/assets/MSAViewer-BNzvctB9.js",
+        "timing": {
+          "startTime": 1794313735569.776,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 17.575,
+          "responseStart": 10.071,
+          "responseEnd": 17.575
+        }
+      },
+      {
+        "ms": 5597.7569,
+        "url": "http://127.0.0.1:5290/assets/sharedData.worker-CgDYY6BJ.js",
+        "timing": {
+          "startTime": 1794313740689.2144,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 5.161,
+          "responseStart": 2.492,
+          "responseEnd": 5.161
+        }
+      }
+    ]
+  }
+]

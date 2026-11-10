@@ -1,0 +1,512 @@
+[
+  {
+    "name": "canvas-overview-layout-1280-linux.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      1265,
+      690
+    ],
+    "newDimensions": [
+      1265,
+      690
+    ],
+    "oldSha256": "1c2225e5e0ce89fbdcd480abf438e02c78e5ec86148146b83c7c733271b37d2e",
+    "newSha256": "31c2f2cbb54f24fc43afdc04864e3df12d91163b3d967591232b7add4dcc0d11",
+    "changed": true
+  },
+  {
+    "name": "canvas-overview-layout-1280-win32.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      1280,
+      666
+    ],
+    "newDimensions": [
+      1265,
+      690
+    ],
+    "oldSha256": "ca2881a7946ddd1e7c163f3d2cce8287d105c7540a63e93a2dbedd8b719c2cfe",
+    "newSha256": "4629b1e849a8064415f4f4a8b629ba2a22eb158b3de1b2b342aabb4d25cf4ff0",
+    "changed": true
+  },
+  {
+    "name": "canvas-overview-layout-390-linux.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      390,
+      666
+    ],
+    "newDimensions": [
+      390,
+      666
+    ],
+    "oldSha256": "61641c8fc9c97196fefa7dcf94164f6142c59e0eefba3c665da05c116c4845f1",
+    "newSha256": "80c002f40b86cd892d9b4bf3f84c75382cfced45d4bbac74678b9bf68167a8f4",
+    "changed": true
+  },
+  {
+    "name": "canvas-overview-layout-390-win32.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      390,
+      710
+    ],
+    "newDimensions": [
+      390,
+      666
+    ],
+    "oldSha256": "4cab538cdcbdcc3a054d49d1be3b067fbed75b1e41b6314f1e0cd6e830d7aef4",
+    "newSha256": "185338497e49db8285c1fe36a0acfe05cb916b02fd605d9f77672f1aa68a04cd",
+    "changed": true
+  },
+  {
+    "name": "embedded-layout-1280-linux.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      1265,
+      690
+    ],
+    "newDimensions": [
+      1265,
+      690
+    ],
+    "oldSha256": "3657a21fc566ad88fe9d0f6a30cce007640a518685696db6b85ac12ae2239da5",
+    "newSha256": "5ff3dc92f5c1d11ca217ca2ce110e30165bf5e09fd810e552ac585cb90d0d747",
+    "changed": true
+  },
+  {
+    "name": "embedded-layout-1280-win32.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      1280,
+      666
+    ],
+    "newDimensions": [
+      1265,
+      690
+    ],
+    "oldSha256": "ff5e7c9e165dbd93a826028bd09edf59e012000460927e261a688d3c086f48c3",
+    "newSha256": "8f56d381abad662961167fc65c6878c97ff2ed8b56e1de26549b2fcda48f0761",
+    "changed": true
+  },
+  {
+    "name": "embedded-layout-1920-linux.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      1905,
+      970
+    ],
+    "newDimensions": [
+      1905,
+      970
+    ],
+    "oldSha256": "d6dac4d4e342aa815431ca8490b82f12fe2066e1ebe53352e40b77d5c9309f74",
+    "newSha256": "a98a43b952cb0fd319d7aec654a7bbddab00062b5c619e23d3aa4823c5939e5c",
+    "changed": true
+  },
+  {
+    "name": "embedded-layout-1920-win32.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      1920,
+      946
+    ],
+    "newDimensions": [
+      1905,
+      970
+    ],
+    "oldSha256": "64fef0e2aeedfe33f1d1b0a7e6201d3829fa1126f2cfefc8d44a2d6fcd370df9",
+    "newSha256": "2930f137966c5a9877489fab692f47ff6fa01208e2ea50487765c796779788df",
+    "changed": true
+  },
+  {
+    "name": "embedded-layout-360-linux.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      360,
+      622
+    ],
+    "newDimensions": [
+      360,
+      622
+    ],
+    "oldSha256": "6d65d23996b23dd6d22ab0f4e608dac4653f26d58362324624e3df9f7e134271",
+    "newSha256": "edb44cddd473b73126458e2a7142495d255487a69f527f9866f76403e2334fff",
+    "changed": true
+  },
+  {
+    "name": "embedded-layout-360-win32.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      360,
+      666
+    ],
+    "newDimensions": [
+      360,
+      622
+    ],
+    "oldSha256": "573210135ac9ce96b45bedf76446cf26d46767bc68b1645945acafe413c3c24c",
+    "newSha256": "25e4165f7fa1e9d9098389f278b4659f9a3a6c696474df86e09be3bbb6936674",
+    "changed": true
+  },
+  {
+    "name": "embedded-layout-390-linux.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      390,
+      666
+    ],
+    "newDimensions": [
+      390,
+      666
+    ],
+    "oldSha256": "7041b7065ce91311671d0d272099d751a3332e065e61fa07e80c6d3cf187810e",
+    "newSha256": "02fec151a9ef1202626a8dbfdd0b85df6113ba5ced785cb3037eea254eda24d2",
+    "changed": true
+  },
+  {
+    "name": "embedded-layout-390-win32.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      390,
+      710
+    ],
+    "newDimensions": [
+      390,
+      666
+    ],
+    "oldSha256": "4fdc7833402e7d88d62b919143abbb313ef0ad2739e71fecdf0eb0d83db3d672",
+    "newSha256": "c31d9c3c5d26acf7dff5445c1c2b6b334b07d84dacdcc2d21df94464dedb7294",
+    "changed": true
+  },
+  {
+    "name": "embedded-layout-768-linux.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      768,
+      914
+    ],
+    "newDimensions": [
+      768,
+      914
+    ],
+    "oldSha256": "4610bfc89eed6f9991875dc644a99144f1b6a741294047584a37937a30d33785",
+    "newSha256": "102005d5245971c6baa6133663c9eff3ae3d50f5989dd1bf2e255fdc12943fe7",
+    "changed": true
+  },
+  {
+    "name": "embedded-layout-768-win32.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      768,
+      890
+    ],
+    "newDimensions": [
+      768,
+      914
+    ],
+    "oldSha256": "8e2f961d7abb4e56068b0489d65b8d290564bcb5e3739ea9b12cba055beb1d3d",
+    "newSha256": "a8981c99f63e4ba399ad2bd5ececbd0b022964b820ba3fba692bdbeb400ee116",
+    "changed": true
+  },
+  {
+    "name": "immersive-layout-1280-linux.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      1280,
+      800
+    ],
+    "newDimensions": [
+      1280,
+      800
+    ],
+    "oldSha256": "143e718ec7b9c3461dbf24a563861cce8328825c343f79c9264b90102a9241e8",
+    "newSha256": "56229d343461804f9b1cee419b838cf0d4c70196bcdcce9484e59c4def7cb059",
+    "changed": true
+  },
+  {
+    "name": "immersive-layout-1280-win32.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      1280,
+      800
+    ],
+    "newDimensions": [
+      1280,
+      800
+    ],
+    "oldSha256": "ffb794b1220e21694de6dbd9c3a79876a6fdeb83fbbc0d543d028d6a9c4bda4f",
+    "newSha256": "dd1613c91069aa2ebf8fdfd93c8bc6a53bf90acb34deddee84cf44425e2d479f",
+    "changed": true
+  },
+  {
+    "name": "immersive-layout-1920-linux.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      1920,
+      1080
+    ],
+    "newDimensions": [
+      1920,
+      1080
+    ],
+    "oldSha256": "f9911b325ba6b2d73b82d4d46ae9f4b436d5262bd60e066b4b7128a00990033c",
+    "newSha256": "4a71622fed0afee2e6245d6a8e75825c19e32b23fd03f85e4004fbe83a9f0eb7",
+    "changed": true
+  },
+  {
+    "name": "immersive-layout-1920-win32.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      1920,
+      1080
+    ],
+    "newDimensions": [
+      1920,
+      1080
+    ],
+    "oldSha256": "7914220ac8f1ee00923bf36bd9d5ceed124095dcd11d523f8c398746a9366459",
+    "newSha256": "efb814a1de5d887b40d983890d0158f48cf1ba211000d4bae7c8f883790a7211",
+    "changed": true
+  },
+  {
+    "name": "immersive-layout-360-linux.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      360,
+      800
+    ],
+    "newDimensions": [
+      360,
+      800
+    ],
+    "oldSha256": "9e622e634661ecc109d4273975a612c36467dd2324e4f0d0d93bdb9a69caca33",
+    "newSha256": "c101f2eca2d6cdf50b83680370378ca19e35fa3c024081e08144562cde7944e1",
+    "changed": true
+  },
+  {
+    "name": "immersive-layout-360-win32.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      360,
+      800
+    ],
+    "newDimensions": [
+      360,
+      800
+    ],
+    "oldSha256": "6dbf273a5ceffb0c8fdf44f8a13623294056b07cdc3dca2d6a9e65d1a32ba696",
+    "newSha256": "6104c2604c6700172f31cde2397296284132b264861fc9a1e25dc889177e914f",
+    "changed": true
+  },
+  {
+    "name": "immersive-layout-390-linux.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      390,
+      844
+    ],
+    "newDimensions": [
+      390,
+      844
+    ],
+    "oldSha256": "c14c0fc046c6de85f69a9200ee191e0a2f7024d5228d526431db20e9b1472724",
+    "newSha256": "a4e3f6753ae83d17a57bc9ed524de6d6dc6d4f97b3e7228a388b15d7093b46c3",
+    "changed": true
+  },
+  {
+    "name": "immersive-layout-390-win32.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      390,
+      844
+    ],
+    "newDimensions": [
+      390,
+      844
+    ],
+    "oldSha256": "5a4116d7d653da0bdc83f3abf7e4ef6e51f1fbafdb97b1869537f69251a94aa9",
+    "newSha256": "fda12de99c289983435848889bd9092c12b13f8ec2c253514f9275ec66ad2911",
+    "changed": true
+  },
+  {
+    "name": "immersive-layout-768-linux.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      768,
+      1024
+    ],
+    "newDimensions": [
+      768,
+      1024
+    ],
+    "oldSha256": "cfbe165ec6ddc6955c8239d0dcaec33f75b280221cb07a7c506cdee3be155e23",
+    "newSha256": "f372f9df22ae98b32cb03ec6c5bf75326e2127d9ae435a3f77d39f77dde5db2a",
+    "changed": true
+  },
+  {
+    "name": "immersive-layout-768-win32.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      768,
+      1024
+    ],
+    "newDimensions": [
+      768,
+      1024
+    ],
+    "oldSha256": "78f78dfc572dfaa151c991d08eb69bc3fd56bb7fa188d6bc6356f8202bc718ba",
+    "newSha256": "cdb2c570ef4a818f8a63f2ad4849570319122e1da9b12fb4244e9ddf0a5260e0",
+    "changed": true
+  },
+  {
+    "name": "inspector-dock-layout-1280-linux.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      1265,
+      690
+    ],
+    "newDimensions": [
+      1265,
+      690
+    ],
+    "oldSha256": "f99b40d8631ee37952574f40c51ddc7531bd146027602344d20bcb766eb4966d",
+    "newSha256": "d0d76e41967aebdc2389229df2cebe462ee909faf15e3645f56a618fffe7f0e5",
+    "changed": true
+  },
+  {
+    "name": "inspector-dock-layout-1280-win32.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      1280,
+      666
+    ],
+    "newDimensions": [
+      1265,
+      690
+    ],
+    "oldSha256": "659a41835d28be1442af0851ce9390017fd60fd5743373d4c65657f0539e6456",
+    "newSha256": "e05b067bc321685914c05a69ae338c6f6b489616d32773b8f9c41be063398733",
+    "changed": true
+  },
+  {
+    "name": "inspector-dock-layout-1920-linux.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      1905,
+      970
+    ],
+    "newDimensions": [
+      1905,
+      970
+    ],
+    "oldSha256": "1b7ded2a898825838134762c1487d29dc00e3953c0f107c63715abe194f7ab17",
+    "newSha256": "2b2011d237a45b076097526b6a85cbf7c0bd913dc25eb7e204dcff7e6295f15c",
+    "changed": true
+  },
+  {
+    "name": "inspector-dock-layout-1920-win32.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      1920,
+      946
+    ],
+    "newDimensions": [
+      1905,
+      970
+    ],
+    "oldSha256": "9569e8bcac9f2aa29b5a5c4a565a2a6433b27b2c9625ecb671b5d2f5888ab249",
+    "newSha256": "04ae7bc40194c4ab543711b4c9fcb9987647e2184fe0b068386705d11ec2292d",
+    "changed": true
+  },
+  {
+    "name": "inspector-sheet-layout-390-linux.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      390,
+      760
+    ],
+    "newDimensions": [
+      390,
+      760
+    ],
+    "oldSha256": "d635636a1ff7f6359e0ef4cc0e0cd255095fa75aeeb3f5802c2aeafce98aeece",
+    "newSha256": "d635636a1ff7f6359e0ef4cc0e0cd255095fa75aeeb3f5802c2aeafce98aeece",
+    "changed": false
+  },
+  {
+    "name": "inspector-sheet-layout-390-win32.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      390,
+      760
+    ],
+    "newDimensions": [
+      390,
+      760
+    ],
+    "oldSha256": "d731ca57c92d328edadb3e6b3b9e5c982310ba52d9b5dfed19dca1408982f53c",
+    "newSha256": "1bcf22ee1c45d6c175c246cffab4dcbcbc66c08e9742f57a368459c78242104b",
+    "changed": true
+  },
+  {
+    "name": "settings-sheet-layout-390-linux.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      390,
+      760
+    ],
+    "newDimensions": [
+      390,
+      760
+    ],
+    "oldSha256": "b5eb9daeaca05ecca3cc2e17e307b3d50764c51631bc4cd82114f50991e9a28f",
+    "newSha256": "b5eb9daeaca05ecca3cc2e17e307b3d50764c51631bc4cd82114f50991e9a28f",
+    "changed": false
+  },
+  {
+    "name": "settings-sheet-layout-390-win32.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      390,
+      760
+    ],
+    "newDimensions": [
+      390,
+      760
+    ],
+    "oldSha256": "ac33590185c8f4e2af6816c433ab9b7b4aa81b2849743889fe07d8e1d904c9ec",
+    "newSha256": "ac33590185c8f4e2af6816c433ab9b7b4aa81b2849743889fe07d8e1d904c9ec",
+    "changed": false
+  },
+  {
+    "name": "settings-sheet-layout-768-linux.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      768,
+      922
+    ],
+    "newDimensions": [
+      768,
+      922
+    ],
+    "oldSha256": "01d7d1c0cdc99eefa1a64a7320078e170cb9b3e28c986ca11900ee2238b78f21",
+    "newSha256": "01d7d1c0cdc99eefa1a64a7320078e170cb9b3e28c986ca11900ee2238b78f21",
+    "changed": false
+  },
+  {
+    "name": "settings-sheet-layout-768-win32.png",
+    "baselineBuild": "e08316e",
+    "oldDimensions": [
+      768,
+      922
+    ],
+    "newDimensions": [
+      768,
+      922
+    ],
+    "oldSha256": "3871b0d41149f314b1a9e3e6c4d69ecd50381692e1c9697533e9056336f5534d",
+    "newSha256": "3871b0d41149f314b1a9e3e6c4d69ecd50381692e1c9697533e9056336f5534d",
+    "changed": false
+  }
+]

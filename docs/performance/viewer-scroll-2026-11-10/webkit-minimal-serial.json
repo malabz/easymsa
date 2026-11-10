@@ -1,0 +1,222 @@
+[
+  {
+    "lane": 0,
+    "run": 0,
+    "elapsedMs": 83.97080000000005,
+    "failure": null,
+    "state": {
+      "events": [
+        {
+          "ms": 13,
+          "type": "worker-start",
+          "url": "./probe-worker.js"
+        },
+        {
+          "ms": 14,
+          "type": "worker-end",
+          "url": "./probe-worker.js"
+        }
+      ],
+      "frames": 3,
+      "ticks": 0,
+      "marks": []
+    },
+    "events": [
+      {
+        "ms": 32.38229999999976,
+        "url": "http://127.0.0.1:5290/",
+        "timing": {
+          "startTime": 1794313862413.8103,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": -1,
+          "responseStart": 10.316,
+          "responseEnd": 10.316
+        }
+      },
+      {
+        "ms": 52.57690000000002,
+        "url": "http://127.0.0.1:5290/probe-worker.js",
+        "timing": {
+          "startTime": 1794313862427.578,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": -1,
+          "responseStart": 5.108,
+          "responseEnd": 5.108
+        }
+      }
+    ]
+  },
+  {
+    "lane": 0,
+    "run": 1,
+    "elapsedMs": 75.05349999999999,
+    "failure": null,
+    "state": {
+      "events": [
+        {
+          "ms": 13,
+          "type": "worker-start",
+          "url": "./probe-worker.js"
+        },
+        {
+          "ms": 13,
+          "type": "worker-end",
+          "url": "./probe-worker.js"
+        }
+      ],
+      "frames": 2,
+      "ticks": 0,
+      "marks": []
+    },
+    "events": [
+      {
+        "ms": 28.5583000000006,
+        "url": "http://127.0.0.1:5290/",
+        "timing": {
+          "startTime": 1794313866382.3308,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": -1,
+          "responseStart": 8.923,
+          "responseEnd": 8.923
+        }
+      },
+      {
+        "ms": 50.59940000000006,
+        "url": "http://127.0.0.1:5290/probe-worker.js",
+        "timing": {
+          "startTime": 1794313866395.3892,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": -1,
+          "responseStart": 4.848,
+          "responseEnd": 4.848
+        }
+      }
+    ]
+  },
+  {
+    "lane": 0,
+    "run": 2,
+    "elapsedMs": 88.70669999999882,
+    "failure": null,
+    "state": {
+      "events": [
+        {
+          "ms": 13,
+          "type": "worker-start",
+          "url": "./probe-worker.js"
+        },
+        {
+          "ms": 13,
+          "type": "worker-end",
+          "url": "./probe-worker.js"
+        }
+      ],
+      "frames": 3,
+      "ticks": 0,
+      "marks": []
+    },
+    "events": [
+      {
+        "ms": 41.54059999999845,
+        "url": "http://127.0.0.1:5290/",
+        "timing": {
+          "startTime": 1794313870137.788,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": -1,
+          "responseStart": 8.965,
+          "responseEnd": 8.965
+        }
+      },
+      {
+        "ms": 52.27359999999862,
+        "url": "http://127.0.0.1:5290/probe-worker.js",
+        "timing": {
+          "startTime": 1794313870151.0803,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": -1,
+          "responseStart": 4.936,
+          "responseEnd": 4.936
+        }
+      }
+    ]
+  },
+  {
+    "lane": 0,
+    "run": 3,
+    "elapsedMs": 76.38619999999901,
+    "failure": null,
+    "state": {
+      "events": [
+        {
+          "ms": 20,
+          "type": "worker-start",
+          "url": "./probe-worker.js"
+        },
+        {
+          "ms": 20,
+          "type": "worker-end",
+          "url": "./probe-worker.js"
+        }
+      ],
+      "frames": 3,
+      "ticks": 0,
+      "marks": []
+    },
+    "events": [
+      {
+        "ms": 41.32409999999982,
+        "url": "http://127.0.0.1:5290/",
+        "timing": {
+          "startTime": 1794313873863.8367,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": -1,
+          "responseStart": 8.642,
+          "responseEnd": 8.642
+        }
+      },
+      {
+        "ms": 51.588299999999435,
+        "url": "http://127.0.0.1:5290/probe-worker.js",
+        "timing": {
+          "startTime": 1794313873884.5237,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": -1,
+          "responseStart": 6.577,
+          "responseEnd": 6.577
+        }
+      }
+    ]
+  }
+]

@@ -1,0 +1,170 @@
+[
+  {
+    "rows": 500,
+    "columns": 10000,
+    "entry": "file",
+    "baselineSource": "../viewer-2026-11-10/candidate.json",
+    "before": {
+      "interactiveMs": 310,
+      "analysisMs": 222.80000001192093,
+      "firstScrollP95": 25.400000035762787,
+      "settledScrollP95": 26
+    },
+    "after": {
+      "interactiveMs": 303.39999997615814,
+      "analysisMs": 219.5,
+      "firstScrollP95": 21.100000023841858,
+      "settledScrollP95": 21.899999976158142
+    },
+    "firstScrollReductionPercent": 16.929133881364567,
+    "settledScrollReductionPercent": 15.769230860930229,
+    "scrollGoalMet": true
+  },
+  {
+    "rows": 500,
+    "columns": 10000,
+    "entry": "result",
+    "baselineSource": "../viewer-2026-11-10/candidate.json",
+    "before": {
+      "interactiveMs": 1277,
+      "analysisMs": 211.0999999642372,
+      "firstScrollP95": 24.600000023841858,
+      "settledScrollP95": 25.30000001192093
+    },
+    "after": {
+      "interactiveMs": 1260.0999999642372,
+      "analysisMs": 223.89999997615814,
+      "firstScrollP95": 22.30000001192093,
+      "settledScrollP95": 23.30000001192093
+    },
+    "firstScrollReductionPercent": 9.349593535332568,
+    "settledScrollReductionPercent": 7.905138336196183,
+    "scrollGoalMet": true
+  },
+  {
+    "rows": 500,
+    "columns": 100000,
+    "entry": "file",
+    "baselineSource": "../viewer-2026-11-10/candidate.json",
+    "before": {
+      "interactiveMs": 1893.1000000238419,
+      "analysisMs": 1884.8999999761581,
+      "firstScrollP95": 28,
+      "settledScrollP95": 27.100000023841858
+    },
+    "after": {
+      "interactiveMs": 1874.3999999761581,
+      "analysisMs": 1938.199999988079,
+      "firstScrollP95": 23.400000035762787,
+      "settledScrollP95": 23.799999952316284
+    },
+    "firstScrollReductionPercent": 16.428571300847196,
+    "settledScrollReductionPercent": 12.177122024436615,
+    "scrollGoalMet": true
+  },
+  {
+    "rows": 500,
+    "columns": 100000,
+    "entry": "result",
+    "baselineSource": "../viewer-2026-11-10/candidate.json",
+    "before": {
+      "interactiveMs": 2267.400000035763,
+      "analysisMs": 2119.800000011921,
+      "firstScrollP95": 26.600000023841858,
+      "settledScrollP95": 26.30000001192093
+    },
+    "after": {
+      "interactiveMs": 2266.099999964237,
+      "analysisMs": 2164.199999988079,
+      "firstScrollP95": 25.400000035762787,
+      "settledScrollP95": 26.099999964237213
+    },
+    "firstScrollReductionPercent": 4.511278146629694,
+    "settledScrollReductionPercent": 0.7604564547264769,
+    "scrollGoalMet": false
+  },
+  {
+    "rows": 5000,
+    "columns": 10000,
+    "entry": "file",
+    "baselineSource": "round1-repeat.json",
+    "before": {
+      "interactiveMs": 1895.0999999642372,
+      "analysisMs": 1879.5,
+      "firstScrollP95": 28.30000001192093,
+      "settledScrollP95": 27.399999976158142
+    },
+    "after": {
+      "interactiveMs": 1890.1000000238419,
+      "analysisMs": 1746.3999999761581,
+      "firstScrollP95": 22,
+      "settledScrollP95": 21.399999976158142
+    },
+    "firstScrollReductionPercent": 22.26148413168605,
+    "settledScrollReductionPercent": 21.897810238032278,
+    "scrollGoalMet": true
+  },
+  {
+    "rows": 5000,
+    "columns": 10000,
+    "entry": "result",
+    "baselineSource": "round1-repeat.json",
+    "before": {
+      "interactiveMs": 2274.800000011921,
+      "analysisMs": 2141.100000023842,
+      "firstScrollP95": 27.099999964237213,
+      "settledScrollP95": 26.69999998807907
+    },
+    "after": {
+      "interactiveMs": 2249.5,
+      "analysisMs": 1612,
+      "firstScrollP95": 21.69999998807907,
+      "settledScrollP95": 21.30000001192093
+    },
+    "firstScrollReductionPercent": 19.92619920031109,
+    "settledScrollReductionPercent": 20.224719020858117,
+    "scrollGoalMet": true
+  },
+  {
+    "rows": 50000,
+    "columns": 1000,
+    "entry": "file",
+    "baselineSource": "../viewer-2026-11-10/candidate.json",
+    "before": {
+      "interactiveMs": 1915.8999999761581,
+      "analysisMs": 2207.800000011921,
+      "firstScrollP95": 28.399999976158142,
+      "settledScrollP95": 27.5
+    },
+    "after": {
+      "interactiveMs": 1904.9000000357628,
+      "analysisMs": 2089.2000000476837,
+      "firstScrollP95": 22.600000023841858,
+      "settledScrollP95": 21.599999964237213
+    },
+    "firstScrollReductionPercent": 20.422535060511958,
+    "settledScrollReductionPercent": 21.454545584591955,
+    "scrollGoalMet": true
+  },
+  {
+    "rows": 50000,
+    "columns": 1000,
+    "entry": "result",
+    "baselineSource": "../viewer-2026-11-10/candidate.json",
+    "before": {
+      "interactiveMs": 2849.900000035763,
+      "analysisMs": 2430.599999964237,
+      "firstScrollP95": 27,
+      "settledScrollP95": 26.5
+    },
+    "after": {
+      "interactiveMs": 2801.899999976158,
+      "analysisMs": 2320.300000011921,
+      "firstScrollP95": 23.399999976158142,
+      "settledScrollP95": 23.80000001192093
+    },
+    "firstScrollReductionPercent": 13.333333421636507,
+    "settledScrollReductionPercent": 10.188679200298377,
+    "scrollGoalMet": true
+  }
+]

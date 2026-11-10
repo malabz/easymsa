@@ -1,0 +1,165 @@
+{
+  "bothBuilds": "e08316e",
+  "runs": [
+    {
+      "run": 1,
+      "report": [
+        {
+          "width": 1440,
+          "name": "embedded",
+          "pixels": 1125750,
+          "changed": 2,
+          "maxDelta": 8
+        },
+        {
+          "width": 1440,
+          "name": "immersive",
+          "pixels": 1296000,
+          "changed": 0,
+          "maxDelta": 0
+        },
+        {
+          "width": 1440,
+          "name": "selection",
+          "pixels": 1296000,
+          "changed": 0,
+          "maxDelta": 0
+        },
+        {
+          "width": 1440,
+          "name": "overview",
+          "pixels": 1296000,
+          "changed": 0,
+          "maxDelta": 0
+        },
+        {
+          "width": 1440,
+          "name": "unequal",
+          "pixels": 1125750,
+          "changed": 0,
+          "maxDelta": 0
+        }
+      ],
+      "differences": [
+        {
+          "width": 1440,
+          "scene": "embedded",
+          "x": 1279,
+          "y": 37,
+          "a": [
+            15,
+            118,
+            110,
+            255
+          ],
+          "b": [
+            16,
+            119,
+            111,
+            255
+          ]
+        },
+        {
+          "width": 1440,
+          "scene": "embedded",
+          "x": 1279,
+          "y": 38,
+          "a": [
+            119,
+            177,
+            173,
+            255
+          ],
+          "b": [
+            127,
+            182,
+            177,
+            255
+          ]
+        }
+      ]
+    },
+    {
+      "run": 2,
+      "report": [
+        {
+          "width": 1440,
+          "name": "embedded",
+          "pixels": 1125750,
+          "changed": 0,
+          "maxDelta": 0
+        },
+        {
+          "width": 1440,
+          "name": "immersive",
+          "pixels": 1296000,
+          "changed": 0,
+          "maxDelta": 0
+        },
+        {
+          "width": 1440,
+          "name": "selection",
+          "pixels": 1296000,
+          "changed": 0,
+          "maxDelta": 0
+        },
+        {
+          "width": 1440,
+          "name": "overview",
+          "pixels": 1296000,
+          "changed": 0,
+          "maxDelta": 0
+        },
+        {
+          "width": 1440,
+          "name": "unequal",
+          "pixels": 1125750,
+          "changed": 0,
+          "maxDelta": 0
+        }
+      ],
+      "differences": []
+    },
+    {
+      "run": 3,
+      "report": [
+        {
+          "width": 1440,
+          "name": "embedded",
+          "pixels": 1125750,
+          "changed": 0,
+          "maxDelta": 0
+        },
+        {
+          "width": 1440,
+          "name": "immersive",
+          "pixels": 1296000,
+          "changed": 0,
+          "maxDelta": 0
+        },
+        {
+          "width": 1440,
+          "name": "selection",
+          "pixels": 1296000,
+          "changed": 0,
+          "maxDelta": 0
+        },
+        {
+          "width": 1440,
+          "name": "overview",
+          "pixels": 1296000,
+          "changed": 0,
+          "maxDelta": 0
+        },
+        {
+          "width": 1440,
+          "name": "unequal",
+          "pixels": 1125750,
+          "changed": 0,
+          "maxDelta": 0
+        }
+      ],
+      "differences": []
+    }
+  ]
+}

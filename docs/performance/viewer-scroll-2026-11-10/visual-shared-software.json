@@ -1,0 +1,142 @@
+[
+  {
+    "width": 390,
+    "name": "embedded",
+    "pixels": 270750,
+    "changed": 0,
+    "maxDelta": 0
+  },
+  {
+    "width": 390,
+    "name": "immersive",
+    "pixels": 351000,
+    "changed": 10,
+    "maxDelta": 33
+  },
+  {
+    "width": 390,
+    "name": "selection",
+    "pixels": 351000,
+    "changed": 10,
+    "maxDelta": 33
+  },
+  {
+    "width": 390,
+    "name": "overview",
+    "pixels": 351000,
+    "changed": 0,
+    "maxDelta": 0
+  },
+  {
+    "width": 390,
+    "name": "unequal",
+    "pixels": 270750,
+    "changed": 0,
+    "maxDelta": 0
+  },
+  {
+    "width": 768,
+    "name": "embedded",
+    "pixels": 594870,
+    "changed": 0,
+    "maxDelta": 0
+  },
+  {
+    "width": 768,
+    "name": "immersive",
+    "pixels": 691200,
+    "changed": 0,
+    "maxDelta": 0
+  },
+  {
+    "width": 768,
+    "name": "selection",
+    "pixels": 691200,
+    "changed": 0,
+    "maxDelta": 0
+  },
+  {
+    "width": 768,
+    "name": "overview",
+    "pixels": 691200,
+    "changed": 0,
+    "maxDelta": 0
+  },
+  {
+    "width": 768,
+    "name": "unequal",
+    "pixels": 594870,
+    "changed": 0,
+    "maxDelta": 0
+  },
+  {
+    "width": 1280,
+    "name": "embedded",
+    "pixels": 999350,
+    "changed": 0,
+    "maxDelta": 0
+  },
+  {
+    "width": 1280,
+    "name": "immersive",
+    "pixels": 1152000,
+    "changed": 0,
+    "maxDelta": 0
+  },
+  {
+    "width": 1280,
+    "name": "selection",
+    "pixels": 1152000,
+    "changed": 0,
+    "maxDelta": 0
+  },
+  {
+    "width": 1280,
+    "name": "overview",
+    "pixels": 1152000,
+    "changed": 0,
+    "maxDelta": 0
+  },
+  {
+    "width": 1280,
+    "name": "unequal",
+    "pixels": 999350,
+    "changed": 0,
+    "maxDelta": 0
+  },
+  {
+    "width": 1440,
+    "name": "embedded",
+    "pixels": 1125750,
+    "changed": 2,
+    "maxDelta": 8
+  },
+  {
+    "width": 1440,
+    "name": "immersive",
+    "pixels": 1296000,
+    "changed": 0,
+    "maxDelta": 0
+  },
+  {
+    "width": 1440,
+    "name": "selection",
+    "pixels": 1296000,
+    "changed": 0,
+    "maxDelta": 0
+  },
+  {
+    "width": 1440,
+    "name": "overview",
+    "pixels": 1296000,
+    "changed": 0,
+    "maxDelta": 0
+  },
+  {
+    "width": 1440,
+    "name": "unequal",
+    "pixels": 1125750,
+    "changed": 0,
+    "maxDelta": 0
+  }
+]

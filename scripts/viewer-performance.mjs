@@ -16,7 +16,11 @@ const output = path.resolve(option("--output", "test-results/viewer-performance.
 const repetitions = Number(option("--runs", "3"));
 const cpuThrottle = Number(option("--cpu-throttle", "1"));
 const [viewportWidth, viewportHeight] = option("--viewport", "1440x900").split("x").map(Number);
-const shapes = args.includes("--quick") ? [[5000, 10000]] : [[500,10000],[5000,10000],[50000,1000],[500,100000]];
+const allShapes = [[500,10000],[5000,10000],[50000,1000],[500,100000]];
+const selectedShape = option("--shape", null);
+const shapes = selectedShape ? allShapes.filter(([rows, columns]) => `${rows}x${columns}` === selectedShape)
+  : args.includes("--quick") ? [[5000, 10000]] : allShapes;
+if (!shapes.length) throw Error("--shape must select one of the four fixed benchmark fixtures.");
 const fixtureDir = path.join(os.tmpdir(), "easymsa-viewer-performance-v1");
 mkdirSync(fixtureDir, {recursive:true});
 const fixtures = shapes.map(([rows, columns]) => {
