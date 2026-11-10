@@ -4,7 +4,7 @@ import type { MotifSearchPayloadV3, MotifWorkerRequest } from "./motifWorkerProt
 import type { MsaRangeStatsWorkerRequest } from "./rangeStatsWorkerProtocol";
 import type { SequenceExportRequest } from "./sequenceExportProtocol";
 import type { RangeStats } from "./types";
-import type { MsaAnalysisPayloadV4, MsaAnalysisWorkerRequest } from "./workerProtocol";
+import type { AnalysisColumns, MsaAnalysisPayloadV4, MsaAnalysisWorkerRequest } from "./workerProtocol";
 
 type DataProtocol = {
   analysis: { request: Extract<MsaAnalysisWorkerRequest, { type: "analyze" }>; result: MsaAnalysisPayloadV4 };
@@ -36,7 +36,8 @@ export type SessionMessage =
   | { type: "cancel"; id: number }
   | SessionTask;
 
-export type SessionResponse = { id: number } & (
+export type SessionResponse = { id: number; partial?: AnalysisColumns } & (
+  | { partial: AnalysisColumns; result?: never; progress?: never; error?: never }
   | { result: DataResult<DataOperation>; progress?: never; error?: never }
   | { progress: number; result?: never; error?: never }
   | { error: { code: string; message: string; invalidCharacters?: string[] }; result?: never; progress?: never }

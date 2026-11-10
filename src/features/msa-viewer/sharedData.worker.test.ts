@@ -64,6 +64,20 @@ function resultReply(id: number) {
 }
 
 describe("shared data Worker wire compatibility", () => {
+  it("publishes columns before row comparisons and keeps cached counters attached after transfer", () => {
+    send({ type: "initialize", sequences: rows });
+    send(tasks.analysis); drainTurns();
+    const first = resultReply(1);
+    const partialIndex = replies.findIndex(reply => reply.message.id === 1 && reply.message.partial);
+    expect(partialIndex).toBeGreaterThanOrEqual(0);
+    expect(partialIndex).toBeLessThan(replies.indexOf(first));
+    // Model the real browser ownership transfer, not a mock that leaves buffers attached.
+    structuredClone(first.message, { transfer: first.transfer as ArrayBuffer[] });
+    const next = {...tasks.analysis, id: 9, referenceSequence: 1, request: {...tasks.analysis.request, referenceRowKey:"row:b"}} satisfies SessionTask;
+    send(next); drainTurns();
+    const expected = calculateMsaAnalysisPayloadV4({...next.request,sequences:[rows[2],rows[1]],referenceSequence:rows[1]});
+    expect(resultReply(9).message.result).toEqual(expected);
+  });
   it("restores indexed rows and references for all five operations without changing response envelopes", async () => {
     send({ type: "initialize", sequences: rows });
     Object.values(tasks).forEach(send);

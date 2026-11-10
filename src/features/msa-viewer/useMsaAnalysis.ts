@@ -274,6 +274,7 @@ export function useMsaAnalysis(
     overviewBinCount
   }), [sourceFingerprint, alignmentLength, alphabet, scope, scopeRowKeys, referenceRowKey, overviewBinCount]);
   const initial = disabled ? null : cachePeek(cacheKey);
+  const [partial, setPartial] = useState<{ key: string; value: Omit<MsaAnalysisPayloadV4, "rowQc"> } | null>(null);
   const [result, setResult] = useState<MsaAnalysisPayloadV4 | null>(initial);
   const [resultCacheKey, setResultCacheKey] = useState<string | null>(
     initial ? cacheKey : null
@@ -296,6 +297,7 @@ export function useMsaAnalysis(
   const requestRef = useRef(0);
 
   useEffect(() => {
+    setPartial(null);
     const generation = nextGeneration++;
     const requestId = nextRequestId++;
     generationRef.current = generation;
@@ -403,7 +405,9 @@ export function useMsaAnalysis(
       }
     } else if (session) {
       markMsaPerformance(MSA_PERFORMANCE_MARKS.analysisWorkerStart);
-      session.run("analysis", request, abort.signal).then(payload => {
+      session.run("analysis", request, abort.signal, setProgress, value => {
+        if (!cancelled) { setPartial({key: cacheKey, value}); setProgress(0.6); markMsaPerformance("easymsa:analysis-columns-ready"); }
+      }).then(payload => {
         if (cancelled) return;
         try { assertMsaAnalysisPayloadV4(payload); markMsaPerformance(MSA_PERFORMANCE_MARKS.analysisWorkerDone); complete(payload); }
         catch (error) { fail(error); }
@@ -525,7 +529,8 @@ export function useMsaAnalysis(
     ) as Record<string, number>,
     [motif.rowTotals]
   );
-  const activeResult = !disabled && resultCacheKey === cacheKey ? result : null;
+  const completedResult = !disabled && resultCacheKey === cacheKey ? result : null;
+  const activeResult = completedResult ?? (!disabled && partial?.key === cacheKey ? {...partial.value, rowQc: EMPTY_ROW_QC} : null);
   const getColumnStats = useCallback(
     (position: number) => activeResult
       ? columnStatsAtPosition(activeResult.columnStore, position)
@@ -542,8 +547,8 @@ export function useMsaAnalysis(
     : errorCacheKey === cacheKey
       ? analysisErrorCode
       : null;
-  const effectiveIsCalculating = !disabled && !activeResult && !activeAnalysisError;
-  const activeProgress = activeResult
+  const effectiveIsCalculating = !disabled && !completedResult && !activeAnalysisError;
+  const activeProgress = completedResult
     ? 1
     : processingCacheKey === cacheKey
       ? progress

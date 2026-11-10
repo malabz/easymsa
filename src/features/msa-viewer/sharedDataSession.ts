@@ -1,9 +1,10 @@
+import type { AnalysisColumns } from "./workerProtocol";
 import { useEffect, useMemo } from "react";
 import type { MSASequence } from "../../lib/types/msa";
 import type { DataOperation, DataRequest, DataResult, SessionMessage, SessionResponse, SessionTask } from "./sharedDataProtocol";
 
 export type { DataOperation, SessionMessage, SessionTask } from "./sharedDataProtocol";
-type Pending = { id: number; message: SessionTask; resolve: (result: unknown) => void; reject: (error: unknown) => void; cleanup: () => void; progress?: (value: number) => void };
+type Pending = { id: number; message: SessionTask; resolve: (result: unknown) => void; reject: (error: unknown) => void; cleanup: () => void; progress?: (value: number) => void; partial?: (value: AnalysisColumns) => void };
 const sessions = new WeakMap<MSASequence[], MsaDataSession>();
 const aborted = () => new DOMException("Operation cancelled", "AbortError");
 
@@ -34,7 +35,7 @@ export class MsaDataSession {
     if (index === undefined) throw new Error("Sequence does not belong to the current alignment.");
     return index;
   }
-  run<K extends DataOperation>(operation: K, input: DataRequest<NoInfer<K>>, signal?: AbortSignal, progress?: (value: number) => void): Promise<DataResult<K>> {
+  run<K extends DataOperation>(operation: K, input: DataRequest<NoInfer<K>>, signal?: AbortSignal, progress?: (value: number) => void, partial?: (value: AnalysisColumns) => void): Promise<DataResult<K>> {
     if (signal?.aborted) return Promise.reject(aborted());
     const { sequences, rows, sourceRows: _sourceRows, reference, referenceSequence, ...request } = input as Record<string, unknown>;
     const selected = (sequences ?? rows ?? this.sequences) as MSASequence[];
@@ -55,7 +56,7 @@ export class MsaDataSession {
         reject(aborted());
       };
       signal?.addEventListener("abort", cancel, { once: true });
-      const task = { id: message.id, message, progress, resolve: (result: unknown) => resolve(result as DataResult<K>), reject, cleanup: () => signal?.removeEventListener("abort", cancel) };
+      const task = { id: message.id, message, progress, partial, resolve: (result: unknown) => resolve(result as DataResult<K>), reject, cleanup: () => signal?.removeEventListener("abort", cancel) };
       this.pending.set(message.id, task);
       this.send(task);
     });
@@ -67,6 +68,7 @@ export class MsaDataSession {
           if (worker !== this.worker) return;
           const task = this.pending.get(event.data.id);
           if (!task) return;
+          if (event.data.partial) { task.partial?.(event.data.partial); return; }
           if (typeof event.data.progress === "number") { task.progress?.(event.data.progress); return; }
           this.pending.delete(task.id); task.cleanup();
           if (event.data.error) task.reject(Object.assign(new Error(event.data.error.message), event.data.error));

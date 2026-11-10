@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { calculateMinimapPair, type MinimapInput, type MinimapPair } from './minimapData';
 import { useMsaDataSession, type MsaDataSession } from './sharedDataSession';
+import { markMsaPerformance } from './performanceMarks';
 type Entry = { result: MinimapPair | null; promise: Promise<MinimapPair> | null; users: number; controller: AbortController | null; timer?: ReturnType<typeof setTimeout> };
 const cache = new WeakMap<MinimapInput, Entry>();
 function entryFor(input: MinimapInput) {
@@ -12,10 +13,11 @@ function compute(input: MinimapInput, entry: Entry, session: MsaDataSession) {
   if (entry.result) return Promise.resolve(entry.result);
   if (entry.promise) return entry.promise;
   const controller = new AbortController(); entry.controller = controller;
+  markMsaPerformance('easymsa:overview-worker-start');
   entry.promise = (typeof Worker === 'undefined' && import.meta.env.MODE === 'test'
     ? Promise.resolve(calculateMinimapPair(input))
     : session.run('overview', input, controller.signal))
-    .then(result => { entry.result = result; return result; })
+    .then(result => { markMsaPerformance('easymsa:overview-worker-done'); entry.result = result; return result; })
     .finally(() => { entry.promise = null; entry.controller = null; });
   return entry.promise;
 }

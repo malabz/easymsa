@@ -75,6 +75,16 @@ const OVERVIEW_BASES: AlignmentOverviewBase[] = [
   "gap"
 ];
 
+const COLUMN_KIND = new Uint8Array(128).fill(5);
+const OVERVIEW_KIND = new Uint8Array(128).fill(6);
+for (let code = 0; code < 128; code++) {
+  const base = String.fromCharCode(code);
+  const canonical = "ACGT".indexOf(base === "U" ? "T" : base);
+  COLUMN_KIND[code] = canonical >= 0 ? canonical : base === "-" || base === "." ? 6 : IUPAC_BASES[base] ? 4 : 5;
+  const overview = OVERVIEW_BASES.indexOf(base as AlignmentOverviewBase);
+  OVERVIEW_KIND[code] = base === "-" || base === "." ? 7 : overview >= 0 ? overview : 6;
+}
+
 type ColumnSymbol =
   | { kind: "gap" }
   | { kind: "canonical"; base: string }
@@ -155,7 +165,8 @@ function overviewBase(base: string): AlignmentOverviewBase {
 export function* calculateMsaAnalysisStoreCooperative(
   sequences: Array<{ sequence: string }>,
   alignmentLength: number,
-  options: NucleotideAnalysisOptions = {}
+  options: NucleotideAnalysisOptions = {},
+  basicRows?: RowQcStats[]
 ): CooperativeTask<MsaAnalysisStoreResult> {
   const normalizedSequences = [];
   for (const sequence of sequences) {
@@ -190,37 +201,58 @@ export function* calculateMsaAnalysisStoreCooperative(
   const totalRows = normalizedSequences.length;
   const fourthBase = isRnaAlphabet(options.alphabet) ? "U" : "T";
 
-  for (let index = 0; index < alignmentLength; index += 1) {
-    let aCount = 0;
-    let cCount = 0;
-    let gCount = 0;
-    let fourthCount = 0;
-    let ambiguityCount = 0;
-    let unknownCount = 0;
-    let gapCount = 0;
-
-    for (const sequence of normalizedSequences) {
+  const overviewCounts = new Float64Array(8);
+  // Row-major traversal reuses each string and accumulates column and row counts
+  // together. Numeric classification avoids allocating an object for every cell.
+  for (let rowIndex = 0; rowIndex < normalizedSequences.length; rowIndex++) {
+    const normalized = normalizedSequences[rowIndex].sequence;
+    let canonicalCount = 0, ambiguityCount = 0, unknownCount = 0, gapCount = 0, gcCount = 0;
+    for (let index = 0; index < alignmentLength; index++) {
       if ((++checkpoint & 16383) === 0) yield;
-      const base = (sequence.sequence[index] ?? "").toUpperCase();
-      baseCounts[overviewBase(base)] += 1;
-      const symbol = classifyColumnSymbol(base, options.alphabet);
-      if (symbol.kind === "gap") {
-        gapCount += 1;
-      } else if (symbol.kind === "ambiguity") {
-        ambiguityCount += 1;
-      } else if (symbol.kind === "unknown") {
-        unknownCount += 1;
-      } else if (symbol.base === "A") {
-        aCount += 1;
-      } else if (symbol.base === "C") {
-        cCount += 1;
-      } else if (symbol.base === "G") {
-        gCount += 1;
-      } else {
-        fourthCount += 1;
-      }
+      const code = normalized.charCodeAt(index);
+      const kind = Number.isNaN(code) ? 6 : (COLUMN_KIND[code] ?? 5);
+      overviewCounts[Number.isNaN(code) ? 7 : (OVERVIEW_KIND[code] ?? 6)]++;
+      if (kind < 4) {
+        nucleotideCounts[index * 4 + kind]++; canonicalCount++;
+        if (kind === 1 || kind === 2) gcCount++;
+      } else if (kind === 4) { ambiguityCounts[index]++; ambiguityCount++; }
+      else if (kind === 5) { unknownCounts[index]++; unknownCount++; }
+      else { gapCounts[index]++; gapCount++; }
     }
-
+    if (basicRows) {
+      const source = sequences[rowIndex] as MSASequence;
+      const nonGapLength = canonicalCount + ambiguityCount + unknownCount;
+    const divisor = alignmentLength > 0 ? alignmentLength : 1;
+    basicRows.push({
+      rowKey: rowKeyForSequence(source, rowIndex),
+      sequenceId: source.id,
+      originalIndex: source.originalIndex ?? rowIndex,
+      sequenceLength: normalized.length,
+      rawLength: source.sequence.length,
+      ungappedLength: nonGapLength,
+      nonGapLength,
+      alignmentLength: alignmentLength,
+      canonicalCount,
+      ambiguityCount,
+      unknownCount,
+      gapCount,
+      gapFraction: alignmentLength > 0 ? gapCount / divisor : 0,
+      coverage: alignmentLength > 0
+        ? (canonicalCount + ambiguityCount + unknownCount) / divisor
+        : 0,
+      informativeCoverage: alignmentLength > 0 ? canonicalCount / divisor : 0,
+      ambiguityFraction: alignmentLength > 0 ? ambiguityCount / divisor : 0,
+      unknownFraction: alignmentLength > 0 ? unknownCount / divisor : 0,
+      gcFraction: canonicalCount > 0 ? gcCount / canonicalCount : null
+    });
+    }
+  }
+  OVERVIEW_BASES.forEach((base, index) => { baseCounts[base] = overviewCounts[index]; });
+  for (let index = 0; index < alignmentLength; index += 1) {
+    if ((index & 2047) === 0) yield;
+    const aCount = nucleotideCounts[index * 4], cCount = nucleotideCounts[index * 4 + 1];
+    const gCount = nucleotideCounts[index * 4 + 2], fourthCount = nucleotideCounts[index * 4 + 3];
+    const ambiguityCount = ambiguityCounts[index], unknownCount = unknownCounts[index], gapCount = gapCounts[index];
     const canonicalCount = aCount + cCount + gCount + fourthCount;
     canonicalCounts[index] = canonicalCount;
     nucleotideCounts.set([aCount, cCount, gCount, fourthCount], index * 4);
@@ -845,3 +877,10 @@ export function calculateRowQcStats(...args: Parameters<typeof calculateRowQcSta
 export function searchIupacMotifMatches(...args: Parameters<typeof searchIupacMotifMatchesCooperative>) { return drainTask(searchIupacMotifMatchesCooperative(...args)); }
 
 export function calculateRangeStats(...args: Parameters<typeof calculateRangeStatsCooperative>) { return drainTask(calculateRangeStatsCooperative(...args)); }
+
+const referenceMaps = new WeakMap<MSASequence, ReferenceCoordinateMap>();
+export function cachedReferenceCoordinateMap(reference: MSASequence) {
+  let map = referenceMaps.get(reference);
+  if (!map) { map = buildReferenceCoordinateMap(reference.sequence); referenceMaps.set(reference, map); }
+  return map;
+}

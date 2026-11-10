@@ -17,7 +17,8 @@ import type {
   AlignmentOverviewStats,
   AnalysisScope,
   ColumnStatsStoreV2,
-  RowQcStats
+  RowQcStats,
+  MsaAnalysisStoreResult
 } from "./types";
 import { COLUMN_STATS_FLAGS, COLUMN_STATS_STORE_VERSION } from "./types";
 
@@ -240,12 +241,8 @@ function* assertAnalyzableInput(
         "Nucleotide analysis requires equal-length aligned sequences."
       );
     }
-    for (const symbol of normalized) {
-      if ((++checkpoint & 16383) === 0) yield;
-      if (!"ACGTURYSWKMBDHVN-".includes(symbol)) {
-        invalid.add(symbol);
-      }
-    }
+    for (const match of normalized.matchAll(/[^ACGTURYSWKMBDHVN-]/gu)) invalid.add(match[0]);
+    if ((++checkpoint & 127) === 0) yield;
   }
   if (invalid.size > 0) {
     throw new MsaAnalysisWorkerError(
@@ -307,7 +304,7 @@ function buildOverviewBins(
 }
 
 function normalizedCanonical(base: string) {
-  const normalized = base.toUpperCase().replace("U", "T");
+  const normalized = base === "U" ? "T" : base;
   return normalized === "A" || normalized === "C" ||
     normalized === "G" || normalized === "T"
     ? normalized
@@ -315,10 +312,10 @@ function normalizedCanonical(base: string) {
 }
 
 function isTransition(left: string, right: string) {
-  const pair = [left, right].sort().join("");
-  return pair === "AG" || pair === "CT";
+  return (left === "A" && right === "G") || (left === "G" && right === "A") || (left === "C" && right === "T") || (left === "T" && right === "C");
 }
 
+const DIFFERENCES = Array.from({length: 128}, (_, a) => Array.from({length: 128}, (_, b) => classifyDifference(String.fromCharCode(a), String.fromCharCode(b))));
 function* addComparisonStats(
   row: MSASequence,
   comparator: string,
@@ -360,7 +357,7 @@ function* addComparisonStats(
         }
         continue;
       }
-      const difference = classifyDifference(observed, expected);
+      const difference = DIFFERENCES[observed.charCodeAt(0)]?.[expected.charCodeAt(0)] ?? classifyDifference(observed, expected);
       if (difference === "empty" || difference === "unknown") {
         continue;
       }
@@ -404,9 +401,10 @@ function* buildRowQc(
   majorityConsensus: string,
   columnStore: ColumnStatsStoreV2,
   referenceRowKey?: string | null,
-  referenceSequence?: MSASequence | null
+  referenceSequence?: MSASequence | null,
+  preparedRows?: RowQcStats[]
 ): CooperativeTask<RowQcStatsV2[]> {
-  const basic = yield* calculateRowQcStatsCooperative(sequences, alignmentLength, { alphabet });
+  const basic = preparedRows ?? (yield* calculateRowQcStatsCooperative(sequences, alignmentLength, { alphabet }));
   const resolvedReferenceIndex = referenceRowKey
     ? sequences.findIndex((sequence, index) =>
         rowKeyForSequence(sequence, index) === referenceRowKey
@@ -464,6 +462,10 @@ function* buildRowQc(
   return result;
 }
 
+export type PreparedAnalysis = { analysis: MsaAnalysisStoreResult; basicRows: RowQcStats[] };
+export type AnalysisColumns = Omit<MsaAnalysisPayloadV4, "rowQc">;
+export type AnalysisHooks = { prepared?: PreparedAnalysis; onPrepared?: (value: PreparedAnalysis) => void; onColumns?: (value: AnalysisColumns) => void };
+
 export function* calculateMsaAnalysisPayloadV4Cooperative({
   sourceFingerprint,
   scope,
@@ -474,18 +476,20 @@ export function* calculateMsaAnalysisPayloadV4Cooperative({
   referenceRowKey,
   referenceSequence,
   overviewBinCount
-}: Extract<MsaAnalysisWorkerRequest, { type: "analyze" }>): CooperativeTask<MsaAnalysisPayloadV4> {
-  yield* assertAnalyzableInput(sequences, alignmentLength, alphabet);
+}: Extract<MsaAnalysisWorkerRequest, { type: "analyze" }>, hooks: AnalysisHooks = {}): CooperativeTask<MsaAnalysisPayloadV4> {
+  if (!hooks.prepared) yield* assertAnalyzableInput(sequences, alignmentLength, alphabet);
   if (scope !== "all" && sequences.length === 0) {
     throw new MsaAnalysisWorkerError(
       "ANALYSIS_EMPTY_SCOPE",
       "The selected analysis scope contains no sequences."
     );
   }
-  const analysis = yield* calculateMsaAnalysisStoreCooperative(sequences, alignmentLength, { alphabet });
+  const basicRows: RowQcStats[] = hooks.prepared?.basicRows ?? [];
+  const analysis = hooks.prepared?.analysis ?? (yield* calculateMsaAnalysisStoreCooperative(sequences, alignmentLength, { alphabet }, basicRows));
+  hooks.onPrepared?.({ analysis, basicRows });
   const majority = analysis.columnStore.majorityConsensus;
   const iupac = analysis.columnStore.iupacConsensus;
-  const payload: MsaAnalysisPayloadV4 = {
+  const columns: AnalysisColumns = {
     semanticsVersion: MSA_ANALYSIS_SEMANTICS_VERSION,
     columnStoreVersion: COLUMN_STATS_STORE_VERSION,
     sourceFingerprint,
@@ -494,6 +498,11 @@ export function* calculateMsaAnalysisPayloadV4Cooperative({
     columnStore: analysis.columnStore,
     overview: analysis.overview,
     overviewBins: buildOverviewBins(analysis.columnStore, overviewBinCount),
+    consensus: { majority, iupac }
+  };
+  hooks.onColumns?.(columns);
+  yield;
+  const payload: MsaAnalysisPayloadV4 = { ...columns,
     rowQc: yield* buildRowQc(
       sequences,
       alignmentLength,
@@ -501,9 +510,9 @@ export function* calculateMsaAnalysisPayloadV4Cooperative({
       majority,
       analysis.columnStore,
       referenceRowKey,
-      referenceSequence
-    ),
-    consensus: { majority, iupac }
+      referenceSequence,
+      basicRows
+    )
   };
   assertMsaAnalysisPayloadV4(payload);
   return payload;

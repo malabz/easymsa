@@ -1,3 +1,4 @@
+import type { PreparedAnalysis } from "./workerProtocol";
 import { createSequenceExportCooperative } from "./sequenceExportProtocol";
 /// <reference lib="webworker" />
 import type { MSASequence } from "../../lib/types/msa";
@@ -6,7 +7,7 @@ import { calculateMsaAnalysisPayloadV4Cooperative, analysisWorkerError } from ".
 import { calculateMotifSearchPayloadCooperative, motifWorkerError } from "./motifWorkerProtocol";
 import { calculateMsaRangeStatsTaskCooperative, normalizeRangeStatsError } from "./rangeStatsWorkerProtocol";
 import { calculateMinimapPairCooperative } from "./minimapData";
-import { columnStatsStoreTransferables } from "./columnStatsStore";
+import { columnStatsStoreByteLength, columnStatsStoreTransferables } from "./columnStatsStore";
 import { CooperativeScheduler, type CooperativeTask } from "./cooperativeTask";
 // MessageChannel yields to incoming requests without the repeated timer clamp.
 const turnChannel = new MessageChannel();
@@ -16,6 +17,14 @@ const scheduler = new CooperativeScheduler(8, callback => {
 });
 const priority = { range: 4, motif: 3, analysis: 1, export: 0, overview: 0 };
 let sequences: MSASequence[] = [];
+const preparedCache = new Map<string, { value: PreparedAnalysis; bytes: number }>();
+function remember(key: string, value: PreparedAnalysis) {
+  preparedCache.delete(key);
+  preparedCache.set(key, {value, bytes: columnStatsStoreByteLength(value.analysis.columnStore) + value.basicRows.length * 384});
+  while (preparedCache.size > 3 || [...preparedCache.values()].reduce((n, item) => n + item.bytes, 0) > 48 * 1024 * 1024) {
+    preparedCache.delete(preparedCache.keys().next().value!);
+  }
+}
 function* calculate(message: SessionTask): CooperativeTask<{ result: DataResult<DataOperation>; transfer: Transferable[] }> {
   const rows = message.rows === null ? sequences : message.rows.map(index => sequences[index]);
   const selection = { sequences: rows, rows,
@@ -24,8 +33,16 @@ function* calculate(message: SessionTask): CooperativeTask<{ result: DataResult<
     let result: DataResult<DataOperation>;
     let transfer: Transferable[] = [];
     if (message.operation === "analysis") {
-      const payload = yield* calculateMsaAnalysisPayloadV4Cooperative({ ...message.request, ...selection });
-      transfer = columnStatsStoreTransferables(payload.columnStore); result = payload;
+      const key = JSON.stringify([message.request.sourceFingerprint, message.request.alignmentLength, message.request.alphabet, message.rows]);
+      const cached = preparedCache.get(key)?.value;
+      if (cached) remember(key, cached);
+      result = yield* calculateMsaAnalysisPayloadV4Cooperative({ ...message.request, ...selection }, {
+        prepared: cached, onPrepared: value => remember(key, value),
+        onColumns: partial => self.postMessage({id: message.id, partial} satisfies SessionResponse)
+      });
+      // Transfer an independent result; cached counters must remain attached.
+      result = { ...result, columnStore: structuredClone(result.columnStore) };
+      transfer = columnStatsStoreTransferables(result.columnStore);
     } else if (message.operation === "motif") result = yield* calculateMotifSearchPayloadCooperative({ ...message.request, ...selection });
     else if (message.operation === "range") result = yield* calculateMsaRangeStatsTaskCooperative({ ...message.request, ...selection });
     else if (message.operation === "export") result = yield* createSequenceExportCooperative({ ...message.request, ...selection }, progress => self.postMessage({id: message.id, progress} satisfies SessionResponse));
@@ -36,7 +53,7 @@ function* calculate(message: SessionTask): CooperativeTask<{ result: DataResult<
     return { result, transfer };
 }
 export function handleSessionMessage(message: SessionMessage) {
-  if (message.type === "initialize") { sequences = message.sequences; return; }
+  if (message.type === "initialize") { sequences = message.sequences; preparedCache.clear(); return; }
   if (message.type === "cancel") { scheduler.cancel(message.id); return; }
   scheduler.add(message.id, priority[message.operation], calculate(message), ({ result, transfer }) => self.postMessage({ id: message.id, result } satisfies SessionResponse, transfer), error => {
     const normalized = message.operation === "analysis" ? analysisWorkerError(error)
