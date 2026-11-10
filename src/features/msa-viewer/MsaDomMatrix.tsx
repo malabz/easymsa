@@ -696,6 +696,9 @@ export function MsaDomMatrix({
     estimateSize: () => pitch,
     getScrollElement: () => scrollRef.current,
     horizontal: true,
+    // Both axes observe the same scroll event. Let React batch their updates;
+    // flushing one axis immediately forces layout before the other reads it.
+    useFlushSync: false,
     overscan: 4
   });
   const rowVirtualizer = useVirtualizer({
@@ -703,6 +706,7 @@ export function MsaDomMatrix({
     // All rows have this fixed height; observing every virtual row adds layout
     // work on scroll and cannot provide a more accurate measurement.
     estimateSize: () => settings.rowHeight,
+    useFlushSync: false,
     getScrollElement: () => scrollRef.current,
     overscan: 4
   });

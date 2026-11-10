@@ -14,6 +14,28 @@ test.beforeEach(async ({ page }) => {
   await prepareViewerPage(page);
 });
 
+test("diagonal scrolling keeps row labels, matrix selection and column tracks aligned", async ({ page }) => {
+  await loadNamedFixture(page, "overview-touch");
+  const grid = page.locator("[data-msa-scroll-viewport]");
+  const canvas = page.locator("canvas[data-msa-canvas]");
+  const pitch = Number(await canvas.getAttribute("data-msa-cell-pitch"));
+  const rowHeight = Number(await canvas.getAttribute("data-msa-row-height"));
+  for (const [left, top] of [[71,57],[1_303,509],[6_990,1_513],[999_999,999_999],[0,0]]) {
+    await grid.evaluate((element, offset) => { element.scrollLeft=offset.left; element.scrollTop=offset.top; }, {left,top});
+    await settleBrowser(page);
+    const offset = await grid.evaluate(element => ({left:element.scrollLeft,top:element.scrollTop}));
+    const rowIndex = Math.floor((offset.top + rowHeight / 2) / rowHeight);
+    const position = Math.floor((offset.left + pitch / 2) / pitch) + 1;
+    const rowName = `overview-touch-row-${String(rowIndex + 1).padStart(3,"0")}`;
+    await expect(page.locator(`[data-index="${rowIndex}"] [data-msa-row-name]`)).toHaveText(rowName);
+    await canvas.click({position:{x:12 + pitch / 2,y:rowHeight / 2}});
+    await expect(page.locator("[data-msa-status]")).toHaveAttribute("data-msa-selected-position",String(position));
+    const active = await grid.getAttribute("aria-activedescendant");
+    await expect(page.locator(`#${active}`)).toContainText(`${rowName}; Position ${position};`);
+    await expect(page.locator(`[data-msa-track-position="${position}"]`).first()).toBeVisible();
+  }
+});
+
 test("reference, scope, QC annotation, restoration, motif, minimap, and bundle export agree", async ({ page }) => {
   const fasta = referenceFixture();
   await loadViewerFasta(page, fasta);
