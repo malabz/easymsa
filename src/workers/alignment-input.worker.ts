@@ -17,6 +17,7 @@ function post(response: MsaInputWorkerResponse) {
 import { handleSessionMessage } from "../features/msa-viewer/sharedData.worker";
 import type { SessionMessage } from "../features/msa-viewer/sharedDataProtocol";
 import { EasyMsaApiError } from "../lib/api/client";
+import { ServerAlignmentPayloadError } from "../lib/api/serverAlignment";
 
 self.onmessage = (event: MessageEvent<MsaInputWorkerRequest | SessionMessage>) => {
   const request = event.data;
@@ -39,7 +40,7 @@ self.onmessage = (event: MessageEvent<MsaInputWorkerRequest | SessionMessage>) =
       type: "inputError",
       requestId: request.requestId,
       code: msaInputErrorCode(error),
-      apiCode: error instanceof EasyMsaApiError ? error.code : undefined,
+      apiCode: error instanceof EasyMsaApiError || error instanceof ServerAlignmentPayloadError ? error.code : undefined,
       status: error instanceof EasyMsaApiError ? error.status : undefined
     })
   );

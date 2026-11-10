@@ -32,7 +32,7 @@ export type AlignmentInputPayload =
   | { kind: "text"; text: string }
   | { kind: "bytes"; bytes: ArrayBuffer }
   | { kind: "file"; file: File }
-  | { kind: "url"; url: string };
+  | { kind: "url"; url: string; legacyUrl?: string };
 
 export type InputProgress = { stage: "reading" | "parsing" | "preparing"; bytes: number; total?: number };
 

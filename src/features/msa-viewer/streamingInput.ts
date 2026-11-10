@@ -4,6 +4,12 @@ import { parseApiError, EasyMsaApiError } from "../../lib/api/client";
 import type { MSASequence, MSAResult } from "../../lib/types/msa";
 import { buildAlignmentDescriptor, canonicalAlignmentSourceKey, normalizeAlignmentSequence, withStableRowKeys } from "./alignmentModel";
 import { MsaInputError, type InputProgress, type MsaInputWorkerRequest } from "./inputWorkerProtocol";
+import { adaptServerAlignment, ServerAlignmentPayloadError } from "../../lib/api/serverAlignment";
+
+async function fetchAlignment(url: string) {
+  try { return await fetch(url); }
+  catch { throw new EasyMsaApiError({ code: "NETWORK_FAILURE", message: "Check your connection and retry." }); }
+}
 
 /** Incremental FASTA reader. At most one unfinished line and one row are joined. */
 export async function readAlignmentStream(request: MsaInputWorkerRequest, progress?: (value: InputProgress) => void): Promise<MSAResult> {
@@ -21,10 +27,23 @@ export async function readAlignmentStream(request: MsaInputWorkerRequest, progre
       offset = end;
     } });
   } else if (payload.kind === "url") {
-    let response: Response;
-    try { response = await fetch(payload.url); }
-    catch { throw new EasyMsaApiError({ code: "NETWORK_FAILURE", message: "Check your connection and retry." }); }
-    if (!response.ok) throw await parseApiError(response, "The alignment could not be read.");
+    const response = await fetchAlignment(payload.url);
+    if (!response.ok) {
+      const error = await parseApiError(response, "The alignment could not be read.");
+      // Keep the original input Worker alive when an older server lacks this
+      // route. Authorization, expired jobs and missing artifacts never fall back.
+      if (!payload.legacyUrl || error.code !== "HTTP_ERROR" || error.status !== 404) throw error;
+      const legacy = await fetchAlignment(payload.legacyUrl);
+      if (!legacy.ok) throw await parseApiError(legacy, "The alignment could not be read.");
+      let data: unknown;
+      try { data = await legacy.json(); }
+      catch (error) {
+        if (error instanceof SyntaxError) throw new ServerAlignmentPayloadError();
+        throw new EasyMsaApiError({ code: "NETWORK_FAILURE", message: "The connection was interrupted. Retry loading the alignment." });
+      }
+      progress?.({ stage: "preparing", bytes: 0 });
+      return adaptServerAlignment(data);
+    }
     if (!response.body) throw new MsaInputError("INPUT_EMPTY");
     stream = response.body;
     // Content-Length describes compressed bytes when Content-Encoding is set.

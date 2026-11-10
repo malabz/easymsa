@@ -6,14 +6,9 @@ import { resultFilename } from "../utils/downloadName";
 import type { ResultStage } from "../types/job";
 import { boundedRequest } from "./boundedRequest";
 import { apiUrl } from "./client";
-import { z } from "zod";
-import {
-  buildAlignmentDescriptor,
-  canonicalAlignmentSource,
-  canonicalAlignmentSourceKey,
-  sha256Hex,
-  withStableRowKeys
-} from "../../features/msa-viewer/alignmentModel";
+import { adaptServerAlignment } from "./serverAlignment";
+export { adaptServerAlignment, ServerAlignmentPayloadError, ServerAlignmentPayloadSchema } from "./serverAlignment";
+export type { ServerAlignmentPreview } from "./serverAlignment";
 import type { MSAResult } from "../types/msa";
 import type { ResultFile, ResultSummary } from "../types/result";
 
@@ -40,35 +35,6 @@ export type ServerResultSummary = {
     outputFiles?: unknown;
   };
 };
-
-const safeSequenceText = z.string().refine(
-  (value) => !/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(value),
-  { message: "Sequence contains unsupported control characters." }
-);
-
-export const ServerAlignmentPayloadSchema = z.object({
-  jobId: z.string().trim().min(1),
-  truncated: z.boolean(),
-  sequenceCount: z.number().int().nonnegative().nullable(),
-  alignmentLength: z.number().int().nonnegative().nullable(),
-  sequences: z.array(z.object({
-    id: z.string(),
-    header: z.string().optional(),
-    sequence: safeSequenceText
-  })),
-  message: z.string().optional()
-}).strict();
-
-export type ServerAlignmentPreview = z.infer<typeof ServerAlignmentPayloadSchema>;
-
-export class ServerAlignmentPayloadError extends Error {
-  readonly code = "INVALID_SERVER_ALIGNMENT_PAYLOAD" as const;
-
-  constructor() {
-    super("INVALID_SERVER_ALIGNMENT_PAYLOAD");
-    this.name = "ServerAlignmentPayloadError";
-  }
-}
 
 function jobPathSegment(jobId: string) {
   return encodeURIComponent(jobId);
@@ -116,62 +82,6 @@ export function adaptServerSummary(payload: ServerResultSummary): ResultSummary 
   };
 }
 
-export async function adaptServerAlignment(
-  rawPayload: unknown
-): Promise<MSAResult> {
-  const parsed = ServerAlignmentPayloadSchema.safeParse(rawPayload);
-  if (!parsed.success) {
-    throw new ServerAlignmentPayloadError();
-  }
-  const payload = { ...parsed.data, sequences: parsed.data.sequences.map(row => ({
-    id: row.header ?? row.id, sequence: row.sequence
-  })) };
-  const canonicalSource = canonicalAlignmentSource(payload.sequences);
-  let alignmentSha256: string | undefined;
-  try {
-    alignmentSha256 = await sha256Hex(canonicalSource);
-  } catch {
-    // Web Crypto is available in supported browsers. Keeping a deterministic
-    // local key here lets neutral browsing continue in older test/webview
-    // environments without mislabelling it as a SHA-256 provenance hash.
-  }
-  const sourceKey = alignmentSha256
-    ? `sha256:${alignmentSha256}`
-    : canonicalAlignmentSourceKey(payload.sequences);
-  const sequences = withStableRowKeys(payload.sequences, sourceKey);
-  const descriptor = buildAlignmentDescriptor(sequences, {
-    sourceKind: "job",
-    sourceName: payload.jobId,
-    sourceKey,
-    alignmentSha256,
-    declaredDimensions: {
-      sequenceCount: payload.sequenceCount,
-      alignmentLength: payload.alignmentLength
-    }
-  });
-  const observedSequenceCount = descriptor.observedDimensions.sequenceCount;
-  const observedAlignmentLength = descriptor.observedDimensions.alignmentLength;
-  if (
-    (payload.sequenceCount !== null && payload.sequenceCount !== observedSequenceCount) ||
-    (payload.alignmentLength !== null && payload.alignmentLength !== observedAlignmentLength)
-  ) {
-    descriptor.warnings.push("SERVER_DIMENSION_MISMATCH");
-  }
-  if (payload.truncated) {
-    descriptor.warnings.push("preview_truncated");
-  }
-
-  return {
-    jobId: payload.jobId,
-    truncated: payload.truncated,
-    message: payload.message,
-    sequenceCount: observedSequenceCount,
-    alignmentLength: observedAlignmentLength,
-    sequences,
-    descriptor
-  };
-}
-
 export async function getResultSummary(
   jobId: string,
   token: string,
@@ -190,21 +100,19 @@ export async function getAlignmentResult(
   stage: ResultStage = "final",
   progress?: (value: InputProgress | null) => void
 ): Promise<MSAResult> {
+  const legacyUrl = apiUrl(`/jobs/${jobPathSegment(jobId)}/results/alignment?token=${encodeURIComponent(token)}${stage === "final" ? "" : `&stage=${stage}`}`);
   if (typeof Worker !== "undefined") {
     try {
       return await loadAlignmentInput({ sourceKind: "job", sourceName: jobId, payload: { kind: "url",
-        url: apiUrl(`/jobs/${jobPathSegment(jobId)}/results/alignment/fasta?token=${encodeURIComponent(token)}&stage=${stage}`) } }, { signal, progress });
+        url: apiUrl(`/jobs/${jobPathSegment(jobId)}/results/alignment/fasta?token=${encodeURIComponent(token)}&stage=${stage}`), legacyUrl } }, { signal, progress });
     } catch (error) {
       if (error instanceof MsaInputError && ["INPUT_EMPTY", "INPUT_DECODE_FAILED", "INPUT_INVALID_FASTA"].includes(error.code)) {
         throw new EasyMsaApiError({ code: "INCOMPATIBLE_RESULT", message: "This result format could not be read." });
       }
-      // Only an older server's missing route permits the legacy JSON path.
-      if (!(error instanceof EasyMsaApiError && error.code === "HTTP_ERROR" && error.status === 404)) throw error;
+      throw error;
     }
   }
-  return boundedRequest(apiUrl(
-      `/jobs/${jobPathSegment(jobId)}/results/alignment?token=${encodeURIComponent(token)}${stage === "final" ? "" : `&stage=${stage}`}`
-    ), { signal }, async response => adaptServerAlignment(await response.json()), 60_000);
+  return boundedRequest(legacyUrl, { signal }, async response => adaptServerAlignment(await response.json()), 60_000);
 }
 
 export function getDownloadFiles(jobId: string, token: string, stage: ResultStage = "final"): ResultFile[] {

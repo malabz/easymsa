@@ -1,9 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { prepareViewerPage } from "./helpers/viewer-fixtures";
 
-test.beforeEach(async ({page}) => prepareViewerPage(page));
-
-test("file replacement releases the data owner and keeps one Worker per alignment", async ({page}) => {
+test.beforeEach(async ({page}) => {
+  await prepareViewerPage(page);
   await page.addInitScript(() => {
     const NativeWorker = window.Worker;
     (window as any).__viewerWorkers = {live:0, starts:0};
@@ -13,6 +12,9 @@ test("file replacement releases the data owner and keeps one Worker per alignmen
       terminate() { if(this.live) {this.live=false;(window as any).__viewerWorkers.live--;} super.terminate(); }
     };
   });
+});
+
+test("file replacement releases the data owner and keeps one Worker per alignment", async ({page}) => {
   await page.goto("./#/viewer");
   for (let index=0;index<3;index++) {
     const fasta=Array.from({length:100},(_,row)=>`>duplicate full title\n${"ACGT-N".repeat(400)}${"ACGT"[row%4]}${"ACGT"[index]}`).join("\n");
@@ -52,6 +54,9 @@ for (const behavior of ["stream", "legacy", "denied"] as const) {
     } else {
       await expect(page.locator('[data-msa-status]')).toHaveAttribute("data-msa-analysis-status","ready");
       await expect(page.locator('[data-msa-row-key] [data-msa-row-name]')).toHaveCount(2);
+      // The old-API fallback must retain the parsing session too. Recreating
+      // it introduces a second Worker boot and clones the alignment again.
+      expect(await page.evaluate(()=>(window as any).__viewerWorkers)).toEqual({live:1,starts:1});
     }
     expect(streamCalls).toBe(1);
     expect(legacyCalls).toBe(behavior==="legacy"?1:0);
