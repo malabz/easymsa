@@ -152,6 +152,10 @@ export function MsaCanvasMatrix({
   );
 
   const coloringColumns = colorScheme === "conservation" && !differenceMode ? columns : null;
+  const hasMissingTails = useMemo(() => {
+    const lastPosition = positionAt(positionView, positionView.length - 1) ?? 0;
+    return sequences.some(row => row.sequence.length < lastPosition);
+  }, [positionView, sequences]);
   const baseLayer = useMemo(() => ({ canvas: document.createElement("canvas"), key: "", tiles: new Map<string, HTMLCanvasElement>(), bytes: 0 }),
     [sequences, colorScheme, coloringColumns, reference, differenceMode, differenceRowKeys, positionView, settings, headerHeight]);
   const clearTiles = useCallback(() => {
@@ -229,6 +233,33 @@ export function MsaCanvasMatrix({
         // Reuse rectangular blocks, rather than issuing one bitmap draw per
         // base. Bounded LRU storage holds nearby blocks during two-axis scrolling.
         const blockColumns = 32, blockRows = 8, budget = 32 * 1024 * 1024;
+        if (hasMissingTails) {
+          // Missing-tail hatching intentionally extends across cell edges in
+          // the existing neutral viewer. Paint these rows in their original
+          // order so a tile boundary cannot clip that pattern.
+          for (let ri = firstRow; ri <= lastRow; ri++) {
+            const sequence = sequences[ri], rowKey = canvasSequenceRowKey(sequence, ri);
+            const y = ri * settings.rowHeight - matrixScrollTop + Math.max(0, (settings.rowHeight - settings.cellHeight) / 2);
+            for (let ci = firstColumn; ci <= lastColumn; ci++) {
+              const position = positionAt(positionView, ci)!;
+              const base = sequence.sequence[position - 1] ?? "", missing = position > sequence.sequence.length;
+              const stats = Array.isArray(columns) ? columns[position - 1] : columns ? columnColorContextAtPosition(columns, position) : null;
+              const style = differenceMode && reference && (!differenceRowKeys || differenceRowKeys.has(rowKey))
+                ? differenceColorStyle(classifyDifference(base, reference.sequence[position - 1] ?? ""))
+                : msaCellColorStyle(base, colorScheme, stats ?? undefined);
+              const x = 12 + ci * pitch - scrollElement.scrollLeft;
+              painter.fillStyle = missing ? "#f8fafc" : style.background;
+              painter.fillRect(x, y, settings.cellWidth, settings.cellHeight);
+              if (settings.showCharacters && !missing) { painter.fillStyle = style.text; painter.fillText(base, x + settings.cellWidth / 2, y + settings.cellHeight / 2); }
+              if (missing) {
+                painter.strokeStyle = "rgba(148, 163, 184, 0.45)"; painter.lineWidth = 1;
+                for (let offset = -settings.cellHeight; offset < settings.cellWidth; offset += 5) {
+                  painter.beginPath(); painter.moveTo(x + offset, y + settings.cellHeight); painter.lineTo(x + offset + settings.cellHeight, y); painter.stroke();
+                }
+              }
+            }
+          }
+        } else {
         for (let rb = Math.floor(firstRow / blockRows); rb <= Math.floor(lastRow / blockRows); rb++) {
           for (let cb = Math.floor(firstColumn / blockColumns); cb <= Math.floor(lastColumn / blockColumns); cb++) {
             const key = rb + ":" + cb + ":" + ratio;
@@ -278,6 +309,7 @@ export function MsaCanvasMatrix({
             painter.drawImage(tile, 0, 0, tileWidth * ratio, tileHeight * ratio,
               12 + columnStart * pitch - scrollElement.scrollLeft, rowStart * settings.rowHeight - matrixScrollTop, tileWidth, tileHeight);
           }
+        }
         }
         baseLayer.key = baseKey;
       }
@@ -373,6 +405,7 @@ export function MsaCanvasMatrix({
     differenceMode,
     differenceRowKeys,
     headerHeight,
+    hasMissingTails,
     motifPositionMap,
     reference,
     scrollRef,

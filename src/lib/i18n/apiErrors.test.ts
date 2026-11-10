@@ -3,6 +3,12 @@ import { EasyMsaApiError } from "../api/client";
 import { apiErrorMessage, isPermanentApiError } from "./apiErrors";
 
 describe("shared API presentation", () => {
+  it("distinguishes a missing artifact from a missing task", () => {
+    const error = new EasyMsaApiError({ code: "RESULT_FILE_MISSING", status: 404, message: "/private/artifact" });
+    expect(apiErrorMessage(error, "zh")).toContain("比对文件");
+    expect(apiErrorMessage(error, "en")).toContain("another result stage");
+    expect(apiErrorMessage(error, "zh")).not.toContain("private");
+  });
   it("translates the same error at render time and keeps a useful record number", () => {
     const error = new EasyMsaApiError({ code: "REALIGN_UNALIGNED_INPUT", message: "Unequal length at record 3: private header" });
     expect(apiErrorMessage(error, "zh")).toBe("已比对序列必须具有相同长度。（记录 3）");

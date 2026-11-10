@@ -7,6 +7,7 @@ const messages: Record<string, [string, string]> = {
   INVALID_TOKEN: ["访问密钥无效，请检查恢复链接或重新输入。", "The access key is invalid. Check the recovery link or enter it again."],
   JOB_NOT_FOUND: ["未找到该任务，请检查任务 ID。", "This task was not found. Check the task ID."],
   JOB_EXPIRED: ["任务结果已到期或被删除。", "These task results have expired or were deleted."],
+  RESULT_FILE_MISSING: ["未找到该任务的比对文件，请检查其他结果版本或下载文件。", "The alignment file is missing. Check another result stage or the available downloads."],
   JOB_NOT_COMPLETED: ["任务尚未完成，请返回任务进度。", "This task is not complete yet. Return to task progress."],
   LOAD_TIMEOUT: ["加载超时，请重试。", "Loading timed out. Retry the request."],
   NETWORK_FAILURE: ["网络连接失败，请检查网络后重试。", "Network connection failed. Check your connection and retry."],
