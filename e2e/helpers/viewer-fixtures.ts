@@ -133,6 +133,16 @@ export async function disableVisualNoise(page: Page) {
     })).toBe(255);
   }
   await settleBrowser(page);
+  // Fonts are injected after the first matrix paint. Make the frozen renderer
+  // repaint too, so a baseline cannot accidentally contain fallback glyphs.
+  if (await page.locator("canvas[data-msa-canvas]").count()) {
+    const viewport = page.locator("[data-msa-scroll-viewport]");
+    const left = await viewport.evaluate(element => element.scrollLeft);
+    await viewport.evaluate(element => { element.scrollLeft += element.scrollLeft > 0 ? -1 : 1; });
+    await settleBrowser(page);
+    await viewport.evaluate((element, original) => { element.scrollLeft = original; }, left);
+    await settleBrowser(page);
+  }
 }
 
 export async function loadViewerFasta(page: Page, fasta: string) {

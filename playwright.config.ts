@@ -1,12 +1,17 @@
 const port = process.env.EASYMSA_E2E_PORT ?? "4178";
 const baseURL = `http://127.0.0.1:${port}/`;
+// Windows WebKit stalls even on a minimal page when native browser processes
+// compete. Keep its assertions/deadlines intact; Linux still runs in parallel.
+const webkitWorkers = process.platform === "win32" ? 1 : undefined;
 
 import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
-  workers: 2,
+  // Also isolate different WebKit projects when the whole suite runs on Windows.
+  // Linux keeps the original parallelism; Chromium-only runs can override this.
+  workers: process.platform === "win32" ? 1 : 2,
   timeout: 60_000,
   expect: {
     timeout: 12_000,
@@ -49,6 +54,7 @@ export default defineConfig({
     },
     {
       name: "routes-webkit",
+      workers: webkitWorkers,
       testMatch: /(routes\.smoke|nar-readiness|pr1-regressions)\.spec\.ts/,
       use: {
         ...devices["Desktop Safari"],
@@ -73,6 +79,7 @@ export default defineConfig({
     },
     {
       name: "core-webkit",
+      workers: webkitWorkers,
       testMatch: /viewer\.(core|workbench|workflow|input)\.spec\.ts/,
       use: {
         ...devices["Desktop Safari"],
@@ -131,6 +138,7 @@ export default defineConfig({
     },
     {
       name: "mobile-safari",
+      workers: webkitWorkers,
       testMatch: /viewer\.(mobile|touch)\.spec\.ts/,
       use: { ...devices["iPhone 13"] }
     },
