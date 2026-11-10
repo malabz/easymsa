@@ -29,7 +29,7 @@ import {
   msaCellColorClass,
   type MSAColorScheme
 } from "../../components/results/MSAColorLegend";
-import { buildReferenceCoordinateMap, classifyDifference } from "./analysis";
+import { cachedReferenceCoordinateMap, classifyDifference } from "./analysis";
 import { rowKeyForSequence } from "./alignmentModel";
 import { differenceColorClass } from "./differenceColors";
 import { MsaRowMenu } from "./MsaRowMenu";
@@ -452,7 +452,7 @@ const CoordinateRuler = memo(function CoordinateRuler({
   totalWidth: number;
 }) {
   const referenceMap = useMemo(
-    () => (reference ? buildReferenceCoordinateMap(reference.sequence) : null),
+    () => (reference ? cachedReferenceCoordinateMap(reference) : null),
     [reference]
   );
   return (
@@ -741,6 +741,8 @@ export function MsaDomMatrix({
           columns.push({ virtualColumn: { index, start: index * pitch }, position, stats: column });
         }
         blockCache.set(block, columns);
+        // Retain nearby blocks, not every column ever visited in a long MSA.
+        while (blockCache.size > 64) blockCache.delete(blockCache.keys().next().value!);
       }
       if (columns.length > 0) blocks.push(columns);
     }

@@ -34,7 +34,7 @@ import {
   rowKeyForSequence,
   stableRowKey
 } from "./alignmentModel";
-import { buildReferenceCoordinateMap } from "./analysis";
+import { cachedReferenceCoordinateMap } from "./analysis";
 import {
   identityColumnPositionView,
   materializePositionArray,
@@ -494,7 +494,7 @@ export function MsaViewerRoot({
     [navigationRowKeys]
   );
   const referenceMap = useMemo(
-    () => canAnalyze && reference ? buildReferenceCoordinateMap(reference.sequence) : null,
+    () => canAnalyze && reference ? cachedReferenceCoordinateMap(reference) : null,
     [canAnalyze, reference]
   );
   const displayedMotifMatches = analysis.motifMatches;

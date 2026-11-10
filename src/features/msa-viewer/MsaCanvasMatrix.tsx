@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -150,6 +151,17 @@ export function MsaCanvasMatrix({
     [selectedRowKey, sequences]
   );
 
+  const coloringColumns = colorScheme === "conservation" && !differenceMode ? columns : null;
+  const baseLayer = useMemo(() => ({ canvas: document.createElement("canvas"), key: "", tiles: new Map<string, HTMLCanvasElement>(), bytes: 0 }),
+    [sequences, colorScheme, coloringColumns, reference, differenceMode, differenceRowKeys, positionView, settings, headerHeight]);
+  const clearTiles = useCallback(() => {
+    for (const tile of baseLayer.tiles.values()) { tile.width = 0; tile.height = 0; }
+    baseLayer.tiles.clear(); baseLayer.bytes = 0; baseLayer.key = "";
+  }, [baseLayer]);
+  useEffect(() => () => {
+    clearTiles();
+    baseLayer.canvas.width = 0; baseLayer.canvas.height = 0;
+  }, [baseLayer, clearTiles]);
   useEffect(() => {
     const canvas = canvasRef.current;
     const scrollElement = scrollRef.current;
@@ -205,75 +217,87 @@ export function MsaCanvasMatrix({
         Math.ceil((matrixScrollTop + height) / settings.rowHeight) + 1
       );
 
-      const renderColumns = [] as Array<{
-        columnIndex: number;
-        position: number;
-        colorContext: ColumnStats | ReturnType<typeof columnColorContextAtPosition>;
-      }>;
-      for (let columnIndex = firstColumn; columnIndex <= lastColumn; columnIndex += 1) {
-        const position = positionAt(positionView, columnIndex);
-        if (position === undefined) continue;
-        renderColumns.push({
-          columnIndex,
-          position,
-          colorContext: Array.isArray(columns)
-            ? columns[position - 1] ?? null
-            : columns
-              ? columnColorContextAtPosition(columns, position)
-              : null
-        });
-      }
-
-      for (let rowIndex = firstRow; rowIndex <= lastRow; rowIndex += 1) {
-        const sequence = sequences[rowIndex];
-        if (!sequence) {
-          continue;
+      const baseKey = [width, height, ratio, scrollElement.scrollLeft, matrixScrollTop].join(":");
+      if (baseLayer.key !== baseKey) {
+        const backing = baseLayer.canvas;
+        if (backing.width !== pixelWidth || backing.height !== pixelHeight) { backing.width = pixelWidth; backing.height = pixelHeight; }
+        const painter = backing.getContext("2d")!;
+        painter.setTransform(ratio, 0, 0, ratio, 0, 0);
+        painter.clearRect(0, 0, width, height);
+        painter.fillStyle = "#ffffff"; painter.fillRect(0, 0, width, height);
+        painter.font = context.font; painter.textAlign = "center"; painter.textBaseline = "middle";
+        // Reuse rectangular blocks, rather than issuing one bitmap draw per
+        // base. Bounded LRU storage holds nearby blocks during two-axis scrolling.
+        const blockColumns = 32, blockRows = 8, budget = 32 * 1024 * 1024;
+        for (let rb = Math.floor(firstRow / blockRows); rb <= Math.floor(lastRow / blockRows); rb++) {
+          for (let cb = Math.floor(firstColumn / blockColumns); cb <= Math.floor(lastColumn / blockColumns); cb++) {
+            const key = rb + ":" + cb + ":" + ratio;
+            let tile = baseLayer.tiles.get(key);
+            const rowStart = rb * blockRows, columnStart = cb * blockColumns;
+            const rowEnd = Math.min(rowStart + blockRows, sequences.length), columnEnd = Math.min(columnStart + blockColumns, positionView.length);
+            const tileWidth = (columnEnd - columnStart) * pitch, tileHeight = (rowEnd - rowStart) * settings.rowHeight;
+            if (!tile) {
+              tile = document.createElement("canvas"); tile.width = Math.ceil(tileWidth * ratio); tile.height = Math.ceil(tileHeight * ratio);
+              const brush = tile.getContext("2d")!;
+              brush.setTransform(ratio, 0, 0, ratio, 0, 0); brush.font = context.font; brush.textAlign = "center"; brush.textBaseline = "middle";
+              brush.fillStyle = "#fff"; brush.fillRect(0, 0, tileWidth, tileHeight);
+              const tileColumns = [];
+              for (let ci = columnStart; ci < columnEnd; ci++) {
+                const position = positionAt(positionView, ci)!;
+                tileColumns.push({ci, position, stats: Array.isArray(columns) ? columns[position - 1] : columns ? columnColorContextAtPosition(columns, position) : null});
+              }
+              for (let ri = rowStart; ri < rowEnd; ri++) {
+                const sequence = sequences[ri]; const rowKey = canvasSequenceRowKey(sequence, ri);
+                const y = (ri - rowStart) * settings.rowHeight + Math.max(0, (settings.rowHeight - settings.cellHeight) / 2);
+                for (const {ci, position, stats} of tileColumns) {
+                  const base = sequence.sequence[position - 1] ?? "", missing = position > sequence.sequence.length;
+                  const style = differenceMode && reference && (!differenceRowKeys || differenceRowKeys.has(rowKey))
+                    ? differenceColorStyle(classifyDifference(base, reference.sequence[position - 1] ?? ""))
+                    : msaCellColorStyle(base, colorScheme, stats ?? undefined);
+                  const x = (ci - columnStart) * pitch;
+                  brush.fillStyle = missing ? "#f8fafc" : style.background; brush.fillRect(x, y, settings.cellWidth, settings.cellHeight);
+                  if (settings.showCharacters && !missing) { brush.fillStyle = style.text; brush.fillText(base, x + settings.cellWidth / 2, y + settings.cellHeight / 2); }
+                  if (missing) {
+                    brush.strokeStyle = "rgba(148, 163, 184, 0.45)"; brush.lineWidth = 1;
+                    for (let offset = -settings.cellHeight; offset < settings.cellWidth; offset += 5) {
+                      brush.beginPath(); brush.moveTo(x + offset, y + settings.cellHeight); brush.lineTo(x + offset + settings.cellHeight, y); brush.stroke();
+                    }
+                  }
+                }
+              }
+              const bytes = tile.width * tile.height * 4;
+              if (bytes <= budget) {
+                while (baseLayer.bytes + bytes > budget && baseLayer.tiles.size) {
+                  const oldest = baseLayer.tiles.keys().next().value!, cached = baseLayer.tiles.get(oldest)!;
+                  baseLayer.bytes -= cached.width * cached.height * 4; baseLayer.tiles.delete(oldest);
+                  cached.width = 0; cached.height = 0;
+                }
+                baseLayer.tiles.set(key, tile); baseLayer.bytes += bytes;
+              }
+            } else { baseLayer.tiles.delete(key); baseLayer.tiles.set(key, tile); }
+            painter.drawImage(tile, 0, 0, tileWidth * ratio, tileHeight * ratio,
+              12 + columnStart * pitch - scrollElement.scrollLeft, rowStart * settings.rowHeight - matrixScrollTop, tileWidth, tileHeight);
+          }
         }
-        const y = rowIndex * settings.rowHeight - matrixScrollTop +
-          Math.max(0, (settings.rowHeight - settings.cellHeight) / 2);
+        baseLayer.key = baseKey;
+      }
+      context.drawImage(baseLayer.canvas, 0, 0, pixelWidth, pixelHeight, 0, 0, width, height);
+      // Selection/search overlays do not invalidate base glyphs or cell colors.
+      for (let rowIndex = firstRow; rowIndex <= lastRow; rowIndex++) {
+        const sequence = sequences[rowIndex]; if (!sequence) continue;
         const rowKey = canvasSequenceRowKey(sequence, rowIndex);
         const rowMotifs = motifPositionMap.get(rowKey);
-        for (const { columnIndex, position, colorContext } of renderColumns) {
-          const missingTail = position > sequence.sequence.length;
-          const base = sequence.sequence[position - 1] ?? "";
-          const referenceBase = reference?.sequence[position - 1] ?? "";
-          const style = differenceMode && reference &&
-              (!differenceRowKeys || differenceRowKeys.has(rowKey))
-            ? differenceColorStyle(classifyDifference(base, referenceBase))
-            : msaCellColorStyle(base, colorScheme, colorContext ?? undefined);
+        const selected = selection && selectionRowKey(selection) === rowKey;
+        if (!selected && !rowMotifs?.size) continue;
+        const y = rowIndex * settings.rowHeight - matrixScrollTop + Math.max(0, (settings.rowHeight - settings.cellHeight) / 2);
+        for (let columnIndex = firstColumn; columnIndex <= lastColumn; columnIndex++) {
+          const position = positionAt(positionView, columnIndex);
+          if (position === undefined) continue;
+          const selectedCell = selected && selection.position === position;
+          if (!selectedCell && !rowMotifs?.has(position)) continue;
+          context.strokeStyle = selectedCell ? "#0f766e" : "#f59e0b"; context.lineWidth = 2;
           const x = 12 + columnIndex * pitch - scrollElement.scrollLeft;
-          context.fillStyle = missingTail ? "#f8fafc" : style.background;
-          context.fillRect(x, y, settings.cellWidth, settings.cellHeight);
-          if (settings.showCharacters && !missingTail) {
-            context.fillStyle = style.text;
-            context.fillText(base, x + settings.cellWidth / 2, y + settings.cellHeight / 2);
-          }
-          if (missingTail) {
-            context.strokeStyle = "rgba(148, 163, 184, 0.45)";
-            context.lineWidth = 1;
-            for (let offset = -settings.cellHeight; offset < settings.cellWidth; offset += 5) {
-              context.beginPath();
-              context.moveTo(x + offset, y + settings.cellHeight);
-              context.lineTo(x + offset + settings.cellHeight, y);
-              context.stroke();
-            }
-          }
-
-          const selectedCell =
-            selection !== null &&
-            selectionRowKey(selection) === rowKey &&
-            selection.position === position;
-          const motifHit = rowMotifs?.has(position) ?? false;
-          if (selectedCell || motifHit) {
-            context.strokeStyle = selectedCell ? "#0f766e" : "#f59e0b";
-            context.lineWidth = 2;
-            context.strokeRect(
-              x + 1,
-              y + 1,
-              Math.max(1, settings.cellWidth - 2),
-              Math.max(1, settings.cellHeight - 2)
-            );
-          }
+          context.strokeRect(x + 1, y + 1, Math.max(1, settings.cellWidth - 2), Math.max(1, settings.cellHeight - 2));
         }
       }
 
@@ -329,8 +353,11 @@ export function MsaCanvasMatrix({
     resizeObserver.observe(viewport);
     resizeObserver.observe(scrollElement);
     scrollElement.addEventListener("scroll", scheduleDraw, { passive: true });
+    const fontsChanged = () => { clearTiles(); scheduleDraw(); };
+    document.fonts?.addEventListener("loadingdone", fontsChanged);
     scheduleDraw();
     return () => {
+      document.fonts?.removeEventListener("loadingdone", fontsChanged);
       resizeObserver.disconnect();
       scrollElement.removeEventListener("scroll", scheduleDraw);
       if (frameRef.current !== null) {
@@ -339,6 +366,8 @@ export function MsaCanvasMatrix({
       }
     };
   }, [
+    baseLayer,
+    clearTiles,
     colorScheme,
     columns,
     differenceMode,

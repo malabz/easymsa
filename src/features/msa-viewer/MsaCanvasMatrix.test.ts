@@ -117,6 +117,7 @@ describe("canvasCellLocation", () => {
     vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
       clearRect: vi.fn(),
       fillRect: vi.fn(),
+      drawImage: vi.fn(),
       setTransform: vi.fn(),
       strokeRect: vi.fn()
     } as unknown as CanvasRenderingContext2D);
