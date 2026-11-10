@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { MsaDataSession, type SessionMessage } from './sharedDataSession';
+import { MsaDataSession, adoptMsaDataSession, getMsaDataSession, type SessionMessage } from './sharedDataSession';
 import type { DataOperation, DataRequest } from './sharedDataProtocol';
 class MockWorker {
   onmessage: ((event: MessageEvent) => void) | null = null;
@@ -25,6 +25,18 @@ const requests = {
 } satisfies { [K in DataOperation]: DataRequest<K> };
 afterEach(() => vi.useRealTimers());
 describe('one alignment data owner', () => {
+  it('adopts parsed data without resending sequences and releases an unmounted result', async () => {
+    vi.useFakeTimers();
+    const worker = new MockWorker();
+    const session = adoptMsaDataSession(rows, worker as unknown as Worker);
+    expect(getMsaDataSession(rows)).toBe(session);
+    const promise = session.run('analysis', requests.analysis);
+    worker.complete('ready'); expect(await promise).toBe('ready');
+    expect(worker.postMessage.mock.calls.map(([m])=>m.type)).toEqual(['run']);
+    expect(session.diagnostics.dataTransfers).toBe(0);
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(worker.terminate).toHaveBeenCalledOnce();
+  });
   it('initializes sequence data once across analysis, motif, range, overview and export', async () => {
     const worker = new MockWorker();
     const session = new MsaDataSession(rows, () => worker as unknown as Worker);

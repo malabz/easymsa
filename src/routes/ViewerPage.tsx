@@ -30,7 +30,7 @@ export function ViewerPage() {
   const [exampleContext, setExampleContext] = useDraftState<MsaViewerContext | null>("viewer:context", null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const loadGenerationRef = useRef(0);
-  const { cancel: cancelInput, processInput } = useAlignmentInput();
+  const { cancel: cancelInput, processInput, progress } = useAlignmentInput();
   const [pastedFasta, setPastedFasta] = useDraftState("viewer:paste", "");
   const [inputMethod, setInputMethod] = useDraftState<InputMethod>("viewer:input-method", "paste");
   const [sourceName, setSourceName] = useDraftState("viewer:name", d.viewerPage.uploadedSource);
@@ -121,7 +121,7 @@ export function ViewerPage() {
     cancelInput();
 
     try {
-      const bytes = await file.arrayBuffer();
+
       if (generation !== loadGenerationRef.current) {
         return;
       }
@@ -132,7 +132,7 @@ export function ViewerPage() {
           sourceKind: "local-file",
           sourceName: file.name,
           declaredAlphabet: declaredAlphabetForFileName(file.name),
-          payload: { kind: "bytes", bytes }
+          payload: { kind: "file", file }
         }
       );
     } catch {
@@ -188,6 +188,7 @@ export function ViewerPage() {
           {examplePending ? t.exampleLoading : t.sample}
         </button>
       </div>
+      {progress && <p role="status" className="work-hint" data-msa-input-progress={progress.stage}>{locale === "zh" ? ({reading:"正在读取文件…",parsing:"正在解析序列…",preparing:"正在准备显示…"}[progress.stage]) : ({reading:"Reading alignment…",parsing:"Parsing sequences…",preparing:"Preparing viewer…"}[progress.stage])}{progress.bytes > 0 && ' ' + (progress.bytes / 1048576).toFixed(1) + ' MB'} <button type="button" className="work-link" onClick={cancelInput}>{locale === "zh" ? "取消" : "Cancel"}</button></p>}
       <InputMethodTabs value={inputMethod} onChange={setInputMethod} />
       <div className="mt-4 space-y-4">
         <div id="input-panel-upload" role="tabpanel" aria-labelledby="input-tab-upload" hidden={inputMethod !== "upload"}>

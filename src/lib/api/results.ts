@@ -1,3 +1,7 @@
+import type { InputProgress } from "../../features/msa-viewer/inputWorkerProtocol";
+import { MsaInputError } from "../../features/msa-viewer/inputWorkerProtocol";
+import { loadAlignmentInput } from "../../features/msa-viewer/useAlignmentInput";
+import { EasyMsaApiError } from "./client";
 import { resultFilename } from "../utils/downloadName";
 import type { ResultStage } from "../types/job";
 import { boundedRequest } from "./boundedRequest";
@@ -183,8 +187,21 @@ export async function getAlignmentResult(
   jobId: string,
   token: string,
   signal?: AbortSignal,
-  stage: ResultStage = "final"
+  stage: ResultStage = "final",
+  progress?: (value: InputProgress | null) => void
 ): Promise<MSAResult> {
+  if (typeof Worker !== "undefined") {
+    try {
+      return await loadAlignmentInput({ sourceKind: "job", sourceName: jobId, payload: { kind: "url",
+        url: apiUrl(`/jobs/${jobPathSegment(jobId)}/results/alignment/fasta?token=${encodeURIComponent(token)}&stage=${stage}`) } }, { signal, progress });
+    } catch (error) {
+      if (error instanceof MsaInputError && ["INPUT_EMPTY", "INPUT_DECODE_FAILED", "INPUT_INVALID_FASTA"].includes(error.code)) {
+        throw new EasyMsaApiError({ code: "INCOMPATIBLE_RESULT", message: "This result format could not be read." });
+      }
+      // Only an older server's missing route permits the legacy JSON path.
+      if (!(error instanceof EasyMsaApiError && error.code === "HTTP_ERROR" && error.status === 404)) throw error;
+    }
+  }
   return boundedRequest(apiUrl(
       `/jobs/${jobPathSegment(jobId)}/results/alignment?token=${encodeURIComponent(token)}${stage === "final" ? "" : `&stage=${stage}`}`
     ), { signal }, async response => adaptServerAlignment(await response.json()), 60_000);

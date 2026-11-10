@@ -1,3 +1,4 @@
+import type { InputProgress } from "../../features/msa-viewer/inputWorkerProtocol";
 import { lazy, Suspense, type ReactNode } from "react";
 import { MsaWorkspaceShell } from "../../features/msa-viewer/MsaWorkspaceShell";
 import { MsaWorkspaceHeader } from "../../features/msa-viewer/MsaWorkspaceHeader";
@@ -19,6 +20,7 @@ export function ResultPanels({
   alignment,
   summaryPending,
   alignmentPending,
+  inputProgress,
   alignmentError,
   error,
   files,
@@ -31,6 +33,7 @@ export function ResultPanels({
   alignment?: MSAResult;
   summaryPending: boolean;
   alignmentPending: boolean;
+  inputProgress?: InputProgress | null;
   alignmentError?: string | null;
   error?: string | null;
   files: ResultFile[];
@@ -42,6 +45,9 @@ export function ResultPanels({
   onLoadAlignment?: () => void;
 }) {
   const { dictionary: d, locale } = useLanguage();
+  const progressLabel = inputProgress ? (locale === "zh"
+    ? {reading:"正在读取比对文件…",parsing:"正在解析序列…",preparing:"正在准备查看器…"}
+    : {reading:"Reading alignment…",parsing:"Parsing sequences…",preparing:"Preparing viewer…"})[inputProgress.stage] : undefined;
   const onReturn = () => setActiveTab("overview");
   const message = error ?? alignmentError;
   const pendingWorkspace = <MsaWorkspaceShell mode="immersive" exitImmersiveLabel={locale === "zh" ? "返回结果" : "Back to results"}
@@ -51,7 +57,7 @@ export function ResultPanels({
     matrix={<div className="msa-load-message">{message ? <>
       <p role="alert">{message}</p>
       {onRetry && <button type="button" className="text-teal-800 underline" onClick={onRetry}>{d.common.retry}</button>}
-    </> : <LoadingState label={d.results.loading.alignment} detail={locale==="zh"?"正在读取比对序列并准备查看器…":"Reading aligned sequences and preparing the viewer…"}/>}</div>}/>;
+    </> : <LoadingState label={progressLabel ?? d.results.loading.alignment} detail={locale==="zh"?"正在读取比对序列并准备查看器…":"Reading aligned sequences and preparing the viewer…"}/>}</div>}/>;
   return (
     <>
       <section

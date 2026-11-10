@@ -15,8 +15,9 @@ import {
   sha256Hex,
   withStableRowKeys
 } from "./alignmentModel";
+import { readAlignmentStream } from "./streamingInput";
 
-export const MSA_INPUT_PROTOCOL_VERSION = 1 as const;
+export const MSA_INPUT_PROTOCOL_VERSION = 2 as const;
 
 export type MsaInputErrorCode =
   | "INPUT_CANCELLED"
@@ -29,19 +30,24 @@ export type MsaInputErrorCode =
 
 export type AlignmentInputPayload =
   | { kind: "text"; text: string }
-  | { kind: "bytes"; bytes: ArrayBuffer };
+  | { kind: "bytes"; bytes: ArrayBuffer }
+  | { kind: "file"; file: File }
+  | { kind: "url"; url: string };
+
+export type InputProgress = { stage: "reading" | "parsing" | "preparing"; bytes: number; total?: number };
 
 export type MsaInputWorkerRequest = {
   protocolVersion: typeof MSA_INPUT_PROTOCOL_VERSION;
   type: "parse";
   requestId: number;
-  sourceKind: Extract<AlignmentSourceKind, "local-file" | "pasted">;
+  sourceKind: Extract<AlignmentSourceKind, "local-file" | "pasted" | "job">;
   sourceName: string;
   declaredAlphabet?: SequenceAlphabet;
   payload: AlignmentInputPayload;
 };
 
 export type MsaInputWorkerResponse =
+  | { protocolVersion: typeof MSA_INPUT_PROTOCOL_VERSION; type: "inputProgress"; requestId: number; progress: InputProgress }
   | {
       protocolVersion: typeof MSA_INPUT_PROTOCOL_VERSION;
       type: "inputReady";
@@ -53,6 +59,8 @@ export type MsaInputWorkerResponse =
       type: "inputError";
       requestId: number;
       code: MsaInputErrorCode;
+      apiCode?: string;
+      status?: number;
     };
 
 export class MsaInputError extends Error {
@@ -76,7 +84,7 @@ export function declaredAlphabetForFileName(name: string): SequenceAlphabet | un
   return undefined;
 }
 
-function decodePayload(payload: AlignmentInputPayload) {
+function decodePayload(payload: Extract<AlignmentInputPayload, { kind: "text" | "bytes" }>) {
   if (payload.kind === "text") {
     return { text: payload.text, rawBytes: undefined };
   }
@@ -133,10 +141,15 @@ function classifyParseFailure(input: string, maxCharacters: number) {
 }
 
 export async function processMsaInputRequest(
-  request: MsaInputWorkerRequest
+  request: MsaInputWorkerRequest,
+  progress?: (value: InputProgress) => void
 ): Promise<MSAResult> {
   if (request.protocolVersion !== MSA_INPUT_PROTOCOL_VERSION) {
     throw new MsaInputError("PROTOCOL_VERSION_MISMATCH");
+  }
+
+  if (request.payload.kind === "file" || request.payload.kind === "url" || (request.payload.kind === "text" && typeof Blob.prototype.stream === "function")) {
+    return readAlignmentStream(request, progress);
   }
 
   // Viewer inputs have no application-level size cap. Submission limits are separate.

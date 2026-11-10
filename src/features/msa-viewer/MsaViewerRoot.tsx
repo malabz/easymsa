@@ -153,7 +153,7 @@ function useNarrowLabelCap() {
 function prepareAlignment(alignment: MSAResult) {
   const sourceKey = alignment.descriptor?.sourceKey ??
     canonicalAlignmentSourceKey(alignment.sequences);
-  const sequences = alignment.sequences.map((sequence, index) => ({
+  const sequences = alignment.sequences.every(row => row.rowKey !== undefined && row.originalIndex !== undefined) ? alignment.sequences : alignment.sequences.map((sequence, index) => ({
     ...sequence,
     originalIndex: sequence.originalIndex ?? index,
     rowKey: sequence.rowKey ?? stableRowKey(sourceKey, sequence.originalIndex ?? index)

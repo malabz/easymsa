@@ -16,8 +16,9 @@ export class MsaDataSession {
   private disposeTimer: ReturnType<typeof setTimeout> | null = null;
   private rowIndexes: Map<MSASequence, number>;
   readonly diagnostics = { workerStarts: 0, dataTransfers: 0, tasks: 0 };
-  constructor(private readonly sequences: MSASequence[], private readonly createWorker = () => new Worker(new URL("./sharedData.worker.ts", import.meta.url), { type: "module" })) {
+  constructor(private readonly sequences: MSASequence[], private readonly createWorker = () => new Worker(new URL("./sharedData.worker.ts", import.meta.url), { type: "module" }), initialWorker?: Worker) {
     this.rowIndexes = new Map(sequences.map((row, index) => [row, index]));
+    if (initialWorker) { this.attach(initialWorker); this.disposeTimer = setTimeout(() => { if (!this.users) this.dispose(); }, 60_000); }
   }
   retain() {
     this.users++;
@@ -59,10 +60,7 @@ export class MsaDataSession {
       this.send(task);
     });
   }
-  private send(pending: Pending) {
-    try {
-      if (!this.worker) {
-        const worker = this.createWorker();
+  private attach(worker: Worker) {
         this.worker = worker;
         this.diagnostics.workerStarts++;
         worker.onmessage = (event: MessageEvent<SessionResponse>) => {
@@ -79,11 +77,17 @@ export class MsaDataSession {
           worker.terminate(); this.worker = null;
           this.failAll(new Error("Alignment worker failed."));
         };
+  }
+  private send(pending: Pending) {
+    try {
+      if (!this.worker) {
+        const worker = this.createWorker();
+        this.attach(worker);
         worker.postMessage({ type: "initialize", sequences: this.sequences } satisfies SessionMessage);
         this.diagnostics.dataTransfers++;
       }
       this.diagnostics.tasks++;
-      this.worker.postMessage(pending.message);
+      this.worker!.postMessage(pending.message);
     } catch (error) {
       this.worker?.terminate(); this.worker = null;
       this.failAll(error);
@@ -109,5 +113,11 @@ export function getMsaDataSession(rows: MSASequence[]) {
 export function useMsaDataSession(rows?: MSASequence[]) {
   const session = useMemo(() => rows ? getMsaDataSession(rows) : null, [rows]);
   useEffect(() => session?.retain(), [session]);
+  return session;
+}
+
+export function adoptMsaDataSession(rows: MSASequence[], worker: Worker) {
+  const session = new MsaDataSession(rows, undefined, worker);
+  sessions.set(rows, session);
   return session;
 }

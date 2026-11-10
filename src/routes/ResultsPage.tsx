@@ -1,3 +1,4 @@
+import type { InputProgress } from "../features/msa-viewer/inputWorkerProtocol";
 import { HELP_LINKS } from "../lib/docs/links";
 import { ResultPanels } from "../components/results/ResultPanels";
 import { useJobStatus } from "../lib/query/useJobStatus";
@@ -48,8 +49,9 @@ export function ResultsPage() {
   const [detailsRequestedFor, setDetailsRequestedFor] = useState<string | null>(null);
   const detailKey = `${jobId}:${artifactStage}`;
   const summaryQuery = useResultSummary(jobId ?? undefined, access?.token, artifactStage, jobQuery.isSuccess);
+  const [inputProgress, setInputProgress] = useState<{key: string; value: InputProgress | null} | null>(null);
   const alignmentQuery = useAlignmentResult(jobId ?? undefined, access?.token, artifactStage,
-    jobQuery.isSuccess && (activeTab === "alignment" || detailsRequestedFor === detailKey));
+    jobQuery.isSuccess && (activeTab === "alignment" || detailsRequestedFor === detailKey), value => setInputProgress({key: detailKey, value}));
   const files = useMemo(
     () => (jobId && access ? getDownloadFiles(jobId, access.token, stage) : []),
     [access?.token, jobId, stage]
@@ -118,7 +120,7 @@ export function ResultsPage() {
 
       {access && <div className="analysis-panels">
       {jobQuery.data && <div className="analysis-notice"><RealignmentNotice job={jobQuery.data} token={access?.token ?? ""} /></div>}
-      <ResultPanels workspaceScope={`job:${jobId}:${stage}`} sourceName={jobQuery.data?.jobName ?? d.results.title} headerActions={stageControl} onRetry={() => statusError ? jobQuery.refetch() : alignmentQuery.refetch()} activeTab={activeTab} setActiveTab={setActiveTab} summary={summaryQuery.data}
+      <ResultPanels inputProgress={inputProgress?.key === detailKey ? inputProgress.value : null} workspaceScope={`job:${jobId}:${stage}`} sourceName={jobQuery.data?.jobName ?? d.results.title} headerActions={stageControl} onRetry={() => statusError ? jobQuery.refetch() : alignmentQuery.refetch()} activeTab={activeTab} setActiveTab={setActiveTab} summary={summaryQuery.data}
         alignment={alignmentQuery.data} summaryPending={summaryQuery.isPending} alignmentPending={alignmentQuery.isFetching && !alignmentQuery.data}
         onLoadAlignment={() => setDetailsRequestedFor(detailKey)}
         alignmentError={alignmentQuery.error ? apiErrorMessage(alignmentQuery.error, locale) : null} error={error}

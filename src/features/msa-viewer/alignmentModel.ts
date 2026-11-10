@@ -113,6 +113,12 @@ export function withStableRowKeys(sequences: MSASequence[], sourceKey: string) {
   }));
 }
 
+// Four membership bits replace repeated Set lookups for each nucleotide.
+const ALPHABET_FLAGS = new Uint8Array(128);
+for (let code = 0; code < ALPHABET_FLAGS.length; code++) {
+  const symbol = String.fromCharCode(code);
+  ALPHABET_FLAGS[code] = (GAP_SYMBOLS.has(symbol) ? 8 : 0) | (NUCLEOTIDE_SYMBOLS.has(symbol) ? 1 : 0) | (PROTEIN_SYMBOLS.has(symbol) ? 2 : 0) | (PROTEIN_EXCLUSIVE_SYMBOLS.has(symbol) ? 4 : 0);
+}
 export function inferSequenceAlphabet(
   sequences: Array<{ sequence: string }>
 ): AlphabetInference {
@@ -126,7 +132,8 @@ export function inferSequenceAlphabet(
 
   for (const sequence of sequences) {
     for (const symbol of normalizeAlignmentSequence(sequence.sequence)) {
-      if (GAP_SYMBOLS.has(symbol)) {
+      const flags = ALPHABET_FLAGS[symbol.charCodeAt(0)] ?? 0;
+      if (flags & 8) {
         continue;
       }
       total += 1;
@@ -135,16 +142,16 @@ export function inferSequenceAlphabet(
       } else if (symbol === "U") {
         hasU = true;
       }
-      if (NUCLEOTIDE_SYMBOLS.has(symbol)) {
+      if (flags & 1) {
         nucleotideCompatible += 1;
       }
-      if (PROTEIN_SYMBOLS.has(symbol)) {
+      if (flags & 2) {
         proteinCompatible += 1;
       }
-      if (PROTEIN_EXCLUSIVE_SYMBOLS.has(symbol)) {
+      if (flags & 4) {
         proteinExclusive += 1;
       }
-      if (!NUCLEOTIDE_SYMBOLS.has(symbol) && !PROTEIN_SYMBOLS.has(symbol)) {
+      if (!(flags & 3)) {
         unknown += 1;
       }
     }
@@ -225,9 +232,7 @@ export function buildAlignmentDescriptor(
   const invalidForDeclaredNucleotide = (
     alphabet === "dna" || alphabet === "rna" || alphabet === "nucleotide"
   ) && normalized.some((sequence) =>
-    Array.from(sequence.sequence).some((symbol) =>
-      !GAP_SYMBOLS.has(symbol) && !NUCLEOTIDE_SYMBOLS.has(symbol)
-    )
+    /[^ACGTURYSWKMBDHVN.-]/.test(sequence.sequence)
   );
 
   const alignmentMode = !equalLength

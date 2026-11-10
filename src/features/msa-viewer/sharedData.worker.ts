@@ -35,8 +35,7 @@ function* calculate(message: SessionTask): CooperativeTask<{ result: DataResult<
     }
     return { result, transfer };
 }
-self.onmessage = (event: MessageEvent<SessionMessage>) => {
-  const message = event.data;
+export function handleSessionMessage(message: SessionMessage) {
   if (message.type === "initialize") { sequences = message.sequences; return; }
   if (message.type === "cancel") { scheduler.cancel(message.id); return; }
   scheduler.add(message.id, priority[message.operation], calculate(message), ({ result, transfer }) => self.postMessage({ id: message.id, result } satisfies SessionResponse, transfer), error => {
@@ -47,4 +46,4 @@ self.onmessage = (event: MessageEvent<SessionMessage>) => {
     self.postMessage({ id: message.id, error: normalized } satisfies SessionResponse);
   });
 };
-export {};
+self.onmessage = (event: MessageEvent<SessionMessage>) => handleSessionMessage(event.data);

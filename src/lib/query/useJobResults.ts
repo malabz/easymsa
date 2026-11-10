@@ -1,3 +1,4 @@
+import type { InputProgress } from "../../features/msa-viewer/inputWorkerProtocol";
 import type { ResultStage } from "../types/job";
 import { useQuery } from "@tanstack/react-query";
 import { getAlignmentResult, getResultSummary } from "../api/results";
@@ -19,10 +20,10 @@ export function useResultSummary(jobId: string | undefined, token: string | unde
   });
 }
 
-export function useAlignmentResult(jobId: string | undefined, token: string | undefined, stage: ResultStage = "final", enabled = true) {
+export function useAlignmentResult(jobId: string | undefined, token: string | undefined, stage: ResultStage = "final", enabled = true, progress?: (value: InputProgress | null) => void) {
   return useQuery({
     queryKey: ["alignment-result", jobId, token, stage],
-    queryFn: ({ signal }) => getAlignmentResult(jobId!, token!, signal, stage),
+    queryFn: ({ signal }) => getAlignmentResult(jobId!, token!, signal, stage, progress),
     enabled: Boolean(jobId && token && enabled),
     retry: (attempt, error) => !isPermanentApiError(error) && !timedOut(error) && attempt < 2,
     staleTime: Infinity,

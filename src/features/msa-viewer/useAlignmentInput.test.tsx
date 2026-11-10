@@ -1,8 +1,32 @@
 import { act, renderHook } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
-import { useAlignmentInput } from "./useAlignmentInput";
+import { describe, expect, it, vi } from "vitest";
+import { loadAlignmentInput, useAlignmentInput } from "./useAlignmentInput";
+import { MSA_INPUT_PROTOCOL_VERSION } from "./inputWorkerProtocol";
 
 describe("useAlignmentInput", () => {
+  it("terminates an aborted read and ignores a late progress message", async () => {
+    const controller = new AbortController(), progress = vi.fn();
+    const worker = { onmessage: null as Worker["onmessage"], onerror: null as Worker["onerror"], postMessage: vi.fn(), terminate: vi.fn() };
+    const result = loadAlignmentInput({ sourceKind: "pasted", sourceName: "paste", payload: {kind:"text",text:">a\nAC"} }, {signal:controller.signal,progress,workerFactory:()=>worker});
+    const rejected = expect(result).rejects.toMatchObject({code:"INPUT_CANCELLED"});
+    controller.abort(); await rejected;
+    expect(worker.terminate).toHaveBeenCalledTimes(1);
+    const request = worker.postMessage.mock.calls[0][0];
+    worker.onmessage?.call(worker as unknown as Worker, {data:{protocolVersion:MSA_INPUT_PROTOCOL_VERSION,requestId:request.requestId,type:"inputProgress",progress:{stage:"preparing",bytes:100}}} as MessageEvent);
+    expect(progress).toHaveBeenLastCalledWith(null);
+  });
+
+  it("ends an unresponsive Worker with a retryable timeout", async () => {
+    vi.useFakeTimers();
+    try {
+      const worker = { onmessage: null, onerror: null, postMessage: vi.fn(), terminate: vi.fn() };
+      const result = loadAlignmentInput({ sourceKind:"pasted",sourceName:"paste",payload:{kind:"text",text:">a\nAC"} }, {workerFactory:()=>worker});
+      const rejected = expect(result).rejects.toMatchObject({code:"LOAD_TIMEOUT"});
+      await vi.advanceTimersByTimeAsync(60_000); await rejected;
+      expect(worker.terminate).toHaveBeenCalledTimes(1);
+    } finally { vi.useRealTimers(); }
+  });
+
   it("uses the safe inline fallback when Worker is unavailable", async () => {
     const { result } = renderHook(() => useAlignmentInput(() => null));
     let alignment;
