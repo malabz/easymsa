@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import {afterEach,beforeEach,describe,expect,it} from 'vitest';
 import {LanguageProvider} from '../../lib/i18n/LanguageProvider';
 import {FileUploadCard} from './FileUploadCard';
-import {MAX_INPUT_FILE_SIZE_BYTES,validateInputFile} from '../../lib/utils/fileValidation';
+import {validateInputFile} from '../../lib/utils/fileValidation';
 
 beforeEach(()=>localStorage.setItem('easymsa.locale','en'));
 afterEach(cleanup);
@@ -18,11 +18,11 @@ describe('upload validation',()=>{
  it.each(['.fa','.fas','.fasta','.fna','.aln','.fa.gz','.fas.gz','.fasta.gz','.fna.gz','.aln.gz'])('accepts %s',ext=>expect(validateInputFile(file('a'+ext),'realignment').valid).toBe(true));
  it.each(['.zip','.txt','.fasta.xz','.gz','.faa'])('rejects %s for realignment',ext=>expect(validateInputFile(file('a'+ext),'realignment').valid).toBe(false));
  it('preserves ordinary archive support',()=>expect(validateInputFile(file('a.zip')).valid).toBe(true));
- it('rejects empty and oversized files with localized errors',()=>{
+ it('rejects empty files and accepts uploads above the previous byte limit',()=>{
   expect(validateInputFile(new File([],'a.fa'),'realignment','zh').errors).toEqual(['文件为空，请重新选择。']);
-  const large=file();Object.defineProperty(large,'size',{value:MAX_INPUT_FILE_SIZE_BYTES+1});
-  expect(validateInputFile(large,'realignment').valid).toBe(false);
-  const boundary=file();Object.defineProperty(boundary,'size',{value:MAX_INPUT_FILE_SIZE_BYTES});expect(validateInputFile(boundary,'realignment').valid).toBe(true);
+  const large=file();Object.defineProperty(large,'size',{value:101*1024*1024});
+  expect(validateInputFile(large,'realignment').valid).toBe(true);expect(validateInputFile(large,'alignment').valid).toBe(true);
+  const boundary=file();Object.defineProperty(boundary,'size',{value:100*1024*1024});expect(validateInputFile(boundary,'realignment').valid).toBe(true);
  });
 });
 it('selects, replaces, removes, and reselects the same file',async()=>{

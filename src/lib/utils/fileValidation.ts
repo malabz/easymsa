@@ -3,8 +3,6 @@ export type FileValidationResult = {
   errors: string[];
 };
 
-export const MAX_INPUT_FILE_SIZE_BYTES = 100 * 1024 * 1024;
-
 export const ALLOWED_INPUT_EXTENSIONS = [
   ".fasta",
   ".fa",
@@ -57,8 +55,5 @@ export function validateInputFile(file: File, variant: "alignment" | "realignmen
     errors.push(locale === "zh" ? "不支持此文件格式。" : "Unsupported file type.");
   }
   if (file.size === 0) errors.push(locale === "zh" ? "文件为空，请重新选择。" : "The file is empty. Choose another file.");
-  if (file.size > MAX_INPUT_FILE_SIZE_BYTES) {
-    errors.push(locale === "zh" ? "文件超过 100 MiB 大小限制。" : "File exceeds the 100 MiB size limit.");
-  }
   return { valid: errors.length === 0, errors };
 }

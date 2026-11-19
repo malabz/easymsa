@@ -2,7 +2,7 @@ import { apiErrorMessage } from "./apiErrors";
 
 export const realignText = {
   zh: {
-    uploadTitle: "选择或拖拽已比对文件", uploadDescription: "上传 FASTA 或 FASTA.gz，各序列应等长。文件大小不超过 100 MiB。",
+    uploadTitle: "选择或拖拽已比对文件", uploadDescription: "上传 FASTA 或 FASTA.gz，各序列应等长。",
     fileSelected: "文件已选择", replaceFile: "替换文件",
     ready: "重比对服务可用", readyDescription: "上传已有比对，保留初始结果并使用 ReAlign-N 优化。",
     offline: "无法连接重比对服务，请检查连接后重试。", inputRequirements: "输入要求与规模限制",
@@ -21,7 +21,7 @@ export const realignText = {
     citation: "使用重比对结果发表研究时，请引用 ReAlign-N（2024）及初始比对方法。",
   },
   en: {
-    uploadTitle: "Choose or drop an aligned file", uploadDescription: "Upload an aligned nucleotide FASTA with equal-length sequences. FASTA or FASTA.gz, up to 100 MiB.",
+    uploadTitle: "Choose or drop an aligned file", uploadDescription: "Upload an aligned nucleotide FASTA with equal-length sequences. FASTA or FASTA.gz.",
     fileSelected: "File selected", replaceFile: "Replace file",
     ready: "Realignment service is ready", readyDescription: "Upload an existing alignment to refine with ReAlign-N while retaining the initial result.",
     offline: "Unable to connect to the realignment service. Check your connection and retry.", inputRequirements: "Input requirements and limits",

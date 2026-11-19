@@ -168,7 +168,6 @@ const zh: DocsSection[] = [
         "keywords": [
           "200000",
           "200,000",
-          "100 MB",
           "zip",
           "tar",
           "gz",
@@ -192,12 +191,12 @@ const zh: DocsSection[] = [
               [
                 "普通比对",
                 "上传 FASTA 或压缩文件",
-                "100 MiB"
+                "文件大小不设固定上限"
               ],
               [
                 "重比对",
                 "粘贴或上传已比对 FASTA；上传支持 gzip",
-                "100 MiB；最多 2,000 条序列、30,000 列、100 万比对字符"
+                "最多 2,000 条序列、30,000 列、100 万比对字符"
               ],
               [
                 "MSA 查看器",
@@ -891,7 +890,6 @@ const en: DocsSection[] = [
         "keywords": [
           "200000",
           "200,000",
-          "100 MB",
           "zip",
           "tar",
           "gz",
@@ -915,12 +913,12 @@ const en: DocsSection[] = [
               [
                 "Alignment",
                 "Upload FASTA or compressed files",
-                "100 MiB"
+                "No fixed file size limit"
               ],
               [
                 "Realignment",
                 "Paste or upload aligned FASTA; gzip uploads supported",
-                "100 MiB; up to 2,000 sequences, 30,000 columns and 1 million alignment characters"
+                "Up to 2,000 sequences, 30,000 columns and 1 million alignment characters"
               ],
               [
                 "MSA viewer",

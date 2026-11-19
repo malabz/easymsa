@@ -23,7 +23,7 @@ describe("documentation content", () => {
     for (const locale of ["zh", "en"] as const) {
       const text = flattenDocsText(docsContent[locale]);
       expect(text).toContain("200,000");
-      expect(text).toContain("100 MB");
+      expect(text).toContain(locale === "zh" ? "文件大小不设固定上限" : "No fixed file size limit");
       expect(text).toContain(locale === "zh" ? "固定" : "No fixed");
 
       expect(text).toContain("2,000");
