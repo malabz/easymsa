@@ -72,12 +72,16 @@ test('task ZIP backup imports directly and reports invalid entries without expos
   await dialog.getByRole('button',{name:'Verify and import'}).click();await expect(dialog).toContainText('Imported');await expect(dialog).toContainText('Invalid file contents');
   await dialog.getByRole('button',{name:'Done'}).click();await expect(page.locator('.lookup-rows')).toContainText('Test-recovery');
 });
-test('shared navigation stays fixed and restored labels, help and ICP are present',async({page})=>{
+test('shared navigation stays fixed and the footer contains the four site links',async({page})=>{
   await page.setViewportSize({width:1280,height:720});let initial:number|undefined;
   for(const route of ['submit','realign','lookup','viewer','docs','about','license','privacy']) {
     await page.goto(`./#/${route}`);await expect(page.locator('[data-route-loading]')).toHaveCount(0);
     const box=await page.locator('.app-header-inner').boundingBox();if(initial===undefined)initial=box!.x;expect(box!.x).toBe(initial);
-    await expect(page.locator('.app-footer').getByRole('link',{name:'冀ICP备2026045022号'})).toHaveAttribute('href','https://beian.miit.gov.cn/');
+    const links=page.locator('.app-footer').getByRole('link');
+    await expect(links).toHaveCount(4);
+    for(const [index,path] of ['license','privacy','examples','docs'].entries()) {
+      await expect(links.nth(index)).toHaveAttribute('href',`#/${path}`);
+    }
     await expectNoHorizontalOverflow(page);
   }
 });

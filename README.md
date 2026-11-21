@@ -80,7 +80,7 @@ Frontend CI is available for pull requests and manual runs.
 Build a production release with Node.js specified in `.nvmrc`:
 
 ```bash
-EASYMSA_BASE_PATH=/ VITE_API_MODE=real VITE_API_BASE_URL=https://api.easymsa.cn/api VITE_ICP_NUMBER=冀ICP备2026045022号 npm run build
+EASYMSA_BASE_PATH=/ VITE_API_MODE=real VITE_API_BASE_URL=https://api.easymsa.cn/api npm run build
 ```
 
 Deploy `dist/` to a versioned directory on the production server, verify the
