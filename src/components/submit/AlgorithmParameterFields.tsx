@@ -14,7 +14,7 @@ type ParameterError = {
 type AlgorithmParameterFieldsProps = {
   algorithm: AlignmentAlgorithm;
   error: ParameterError;
-  maxThreadPerJob: number | null;
+  maxThreadPerJob: number;
   onChange: (value: AlgorithmParameterDraft) => void;
   onReset: () => void;
   value: AlgorithmParameterDraft;
@@ -33,10 +33,9 @@ export function AlgorithmParameterFields({
   const threadError = error?.field === "thread" ? t.errors[error.error] : null;
   const maxiterateError =
     error?.field === "mafftMaxiterate" ? t.errors[error.error] : null;
-  const threadHint =
-    maxThreadPerJob === null
-      ? t.threadHint
-      : t.threadHintWithMax.replace("{max}", String(maxThreadPerJob));
+  const threadHint = t.threadHintWithMax
+    .replace("{max}", String(maxThreadPerJob))
+    .replace("{default}", String(Math.min(4, maxThreadPerJob)));
 
   function update(patch: Partial<AlgorithmParameterDraft>) {
     onChange({ ...value, ...patch });
@@ -70,7 +69,7 @@ export function AlgorithmParameterFields({
             className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
             id="algorithmThread"
             inputMode="numeric"
-            max={maxThreadPerJob ?? undefined}
+            max={maxThreadPerJob}
             min={1}
             onChange={(event) => update({ thread: event.target.value })}
             placeholder={t.serverDefault}

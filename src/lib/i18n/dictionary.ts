@@ -160,7 +160,7 @@ const zh = { viewerWorkflow: viewerWorkflowZh,
       serverDefault: "服务器默认",
       thread: "线程数",
       threadHint: "请输入大于等于 1 的整数；留空时由服务器自动分配。",
-      threadHintWithMax: "1–{max}，留空自动分配。",
+      threadHintWithMax: "可填 1–{max} 个线程，留空使用 {default} 个线程。",
       mafftMode: "MAFFT 运行模式",
       mafftModes: {
         auto: "自动（--auto）",
@@ -1139,7 +1139,7 @@ const en: typeof zh = {
       serverDefault: "Server default",
       thread: "Threads",
       threadHint: "Enter an integer of 1 or greater, or leave blank for automatic server allocation.",
-      threadHintWithMax: "1–{max}; leave blank for automatic allocation.",
+      threadHintWithMax: "Choose 1–{max} threads. Leave blank to use {default}.",
       mafftMode: "MAFFT mode",
       mafftModes: {
         auto: "Automatic (--auto)",

@@ -266,7 +266,7 @@ const zh: DocsSection[] = [
             "rows": [
               [
                 "线程数",
-                "留空自动分配，可选范围显示在输入框旁。"
+                "留空使用 4 个比对线程。服务器上限低于 4 时使用该上限，可选范围显示在输入框旁。"
               ],
               [
                 "检查模式",
@@ -988,7 +988,7 @@ const en: DocsSection[] = [
             "rows": [
               [
                 "Threads",
-                "Leave blank for automatic allocation. The allowed range is shown beside the field."
+                "Leave blank to use 4 alignment threads, or the server limit if lower. The field shows the allowed range."
               ],
               [
                 "Check mode",

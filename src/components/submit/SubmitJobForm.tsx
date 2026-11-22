@@ -183,7 +183,7 @@ export function SubmitJobForm() {
     serviceHealth.data?.coreReady === false ||
     serviceHealth.data?.acceptingJobs === false ||
     selectedAlgorithmBlocked || (realignEnabled && serviceHealth.data?.realignment?.enabled === true && !serviceHealth.data.realignment.available);
-  const maxThreadPerJob = serviceHealth.data?.maxThreadPerJob ?? null;
+  const maxThreadPerJob = Math.min(8, serviceHealth.data?.maxThreadPerJob ?? 8);
 
   function handleAlgorithmParameterChange(value: AlgorithmParameterDraft) {
     setAlgorithmParameterDraft(value);

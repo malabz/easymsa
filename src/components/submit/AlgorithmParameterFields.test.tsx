@@ -48,6 +48,7 @@ describe("AlgorithmParameterFields", () => {
     });
 
     expect(threads).toHaveAttribute("max", "8");
+    expect(threads).toHaveAccessibleDescription("Choose 1–8 threads. Leave blank to use 4.");
     expect(screen.getByRole("combobox", { name: "MAFFT mode" })).toBeInTheDocument();
     expect(screen.getByRole("checkbox", { name: /Reorder aligned sequences/ })).toBeInTheDocument();
 

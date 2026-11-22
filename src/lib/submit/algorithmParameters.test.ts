@@ -16,6 +16,8 @@ describe("validateAlgorithmParameters", () => {
   });
 
   it("builds MiniPOA and MAFFT parameters", () => {
+    expect(validateAlgorithmParameters("auto", { ...DEFAULT_ALGORITHM_PARAMETER_DRAFT, thread: "8" }, 8))
+      .toEqual({ valid: true, params: { thread: 8 } });
     expect(
       validateAlgorithmParameters(
         "minipoa",
