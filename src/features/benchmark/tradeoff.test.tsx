@@ -43,6 +43,22 @@ describe("scatter axis readability", () => {
     expect(axis.position(1024)).toBe(25);
   });
 
+  it("prevents overlapping logarithmic memory tick labels such as 1,000 and 10,000 on narrower plots", () => {
+    const axis = makeMetricAxis("max_rss_kib",[availableMetric(84956),availableMetric(3991540)]);
+    const width = 230, fontSize = 13;
+    const ticks = selectTradeoffXTicks(axis,"max_rss_kib","en",width,fontSize);
+    expect(ticks[0]).toBe(10);
+    expect(ticks[ticks.length - 1]).toBe(10000);
+    const labels = formatAxisTicks(ticks,"max_rss_kib","en");
+    const boxes = ticks.map((tick,index) => {
+      const textWidth = labels[index].length * fontSize * .72;
+      const x = axis.position(tick * 1024) / 100 * width;
+      const left = index === 0 ? x : index === ticks.length - 1 ? x - textWidth : x - textWidth / 2;
+      return {left,right:left + textWidth};
+    });
+    for (let index = 1; index < boxes.length; index++) expect(boxes[index - 1].right + 14).toBeLessThanOrEqual(boxes[index].left);
+  });
+
   it("keeps enlarged zoomed endpoint labels inside the page while retaining plotting room", () => {
     const axis = makeMetricAxis("q",[availableMetric(.968),availableMetric(.995)],{zoom:true});
     const labels = formatAxisTicks(axis.ticks,"q","en");

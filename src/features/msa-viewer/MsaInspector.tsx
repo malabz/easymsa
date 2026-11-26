@@ -99,14 +99,17 @@ export function MsaInspectorContent({
             </h3>
             <div className="grid grid-cols-2 gap-2">
               <Stat
-                label={d.results.viewer.selectedSequence}
+                label={selection.rowKey.startsWith("track:") ? (locale === "zh" ? "统计轨道" : "Track") : d.results.viewer.selectedSequence}
                 value={selectionLabel ?? selection.sequenceId ?? selection.rowKey}
               />
               <Stat label={t.alignmentPosition} value={alignmentPosition} />
               {showReferenceContext && reference ? (
                 <Stat label={t.referencePosition} value={referencePosition ?? "—"} />
               ) : null}
-              <Stat label={d.results.viewer.selectedBase} value={base || d.results.viewer.emptyCell} />
+              <Stat
+                label={selection.rowKey.startsWith("track:") ? (locale === "zh" ? "主碱基" : "Dominant base") : d.results.viewer.selectedBase}
+                value={base || d.results.viewer.emptyCell}
+              />
             </div>
           </section>
 

@@ -140,12 +140,14 @@ export function DocsPage() {
 
   useEffect(() => {
     sectionParamRef.current = `${requestedSection ?? ""}:${requestedArticle ?? ""}`;
+    const sectionId = validSection(requestedSection) ? requestedSection : DOCS_SECTION_IDS[0];
+    if (validSection(requestedSection) || !internalParamUpdateRef.current) {
+      setActiveSection(sectionId);
+    }
     if (internalParamUpdateRef.current) {
       internalParamUpdateRef.current = false;
       return;
     }
-    const sectionId = validSection(requestedSection) ? requestedSection : DOCS_SECTION_IDS[0];
-    setActiveSection(sectionId);
     if (!requestedSection && !requestedArticle) return;
     const article = sections.find(section => section.id === sectionId)?.articles.find(item => item.id === requestedArticle);
     const frame = requestAnimationFrame(() => {
@@ -196,7 +198,7 @@ export function DocsPage() {
             <input
               aria-controls={normalizedQuery ? "docs-search-results" : undefined}
               aria-label={d.docs.searchLabel}
-              className="h-11 w-full rounded-lg border border-slate-300 bg-white py-2 pl-12 pr-24 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+              className="docs-search-input h-11 w-full rounded-lg border border-slate-300 bg-white py-2 pl-12 pr-24 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
               onChange={(event) => setQuery(event.target.value)}
               onKeyDown={handleSearchKeyDown}
               placeholder={d.docs.searchPlaceholder}

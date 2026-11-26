@@ -1,5 +1,5 @@
 import { ChevronsLeftRight } from "lucide-react";
-import { useEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import { positionAt } from "./columnStatsStore";
 import {
@@ -33,16 +33,24 @@ export function MsaHorizontalOverview({input, scrollRef, pitch, labelWidth}: {
     context.putImageData(pixels, 0, 0);
   }, [image]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const element = scrollRef.current;
     const track = trackRef.current;
     if (!element || !track) return;
     let frame = 0;
+    const sync = () => {
+      const next = {
+        scrollLeft: element.scrollLeft, clientWidth: element.clientWidth, trackWidth: track.clientWidth
+      };
+      setViewport(current =>
+        current.scrollLeft === next.scrollLeft && current.clientWidth === next.clientWidth && current.trackWidth === next.trackWidth
+          ? current
+          : next
+      );
+    };
     const update = () => {
       cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => setViewport({
-        scrollLeft: element.scrollLeft, clientWidth: element.clientWidth, trackWidth: track.clientWidth
-      }));
+      frame = requestAnimationFrame(sync);
     };
     // Wheel input on this strip scrolls the matrix horizontally, including ordinary mouse wheels.
     const wheel = (event: WheelEvent) => {
@@ -52,7 +60,8 @@ export function MsaHorizontalOverview({input, scrollRef, pitch, labelWidth}: {
       const unit = event.deltaMode === 1 ? pitch : event.deltaMode === 2 ? element.clientWidth : 1;
       element.scrollLeft += (event.deltaX || event.deltaY) * unit;
     };
-    update();
+    sync();
+    if (element.clientWidth === 0 || track.clientWidth === 0) update();
     element.addEventListener("scroll", update, {passive: true});
     track.addEventListener("wheel", wheel, {passive: false});
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(update);

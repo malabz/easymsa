@@ -8,6 +8,6 @@ export const HELP_LINKS = {
   input: docsLink("fasta-input"),
   realign: docsLink("quick-start", "workflow"),
   results: docsLink("results-downloads"),
-  metrics: docsLink("metrics"),
+  metrics: docsLink("metrics", "column-metrics"),
   recovery: docsLink("status-access")
 };

@@ -165,6 +165,9 @@ describe("DocsPage", () => {
     });
     expect(document.getElementById("docs-article-navigate-search")).toHaveAttribute("open");
     expect(document.getElementById("docs-article-navigate-search")?.querySelector("summary")).toHaveFocus();
+    const desktopToc = document.querySelector<HTMLElement>('[data-docs-desktop-toc="true"]')!;
+    expect(within(desktopToc).getByRole("button", { name: /MSA Viewer/ })).toHaveAttribute("aria-current", "location");
+    expect(within(desktopToc).getByRole("button", { name: /Quick start/ })).not.toHaveAttribute("aria-current");
 
     fireEvent.change(search, { target: { value: "no-such-document-term" } });
     expect(screen.getByText("No matching documentation")).toBeInTheDocument();

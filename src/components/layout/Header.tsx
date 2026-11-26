@@ -12,6 +12,7 @@ const navItems = [
   { to: "/realign", key: "realign" },
   { to: "/viewer", key: "viewer" },
   { to: "/lookup", key: "lookup" },
+  { to: "/benchmark", key: "benchmark" },
   { to: "/docs", key: "docs" },
   { to: "/about", key: "about" }
 ] as const;

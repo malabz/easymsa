@@ -55,6 +55,11 @@ textarea {
   background: rgb(15 118 110 / 0.18);
 }
 
+.docs-search-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 :focus-visible {
   scroll-margin: 6rem;
 }

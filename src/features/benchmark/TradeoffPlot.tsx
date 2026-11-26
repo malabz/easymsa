@@ -31,14 +31,14 @@ export function selectTradeoffXTicks(axis:MetricAxis, key:MetricKey, locale:Loca
   if (candidates.length <= 2) return candidates;
   const labels = formatAxisTicks(candidates,key,locale);
   const boxes = candidates.map((tick,index) => {
-    const labelWidth = labels[index].length * fontSize * .62;
+    const labelWidth = labels[index].length * fontSize * .72;
     const position = bounded(axis.position(key === "max_rss_kib" ? tick * 1024 : tick)) / 100 * width;
     const left = index === 0 ? position : index === candidates.length - 1 ? position - labelWidth : position - labelWidth / 2;
     return {tick,left,right:left + labelWidth};
   });
   const selected = [boxes[0],boxes[boxes.length - 1]];
   for (const candidate of boxes.slice(1,-1)) {
-    if (!selected.some(other => candidate.left < other.right + 10 && candidate.right + 10 > other.left)) selected.push(candidate);
+    if (!selected.some(other => candidate.left < other.right + 14 && candidate.right + 14 > other.left)) selected.push(candidate);
   }
   return selected.sort((a,b) => a.tick - b.tick).map(box => box.tick);
 }

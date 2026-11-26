@@ -54,10 +54,16 @@ export function splitPrecision(text: string, keep = 5): [string, string] | null 
   return null;
 }
 export function MetricCell({ metric, metricKey, locale, noReference = false }: { metric?: BenchmarkMetric; metricKey: MetricKey; locale: Locale; noReference?: boolean }) {
-  const text = formatMetric(metric, metricKey, locale, noReference);
-  // The exact value stays in the text; only its trailing digits recede visually.
-  const parts = splitPrecision(text);
-  return <div className="min-w-[6rem] tabular-nums"><span>{parts ? <>{parts[0]}<span className="benchmark-digits-tail">{parts[1]}</span></> : text}</span></div>;
+  const fullText = formatMetric(metric, metricKey, locale, noReference);
+  const raw = metricValue(metric);
+  const isMemory = metricKey === "max_rss_kib" && raw !== null;
+  const text = isMemory ? formatMetricSummary(metric, metricKey, locale, true) : fullText;
+  const title = isMemory
+    ? `${fullText} ${metricSpecs.max_rss_kib.unit} · ${raw.toLocaleString(locale === "zh" ? "zh-CN" : "en-US")} KiB`
+    : undefined;
+  // The exact value stays in the text (or tooltip for binary MiB conversions); trailing digits recede visually.
+  const parts = isMemory ? null : splitPrecision(text);
+  return <div className="min-w-[6rem] tabular-nums" title={title}><span>{parts ? <>{parts[0]}<span className="benchmark-digits-tail">{parts[1]}</span></> : text}</span></div>;
 }
 export function StatusPill({ status, locale }: { status: string; locale: Locale }) {
   return <span className={"benchmark-status " + status}>{stateLabel(status, locale)}</span>;

@@ -86,4 +86,25 @@ describe("MsaInspector accessibility", () => {
     expect(container.textContent).not.toMatch(/Base composition|碱基组成/);
     expect(container.textContent).not.toMatch(/Mismatches|错配/);
   });
+
+  it("labels statistic track selections as Track and Dominant base instead of Sequence and Base", () => {
+    window.localStorage.setItem("easymsa.locale", "en");
+    const { container } = render(
+      <LanguageProvider>
+        <MsaInspector
+          {...content}
+          selection={{ rowKey: "track:conservation", position: 2 }}
+          selectionLabel="Conservation"
+          docked
+          mobileOpen={false}
+          onClose={() => {}}
+        />
+      </LanguageProvider>
+    );
+
+    expect(container.textContent).toContain("Track");
+    expect(container.textContent).toContain("Conservation");
+    expect(container.textContent).toContain("Dominant base");
+    expect(container.textContent).not.toMatch(/\bSequence\b/);
+  });
 });

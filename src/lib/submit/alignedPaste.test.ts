@@ -13,6 +13,18 @@ describe("aligned FASTA early feedback", () => {
     const result = validateAlignedPaste(input, "zh");
     expect(result.valid).toBe(false); expect(result.message).toContain(message);
   });
+  it("pinpoints the sequence index, offending characters, and first position for invalid bases", () => {
+    const en = validateAlignedPaste(">s1\nACGT\n>s2\nACXY", "en");
+    expect(en.valid).toBe(false);
+    expect(en.message).toContain("Sequence 2");
+    expect(en.message).toContain('"X", "Y"');
+    expect(en.message).toContain("first position 3");
+    const zh = validateAlignedPaste(">s1\nACGT\n>s2\nACXY", "zh");
+    expect(zh.valid).toBe(false);
+    expect(zh.message).toContain("第 2 条序列");
+    expect(zh.message).toContain('"X"、"Y"');
+    expect(zh.message).toContain("首个位置 3");
+  });
   it("does not add a new upper-size restriction for content checked by the server", () => {
     expect(validateAlignedPaste(`>a\n${"A".repeat(1_100_000)}\n>b\nAC`, "en").valid).toBe(true);
   });

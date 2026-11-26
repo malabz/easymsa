@@ -7,13 +7,13 @@ import { Header } from "./Header";
 
 beforeEach(() => { localStorage.setItem("easymsa.locale", "en"); });
 afterEach(cleanup);
-it("keeps Benchmark out of the desktop and mobile primary navigation", () => {
+it("includes Benchmark in both desktop and mobile primary navigation", () => {
   render(<MemoryRouter><LanguageProvider><Header /></LanguageProvider></MemoryRouter>);
-  expect(screen.queryByRole("link", { name: /benchmark/i })).not.toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Benchmark" })).toHaveAttribute("href", "/benchmark");
   expect(screen.getByRole("link", { name: "About" })).toHaveAttribute("href", "/about");
   fireEvent.click(document.getElementById("primary-navigation-toggle")!);
   expect(document.getElementById("mobile-primary-navigation")).toBeInTheDocument();
-  expect(screen.queryByRole("link", { name: /benchmark/i })).not.toBeInTheDocument();
+  expect(screen.getAllByRole("link", { name: "Benchmark" })).toHaveLength(2);
   expect(screen.getAllByRole("link", { name: "About" })).toHaveLength(2);
 });
 it("uses the same navigation container on reading and task pages", () => {
