@@ -1,5 +1,5 @@
 import { ChevronsLeftRight } from "lucide-react";
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { useLanguage } from "../../lib/i18n/useLanguage";
 import { positionAt } from "./columnStatsStore";
 import {
@@ -33,14 +33,19 @@ export function MsaHorizontalOverview({input, scrollRef, pitch, labelWidth}: {
     context.putImageData(pixels, 0, 0);
   }, [image]);
 
-  useLayoutEffect(() => {
-    const element = scrollRef.current;
-    const track = trackRef.current;
-    if (!element || !track) return;
+  useEffect(() => {
     let frame = 0;
+    let observer: ResizeObserver | null = null;
+    let attachedElement: HTMLDivElement | null = null;
+    let attachedTrack: HTMLDivElement | null = null;
+    let disposed = false;
+
     const sync = () => {
+      if (!attachedElement || !attachedTrack) return;
       const next = {
-        scrollLeft: element.scrollLeft, clientWidth: element.clientWidth, trackWidth: track.clientWidth
+        scrollLeft: attachedElement.scrollLeft,
+        clientWidth: attachedElement.clientWidth,
+        trackWidth: attachedTrack.clientWidth
       };
       setViewport(current =>
         current.scrollLeft === next.scrollLeft && current.clientWidth === next.clientWidth && current.trackWidth === next.trackWidth
@@ -54,24 +59,40 @@ export function MsaHorizontalOverview({input, scrollRef, pitch, labelWidth}: {
     };
     // Wheel input on this strip scrolls the matrix horizontally, including ordinary mouse wheels.
     const wheel = (event: WheelEvent) => {
-      const max = element.scrollWidth - element.clientWidth;
+      if (!attachedElement) return;
+      const max = attachedElement.scrollWidth - attachedElement.clientWidth;
       if (max <= 0 || event.ctrlKey || event.metaKey) return;
       event.preventDefault();
-      const unit = event.deltaMode === 1 ? pitch : event.deltaMode === 2 ? element.clientWidth : 1;
-      element.scrollLeft += (event.deltaX || event.deltaY) * unit;
+      const unit = event.deltaMode === 1 ? pitch : event.deltaMode === 2 ? attachedElement.clientWidth : 1;
+      attachedElement.scrollLeft += (event.deltaX || event.deltaY) * unit;
     };
-    sync();
-    if (element.clientWidth === 0 || track.clientWidth === 0) update();
-    element.addEventListener("scroll", update, {passive: true});
-    track.addEventListener("wheel", wheel, {passive: false});
-    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(update);
-    observer?.observe(element);
-    observer?.observe(track);
+
+    const attach = () => {
+      if (disposed) return;
+      const element = scrollRef.current;
+      const track = trackRef.current;
+      if (!element || !track) {
+        frame = requestAnimationFrame(attach);
+        return;
+      }
+      attachedElement = element;
+      attachedTrack = track;
+      sync();
+      if (element.clientWidth === 0 || track.clientWidth === 0) update();
+      element.addEventListener("scroll", update, {passive: true});
+      track.addEventListener("wheel", wheel, {passive: false});
+      observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(update);
+      observer?.observe(element);
+      observer?.observe(track);
+    };
+
+    attach();
     return () => {
+      disposed = true;
       cancelAnimationFrame(frame);
       observer?.disconnect();
-      element.removeEventListener("scroll", update);
-      track.removeEventListener("wheel", wheel);
+      attachedElement?.removeEventListener("scroll", update);
+      attachedTrack?.removeEventListener("wheel", wheel);
     };
   }, [scrollRef, pitch, labelWidth, input.positions]);
 
