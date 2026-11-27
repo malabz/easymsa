@@ -137,3 +137,21 @@ textarea {
 .route-skeleton > div { background:rgb(226 232 240 / .5); border-radius:var(--control-radius); }
 .route-skeleton > div:last-child { width:70%; }
 @media(min-width:1024px) { .route-skeleton--form { grid-template-columns:3fr 2fr; min-height:340px; } .route-skeleton--form > div:last-child { grid-column:1/-1; height:36px; width:100%; } }
+
+.route-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 60;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+  background-size: 40% 100%;
+  background-repeat: no-repeat;
+  animation: route-progress-slide 1s ease-in-out infinite;
+}
+@keyframes route-progress-slide {
+  0% { background-position: -40% 0; }
+  100% { background-position: 140% 0; }
+}

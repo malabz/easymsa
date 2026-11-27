@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from "react";
+import { useDeferredValue, useLayoutEffect, useRef } from "react";
 import { useLocation, useNavigationType } from "react-router-dom";
 
 /** Focus the current page without changing the HashRouter URL. */
@@ -12,7 +12,8 @@ export function focusMainContent() {
 
 /** Page navigation owns document scroll; query tabs and the MSA viewport own theirs. */
 export function RouteNavigation() {
-  const location = useLocation();
+  const currentLocation = useLocation();
+  const location = useDeferredValue(currentLocation);
   const navigationType = useNavigationType();
   const previous = useRef({ key: location.key, pathname: location.pathname });
   const lastPosition = useRef(0);

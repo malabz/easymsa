@@ -2,6 +2,7 @@ import { Menu, X } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState, type SyntheticEvent } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useLanguage } from "../../lib/i18n/useLanguage";
+import { preloadRoute } from "../../lib/routePreload";
 import { cn } from "../../lib/utils/cn";
 import { Button } from "../common/Button";
 import { LanguageToggle } from "./LanguageToggle";
@@ -90,6 +91,9 @@ export function Header() {
           end={item.to === "/"}
           key={item.to}
           onClick={() => setOpen(false)}
+          onFocus={() => preloadRoute(item.to)}
+          onPointerEnter={() => preloadRoute(item.to)}
+          onTouchStart={() => preloadRoute(item.to)}
           to={item.to}
         >
           {d.nav[item.key]}

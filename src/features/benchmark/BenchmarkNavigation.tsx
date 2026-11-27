@@ -1,6 +1,7 @@
 import {Check,ChevronRight} from "lucide-react";
 import {Link,useLocation} from "react-router-dom";
 import {useLanguage} from "../../lib/i18n/useLanguage";
+import {preloadRoute} from "../../lib/routePreload";
 import "./workflow.css";
 import "./report.css";
 import "./controls.css";
@@ -16,7 +17,7 @@ export function BenchmarkNavigation(){
       ["compare","/benchmark",zh?"方法对比":"Method comparison"],
       ["submit","/benchmark/submit",zh?"提交评测":"Submit program"],
       ["recent","/benchmark/recent",zh?"最近评测":"Recent evaluations"]
-    ].map(([id,url,label])=><Link key={id} to={url} aria-current={section===id?"page":undefined}>{label}</Link>)}</div>
+    ].map(([id,url,label])=><Link key={id} to={url} aria-current={section===id?"page":undefined} onFocus={()=>preloadRoute(url)} onPointerEnter={()=>preloadRoute(url)} onTouchStart={()=>preloadRoute(url)}>{label}</Link>)}</div>
   </nav>;
 }
 

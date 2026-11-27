@@ -1,6 +1,6 @@
 import { StorageNotice } from "./components/common/StorageNotice";
-import { lazy, Suspense } from "react";
-import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { lazy, Suspense, useDeferredValue, useEffect, useState } from "react";
+import { Navigate, Route, Routes, useLocation, type Location } from "react-router-dom";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import { RouteLoadingState } from "./components/layout/RouteLoadingState";
 import { focusMainContent, RouteNavigation } from "./components/layout/RouteNavigation";
@@ -11,56 +11,39 @@ import { PageMetadata } from "./components/layout/PageMetadata";
 import { useLanguage } from "./lib/i18n/useLanguage";
 import { HomePage } from "./routes/HomePage";
 import { WorkReturnBar } from "./components/layout/WorkReturnBar";
+import { routeLoaders, schedulePrimaryRoutePreload } from "./lib/routePreload";
 import "./components/layout/workspace.css";
 
-const AboutPage = lazy(() =>
-  import("./routes/AboutPage").then((module) => ({ default: module.AboutPage }))
-);
-const DocsPage = lazy(() =>
-  import("./routes/DocsPage").then((module) => ({ default: module.DocsPage }))
-);
-const JobStatusPage = lazy(() =>
-  import("./routes/JobStatusPage").then((module) => ({ default: module.JobStatusPage }))
-);
-const LookupPage = lazy(() =>
-  import("./routes/LookupPage").then((module) => ({ default: module.LookupPage }))
-);
-const ResultsPage = lazy(() =>
-  import("./routes/ResultsPage").then((module) => ({ default: module.ResultsPage }))
-);
-const SubmitPage = lazy(() =>
-  import("./routes/SubmitPage").then((module) => ({ default: module.SubmitPage }))
-);
-const ViewerPage = lazy(() =>
-  import("./routes/ViewerPage").then((module) => ({ default: module.ViewerPage }))
-);
+const AboutPage = lazy(routeLoaders.about);
+const DocsPage = lazy(routeLoaders.docs);
+const JobStatusPage = lazy(routeLoaders.job);
+const LookupPage = lazy(routeLoaders.lookup);
+const ResultsPage = lazy(routeLoaders.results);
+const SubmitPage = lazy(routeLoaders.submit);
+const ViewerPage = lazy(routeLoaders.viewer);
+const RealignPage = lazy(routeLoaders.realign);
+const ExamplesPage = lazy(routeLoaders.examples);
+const LicensePage = lazy(routeLoaders.license);
+const PrivacyPage = lazy(routeLoaders.privacy);
+const BenchmarkPage = lazy(routeLoaders.benchmark);
+const BenchmarkDatasetPage = lazy(routeLoaders.benchmarkDataset);
+const BenchmarkSubmitPage = lazy(routeLoaders.benchmarkSubmit);
+const BenchmarkMinePage = lazy(routeLoaders.benchmarkMine);
+const BenchmarkRunPage = lazy(routeLoaders.benchmarkRun);
+const BenchmarkExamplePage = lazy(routeLoaders.benchmarkExample);
 
-const RealignPage = lazy(() => import("./routes/RealignPage").then(module => ({default: module.RealignPage})));
-
-const ExamplesPage = lazy(() => import("./routes/ExamplesPage").then(m => ({default:m.ExamplesPage})));
-const LicensePage = lazy(() => import("./routes/LicensePage").then(m => ({default:m.LicensePage})));
-const PrivacyPage = lazy(() => import("./routes/PrivacyPage").then(m => ({default:m.PrivacyPage})));
-const BenchmarkPage = lazy(() => import("./routes/BenchmarkPage").then(m => ({default:m.BenchmarkPage})));
-const BenchmarkDatasetPage = lazy(() => import("./routes/BenchmarkDatasetPage").then(m => ({default:m.BenchmarkDatasetPage})));
-const BenchmarkSubmitPage = lazy(() => import("./routes/BenchmarkSubmitPage").then(m => ({default:m.BenchmarkSubmitPage})));
-const BenchmarkMinePage = lazy(() => import("./routes/BenchmarkMinePage").then(m => ({default:m.BenchmarkMinePage})));
-const BenchmarkRunPage = lazy(() => import("./routes/BenchmarkRunPage").then(m => ({default:m.BenchmarkRunPage})));
-const BenchmarkExamplePage = lazy(() => import("./routes/BenchmarkExamplePage").then(m => ({default:m.BenchmarkExamplePage})));
-
-function AppRoutes() {
-  const location = useLocation();
+function AppRoutes({ location }: { location: Location }) {
   const { dictionary: d } = useLanguage();
 
   return (
     <ErrorBoundary
-      key={/^\/benchmark\/datasets\/[^/]+$/.test(location.pathname) ? "benchmark-dataset" : location.pathname}
       resetKey={location.pathname}
       description={d.common.appErrorDescription}
       retryLabel={d.common.retry}
       title={d.common.appErrorTitle}
     >
       <Suspense fallback={<RouteLoadingState />}>
-        <Routes>
+        <Routes location={location}>
           <Route path="/" element={<HomePage />} />
           <Route path="/realign" element={<RealignPage />} />
           <Route path="/submit" element={<SubmitPage />} />
@@ -90,7 +73,26 @@ function AppRoutes() {
 
 export function App() {
   const { dictionary: d } = useLanguage();
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const deferredLocation = useDeferredValue(location);
+  const pendingTransition = deferredLocation.pathname !== location.pathname;
+  const [showPendingBar, setShowPendingBar] = useState(false);
+
+  useEffect(() => {
+    if (import.meta.env.MODE === "test") return;
+    return schedulePrimaryRoutePreload();
+  }, []);
+
+  useEffect(() => {
+    if (!pendingTransition) {
+      setShowPendingBar(false);
+      return;
+    }
+    const timer = window.setTimeout(() => setShowPendingBar(true), 180);
+    return () => window.clearTimeout(timer);
+  }, [pendingTransition]);
+
+  const { pathname } = deferredLocation;
   const form = ["/submit", "/realign"].includes(pathname);
   const analysis = /^\/(job|results|examples)\/.+/.test(pathname);
   const benchmark = /^\/benchmark(?:\/|$)/.test(pathname);
@@ -107,10 +109,11 @@ export function App() {
       <PageMetadata />
       <RouteNavigation />
       <Header />
+      {showPendingBar ? <div aria-hidden="true" className="route-progress-bar" data-route-pending="true" /> : null}
       <StorageNotice />
       <main className="flex-1" id="main-content" tabIndex={-1}>
         {!analysis && <WorkReturnBar />}
-        <AppRoutes />
+        <AppRoutes location={deferredLocation} />
       </main>
       <Footer />
     </div>
