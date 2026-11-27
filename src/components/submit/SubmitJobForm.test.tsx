@@ -91,11 +91,10 @@ it('restores defaults and retains new preprocessing selections across remounts',
   expect(screen.getByLabelText('Preprocess mode')).toHaveValue('audit');
   expect(screen.getByRole('spinbutton', { name: /Thread/ })).toHaveValue(null);
 });
-it('preserves the example name on focus and keeps refinement opt-in', async () => {
+it('loads immediately on an untouched empty form, preserves the example name on focus and keeps refinement opt-in', async () => {
   show(); const user = userEvent.setup(); await user.click(exampleButton());
-  expect(mocks.load).not.toHaveBeenCalled();
-  await user.click(screen.getByRole('button', { name: 'Confirm load' }));
   const name = screen.getByLabelText('Job name'); await waitFor(() => expect(name).toHaveValue('Synthetic DNA example'));
+  expect(mocks.load).toHaveBeenCalledTimes(1);
   await user.click(name); expect(name).toHaveValue('Synthetic DNA example');
   expect(screen.getByRole('checkbox', { name: 'Realign after alignment' })).not.toBeChecked();
   expect(screen.getByRole('tab', { name: 'Paste FASTA' })).toHaveAttribute('aria-selected', 'true');
@@ -265,7 +264,6 @@ it('restores an empty form without adding a job-name error when example loading 
   show(); const user = userEvent.setup();
   expect(screen.getByLabelText('Job name')).toHaveValue('');
   await user.click(exampleButton());
-  await user.click(screen.getByRole('button', { name: 'Confirm load' }));
   await user.click(await screen.findByRole('button', { name: 'Undo example load' }));
   expect(screen.getByLabelText('Job name')).toHaveValue('');
   expect(screen.getByLabelText('Job name')).toHaveAttribute('aria-invalid', 'false');

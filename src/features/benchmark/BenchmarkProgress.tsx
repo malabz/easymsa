@@ -26,7 +26,7 @@ export function BenchmarkProgress({run,validDatasets,busy,onCancel}:{run:Private
   const summary=<p>{run.completed_units} / {run.total_units} {w("datasets processed","组已处理")}{validDatasets!==null&&<> · {validDatasets} {w("valid alignments","组合法比对")}</>}</p>;
   if(finished)return <section className="private-progress is-compact" aria-label={w("Evaluation progress","评测进度")}><div className="private-progress-heading"><div><strong className={`private-status is-${run.status}`} role="status">{run.status==="completed"&&<CheckCircle2 size={17} aria-hidden="true"/>}{current}</strong>{summary}</div></div></section>;
   return <section className="benchmark-task-progress" aria-label={w("Evaluation progress","评测进度")}>
-    <BenchmarkJourney submitted step={["running","scoring"].includes(run.stage)?1:0}/>
+    <BenchmarkJourney submitted mode={run.mode??"full"} step={["running","scoring"].includes(run.stage)?1:0}/>
     <div className="private-progress"><div className="private-progress-heading"><div><strong className={`private-status is-${run.status}`} role="status"><Loader2 className="benchmark-spin" size={18} aria-hidden="true"/>{current}</strong>{summary}</div>{!run.cancel_requested&&<button className="private-button is-outline" onClick={onCancel} disabled={busy}>{w("Cancel evaluation","取消评测")}</button>}</div><progress value={run.completed_units} max={run.total_units} aria-label={w("Datasets processed","已处理数据集")}/></div>
     <dl className="benchmark-progress-facts">
       <div><dt>{run.status==="queued"?w("Waiting","已等待"):w("Time in this stage","本阶段已用")}</dt><dd>{duration(elapsed(run.status==="queued"?run.stage_started_at??run.created_at:run.stage_started_at??run.started_at))}</dd></div>

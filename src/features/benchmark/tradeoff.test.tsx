@@ -323,6 +323,30 @@ describe("tradeoff chart", () => {
     expect(screen.getByRole("tooltip")).toHaveTextContent("Partial");
     expect(screen.getByRole("tooltip")).toHaveTextContent("1/3 valid for vertical metric");
   });
+
+  it("shows dismissible result details and hover titles in embedded dataset plots", () => {
+    const snapshot = publishedSnapshot();
+    const dataset = snapshot.catalog.datasets[0];
+    render(
+      <TradeoffPlot
+        snapshot={snapshot}
+        scope={{ mode: "latest" }}
+        dataset={dataset}
+        locale="en"
+        params={new URLSearchParams()}
+        onParamsChange={vi.fn()}
+        fixedX="max_rss_kib"
+        embedded
+      />
+    );
+    const point = screen.getAllByTestId("tradeoff-point")[0];
+    expect(point).toHaveAttribute("title", expect.stringContaining("Clustal Omega"));
+    fireEvent.click(point);
+    expect(screen.getByTestId("tradeoff-details")).toBeVisible();
+    expect(screen.getByRole("tooltip")).toHaveTextContent("Original: 1,024 KiB");
+    fireEvent.click(screen.getByRole("button", { name: "Close result details" }));
+    expect(screen.queryByTestId("tradeoff-details")).not.toBeInTheDocument();
+  });
 });
 
 it("aligned plots use each record's source and write relevant options to the URL", () => {

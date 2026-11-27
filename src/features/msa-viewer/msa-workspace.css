@@ -223,10 +223,10 @@
  .msa-command-action {font-size:12px;padding-inline:5px;gap:3px;}
  .msa-export-menu > summary {width:100%;padding-inline:4px;}
  .msa-command .msa-popup {position:fixed; left:12px; right:12px; top:auto; bottom:max(12px,env(safe-area-inset-bottom)); width:auto; max-width:none; max-height:min(65dvh,520px); overflow-y:auto; font-size:13px;}
- .msa-status {height:auto;min-height:var(--control-compact-height);font-size:12px;flex-wrap:wrap;gap:2px;padding-block:2px;}
+ .msa-status {height:auto;min-height:var(--control-compact-height);font-size:12px;flex-wrap:wrap;gap:4px 8px;padding:6px 10px;}
  .msa-status > div {max-width:100%;}
- .msa-status > div:first-child {flex-basis:100%;}
- .msa-status > div:last-of-type {overflow-x:auto;gap:12px;}
+ .msa-status > div:first-child {flex-basis:100%;flex-wrap:wrap;white-space:normal;overflow-x:visible;gap:2px 10px;line-height:1.45;}
+ .msa-status > div:last-of-type {flex-basis:100%;flex-wrap:wrap;white-space:normal;overflow-x:visible;gap:2px 12px;}
  .msa-status button {white-space:nowrap;}
  .msa-panel-content button,.msa-panel-content select,.msa-panel-content input:not([type="checkbox"]),.msa-threshold-form button,.msa-threshold-form input,.msa-export-selection select,.msa-check-table button {min-height:var(--control-touch-height);}
 }

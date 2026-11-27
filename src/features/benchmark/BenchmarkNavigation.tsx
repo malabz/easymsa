@@ -21,9 +21,10 @@ export function BenchmarkNavigation(){
   </nav>;
 }
 
-export function BenchmarkJourney({step=0,submitted=false}:{step?:0|1|2;submitted?:boolean}){
+export function BenchmarkJourney({step=0,submitted=false,mode="full"}:{step?:0|1|2;submitted?:boolean;mode?:"quick"|"full"}){
   const {locale}=useLanguage(),zh=locale==="zh";
-  const labels=submitted?(zh?["构建检查","运行数据集","查看对比"]:["Build and check","Run datasets","Compare results"]):(zh?["提交仓库","自动评测","查看对比"]:["Submit repository","Automatic evaluation","Compare results"]);
+  const finalStep=mode==="quick"?(zh?"查看接入结果":"Check results"):(zh?"查看对比":"Compare results");
+  const labels=submitted?(zh?["构建检查","运行数据集",finalStep]:["Build and check","Run datasets",finalStep]):(zh?["提交仓库","自动评测",finalStep]:["Submit repository","Automatic evaluation",finalStep]);
   return <ol className="benchmark-journey" aria-label={zh?"评测流程":"Evaluation workflow"}>
     {labels.map((label,index)=><li key={label} aria-current={step===index?"step":undefined} className={index<step?"is-done":""}>
       <span className="benchmark-journey-marker" aria-hidden="true">{index<step?<Check size={14}/>:index+1}</span>

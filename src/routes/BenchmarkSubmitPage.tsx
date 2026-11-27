@@ -128,7 +128,7 @@ function RealBenchmarkSubmitPage({draft,update}:{draft:Draft;update:(patch:Parti
     }finally{submitting.current=false;setBusy(false);}
   }
   return <PrivateShell title={w("Evaluate my program","评测我的程序")} description={w("Check your program with a quick evaluation, or compare performance with a full evaluation.","先用快速评测检查接入，再用完整评测比较速度与质量。")}>
-    <BenchmarkJourney/>
+    <BenchmarkJourney mode={mode}/>
     <div className="benchmark-submit-layout">
       <div className="benchmark-submit-main"><SubmissionTabs/>
         <div className="benchmark-form-intro"><h2>{w("Your repository","提交仓库")}</h2><p>{w("Only the public repository URL is required.","填写公开仓库链接即可，其余设置可保留默认值。")}</p></div>

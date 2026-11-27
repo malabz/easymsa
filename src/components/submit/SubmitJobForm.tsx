@@ -289,7 +289,7 @@ export function SubmitJobForm() {
           <div className="work-input-heading">
             <h2>{t.input}</h2>
             <ExampleInputLoader kind="alignment" disabled={submitting || examplePending} hasInput={hasDraft}
-              label={t.sampleWithSettings} confirmationMessage={t.exampleSettingsNotice} confirmLabel={t.applyExample}
+              label={t.sampleWithSettings} confirmationMessage={hasDraft ? t.exampleSettingsNotice : undefined} confirmLabel={t.applyExample}
               onLoad={loadExample} onPendingChange={setExamplePending} />
           </div>
           <InputMethodTabs value={inputMethod} onChange={handleMethodChange} />
@@ -349,7 +349,7 @@ export function SubmitJobForm() {
             enabled={realignEnabled} onEnabled={setRealignEnabled} pattern={realignPattern} onPattern={setRealignPattern}
             disabled={submitting || examplePending} unavailable={!serviceHealth.data.realignment.available} />}
           {serviceHealth.data?.realignment?.enabled && <p className="pt-2 text-sm text-slate-600">{realignText[locale].fromSubmitHint}{" "}
-            <Link className="font-medium text-teal-800 underline underline-offset-2" to="/realign">{realignText[locale].fromSubmitLink}</Link></p>}
+            <Link className="whitespace-nowrap font-medium text-teal-800 underline underline-offset-2" to="/realign">{realignText[locale].fromSubmitLink}</Link></p>}
           {Boolean(formError || requestError) && <p id="submission-error" tabIndex={-1} className="work-error py-2" role="alert">{requestError ? apiErrorMessage(requestError, locale, d.submit.errors.submitFailed) : formErrorMessage}</p>}
           {selectedAlgorithmBlocked && <p className="text-sm text-amber-900 py-2" role="alert">{d.submit.selectedAlgorithmUnavailable}</p>}
         </div>

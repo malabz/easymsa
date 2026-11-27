@@ -117,6 +117,7 @@ export function TradeoffPlot({ snapshot, batch, scope, dataset, locale, params, 
   const [active, setActive] = useState(params.get("method") ?? "");
   const [showDetails, setShowDetails] = useState(false);
   const interaction = useRef<"focus" | "pointer">("pointer");
+  const descriptionId = embedded ? `tradeoff-description-${xKey}` : "tradeoff-description";
   useLayoutEffect(() => {
     const element = plane.current;
     if (!element) return;
@@ -136,12 +137,24 @@ export function TradeoffPlot({ snapshot, batch, scope, dataset, locale, params, 
   useEffect(() => { setShowDetails(false); }, [dataset.id, batch?.id, scope.mode, xKey, yKey]);
   useEffect(() => {
     const dismiss = (event: KeyboardEvent) => { if (event.key === "Escape") setShowDetails(false); };
-    window.addEventListener("keydown", dismiss); return () => window.removeEventListener("keydown", dismiss);
-  }, []);
+    const dismissOther = (event: Event) => {
+      if ((event as CustomEvent<string>).detail !== descriptionId) setShowDetails(false);
+    };
+    window.addEventListener("keydown", dismiss);
+    window.addEventListener("easymsa-tradeoff-details", dismissOther);
+    return () => {
+      window.removeEventListener("keydown", dismiss);
+      window.removeEventListener("easymsa-tradeoff-details", dismissOther);
+    };
+  }, [descriptionId]);
   const locations = valid.map(row => ({id:row.method.id, name:row.method.name, x:bounded(xAxis.position(row.x!)) / 100 * width, y:(100 - bounded(yAxis.position(row.y!))) / 100 * plotHeight}));
   const labels = placeTradeoffLabels(locations, width, labelFontSize,plotHeight);
   const focused = rows.find(row => row.method.id === active);
-  const choose = (id:string) => { setActive(id); setShowDetails(true); };
+  const choose = (id:string) => {
+    setActive(id);
+    setShowDetails(true);
+    window.dispatchEvent(new CustomEvent("easymsa-tradeoff-details", { detail: descriptionId }));
+  };
   const status = (row:typeof rows[number]) => row.outsideBatch ? stateLabel("outside_batch", locale) : row.result?.reason_code ? reasonLabel(row.result.reason_code, locale) : row.x === null || row.y === null ? [row.metric, row.yMetric].flatMap(metric => metric?.reason_codes ?? []).map(reason => reasonLabel(reason, locale)).join(" · ") || stateLabel("unavailable", locale) : stateLabel(row.result?.status ?? "not_run", locale);
   const axes = `${metricSpecs[xKey][locale]} (${metricSpecs[xKey].unit}) / ${metricSpecs[yKey][locale]}`;
   const rangeLabel = isQuality ? params.get("zoom") !== "0" ? `${words(locale,"Zoomed range","局部范围")} ${formatAxisTicks([yAxis.min,yAxis.max],yKey,locale).join("–")}` : "0–1" : words(locale,"Dataset range · linear","本数据集范围 · 线性");
@@ -166,7 +179,8 @@ export function TradeoffPlot({ snapshot, batch, scope, dataset, locale, params, 
                 {xRange && <span className="tradeoff-range x" data-testid="tradeoff-x-range" style={{left:`${bounded(xAxis.position(xRange[0]))}%`, width:`${bounded(xAxis.position(xRange[1])) - bounded(xAxis.position(xRange[0]))}%`, top:`${100-y}%`}} />}
                 {yRange && <span className="tradeoff-range y" data-testid="tradeoff-y-range" style={{left:`${x}%`, top:`${100 - bounded(yAxis.position(yRange[1]))}%`, height:`${bounded(yAxis.position(yRange[1])) - bounded(yAxis.position(yRange[0]))}%`}} />}
                 <button type="button" aria-pressed={active === row.method.id} className="tradeoff-point" data-testid="tradeoff-point" data-method={row.method.id} data-batch-id={row.batch?.id} data-shape="circle" data-x-raw={row.x!} data-y-raw={row.y!} data-x-percent={x} data-y-percent={y} style={{left:`${x}%`, top:`${100-y}%`}}
-                  aria-label={`${row.method.name}: ${formatMetricSummary(row.metric,xKey,locale)} ${metricSpecs[xKey].unit}; ${metricSpecs[yKey][locale]} ${formatMetricSummary(row.yMetric,yKey,locale)}; `} aria-describedby={showDetails && active === row.method.id ? "tradeoff-description" : undefined}
+                  title={`${row.method.name} · ${metricSpecs[xKey][locale]}: ${formatMetricSummary(row.metric,xKey,locale)} ${metricSpecs[xKey].unit} · ${metricSpecs[yKey][locale]}: ${formatMetricSummary(row.yMetric,yKey,locale)}`}
+                  aria-label={`${row.method.name}: ${formatMetricSummary(row.metric,xKey,locale)} ${metricSpecs[xKey].unit}; ${metricSpecs[yKey][locale]} ${formatMetricSummary(row.yMetric,yKey,locale)}; `} aria-describedby={showDetails && active === row.method.id ? descriptionId : undefined}
                   onMouseEnter={() => { if (interaction.current === "pointer") choose(row.method.id); }} onPointerMove={() => { interaction.current = "pointer"; choose(row.method.id); }} onFocus={() => { interaction.current = "focus"; choose(row.method.id); }} onClick={event => { interaction.current = event.detail === 0 ? "focus" : "pointer"; onParamsChange({method:row.method.id}); choose(row.method.id); }}><i className="tradeoff-marker circle" aria-hidden="true" /></button>
                 <span className="tradeoff-direct-label" style={{left:label.x, top:label.y, maxWidth:label.width}}>{row.method.name}</span>
               </div>;
@@ -196,7 +210,7 @@ export function TradeoffPlot({ snapshot, batch, scope, dataset, locale, params, 
       </div>}
     </div>
     </div>
-    {!embedded && showDetails && focused && <div className="tradeoff-details" data-testid="tradeoff-details"><div className="tradeoff-details-content" id="tradeoff-description" role="tooltip">
+    {showDetails && focused && <div className="tradeoff-details" data-testid="tradeoff-details"><div className="tradeoff-details-content" id={descriptionId} role="tooltip">
       <strong>{focused.method.name} · {status(focused)}</strong>
       <p>{metricSpecs[xKey][locale]}: {formatMetricSummary(focused.metric,xKey,locale)} {metricSpecs[xKey].unit} · {metricSpecs[yKey][locale]}: {formatMetricSummary(focused.yMetric,yKey,locale)}</p>
       {xKey === "max_rss_kib" && focused.x !== null && <p>{words(locale,"Original: ","原始值：")}{focused.x.toLocaleString(locale === "zh" ? "zh-CN" : "en-US", {maximumSignificantDigits:21})} KiB</p>}

@@ -159,6 +159,8 @@ describe("DocsPage", () => {
     const result = screen.getByRole("button", { name: /Navigation and search/ });
     expect(result).toBeInTheDocument();
     fireEvent.click(result);
+    expect(document.getElementById("docs-search-results")).toHaveAttribute("data-docs-search-results", "collapsed");
+    expect(screen.getByRole("button", { name: "Show search results" })).toBeVisible();
     expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "smooth", block: "start" });
     await waitFor(() => {
       expect(screen.getByTestId("location-search")).toHaveTextContent("?section=msa-viewer&article=navigate-search");
@@ -168,6 +170,9 @@ describe("DocsPage", () => {
     const desktopToc = document.querySelector<HTMLElement>('[data-docs-desktop-toc="true"]')!;
     expect(within(desktopToc).getByRole("button", { name: /MSA Viewer/ })).toHaveAttribute("aria-current", "location");
     expect(within(desktopToc).getByRole("button", { name: /Quick start/ })).not.toHaveAttribute("aria-current");
+    fireEvent.click(screen.getByRole("button", { name: "Show search results" }));
+    expect(document.getElementById("docs-search-results")).toHaveAttribute("data-docs-search-results", "true");
+    expect(screen.getByRole("button", { name: /Navigation and search/ })).toBeVisible();
 
     fireEvent.change(search, { target: { value: "no-such-document-term" } });
     expect(screen.getByText("No matching documentation")).toBeInTheDocument();

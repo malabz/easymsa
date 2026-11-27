@@ -124,7 +124,7 @@ export function RealignPage() {
     <PageContainer className="workflow-page submission-page realignment-page">
       <div className="work-heading">
         <div><h1>{t.title}</h1><p>{locale === "zh" ? "上传或粘贴已比对序列，优化比对结果。" : "Upload or paste aligned sequences to refine the alignment."}</p>
-          <p className="mt-1 text-sm text-slate-600">{t.toSubmitHint}{" "}<Link className="font-medium text-teal-800 underline underline-offset-2" to="/submit">{t.toSubmitLink}</Link></p></div>
+          <p className="mt-1 text-sm text-slate-600">{t.toSubmitHint}{" "}<Link className="whitespace-nowrap font-medium text-teal-800 underline underline-offset-2" to="/submit">{t.toSubmitLink}</Link></p></div>
         <div role="status" className="work-status" data-status={ready ? "ready" : "offline"}>
           <StatusIcon size={15} aria-hidden="true" className={health.isPending ? "animate-spin" : ""} />
           <span>{statusText}</span>

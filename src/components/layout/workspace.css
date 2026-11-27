@@ -403,7 +403,17 @@ div.workflow-page { max-width: var(--layout-form-width); padding-block: var(--pa
 @media (max-width: 700px) {
   .workflow-page :is(.work-input, .work-settings), .workflow-page .work-viewer-input { padding: 16px; border-radius: 12px; }
   .submission-form .work-settings { padding: 16px; border: 1px solid #e3e8ef; }
-  .workflow-page .work-actionbar { bottom: 8px; padding: 8px 8px 8px 12px; }
+  .workflow-page .work-actionbar {
+    bottom: 0;
+    margin-inline: calc(-1 * var(--page-gutter));
+    padding: 10px var(--page-gutter) calc(10px + env(safe-area-inset-bottom));
+    border-inline: 0;
+    border-bottom: 0;
+    border-radius: 0;
+    background: #fff;
+    backdrop-filter: none;
+    box-shadow: 0 -4px 16px -8px rgb(15 23 42 / .18);
+  }
   .workflow-page .input-tabs { width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -639,9 +649,15 @@ div.job-message-page { max-width: calc(760px + 2 * var(--page-gutter)); }
 .submission-example-actions :is(a, button) { min-height: 32px; display: inline-flex; align-items: center; }
 .submission-form--alignment :is(input, select, textarea, summary) { scroll-margin-block: 100px; }
 @media (max-width: 700px) {
-  .submission-form--alignment .work-actionbar { flex-wrap: wrap; gap: 10px; padding-block: 10px; }
+  .submission-form--alignment .work-actionbar {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px var(--page-gutter) calc(10px + env(safe-area-inset-bottom));
+    background: #fff;
+  }
   .submission-form--alignment .work-summary { flex-basis: 100%; font-size: 12px; gap: 4px 12px; }
   .submission-form--alignment .work-summary > span { max-width: 100%; }
+  .submission-form--alignment .work-summary:has([data-ready="false"]) .submission-summary-settings { display: none; }
   .submission-form--alignment .work-actionbar > button { width: 100%; min-height: 44px; }
   .submission-summary-settings { gap: 2px 12px; }
   .submission-form--alignment .work-control { min-height: 44px; }

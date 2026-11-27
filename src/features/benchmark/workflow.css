@@ -194,11 +194,11 @@
   .benchmark-workflow .private-title h1 { font-size:26px; }
   .benchmark-title-actions { width:100%; justify-content:flex-start; }
   .benchmark-title-actions .private-button { min-height:44px; }
-  .benchmark-journey { gap:8px; padding:12px; margin-bottom:18px; }
-  .benchmark-journey li { font-size:12px; gap:5px; flex:1; min-width:0; }
-  .benchmark-journey li>span:nth-child(2) { min-width:0; line-height:1.4; }
-  .benchmark-journey-marker { width:22px; height:22px; font-size:11px; }
-  .benchmark-journey-arrow { margin-left:auto; width:12px; flex-shrink:0; }
+  .benchmark-journey { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; padding:12px 10px; margin-bottom:18px; align-items:start; }
+  .benchmark-journey li { flex-direction:column; align-items:center; text-align:center; font-size:12px; gap:6px; min-width:0; }
+  .benchmark-journey li>span:nth-child(2) { min-width:0; line-height:1.35; }
+  .benchmark-journey-marker { width:24px; height:24px; font-size:11px; }
+  .benchmark-journey-arrow { display:none; }
   .benchmark-submit-layout { grid-template-columns:1fr; gap:18px; }
   .benchmark-submit-main,.benchmark-submit-help { padding:20px 18px; }
   .benchmark-submit-help { border-left:0; border-top:1px solid var(--color-border); padding:22px 0 0; }

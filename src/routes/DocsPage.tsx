@@ -104,6 +104,7 @@ export function DocsPage() {
     validSection(requestedSection) ? requestedSection : DOCS_SECTION_IDS[0]
   );
   const [query, setQuery] = useState("");
+  const [resultsCollapsed, setResultsCollapsed] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const mobileTocRef = useRef<HTMLDetailsElement>(null);
   const sectionParamRef = useRef(`${requestedSection ?? ""}:${requestedArticle ?? ""}`);
@@ -124,7 +125,10 @@ export function DocsPage() {
     articleId?: string,
     replace = false
   ) => {
-    flushSync(() => setActiveSection(sectionId));
+    flushSync(() => {
+      setActiveSection(sectionId);
+      setResultsCollapsed(true);
+    });
     const target = document.getElementById(
       articleId ? `docs-article-${articleId}` : `docs-section-${sectionId}`
     );
@@ -176,6 +180,7 @@ export function DocsPage() {
   function handleSearchKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
     if (event.key === "Escape" && query) {
       setQuery("");
+      setResultsCollapsed(false);
       event.currentTarget.focus();
     }
   }
@@ -199,7 +204,10 @@ export function DocsPage() {
               aria-controls={normalizedQuery ? "docs-search-results" : undefined}
               aria-label={d.docs.searchLabel}
               className="docs-search-input h-11 w-full rounded-lg border border-slate-300 bg-white py-2 pl-12 pr-24 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setResultsCollapsed(false);
+              }}
               onKeyDown={handleSearchKeyDown}
               placeholder={d.docs.searchPlaceholder}
               ref={searchInputRef}
@@ -212,6 +220,7 @@ export function DocsPage() {
                 className="absolute right-14 top-1/2 -translate-y-1/2 rounded p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                 onClick={() => {
                   setQuery("");
+                  setResultsCollapsed(false);
                   searchInputRef.current?.focus();
                 }}
                 type="button"
@@ -229,17 +238,38 @@ export function DocsPage() {
       {normalizedQuery ? (
         <section
           aria-label={d.docs.searchResultsTitle}
-          className="border-b border-slate-200 pb-5"
-          data-docs-search-results="true"
+          className="border-b border-slate-200 pb-4"
+          data-docs-search-results={resultsCollapsed ? "collapsed" : "true"}
           id="docs-search-results"
         >
-          <div className="flex items-center justify-between gap-4">
-            <h2 className="text-lg font-semibold text-slate-950">{d.docs.searchResultsTitle}</h2>
-            <span aria-live="polite" className="text-xs font-medium text-slate-500">
-              {d.docs.searchResultsCount.replace("{count}", results.length.toLocaleString())}
-            </span>
+          <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-4">
+            <h2 className="text-base font-semibold text-slate-950 sm:text-lg">{d.docs.searchResultsTitle}</h2>
+            <div className="flex flex-wrap items-center gap-3">
+              <span aria-live="polite" className="text-xs font-medium text-slate-500">
+                {d.docs.searchResultsCount.replace("{count}", results.length.toLocaleString())}
+              </span>
+              {resultsCollapsed && results.length > 0 ? (
+                <button
+                  className="text-xs font-medium text-teal-700 hover:underline"
+                  onClick={() => setResultsCollapsed(false)}
+                  type="button"
+                >
+                  {locale === "zh" ? "展开搜索结果" : "Show search results"}
+                </button>
+              ) : null}
+              <button
+                className="text-xs font-medium text-slate-500 hover:text-slate-900 hover:underline"
+                onClick={() => {
+                  setQuery("");
+                  setResultsCollapsed(false);
+                }}
+                type="button"
+              >
+                {d.docs.clearSearch}
+              </button>
+            </div>
           </div>
-          {results.length ? (
+          {resultsCollapsed ? null : results.length ? (
             <ul className="mt-3 divide-y divide-slate-200 border-t border-slate-200">
               {results.map((result) => (
                 <li key={`${result.sectionId}:${result.articleId}`}>

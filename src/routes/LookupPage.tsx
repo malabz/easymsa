@@ -39,6 +39,29 @@ function formatCreatedAt(createdAt: string, locale: string) {
 
 type RecoveryError = "missingFields" | "invalidJobId" | "invalidJson" | "readJsonFailed";
 
+export function parseJobAccessUrl(raw: string): { jobId: string; token: string } | null {
+  const trimmed = raw.trim();
+  if (!trimmed || (!trimmed.includes("/") && !trimmed.includes("?"))) return null;
+  try {
+    const parsed = new URL(trimmed, "https://easymsa.local");
+    let routePath = parsed.pathname;
+    let routeSearch = parsed.searchParams;
+    if (parsed.hash.startsWith("#/")) {
+      const hashUrl = new URL(parsed.hash.slice(1), "https://easymsa.local");
+      routePath = hashUrl.pathname;
+      routeSearch = hashUrl.searchParams;
+    }
+    const match = routePath.match(/\/(?:job|results)\/([^/?#]+)/);
+    if (!match) return null;
+    const jobId = decodeURIComponent(match[1]).trim();
+    const token = (routeSearch.get("token") ?? parsed.searchParams.get("token") ?? "").trim();
+    if (!jobId) return null;
+    return { jobId, token };
+  } catch {
+    return null;
+  }
+}
+
 export function LookupPage() {
   const { dictionary: d, locale } = useLanguage();
   const navigate = useNavigate();
@@ -70,8 +93,13 @@ export function LookupPage() {
     : "Enter a valid job ID (up to 64 characters): letters, numbers, spaces, underscores, hyphens, dots and parentheses are supported; consecutive dots are not allowed.";
 
   function restore(nextJobId: string, nextToken: string) {
-    const trimmedJobId = nextJobId.trim();
-    const trimmedToken = nextToken.trim();
+    const parsed = parseJobAccessUrl(nextJobId);
+    const trimmedJobId = (parsed ? parsed.jobId : nextJobId).trim();
+    const trimmedToken = (parsed?.token || nextToken).trim();
+    if (parsed) {
+      setJobId(trimmedJobId);
+      if (parsed.token) setToken(trimmedToken);
+    }
 
     if (!trimmedJobId || !trimmedToken) {
       setOtherMethodsOpen(true);
@@ -277,7 +305,18 @@ export function LookupPage() {
                 autoComplete="off"
                 className="work-control"
                 id="jobId"
-                onChange={(event) => { setJobId(event.target.value); setError(null); }}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  const parsed = parseJobAccessUrl(value);
+                  if (parsed) {
+                    setJobId(parsed.jobId);
+                    if (parsed.token) setToken(parsed.token);
+                  } else {
+                    setJobId(value);
+                  }
+                  setError(null);
+                }}
+                placeholder={locale === "zh" ? "输入任务号，或粘贴完整结果链接" : "Job ID, or paste a full result link"}
                 ref={jobIdRef}
                 spellCheck={false}
                 value={jobId}

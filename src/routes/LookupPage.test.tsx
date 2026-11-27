@@ -131,4 +131,20 @@ describe("saved task recovery", () => {
     expect(mocks.navigate).toHaveBeenCalledWith("/job/unverified-job?token=unverified-key");
     expect(readJobAccessRecords()).toEqual([]);
   });
+
+  it("extracts job ID and token automatically when pasting a full result link", () => {
+    show();
+    const form = screen.getByRole("form", { name: "Manual restore" });
+    const jobIdInput = screen.getByLabelText("Job ID");
+    const tokenInput = form.querySelector<HTMLInputElement>('input[type="password"]')!;
+
+    fireEvent.change(jobIdInput, {
+      target: { value: "https://easymsa.cn/#/results/my%20job-42?token=secret-tok-1&stage=refined" }
+    });
+    expect(jobIdInput).toHaveValue("my job-42");
+    expect(tokenInput).toHaveValue("secret-tok-1");
+
+    fireEvent.submit(form);
+    expect(mocks.navigate).toHaveBeenCalledWith("/job/my%20job-42?token=secret-tok-1");
+  });
 });

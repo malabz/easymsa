@@ -80,7 +80,7 @@ export function DecisionTreeCanvas({ method, progress, locale, label }: Props) {
         ctx.font = `${active ? 600 : 400} ${vertical ? 12 : language === "en" ? 11 : 12}px system-ui, sans-serif`;
         ctx.textBaseline = "middle"; ctx.textAlign = "center";
         const textWidth = ctx.measureText(name).width + 16;
-        const tx = vertical ? Math.min(width - textWidth / 2, Math.max(textWidth / 2, point.x)) : point.x;
+        const tx = Math.min(width - textWidth / 2 - 2, Math.max(textWidth / 2 + 2, point.x));
         const ty = point.y - (vertical ? 17 : 16);
         ctx.fillStyle = active ? "#e3f3ee" : "#fff";
         ctx.beginPath();

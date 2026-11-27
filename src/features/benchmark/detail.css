@@ -54,6 +54,15 @@
 .benchmark-detail-v2 .benchmark-report-values-heading { margin:0 0 6px; }
 .benchmark-detail-v2 .benchmark-report-values .benchmark-comparison-key { padding-bottom:12px; }
 .benchmark-detail-v2 .benchmark-report-table { overflow:hidden; border:1px solid var(--bench-rule); border-radius:10px; }
+.benchmark-detail-v2 .benchmark-report-table .benchmark-table-scroll {
+  background:
+    linear-gradient(to right, #fff 30%, rgb(255 255 255 / 0)),
+    linear-gradient(to right, rgb(255 255 255 / 0), #fff 70%) 100% 0,
+    radial-gradient(farthest-side at 100% 50%, rgb(15 23 42 / .14), rgb(15 23 42 / 0)) 100% 50%;
+  background-repeat: no-repeat;
+  background-size: 28px 100%, 28px 100%, 14px 100%;
+  background-attachment: local, local, scroll;
+}
 .benchmark-detail-v2 .benchmark-report-table .benchmark-table thead { border-top:0; }
 .benchmark-detail-v2 .benchmark-report-table .benchmark-table tbody tr:last-child { border-bottom:0; }
 .benchmark-detail-v2 .benchmark-report-table td.benchmark-emphasis { transition:filter .15s ease; }
